@@ -1,0 +1,1236 @@
+<!doctype html><html><head><link rel="icon" href="../favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png"><link rel="manifest" href="../site.webmanifest"><meta name="theme-color" content="#10104B"><meta name="description" content="Baumonster fangen im Gameboy-Stil. Sammle alle sechs."><link rel="canonical" href="https://playaz.fun/spiele/richtfest.html"><meta property="og:type" content="website"><meta property="og:site_name" content="playaz.fun"><meta property="og:title" content="Richtfest · playaz.fun"><meta property="og:description" content="Baumonster fangen im Gameboy-Stil. Sammle alle sechs."><meta property="og:url" content="https://playaz.fun/spiele/richtfest.html"><meta property="og:image" content="https://playaz.fun/social-preview-1200x630.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playaz.fun/social-preview-1200x630.png"><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Richtfest</title>
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+/* Layout: a crane-yellow handheld centered on a dark site-at-night backdrop; 160×144 pixel screen on top, D-pad and A/B below. One committed visual world with a four-shade "Kran-Gelb" palette, so every color is explicit. */
+:root{
+  --bg:#17130c;
+  --shell:#E7B32A;
+  --shell-edge:#B48714;
+  --bezel:#3A3326;
+  --btn:#2B2418;
+  --abtn:#9A3F24;
+  --ink:#231A0B;
+  --muted:#a99d7f;
+  --c0:#F3E9C6; --c1:#D4B04A; --c2:#7A6328; --c3:#231A0B;
+  --font-pixel:"Pixelify Sans","Courier New",monospace;
+  --font-display:"Bungee","Arial Black",sans-serif;
+  color-scheme:dark;
+}
+html{height:100%;box-sizing:border-box}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var(--font-pixel);display:flex;justify-content:center;align-items:flex-start;padding-inline:16px;padding-block:16px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+.stage{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+
+.device{--sw:max(220px,min(calc(100vw - 100px),400px,calc((100vh - 340px) * 10 / 9)));display:flex;flex-direction:column;gap:14px;padding:18px 18px 22px;background:var(--shell);border-radius:14px 14px 56px 14px;box-shadow:inset 0 -5px 0 var(--shell-edge),inset 0 2px 0 rgba(255,255,255,.25),0 18px 40px rgba(0,0,0,.45);max-width:100%}
+.bezel{display:flex;flex-direction:column;gap:6px;padding:10px 14px 8px;background:var(--bezel);border-radius:8px 8px 26px 8px}
+.bezel-top{display:flex;align-items:center;gap:8px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.led{width:7px;height:7px;border-radius:50%;background:#e2533a;box-shadow:0 0 6px #e2533a}
+.brand{display:flex;align-items:baseline;gap:8px;padding-inline:4px;color:var(--ink)}
+.brand b{font-family:var(--font-display);font-weight:400;font-size:20px;letter-spacing:.02em}
+.brand span{font-size:13px;font-weight:600}
+
+.controls{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px 12px}
+.dpad{display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px)}
+.dpad button,.dpad .mid{background:var(--btn);border:0;padding:0;color:#bfb293;display:grid;place-items:center;cursor:pointer;touch-action:none}
+.dpad .up{grid-column:2;grid-row:1;border-radius:6px 6px 0 0}
+.dpad .left{grid-column:1;grid-row:2;border-radius:6px 0 0 6px}
+.dpad .mid{grid-column:2;grid-row:2}
+.dpad .right{grid-column:3;grid-row:2;border-radius:0 6px 6px 0}
+.dpad .down{grid-column:2;grid-row:3;border-radius:0 0 6px 6px}
+.dpad button.down-state,.ab button.down-state,.sys button.down-state{filter:brightness(1.35)}
+.ab{grid-column:3;display:flex;align-items:flex-end;gap:12px;padding-bottom:4px}
+.ab button{width:56px;height:56px;border-radius:50%;border:0;background:var(--abtn);color:var(--c0);font-family:var(--font-display);font-size:17px;cursor:pointer;box-shadow:inset 0 -4px 0 rgba(0,0,0,.3),0 2px 0 rgba(0,0,0,.25);touch-action:none}
+.ab .a{margin-bottom:24px}
+.sys{grid-column:1 / -1;display:flex;justify-content:center;gap:18px}
+.sys button{min-height:44px;min-width:70px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:none;border:0;cursor:pointer;color:var(--ink);font-family:var(--font-pixel);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase;touch-action:none}
+.sys .pill{display:block;width:44px;height:11px;border-radius:6px;background:var(--btn);transform:rotate(-18deg)}
+.sys button:focus-visible,.ab button:focus-visible,.dpad button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.keys{margin:0;font-size:13px;line-height:1.4;color:var(--muted);text-align:center;max-width:46ch}
+
+/* ---------- screen ---------- */
+.screen{position:relative;width:var(--sw);aspect-ratio:10/9;background:var(--c0);overflow:hidden;--u:2px;color:var(--c3);font-family:var(--font-pixel)}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.title{position:absolute;left:0;right:0;top:calc(var(--u)*10);display:flex;flex-direction:column;align-items:center;gap:calc(var(--u)*2);z-index:1;pointer-events:none}
+.title .t1{font-family:var(--font-display);font-size:calc(var(--u)*17);line-height:1;color:var(--c3);text-shadow:var(--u) var(--u) 0 var(--c1)}
+.title .t2{font-size:calc(var(--u)*7);color:var(--c2)}
+
+.box{position:absolute;left:0;right:0;bottom:0;height:calc(var(--u)*40);background:var(--c0);border:calc(var(--u)*2) solid var(--c3);box-shadow:inset 0 0 0 var(--u) var(--c1);padding:calc(var(--u)*4) calc(var(--u)*7);font-size:calc(var(--u)*7);line-height:1.3;overflow:hidden;z-index:2;cursor:pointer}
+.box.narrow{right:calc(var(--u)*78)}
+.box p{margin:0}
+.more{position:absolute;right:calc(var(--u)*5);bottom:calc(var(--u)*3);width:0;height:0;border-left:calc(var(--u)*3) solid transparent;border-right:calc(var(--u)*3) solid transparent;border-top:calc(var(--u)*4) solid var(--c3);animation:bob .7s steps(2) infinite}
+@keyframes bob{50%{transform:translateY(var(--u))}}
+
+.menu{position:absolute;background:var(--c0);border:calc(var(--u)*2) solid var(--c3);box-shadow:inset 0 0 0 var(--u) var(--c1);padding:calc(var(--u)*4) calc(var(--u)*5);font-size:calc(var(--u)*7);line-height:1.2;display:flex;flex-direction:column;gap:calc(var(--u)*3);z-index:3}
+.menu.side{top:0;right:0;width:calc(var(--u)*76)}
+.menu.battle{right:0;bottom:0;width:calc(var(--u)*80);height:calc(var(--u)*40);justify-content:center}
+.menu.moves{left:0;right:0;bottom:0;height:calc(var(--u)*40);justify-content:center}
+.menu.bottom{left:0;right:0;bottom:0;height:calc(var(--u)*44);justify-content:center}
+.menu.full{inset:0;overflow:auto}
+.menu.title{right:calc(var(--u)*4);bottom:calc(var(--u)*4);width:calc(var(--u)*84)}
+.menu-head{font-size:calc(var(--u)*7);line-height:1.3}
+.menu-list{display:grid;gap:calc(var(--u)*2) calc(var(--u)*6)}
+.menu-info{font-size:calc(var(--u)*6);line-height:1.3;color:var(--c2);border-top:var(--u) solid var(--c1);padding-top:calc(var(--u)*2)}
+.menu-info b{color:var(--c3);font-weight:600}
+.opt{display:flex;align-items:center;gap:calc(var(--u)*3);font:inherit;color:inherit;background:none;border:0;padding:var(--u) 0;text-align:left;cursor:pointer;min-width:0}
+.opt::before{content:"";flex:none;border-left:calc(var(--u)*3) solid var(--c3);border-top:calc(var(--u)*2.5) solid transparent;border-bottom:calc(var(--u)*2.5) solid transparent;visibility:hidden}
+.opt.sel::before{visibility:visible}
+.menu.full .menu-list{gap:calc(var(--u)*2)}
+.menu.full .opt{border-bottom:var(--u) solid var(--c1);padding-bottom:calc(var(--u)*2)}
+
+.tm{flex:1;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--u) calc(var(--u)*4);align-items:center}
+.tm-b{display:block;height:calc(var(--u)*4);border:var(--u) solid var(--c3)}
+.tm-b i{display:block;height:100%;background:var(--c2)}
+.tm-l,.tm-h{font-size:calc(var(--u)*6);text-align:right}
+
+.hud{position:absolute;font-size:calc(var(--u)*7);line-height:1.1;z-index:1}
+.hud.foe{left:calc(var(--u)*4);top:calc(var(--u)*5);width:calc(var(--u)*80);border-left:var(--u) solid var(--c3);border-bottom:var(--u) solid var(--c3);padding:0 0 calc(var(--u)*2) calc(var(--u)*3)}
+.hud.me{right:calc(var(--u)*4);top:calc(var(--u)*64);width:calc(var(--u)*78);border-right:var(--u) solid var(--c3);border-bottom:var(--u) solid var(--c3);padding:0 calc(var(--u)*3) calc(var(--u)*2) 0}
+.hud-top{display:flex;justify-content:space-between;gap:calc(var(--u)*3)}
+.hp{display:flex;align-items:center;gap:calc(var(--u)*2);margin-top:calc(var(--u)*2)}
+.hp-label{font-size:calc(var(--u)*5);font-weight:600}
+.bar{flex:1;height:calc(var(--u)*4);border:var(--u) solid var(--c3);background:var(--c0)}
+.bar .fill{display:block;height:100%;width:100%;background:var(--c2);transition:width .45s steps(10)}
+.bar .fill.low{background:var(--c3)}
+.hp-num{text-align:right;margin-top:var(--u);font-size:calc(var(--u)*6)}
+.xp{height:calc(var(--u)*2);background:var(--c1);margin-top:var(--u)}
+.xp .fill{display:block;height:100%;width:0;background:var(--c3);transition:width .4s steps(8)}
+
+.info{display:flex;gap:calc(var(--u)*5);align-items:center;font-size:calc(var(--u)*7);line-height:1.3}
+.info-img,.cat img{image-rendering:pixelated;flex:none}
+.info-img{width:calc(var(--u)*32);height:calc(var(--u)*32)}
+.info-dex{margin:0;font-size:calc(var(--u)*6);line-height:1.3;color:var(--c2)}
+.info-stats,.info-moves{font-size:calc(var(--u)*6);line-height:1.3}
+.cat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--u)*3);margin-top:calc(var(--u)*3)}
+.cat{display:flex;flex-direction:column;align-items:center;gap:var(--u);font-size:calc(var(--u)*6);text-align:center;padding:var(--u);border:var(--u) solid var(--c1);min-width:0}
+.cat img{width:calc(var(--u)*24);height:calc(var(--u)*24)}
+.cat small{font-size:calc(var(--u)*5);color:var(--c2)}
+.cat.got{border-color:var(--c3)}
+.end{text-align:center;display:flex;flex-direction:column;gap:calc(var(--u)*4);padding-top:calc(var(--u)*6)}
+.end-t{font-family:var(--font-display);font-size:calc(var(--u)*16);line-height:1}
+.end-s{font-size:calc(var(--u)*7);line-height:1.4}
+.end p{margin:0;font-size:calc(var(--u)*6);line-height:1.3;color:var(--c2)}
+
+.flash{position:absolute;inset:0;background:var(--c3);opacity:0;pointer-events:none;z-index:5}
+.flash.go{animation:flash .6s steps(1,end) forwards}
+@keyframes flash{0%{opacity:1}16%{opacity:0}33%{opacity:1}50%{opacity:0}66%{opacity:1}83%,100%{opacity:0}}
+
+@media (max-width:480px){
+  .device{--sw:max(220px,min(calc(100vw - 72px),400px,calc((100vh - 320px) * 10 / 9)));padding:10px 10px 18px;border-radius:12px 12px 40px 12px}
+  .bezel{padding:8px 8px 6px;border-radius:6px 6px 20px 6px}
+}
+@media (prefers-reduced-motion:reduce){
+  .more{animation:none}
+  .flash.go{animation:none}
+  .bar .fill,.xp .fill{transition:none}
+}
+</style>
+
+<main class="stage">
+  <div class="device">
+    <div class="bezel">
+      <div class="bezel-top"><span class="led" aria-hidden="true"></span>Baustellen-Edition</div>
+      <div class="screen" id="screen">
+        <canvas id="cv" width="160" height="144" aria-label="Spielbildschirm"></canvas>
+        <div class="title" id="title"><span class="t1">Richtfest</span><span class="t2">Baumonster vom Bau</span></div>
+        <div class="hud foe" id="hudFoe" hidden>
+          <div class="hud-top"><span id="foeName"></span><span id="foeLv"></span></div>
+          <div class="hp"><span class="hp-label">LP</span><span class="bar"><span class="fill" id="foeHp"></span></span></div>
+        </div>
+        <div class="hud me" id="hudMe" hidden>
+          <div class="hud-top"><span id="meName"></span><span id="meLv"></span></div>
+          <div class="hp"><span class="hp-label">LP</span><span class="bar"><span class="fill" id="meHp"></span></span></div>
+          <div class="hp-num" id="meHpNum"></div>
+          <div class="xp"><span class="fill" id="meXp"></span></div>
+        </div>
+        <div class="box" id="box" hidden aria-live="polite"><p id="boxText"></p><span class="more" id="more" hidden></span></div>
+        <div class="menu" id="menu" hidden></div>
+        <div class="flash" id="flash"></div>
+      </div>
+    </div>
+    <div class="brand"><b>Richtfest</b><span>Baumonster</span></div>
+    <div class="controls">
+      <div class="dpad">
+        <button class="up" data-btn="up" tabindex="-1" aria-label="Hoch"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 4l5 7H3z" fill="currentColor"/></svg></button>
+        <button class="left" data-btn="left" tabindex="-1" aria-label="Links"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 8l7-5v10z" fill="currentColor"/></svg></button>
+        <span class="mid" aria-hidden="true"></span>
+        <button class="right" data-btn="right" tabindex="-1" aria-label="Rechts"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M12 8l-7 5V3z" fill="currentColor"/></svg></button>
+        <button class="down" data-btn="down" tabindex="-1" aria-label="Runter"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 12L3 5h10z" fill="currentColor"/></svg></button>
+      </div>
+      <div class="ab">
+        <button class="b" data-btn="b" tabindex="-1" aria-label="B, zurück">B</button>
+        <button class="a" data-btn="a" tabindex="-1" aria-label="A, bestätigen">A</button>
+      </div>
+      <div class="sys">
+        <button type="button" id="mute"><span class="pill" aria-hidden="true"></span><span id="muteLabel">Ton an</span></button>
+        <button type="button" data-btn="start" tabindex="-1"><span class="pill" aria-hidden="true"></span>Menü</button>
+      </div>
+    </div>
+  </div>
+  <p class="keys">Tastatur: Pfeiltasten laufen · Leertaste oder Enter = A · Esc = B · M = Menü</p>
+</main>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const cv = $("cv"), ctx = cv.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+  const screenEl = $("screen");
+  const PAL = ["#F3E9C6", "#D4B04A", "#7A6328", "#231A0B"];
+  const W = 160, H = 144, T = 16;
+  const reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  const SAVE_KEY = "richtfest.save.v1";
+
+  // ================= DATA =================
+  const TYPE_NAME = { holz: "Holz", beton: "Beton", stahl: "Stahl", normal: "Normal" };
+  // Holz formt Beton (Schalung), Beton umschließt Stahl, Stahl sägt Holz
+  const STRONG = { holz: "beton", beton: "stahl", stahl: "holz" };
+  const eff = (mt, dt) => (mt === "normal" ? 1 : STRONG[mt] === dt ? 2 : STRONG[dt] === mt ? 0.5 : 1);
+
+  const MOVES = {
+    rempler:      { name: "Rempler",      type: "normal", pow: 35, acc: 95 },
+    hammerschlag: { name: "Hammerschlag", type: "normal", pow: 40, acc: 100 },
+    baulaerm:     { name: "Baulärm",      type: "normal", pow: 0,  acc: 100, desc: "senkt Angriff", effect: { target: "foe", stat: "atk", delta: -1 } },
+    verschalen:   { name: "Verschalen",   type: "normal", pow: 0,  acc: 100, desc: "hebt Verteidigung", effect: { target: "self", stat: "def", delta: 1 } },
+    spanflug:     { name: "Spanflug",     type: "holz",   pow: 45, acc: 100 },
+    balkenwurf:   { name: "Balkenwurf",   type: "holz",   pow: 70, acc: 90 },
+    betonguss:    { name: "Betonguss",    type: "beton",  pow: 45, acc: 100 },
+    ziegelregen:  { name: "Ziegelregen",  type: "beton",  pow: 70, acc: 90 },
+    kranhaken:    { name: "Kranhaken",    type: "stahl",  pow: 45, acc: 100 },
+    stahltraeger: { name: "Stahlträger",  type: "stahl",  pow: 70, acc: 90 }
+  };
+
+  const SPECIES = {
+    spanferkel:  { name: "Spanferkel",  g: "n", type: "holz",  hp: 45, atk: 52, def: 45, spd: 55, xp: 62, rate: 0.45,
+      learn: [[1, "rempler"], [1, "baulaerm"], [5, "spanflug"], [9, "verschalen"], [13, "balkenwurf"]],
+      dex: "Ein Ferkel aus Hobelspänen. Riecht nach frisch gesägter Fichte." },
+    mischmasch:  { name: "Mischmasch",  g: "m", type: "beton", hp: 50, atk: 48, def: 55, spd: 40, xp: 64, rate: 0.45,
+      learn: [[1, "rempler"], [1, "verschalen"], [5, "betonguss"], [9, "baulaerm"], [13, "ziegelregen"]],
+      dex: "Dreht sich ständig. Was es frisst, kommt als Beton wieder raus." },
+    kranich:     { name: "Kranich",     g: "m", type: "stahl", hp: 42, atk: 55, def: 42, spd: 60, xp: 62, rate: 0.45,
+      learn: [[1, "rempler"], [1, "baulaerm"], [5, "kranhaken"], [9, "verschalen"], [13, "stahltraeger"]],
+      dex: "Hebt Lasten mit dem Schnabel. Schläft nur auf Baukränen." },
+    baggerling:  { name: "Baggerling",  g: "m", type: "stahl", hp: 40, atk: 50, def: 50, spd: 35, xp: 55, rate: 0.6,
+      learn: [[1, "rempler"], [3, "kranhaken"], [6, "verschalen"], [10, "stahltraeger"]],
+      dex: "Gräbt Löcher, wo keine hingehören. Liebt Matsch." },
+    ziegelzwerg: { name: "Ziegelzwerg", g: "m", type: "beton", hp: 38, atk: 45, def: 55, spd: 40, xp: 55, rate: 0.6,
+      learn: [[1, "hammerschlag"], [3, "verschalen"], [6, "betonguss"], [10, "ziegelregen"]],
+      dex: "Mauert nachts heimlich weiter. Keiner weiß, für wen." },
+    balkenbaer:  { name: "Balkenbär",   g: "m", type: "holz",  hp: 50, atk: 55, def: 40, spd: 38, xp: 58, rate: 0.55,
+      learn: [[1, "rempler"], [3, "baulaerm"], [6, "spanflug"], [10, "balkenwurf"]],
+      dex: "Brummt wie eine Kreissäge. Trägt Dachbalken auf dem Rücken." }
+  };
+  const STARTERS = ["spanferkel", "mischmasch", "kranich"];
+  const ORDER = ["spanferkel", "mischmasch", "kranich", "baggerling", "ziegelzwerg", "balkenbaer"];
+
+  // . Boden  , Weg  * Schutthaufen  # Bauzaun  G Tor  C Container  H Bauleiterin  P Polier
+  // R Rohbau  E Eingang  W Richtbaum  K Kranmast  J/j Ausleger  B Ziegel  S Schild
+  const MAP = [
+    "########################",
+    "#B.......WW....jJJJJJJK#",
+    "#B....RRRRRRRR........K#",
+    "#.....RRRRRRRR........K#",
+    "#.....RRREERRR........K#",
+    "#........,,..........BK#",
+    "#........,,............#",
+    "#########PG#############",
+    "#........,,............#",
+    "#****....,,...******...#",
+    "#*****...**..*******...#",
+    "#*****...,,..*******B..#",
+    "#...#####,,######......#",
+    "#........,,...S........#",
+    "#..******,,********....#",
+    "#..****************....#",
+    "#..******,,********.BB.#",
+    "#........,,............#",
+    "#########,,#############",
+    "#........,,............#",
+    "#CCCC....,,.........BB.#",
+    "#CCCCH...,,............#",
+    "#........,,.....S......#",
+    "#........,,............#",
+    "#BB......,,............#",
+    "########################"
+  ];
+  const MW = 24, MH = MAP.length;
+  const SIGNS = {
+    "14,13": "ACHTUNG! In den Schutthaufen hausen wilde Baumonster. Weiter nördlich sind sie stärker.",
+    "16,22": "BAUSTELLE HOCHSTAPLER. Zum Richtfest geht's nach Norden. Erst am Polier vorbei!"
+  };
+  const WALK = new Set([".", ",", "*", "E"]);
+
+  // ================= HELPERS =================
+  const name = (m) => SPECIES[m.sp].name;
+  const ein = (m) => (SPECIES[m.sp].g === "n" ? "Ein wildes " : "Ein wilder ") + name(m);
+  function stats(m) {
+    const s = SPECIES[m.sp], L = m.lvl;
+    return {
+      maxhp: Math.floor(s.hp * 2 * L / 50) + L + 10,
+      atk: Math.floor(s.atk * 2 * L / 50) + 5,
+      def: Math.floor(s.def * 2 * L / 50) + 5,
+      spd: Math.floor(s.spd * 2 * L / 50) + 5
+    };
+  }
+  function mk(sp, lvl) {
+    const m = { sp, lvl, xp: Math.pow(lvl, 3), moves: [], hp: 0 };
+    for (const [lv, id] of SPECIES[sp].learn) {
+      if (lv <= lvl && !m.moves.includes(id)) { if (m.moves.length >= 4) m.moves.shift(); m.moves.push(id); }
+    }
+    m.hp = stats(m).maxhp;
+    return m;
+  }
+  const stageMul = (s) => (s >= 0 ? (2 + s) / 2 : 2 / (2 - s));
+  function pickW(list) {
+    const tot = list.reduce((s, x) => s + x[1], 0);
+    let r = Math.random() * tot;
+    for (const [k, w] of list) { r -= w; if (r < 0) return k; }
+    return list[0][0];
+  }
+
+  // ================= PIXEL ART =================
+  function mkc(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+  function px(g, x, y, w, h, c) { g.fillStyle = PAL[c]; g.fillRect(x, y, w, h); }
+
+  // Characters (16×16): 0 light, 1 crane yellow, 2 mid, 3 ink, . empty. Legs are added separately.
+  const SPR_DOWN = [
+    "......3333......",
+    "....33111133....",
+    "...3111111113...",
+    "..311111111113..",
+    ".33333333333333.",
+    "...3000000003...",
+    "...3030000303...",
+    "...3000000003...",
+    "....30033003....",
+    "...3322222233...",
+    "..322211112223..",
+    "..322222222223..",
+    "..332222222233.."
+  ];
+  const SPR_UP = [
+    "......3333......",
+    "....33111133....",
+    "...3111111113...",
+    "..311111111113..",
+    ".33333333333333.",
+    "...3333333333...",
+    "...3333333333...",
+    "....33333333....",
+    "....30000003....",
+    "...3322222233...",
+    "..322211112223..",
+    "..322222222223..",
+    "..332222222233.."
+  ];
+  const SPR_SIDE = [
+    "......3333......",
+    "....33111133....",
+    "...3111111113...",
+    "..311111111113..",
+    "..3333333333333.",
+    "....3330000003..",
+    "....3300000303..",
+    "....3300000003..",
+    ".....33000033...",
+    "....332222233...",
+    "....3221112223..",
+    "....3222222223..",
+    "....3322222233.."
+  ];
+  function drawRows(g, rows, map) {
+    rows.forEach((row, y) => {
+      for (let x = 0; x < 16; x++) {
+        const ch = row[x];
+        if (ch === "." || ch === undefined) continue;
+        const c = map && map[ch] !== undefined ? map[ch] : +ch;
+        px(g, x, y, 1, 1, c);
+      }
+    });
+  }
+  function legs(g, dir, frame) {
+    const L = (x, y, w, h) => px(g, x, y, w, h, 3);
+    if (dir === "down" || dir === "up") { L(5, 13, 2, frame === 1 ? 2 : 3); L(9, 13, 2, frame === 2 ? 2 : 3); }
+    else if (frame === 0) { L(6, 13, 2, 3); L(9, 13, 2, 3); }
+    else if (frame === 1) { L(5, 13, 2, 3); L(10, 13, 2, 3); }
+    else { L(7, 13, 2, 3); L(8, 13, 2, 2); }
+  }
+  function charSprite(dir, frame, map) {
+    const c = mkc(16, 16), g = c.getContext("2d");
+    if (dir === "left") { g.translate(16, 0); g.scale(-1, 1); }
+    drawRows(g, dir === "down" ? SPR_DOWN : dir === "up" ? SPR_UP : SPR_SIDE, map);
+    legs(g, dir, frame);
+    return c;
+  }
+  const PLAYER = {};
+  for (const d of ["down", "up", "left", "right"]) for (const f of [0, 1, 2]) PLAYER[d + f] = charSprite(d, f);
+  const NPC_BEA = charSprite("down", 0, { "1": 2, "2": 1 });
+  const NPC_PAUL = charSprite("down", 0, { "1": 0, "2": 3 });
+
+  // Tiles (16×16)
+  const TILES = {};
+  function tile(key, fn) { const c = mkc(16, 16); fn(c.getContext("2d")); TILES[key] = c; }
+  function ground(g) { px(g, 0, 0, 16, 16, 0); [[3, 4], [11, 2], [7, 11], [13, 13], [1, 9], [9, 7]].forEach(([x, y]) => px(g, x, y, 1, 1, 1)); }
+  function pile(g, ox, oy) {
+    for (let r = 0; r < 4; r++) { const w = 2 + r * 2, x = ox + 3 - r; px(g, x, oy + r, w, 1, 2); px(g, x, oy + r, 1, 1, 3); px(g, x + w - 1, oy + r, 1, 1, 3); }
+    px(g, ox + 3, oy, 2, 1, 3); px(g, ox, oy + 4, 8, 1, 3);
+  }
+  function fence(g) {
+    px(g, 0, 0, 16, 16, 0);
+    for (let y = 4; y < 12; y++) for (let x = 0; x < 16; x++) if ((x + y) % 3 === 0) px(g, x, y, 1, 1, 2);
+    px(g, 0, 3, 16, 1, 3); px(g, 0, 12, 16, 1, 3); px(g, 0, 2, 2, 12, 3); px(g, 14, 2, 2, 12, 3);
+    px(g, 0, 13, 3, 2, 2); px(g, 13, 13, 3, 2, 2);
+  }
+  function container(g, top) {
+    px(g, 0, 0, 16, 16, 1);
+    for (const x of [1, 4, 7, 10, 13]) px(g, x, 0, 1, 16, 2);
+    px(g, 0, 15, 16, 1, 3);
+    if (top) { px(g, 0, 0, 16, 2, 3); px(g, 0, 2, 16, 1, 2); }
+  }
+  function rohbau(g, top) {
+    px(g, 0, 0, 16, 16, 2); px(g, 0, 0, 16, 2, 3);
+    px(g, 2, 5, 5, 7, 3); px(g, 9, 5, 5, 7, 3); px(g, 2, 11, 5, 1, 1); px(g, 9, 11, 5, 1, 1);
+    if (top) { px(g, 0, 0, 16, 3, 3); for (const x of [1, 5, 9, 13]) px(g, x, 0, 1, 1, 1); }
+  }
+  function jib(g) {
+    ground(g); px(g, 0, 4, 16, 1, 3); px(g, 0, 11, 16, 1, 3); px(g, 0, 5, 16, 1, 1); px(g, 0, 10, 16, 1, 1);
+    for (let x = 0; x < 16; x++) { const m = x % 8, d = m < 4 ? m : 7 - m; px(g, x, 6 + d, 1, 1, 3); }
+  }
+  tile(".", ground);
+  tile(",", (g) => { px(g, 0, 0, 16, 16, 1); [[2, 3], [9, 6], [5, 12], [13, 10], [12, 1], [6, 8]].forEach(([x, y]) => px(g, x, y, 1, 1, 2)); [[14, 14], [3, 9]].forEach(([x, y]) => px(g, x, y, 1, 1, 0)); });
+  tile("*", (g) => { px(g, 0, 0, 16, 16, 0); pile(g, 0, 2); pile(g, 8, 9); px(g, 11, 3, 2, 1, 2); px(g, 3, 12, 2, 1, 2); px(g, 13, 5, 1, 1, 3); px(g, 5, 9, 1, 1, 3); });
+  tile("#", fence);
+  tile("G", (g) => { fence(g); px(g, 3, 5, 10, 6, 3); for (let y = 6; y < 10; y++) for (let x = 4; x < 12; x++) px(g, x, y, 1, 1, (x + y) % 4 < 2 ? 1 : 3); });
+  tile("C", (g) => container(g, false));
+  tile("Ctop", (g) => container(g, true));
+  tile("R", (g) => rohbau(g, false));
+  tile("Rtop", (g) => rohbau(g, true));
+  tile("E", (g) => { px(g, 0, 0, 16, 16, 3); px(g, 0, 0, 2, 16, 2); px(g, 14, 0, 2, 16, 2); px(g, 0, 0, 16, 2, 2); });
+  tile("W", (g) => {
+    ground(g); px(g, 7, 10, 2, 6, 3);
+    px(g, 5, 1, 6, 1, 3); px(g, 5, 2, 6, 1, 2); px(g, 4, 3, 8, 3, 2); px(g, 3, 6, 10, 3, 2);
+    px(g, 4, 3, 1, 1, 3); px(g, 11, 3, 1, 1, 3); px(g, 3, 6, 1, 1, 3); px(g, 12, 6, 1, 1, 3); px(g, 3, 9, 10, 1, 3);
+    px(g, 4, 10, 1, 3, 1); px(g, 11, 10, 1, 3, 1); px(g, 8, 4, 1, 1, 1); px(g, 6, 7, 1, 1, 1); px(g, 10, 6, 1, 1, 1);
+  });
+  tile("K", (g) => { ground(g); px(g, 4, 0, 1, 16, 3); px(g, 11, 0, 1, 16, 3); px(g, 5, 0, 1, 16, 1); px(g, 10, 0, 1, 16, 1); for (let y = 0; y < 16; y++) { const m = y % 8, d = m < 4 ? m : 7 - m; px(g, 6 + d, y, 1, 1, 3); } });
+  tile("J", jib);
+  tile("j", (g) => { jib(g); px(g, 7, 12, 1, 4, 3); });
+  tile("B", (g) => {
+    ground(g); px(g, 1, 3, 14, 10, 3); px(g, 2, 4, 12, 8, 2); px(g, 2, 6, 12, 1, 3); px(g, 2, 9, 12, 1, 3);
+    px(g, 7, 4, 1, 2, 3); px(g, 4, 7, 1, 2, 3); px(g, 10, 7, 1, 2, 3); px(g, 7, 10, 1, 2, 3);
+    px(g, 1, 13, 14, 2, 3); px(g, 3, 14, 2, 1, 2); px(g, 11, 14, 2, 1, 2);
+  });
+  tile("S", (g) => { ground(g); px(g, 7, 9, 2, 7, 3); px(g, 2, 2, 12, 8, 3); px(g, 3, 3, 10, 6, 1); px(g, 4, 4, 8, 1, 3); px(g, 4, 6, 6, 1, 3); });
+  tile("H", (g) => { ground(g); g.drawImage(NPC_BEA, 0, 0); });
+  tile("P", (g) => { ground(g); g.drawImage(NPC_PAUL, 0, 0); });
+
+  // Monsters (32×32), drawn facing right
+  const ART = {
+    spanferkel(R, box) {
+      R(1, 14, 3, 1, 3); R(1, 15, 1, 2, 3); R(2, 17, 2, 1, 3); R(3, 16, 1, 1, 3);
+      R(3, 8, 2, 1, 2); R(7, 6, 1, 1, 2); R(1, 11, 2, 1, 2);
+      box(4, 13, 20, 12, 1);
+      R(7, 16, 7, 1, 2); R(12, 19, 9, 1, 2); R(6, 22, 6, 1, 2);
+      box(6, 23, 4, 6, 2); box(12, 23, 4, 6, 2); box(18, 23, 4, 6, 2);
+      box(21, 5, 4, 5, 2);
+      box(20, 8, 10, 12, 1);
+      R(23, 11, 2, 2, 3);
+      box(27, 12, 5, 5, 0); R(28, 14, 1, 1, 3); R(30, 14, 1, 1, 3);
+      R(25, 17, 3, 1, 3);
+    },
+    mischmasch(R, box) {
+      R(3, 22, 26, 5, 3); R(4, 23, 24, 1, 2);
+      R(5, 25, 7, 6, 3); R(7, 27, 3, 2, 1); R(20, 25, 7, 6, 3); R(22, 27, 3, 2, 1);
+      box(4, 5, 22, 18, 2);
+      R(8, 6, 2, 16, 1); R(14, 6, 2, 16, 1); R(20, 6, 2, 16, 1);
+      R(21, 2, 9, 8, 3); R(23, 4, 5, 4, 0);
+      R(28, 0, 2, 2, 0); R(30, 3, 1, 1, 0);
+      box(7, 9, 6, 6, 0); R(9, 11, 2, 2, 3);
+      box(15, 9, 6, 6, 0); R(17, 11, 2, 2, 3);
+      R(10, 17, 8, 2, 3); R(11, 17, 2, 1, 0);
+    },
+    kranich(R, box) {
+      R(1, 16, 5, 2, 3); R(2, 15, 3, 1, 3);
+      box(4, 14, 14, 10, 1);
+      box(5, 15, 9, 6, 2); R(7, 16, 1, 4, 3); R(10, 16, 1, 4, 3);
+      R(8, 24, 1, 6, 3); R(13, 24, 1, 6, 3); R(6, 30, 4, 1, 3); R(11, 30, 4, 1, 3);
+      box(14, 4, 5, 12, 1); R(15, 7, 3, 1, 3); R(15, 10, 3, 1, 3); R(15, 13, 3, 1, 3);
+      box(13, 0, 8, 6, 1); R(17, 2, 2, 2, 3);
+      box(20, 2, 10, 3, 2);
+      R(28, 5, 1, 7, 3); R(26, 12, 4, 1, 3); R(26, 10, 1, 2, 3);
+    },
+    baggerling(R, box) {
+      R(2, 23, 22, 7, 3); for (const x of [4, 8, 12, 16, 20]) R(x, 25, 2, 3, 2);
+      R(6, 8, 2, 5, 3); R(5, 5, 4, 3, 2); R(6, 6, 2, 1, 0);
+      box(5, 13, 15, 11, 1);
+      box(8, 15, 9, 6, 0); R(10, 17, 2, 2, 3); R(14, 17, 2, 2, 3);
+      box(18, 10, 9, 4, 2);
+      box(24, 10, 4, 11, 2);
+      R(22, 19, 9, 6, 3); R(23, 20, 7, 3, 2);
+      R(22, 25, 1, 2, 3); R(25, 25, 1, 2, 3); R(28, 25, 1, 2, 3);
+    },
+    ziegelzwerg(R, box) {
+      box(14, 1, 4, 4, 2); box(12, 4, 8, 4, 2); box(10, 7, 12, 4, 2);
+      box(10, 10, 12, 8, 0);
+      R(13, 12, 2, 2, 3); R(17, 12, 2, 2, 3); R(15, 14, 2, 2, 2);
+      box(10, 15, 12, 7, 1); R(15, 17, 2, 1, 3);
+      box(7, 21, 18, 8, 2);
+      R(8, 24, 16, 1, 3); R(15, 22, 1, 2, 3); R(11, 25, 1, 3, 3); R(20, 25, 1, 3, 3);
+      box(4, 21, 4, 6, 1); box(24, 21, 4, 6, 1);
+      R(9, 28, 6, 4, 3); R(17, 28, 6, 4, 3);
+      R(28, 15, 1, 7, 3); box(26, 11, 5, 5, 1);
+    },
+    balkenbaer(R, box) {
+      box(7, 1, 6, 6, 1); R(9, 3, 2, 2, 2);
+      box(19, 1, 6, 6, 1); R(21, 3, 2, 2, 2);
+      box(6, 14, 20, 13, 1);
+      R(8, 17, 8, 1, 2); R(14, 21, 10, 1, 2); R(9, 24, 6, 1, 2);
+      R(9, 16, 1, 1, 3); R(22, 16, 1, 1, 3); R(9, 25, 1, 1, 3); R(22, 25, 1, 1, 3);
+      box(2, 15, 5, 10, 2); box(25, 15, 5, 10, 2);
+      box(8, 26, 6, 6, 2); box(18, 26, 6, 6, 2);
+      box(8, 3, 16, 12, 1);
+      R(11, 7, 2, 2, 3); R(19, 7, 2, 2, 3);
+      box(13, 9, 6, 5, 0); R(15, 10, 2, 1, 3); R(15, 12, 2, 1, 3);
+    }
+  };
+  function buildMonster(sp, flip) {
+    const c = mkc(32, 32), g = c.getContext("2d");
+    if (flip) { g.translate(32, 0); g.scale(-1, 1); }
+    const R = (x, y, w, h, col) => px(g, x, y, w, h, col);
+    const box = (x, y, w, h, col) => { R(x, y, w, h, 3); R(x + 1, y + 1, w - 2, h - 2, col); };
+    ART[sp](R, box);
+    return c;
+  }
+  const MONS = {};
+  for (const sp of ORDER) MONS[sp] = { normal: buildMonster(sp, false), flip: buildMonster(sp, true) };
+  const URLS = {};
+  function spriteURL(sp) { return URLS[sp] || (URLS[sp] = MONS[sp].normal.toDataURL()); }
+  function silhouetteURL(sp) {
+    const k = sp + "_s";
+    if (URLS[k]) return URLS[k];
+    const c = mkc(32, 32), g = c.getContext("2d");
+    g.drawImage(MONS[sp].normal, 0, 0); g.globalCompositeOperation = "source-in"; g.fillStyle = PAL[2]; g.fillRect(0, 0, 32, 32);
+    return (URLS[k] = c.toDataURL());
+  }
+
+  // ================= STATE =================
+  const G = { scene: "title", busy: false, map: null, team: [], lager: [], items: { haken: 5, brotzeit: 3 }, flags: { polier: false, ended: false }, seen: [], caught: [], stats: { fights: 0, catches: 0 }, starter: null, starterSel: 0 };
+  const P = { x: 10, y: 23, fx: 10, fy: 23, t: 1, moving: false, dir: "up", step: 0, bumpT: 0 };
+  function freshMap() { G.map = MAP.map((r) => r.split("")); if (G.flags.polier) { G.map[7][9] = ","; G.map[7][10] = ","; } }
+  function tileAt(x, y) { return x < 0 || y < 0 || x >= MW || y >= MH ? "#" : G.map[y][x]; }
+  function markSeen(sp) { if (!G.seen.includes(sp)) G.seen.push(sp); }
+  function healAll() { for (const m of G.team) m.hp = stats(m).maxhp; }
+  function resetState() {
+    G.team = []; G.lager = []; G.items = { haken: 5, brotzeit: 3 }; G.flags = { polier: false, ended: false };
+    G.seen = []; G.caught = []; G.stats = { fights: 0, catches: 0 }; G.starter = null;
+    freshMap(); Object.assign(P, { x: 10, y: 23, fx: 10, fy: 23, t: 1, moving: false, dir: "up", step: 0 });
+  }
+  function save() {
+    store.set(SAVE_KEY, { v: 1, team: G.team, lager: G.lager, items: G.items, flags: G.flags, seen: G.seen, caught: G.caught, stats: G.stats, starter: G.starter, pos: { x: P.x, y: P.y, dir: P.dir } });
+  }
+  function loadSave() {
+    const s = store.get(SAVE_KEY, null);
+    if (!s || !Array.isArray(s.team)) return null;
+    s.team = s.team.filter((m) => m && SPECIES[m.sp] && Array.isArray(m.moves));
+    return s.team.length ? s : null;
+  }
+  function applySave(s) {
+    G.team = s.team; G.lager = (s.lager || []).filter((m) => m && SPECIES[m.sp]);
+    G.items = s.items || { haken: 5, brotzeit: 3 }; G.flags = s.flags || { polier: false, ended: false };
+    G.seen = s.seen || []; G.caught = s.caught || []; G.stats = s.stats || { fights: 0, catches: 0 }; G.starter = s.starter || null;
+    freshMap();
+    const p = s.pos || { x: 10, y: 23, dir: "up" };
+    const ok = WALK.has(tileAt(p.x, p.y));
+    Object.assign(P, { x: ok ? p.x : 10, y: ok ? p.y : 23, fx: ok ? p.x : 10, fy: ok ? p.y : 23, t: 1, moving: false, dir: p.dir || "up" });
+  }
+
+  // ================= AUDIO =================
+  let ac = null, muted = !!store.get("richtfest.muted", false);
+  function audioInit() {
+    if (muted) return;
+    if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { ac = null; } }
+    if (ac && ac.state === "suspended") ac.resume();
+  }
+  function beep(f, d, type, v, slide, delay) {
+    if (muted || !ac) return;
+    const t = ac.currentTime + (delay || 0), o = ac.createOscillator(), g = ac.createGain();
+    o.type = type || "square"; o.frequency.setValueAtTime(f, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + d);
+    g.gain.setValueAtTime(v || 0.04, t); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + 0.02);
+  }
+  const seq = (notes, step, type, v) => notes.forEach((f, i) => beep(f, step * 1.2, type || "square", v || 0.04, 0, i * step));
+  const snd = {
+    move: () => beep(880, 0.03, "square", 0.025),
+    ok: () => beep(1320, 0.05, "square", 0.035),
+    bump: () => beep(110, 0.06, "square", 0.05),
+    hit: () => beep(220, 0.12, "sawtooth", 0.06, 70),
+    big: () => beep(170, 0.22, "sawtooth", 0.08, 40),
+    heal: () => seq([523, 659, 784, 1047], 0.1),
+    level: () => seq([523, 659, 784, 659, 1047], 0.09),
+    catchOk: () => seq([784, 988, 1175, 1568], 0.12, "triangle", 0.06),
+    wiggle: () => beep(330, 0.06, "square", 0.04),
+    encounter: () => seq([392, 370, 349, 330, 311, 294], 0.06)
+  };
+  function renderMute() { $("muteLabel").textContent = muted ? "Ton aus" : "Ton an"; $("mute").setAttribute("aria-pressed", String(!muted)); }
+  $("mute").addEventListener("click", () => { muted = !muted; store.set("richtfest.muted", muted); renderMute(); if (!muted) { audioInit(); snd.ok(); } });
+  renderMute();
+
+  // ================= INPUT =================
+  const listeners = new Set();
+  let held = null;
+  const DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+  function emit(b) { audioInit(); for (const l of [...listeners]) l(b); }
+  const KEYMAP = { ArrowUp: "up", KeyW: "up", ArrowDown: "down", KeyS: "down", ArrowLeft: "left", KeyA: "left", ArrowRight: "right", KeyD: "right", Space: "a", Enter: "a", KeyZ: "a", KeyX: "b", Escape: "b", Backspace: "b", KeyM: "start" };
+  window.addEventListener("keydown", (e) => {
+    const b = KEYMAP[e.code];
+    if (!b) return;
+    if (e.target && e.target.id === "mute" && (e.code === "Space" || e.code === "Enter")) return;
+    e.preventDefault();
+    if (DIRS[b]) { held = b; emit(b); } else if (!e.repeat) emit(b);
+  });
+  window.addEventListener("keyup", (e) => { const b = KEYMAP[e.code]; if (b && held === b) held = null; });
+  window.addEventListener("blur", () => { held = null; });
+  document.querySelectorAll("[data-btn]").forEach((el) => {
+    const b = el.dataset.btn;
+    el.addEventListener("pointerdown", (e) => {
+      e.preventDefault();
+      try { el.setPointerCapture(e.pointerId); } catch (err) {}
+      el.classList.add("down-state");
+      if (DIRS[b]) held = b;
+      emit(b);
+    });
+    const up = () => { el.classList.remove("down-state"); if (held === b) held = null; };
+    el.addEventListener("pointerup", up);
+    el.addEventListener("pointercancel", up);
+    el.addEventListener("lostpointercapture", up);
+    el.addEventListener("contextmenu", (e) => e.preventDefault());
+  });
+
+  // ================= TWEENS =================
+  const tweens = [];
+  function tween(obj, key, to, ms) {
+    return new Promise((res) => {
+      if (ms <= 1) { obj[key] = to; res(); return; }
+      tweens.push({ obj, key, from: obj[key], to, ms, t: 0, res });
+    });
+  }
+  function updateTweens(dt) {
+    for (let i = tweens.length - 1; i >= 0; i--) {
+      const w = tweens[i]; w.t += dt * 1000;
+      const k = Math.min(1, w.t / w.ms), e = 1 - Math.pow(1 - k, 2);
+      w.obj[w.key] = w.from + (w.to - w.from) * e;
+      if (k >= 1) { tweens.splice(i, 1); w.res(); }
+    }
+  }
+
+  // ================= TEXT BOX & MENUS =================
+  const boxEl = $("box"), boxText = $("boxText"), moreEl = $("more"), menuEl = $("menu");
+  let boxWaiting = false;
+  boxEl.addEventListener("click", () => { if (boxWaiting) emit("a"); });
+  function setBox(text, narrow) { boxEl.hidden = false; boxEl.classList.toggle("narrow", !!narrow); boxText.textContent = text; moreEl.hidden = true; }
+  function hideBox() { boxEl.hidden = true; boxEl.classList.remove("narrow"); }
+  function say(text) {
+    return new Promise((resolve) => {
+      boxEl.hidden = false; boxEl.classList.remove("narrow"); moreEl.hidden = true; boxWaiting = true;
+      let i = 0, done = false, timer = null;
+      const finish = () => { if (timer) clearInterval(timer); timer = null; boxText.textContent = text; done = true; moreEl.hidden = false; };
+      if (reduced) finish();
+      else { boxText.textContent = ""; timer = setInterval(() => { i += 2; if (i >= text.length) finish(); else boxText.textContent = text.slice(0, i); }, 28); }
+      const l = (b) => {
+        if (b !== "a" && b !== "b") return;
+        if (!done) { finish(); return; }
+        listeners.delete(l); moreEl.hidden = true; boxWaiting = false; resolve();
+      };
+      listeners.add(l);
+    });
+  }
+  function choose(opts, o) {
+    o = o || {};
+    const cols = o.cols || 1, n = opts.length;
+    return new Promise((resolve) => {
+      let i = clamp(o.start || 0, 0, n - 1);
+      menuEl.className = "menu " + (o.variant || "side");
+      menuEl.innerHTML = "";
+      if (o.header) { const h = document.createElement("div"); h.className = "menu-head"; h.innerHTML = o.header; menuEl.appendChild(h); }
+      const list = document.createElement("div");
+      list.className = "menu-list";
+      list.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+      const btns = opts.map((html, k) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "opt"; b.tabIndex = -1; b.innerHTML = html;
+        b.addEventListener("click", (e) => { e.stopPropagation(); i = k; render(); done(k); });
+        list.appendChild(b);
+        return b;
+      });
+      menuEl.appendChild(list);
+      let info = null;
+      if (o.info) { info = document.createElement("div"); info.className = "menu-info"; menuEl.appendChild(info); }
+      menuEl.hidden = false;
+      function render() { btns.forEach((b, k) => b.classList.toggle("sel", k === i)); if (info) info.innerHTML = o.info(i); if (o.onMove) o.onMove(i); }
+      render();
+      const l = (b) => {
+        let j = i;
+        if (b === "up") j = cols > 1 ? (i - cols >= 0 ? i - cols : i) : (i - 1 + n) % n;
+        else if (b === "down") j = cols > 1 ? (i + cols < n ? i + cols : i) : (i + 1) % n;
+        else if (b === "left") { if (cols > 1 && i % cols > 0) j = i - 1; }
+        else if (b === "right") { if (cols > 1 && i % cols < cols - 1 && i + 1 < n) j = i + 1; }
+        else if (b === "a") { done(i); return; }
+        else if (b === "b") { if (o.cancel) done(-1); return; }
+        else return;
+        if (j !== i) { i = j; snd.move(); render(); }
+      };
+      let closed = false;
+      function done(k) { if (closed) return; closed = true; listeners.delete(l); menuEl.hidden = true; menuEl.innerHTML = ""; snd.ok(); resolve(k); }
+      listeners.add(l);
+    });
+  }
+  async function runScript(fn) {
+    if (G.busy) return;
+    G.busy = true;
+    try { await fn(); } catch (e) { console.error(e); }
+    finally { G.busy = false; hideBox(); menuEl.hidden = true; }
+  }
+  async function flash() {
+    const f = $("flash");
+    f.classList.remove("go"); void f.offsetWidth; f.classList.add("go");
+    await sleep(reduced ? 120 : 620);
+    f.classList.remove("go");
+  }
+
+  // ================= WORLD =================
+  function tryMove(dir) {
+    P.dir = dir;
+    const [dx, dy] = DIRS[dir], nx = P.x + dx, ny = P.y + dy, t = tileAt(nx, ny);
+    if (t === "P") { runScript(polierScript); return; }
+    if (!WALK.has(t)) { const now = performance.now(); if (now - P.bumpT > 320) { snd.bump(); P.bumpT = now; } return; }
+    P.fx = P.x; P.fy = P.y; P.x = nx; P.y = ny; P.t = 0; P.moving = true;
+  }
+  function onArrive() {
+    const t = tileAt(P.x, P.y);
+    if (t === "*" && Math.random() < 1 / 7) runScript(() => wildBattle(P.y <= 11 ? "nord" : "sued"));
+    else if (t === "E") runScript(endingScript);
+  }
+  function updateWorld(dt) {
+    if (P.moving) {
+      P.t += dt / 0.16;
+      if (P.t >= 1) { P.t = 1; P.moving = false; P.step ^= 1; onArrive(); }
+      return;
+    }
+    if (G.scene !== "world" || G.busy || !held) return;
+    tryMove(held);
+  }
+  function interact() {
+    const [dx, dy] = DIRS[P.dir], tx = P.x + dx, ty = P.y + dy, t = tileAt(tx, ty);
+    const line = (s) => runScript(() => say(s));
+    if (t === "S") line(SIGNS[tx + "," + ty] || "Ein Schild.");
+    else if (t === "H") runScript(healerScript);
+    else if (t === "P") runScript(polierScript);
+    else if (t === "G") line("Das Tor ist zu. Der Polier lässt niemanden einfach so durch.");
+    else if (t === "C") line("Der Baucontainer. Drinnen riecht es nach Kaffee.");
+    else if (t === "B") line("Ein Stapel Ziegel. Ordentlich hochgestapelt.");
+    else if (t === "K" || t === "J" || t === "j") line("Der Kran von Hochstapler. Ganz schön hoch.");
+    else if (t === "R") line("Der Rohbau. Fast fertig.");
+    else if (t === "W") line("Der Richtbaum. Bunte Bänder flattern im Wind.");
+  }
+  listeners.add((b) => {
+    if (G.scene !== "world" || G.busy || P.moving) return;
+    if (b === "a") interact();
+    else if (b === "start") runScript(startMenu);
+  });
+
+  // ================= MENUS (WORLD) =================
+  function teamRow(m) {
+    const s = stats(m), f = clamp(m.hp / s.maxhp, 0, 1);
+    return `<span class="tm"><span>${name(m)}</span><span class="tm-l">Lv${m.lvl}</span><span class="tm-b"><i style="width:${Math.round(f * 100)}%"></i></span><span class="tm-h">${m.hp}/${s.maxhp}</span></span>`;
+  }
+  async function infoPanel(m) {
+    const s = stats(m), S = SPECIES[m.sp];
+    const header = `<div class="info"><img class="info-img" src="${spriteURL(m.sp)}" alt=""><div>${S.name}<br>${TYPE_NAME[S.type]} · Lv${m.lvl}<br>LP ${m.hp}/${s.maxhp}</div></div>` +
+      `<p class="info-dex">${S.dex}</p><div class="info-stats">Angriff ${s.atk} · Vert. ${s.def} · Tempo ${s.spd}</div>` +
+      `<div class="info-moves">${m.moves.map((id) => MOVES[id].name).join(" · ")}</div>`;
+    await choose(["Zurück"], { variant: "full", header, cancel: true });
+  }
+  async function teamMenu(inBattle, forced) {
+    let start = 0;
+    while (true) {
+      const header = forced ? "Wer macht weiter?" : inBattle ? "Wen schickst du rein?" : `Team · Katalog ${G.caught.length}/6`;
+      const i = await choose(G.team.map(teamRow), { variant: "full", header, cancel: !forced, start });
+      if (i < 0) return -1;
+      start = i;
+      const m = G.team[i];
+      if (inBattle) {
+        if (m.hp <= 0) { await say(`${name(m)} braucht erst eine Pause.`); continue; }
+        if (m === B.me) { await say(`${name(m)} ist schon auf der Baustelle.`); continue; }
+        return i;
+      }
+      const k = await choose(["Infos", "Nach vorne", "Zurück"], { variant: "side", cancel: true });
+      if (k === 0) await infoPanel(m);
+      else if (k === 1 && i > 0) { G.team.splice(i, 1); G.team.unshift(m); start = 0; }
+    }
+  }
+  async function bagMenu(inBattle) {
+    while (true) {
+      const i = await choose([`Kranhaken ×${G.items.haken}`, `Brotzeit ×${G.items.brotzeit}`], {
+        variant: inBattle ? "full" : "side", header: "Tasche", cancel: true,
+        info: (k) => (k === 0 ? "Nimmt ein wildes Baumonster mit." : "Stärkt ein Baumonster um 20 LP.")
+      });
+      if (i < 0) return null;
+      if (i === 0) {
+        if (!inBattle) { await say("Den Kranhaken wirfst du im Kampf."); continue; }
+        if (B.trainer) { await say("Fremde Baumonster hakt man nicht ab!"); continue; }
+        if (G.items.haken <= 0) { await say("Keine Haken mehr. Bea füllt sie im Baucontainer auf."); continue; }
+        return { kind: "hook" };
+      }
+      if (G.items.brotzeit <= 0) { await say("Keine Brotzeit mehr übrig."); continue; }
+      if (inBattle) {
+        if (B.me.hp >= stats(B.me).maxhp) { await say(`${name(B.me)} ist schon satt.`); continue; }
+        return { kind: "food" };
+      }
+      const ti = await choose(G.team.map(teamRow), { variant: "full", header: "Wer bekommt die Brotzeit?", cancel: true });
+      if (ti < 0) continue;
+      const m = G.team[ti], mx = stats(m).maxhp;
+      if (m.hp <= 0) { await say(`${name(m)} braucht Ruhe im Baucontainer.`); continue; }
+      if (m.hp >= mx) { await say(`${name(m)} ist schon satt.`); continue; }
+      G.items.brotzeit--;
+      const h = Math.min(20, mx - m.hp); m.hp += h; snd.heal();
+      await say(`${name(m)} isst die Brotzeit. +${h} LP.`);
+    }
+  }
+  async function catalogMenu() {
+    const items = ORDER.map((sp) => {
+      const c = G.caught.includes(sp), s = G.seen.includes(sp);
+      return `<div class="cat${c ? " got" : ""}"><img src="${s ? spriteURL(sp) : silhouetteURL(sp)}" alt=""><span>${s ? SPECIES[sp].name : "???"}</span><small>${c ? "gefangen" : s ? "gesehen" : "unbekannt"}</small></div>`;
+    }).join("");
+    await choose(["Zurück"], { variant: "full", header: `Katalog · ${G.caught.length}/6 gefangen<div class="cat-grid">${items}</div>`, cancel: true });
+  }
+  async function startMenu() {
+    while (true) {
+      const i = await choose(["Team", "Tasche", "Katalog", "Speichern", "Zurück"], { variant: "side", cancel: true });
+      if (i < 0 || i === 4) return;
+      if (i === 0) await teamMenu(false, false);
+      else if (i === 1) await bagMenu(false);
+      else if (i === 2) await catalogMenu();
+      else if (i === 3) { save(); await say("Spielstand gespeichert."); hideBox(); }
+    }
+  }
+
+  // ================= BATTLE =================
+  const B = { foe: null, me: null, foes: [], fi: 0, trainer: null, st: null, result: null, foeVis: false, meVis: false, foeOff: 0, meOff: 0, foeDx: 0, meDx: 0, foeDy: 0, meDy: 0, hook: null };
+  function label(who) { const m = who === "me" ? B.me : B.foe; return who === "foe" && B.trainer ? `${B.trainer.short} ${name(m)}` : name(m); }
+  function setBar(el, f) { f = clamp(f, 0, 1); el.style.width = (f * 100) + "%"; el.classList.toggle("low", f <= 0.25); }
+  function updateHuds() {
+    if (B.foe) { const s = stats(B.foe); $("foeName").textContent = name(B.foe); $("foeLv").textContent = "Lv" + B.foe.lvl; setBar($("foeHp"), B.foe.hp / s.maxhp); }
+    if (B.me) {
+      const s = stats(B.me), a = Math.pow(B.me.lvl, 3), b = Math.pow(B.me.lvl + 1, 3);
+      $("meName").textContent = name(B.me); $("meLv").textContent = "Lv" + B.me.lvl;
+      setBar($("meHp"), B.me.hp / s.maxhp); $("meHpNum").textContent = `${B.me.hp}/${s.maxhp}`;
+      $("meXp").style.width = (clamp((B.me.xp - a) / (b - a), 0, 1) * 100) + "%";
+    }
+  }
+  function showHud(which, on) { $(which === "foe" ? "hudFoe" : "hudMe").hidden = !on; }
+  async function lunge(who) { const k = who + "Dx", d = who === "me" ? 8 : -8; await tween(B, k, d, reduced ? 1 : 90); await tween(B, k, 0, reduced ? 1 : 120); }
+  async function blink(who) { const k = who + "Vis"; for (let i = 0; i < 3; i++) { B[k] = false; await sleep(70); B[k] = true; await sleep(70); } }
+  async function faintAnim(who) { snd.hit(); await tween(B, who + "Dy", 14, reduced ? 1 : 240); B[who + "Vis"] = false; B[who + "Dy"] = 0; }
+
+  async function battle(foes, trainer) {
+    G.stats.fights++;
+    Object.assign(B, { foes, fi: 0, foe: foes[0], trainer: trainer || null, result: null, hook: null, foeDx: 0, meDx: 0, foeDy: 0, meDy: 0 });
+    B.me = G.team.find((m) => m.hp > 0);
+    B.st = { me: { atk: 0, def: 0 }, foe: { atk: 0, def: 0 } };
+    markSeen(B.foe.sp);
+    snd.encounter();
+    await flash();
+    G.scene = "battle"; hideBox();
+    B.foeVis = true; B.meVis = false; B.foeOff = 90; B.meOff = -90;
+    await tween(B, "foeOff", 0, reduced ? 1 : 420);
+    updateHuds(); showHud("foe", true);
+    if (B.trainer) { await say(`${B.trainer.name} fordert dich heraus!`); await say(`${B.trainer.name} schickt ${name(B.foe)} los!`); }
+    else await say(`${ein(B.foe)} kriecht aus dem Schutt!`);
+    await sendMe(B.me);
+    let result = null;
+    while (!result) {
+      const act = await chooseAction();
+      result = await turn(act);
+    }
+    showHud("foe", false); showHud("me", false); hideBox();
+    if (result === "lose") await blackout();
+    G.scene = "world";
+    B.foe = null; B.me = null; B.hook = null;
+    save();
+    return result;
+  }
+  async function sendMe(m) {
+    B.me = m; B.st.me = { atk: 0, def: 0 }; B.meVis = true; B.meOff = -90; B.meDy = 0;
+    updateHuds(); showHud("me", true);
+    const tw = tween(B, "meOff", 0, reduced ? 1 : 320);
+    await say(`Los, ${name(m)}!`);
+    await tw;
+  }
+  async function chooseAction() {
+    while (true) {
+      setBox(`Was soll ${name(B.me)} tun?`, true);
+      const i = await choose(["Kampf", "Team", "Tasche", "Flucht"], { variant: "battle", cols: 2 });
+      if (i === 0) {
+        const mv = B.me.moves;
+        const k = await choose(mv.map((id) => MOVES[id].name), {
+          variant: "moves", cols: 2, cancel: true,
+          info: (j) => { const M = MOVES[mv[j]]; return `<b>${TYPE_NAME[M.type]}</b> · ${M.pow ? "Stärke " + M.pow : M.desc}`; }
+        });
+        if (k >= 0) return { kind: "move", id: mv[k] };
+      } else if (i === 1) {
+        hideBox();
+        const t = await teamMenu(true, false);
+        if (t >= 0) return { kind: "switch", idx: t };
+      } else if (i === 2) {
+        hideBox();
+        const it = await bagMenu(true);
+        if (it) return it;
+      } else return { kind: "run" };
+    }
+  }
+  function pickFoeMove() {
+    const f = B.foe, list = f.moves;
+    if (B.trainer && Math.random() < 0.7) {
+      let best = list[0], bs = -1;
+      for (const id of list) {
+        const M = MOVES[id];
+        const sc = M.pow ? M.pow * eff(M.type, SPECIES[B.me.sp].type) * (M.type === SPECIES[f.sp].type ? 1.5 : 1) * M.acc / 100 : 20;
+        if (sc > bs) { bs = sc; best = id; }
+      }
+      return best;
+    }
+    return list[Math.floor(Math.random() * list.length)];
+  }
+  async function turn(act) {
+    hideBox();
+    const foeMove = pickFoeMove();
+    if (act.kind === "move") {
+      const ms = stats(B.me).spd, fs = stats(B.foe).spd;
+      const meFirst = ms > fs || (ms === fs && Math.random() < 0.5);
+      for (const who of meFirst ? ["me", "foe"] : ["foe", "me"]) {
+        await doMove(who, who === "me" ? act.id : foeMove);
+        const r = await afterHit();
+        if (r === "end") return B.result;
+        if (r === "faint") return null;
+      }
+      return null;
+    }
+    if (act.kind === "run") {
+      if (B.trainer) { await say("Vor dem Polier läuft man nicht weg!"); return null; }
+      const p = clamp(0.5 + (stats(B.me).spd - stats(B.foe).spd) * 0.04, 0.3, 0.95);
+      if (Math.random() < p) { await say("Du bist entkommen!"); return "run"; }
+      await say("Flucht gescheitert!");
+    } else if (act.kind === "switch") {
+      await say(`${name(B.me)}, komm zurück!`);
+      B.meVis = false;
+      await sendMe(G.team[act.idx]);
+    } else if (act.kind === "food") {
+      G.items.brotzeit--;
+      const mx = stats(B.me).maxhp, h = Math.min(20, mx - B.me.hp);
+      B.me.hp += h; snd.heal(); updateHuds();
+      await say(`${name(B.me)} isst die Brotzeit. +${h} LP.`);
+    } else if (act.kind === "hook") {
+      const r = await throwHook();
+      if (r) return r;
+    }
+    await doMove("foe", foeMove);
+    const r = await afterHit();
+    return r === "end" ? B.result : null;
+  }
+  async function doMove(who, id) {
+    const oth = who === "me" ? "foe" : "me";
+    const att = who === "me" ? B.me : B.foe, def = who === "me" ? B.foe : B.me;
+    const mv = MOVES[id];
+    await say(`${label(who)} setzt ${mv.name} ein!`);
+    await lunge(who);
+    if (Math.random() * 100 >= mv.acc) { await say("Daneben!"); return; }
+    if (!mv.pow) {
+      const e = mv.effect, tw = e.target === "self" ? who : oth, st = B.st[tw], before = st[e.stat];
+      st[e.stat] = clamp(before + e.delta, -6, 6);
+      const statName = e.stat === "atk" ? "Der Angriff" : "Die Verteidigung";
+      if (st[e.stat] === before) await say(`Bei ${label(tw)} tut sich nichts mehr.`);
+      else { snd.move(); await say(`${statName} von ${label(tw)} ${e.delta > 0 ? "steigt" : "sinkt"}!`); }
+      return;
+    }
+    const sa = stats(att), sd = stats(def);
+    const A = sa.atk * stageMul(B.st[who].atk), D = sd.def * stageMul(B.st[oth].def);
+    let dmg = Math.floor(Math.floor((2 * att.lvl / 5 + 2) * mv.pow * A / D) / 50) + 2;
+    const stab = mv.type === SPECIES[att.sp].type ? 1.5 : 1;
+    const e = eff(mv.type, SPECIES[def.sp].type);
+    const crit = Math.random() < 1 / 16;
+    dmg = Math.max(1, Math.floor(dmg * stab * e * (crit ? 1.5 : 1) * (0.85 + Math.random() * 0.15)));
+    if (e > 1) snd.big(); else snd.hit();
+    await blink(oth);
+    def.hp = Math.max(0, def.hp - dmg);
+    updateHuds();
+    await sleep(reduced ? 60 : 480);
+    if (crit) await say("Volltreffer!");
+    if (e > 1) await say("Das sitzt bombenfest!");
+    else if (e < 1) await say("Das prallt fast ab …");
+  }
+  async function gainXp(m, n) {
+    m.xp += n;
+    updateHuds(); await sleep(reduced ? 40 : 420);
+    while (m.lvl < 50 && m.xp >= Math.pow(m.lvl + 1, 3)) {
+      const before = stats(m).maxhp;
+      m.lvl++;
+      m.hp += stats(m).maxhp - before;
+      updateHuds(); snd.level();
+      await say(`${name(m)} erreicht Level ${m.lvl}!`);
+      for (const [lv, id] of SPECIES[m.sp].learn) {
+        if (lv !== m.lvl || m.moves.includes(id)) continue;
+        if (m.moves.length < 4) { m.moves.push(id); await say(`${name(m)} lernt ${MOVES[id].name}!`); }
+        else { const old = m.moves.shift(); m.moves.push(id); await say(`${name(m)} vergisst ${MOVES[old].name} und lernt ${MOVES[id].name}!`); }
+      }
+    }
+    updateHuds();
+  }
+  async function afterHit() {
+    if (B.foe.hp <= 0) {
+      await faintAnim("foe");
+      await say(`${label("foe")} ist erschöpft!`);
+      const gain = Math.max(1, Math.floor(SPECIES[B.foe.sp].xp * B.foe.lvl / 7 * (B.trainer ? 1.5 : 1)));
+      await say(`${name(B.me)} bekommt ${gain} Erfahrung.`);
+      await gainXp(B.me, gain);
+      if (B.trainer && B.fi < B.foes.length - 1) {
+        B.fi++; B.foe = B.foes[B.fi]; B.st.foe = { atk: 0, def: 0 }; markSeen(B.foe.sp);
+        B.foeVis = true; B.foeOff = 90; B.foeDy = 0; updateHuds();
+        await say(`${B.trainer.name} schickt ${name(B.foe)} los!`);
+        await tween(B, "foeOff", 0, reduced ? 1 : 360);
+        return "faint";
+      }
+      if (B.trainer) await say(`Du hast ${B.trainer.name} besiegt!`);
+      B.result = "win";
+      return "end";
+    }
+    if (B.me.hp <= 0) {
+      await faintAnim("me");
+      await say(`${name(B.me)} ist erschöpft!`);
+      if (G.team.some((m) => m.hp > 0)) {
+        hideBox();
+        const t = await teamMenu(true, true);
+        await sendMe(G.team[t]);
+        return "faint";
+      }
+      B.result = "lose";
+      return "end";
+    }
+    return null;
+  }
+  async function throwHook() {
+    G.items.haken--;
+    await say("Du wirfst den Kranhaken!");
+    B.hook = { x: 124, y: -20, dx: 0, crate: false };
+    await tween(B.hook, "y", 22, reduced ? 1 : 420);
+    B.foeVis = false; B.hook.crate = true; snd.wiggle();
+    const f = B.foe, mx = stats(f).maxhp;
+    const p = clamp(SPECIES[f.sp].rate * (1.2 - 0.85 * f.hp / mx), 0.06, 0.95);
+    const ok = Math.random() < p;
+    const shakes = ok ? 3 : Math.random() < p * 1.6 ? 2 : Math.random() < 0.5 ? 1 : 0;
+    for (let k = 0; k < shakes; k++) {
+      await sleep(reduced ? 60 : 350); snd.wiggle();
+      await tween(B.hook, "dx", 3, reduced ? 1 : 90); await tween(B.hook, "dx", -3, reduced ? 1 : 120); await tween(B.hook, "dx", 0, reduced ? 1 : 90);
+    }
+    await sleep(reduced ? 60 : 300);
+    if (ok) {
+      snd.catchOk();
+      await tween(B.hook, "y", -60, reduced ? 1 : 500);
+      await say(`Geschafft! ${name(f)} hängt am Haken!`);
+      G.stats.catches++;
+      if (!G.caught.includes(f.sp)) G.caught.push(f.sp);
+      B.hook = null;
+      if (G.team.length < 6) { G.team.push(f); await say(`${name(f)} ist jetzt in deinem Team.`); }
+      else { G.lager.push(f); await say(`Dein Team ist voll. ${name(f)} kommt ins Materiallager.`); }
+      return "caught";
+    }
+    B.hook = null; B.foeVis = true;
+    await say(shakes >= 2 ? "Mist! Fast hätte es geklappt." : "Es hat sich losgerissen!");
+    return null;
+  }
+  async function blackout() {
+    await say("Dein Team ist erschöpft …");
+    await say("Du rennst zurück zum Baucontainer.");
+    healAll();
+    Object.assign(P, { x: 5, y: 22, fx: 5, fy: 22, t: 1, moving: false, dir: "up" });
+    G.scene = "world";
+    await say("Bea päppelt alle wieder auf. Weiter geht's!");
+  }
+
+  // ================= SCRIPTS =================
+  async function wildBattle(zone) {
+    const [lo, hi] = zone === "nord" ? [5, 7] : [2, 4];
+    let sp = pickW([["baggerling", 35], ["ziegelzwerg", 35], ["balkenbaer", 30]]);
+    if (Math.random() < 0.08) { const others = STARTERS.filter((s) => s !== G.starter); sp = others[Math.floor(Math.random() * others.length)]; }
+    await battle([mk(sp, rnd(lo, hi))], null);
+  }
+  async function polierScript() {
+    if (G.flags.polier) return;
+    P.dir = "up";
+    await say("Polier Paul: Halt! Zum Richtfest kommt nur, wer seine Truppe im Griff hat.");
+    await say("Polier Paul: Zeig mal, was du draufhast!");
+    const res = await battle([mk("ziegelzwerg", 7), mk("baggerling", 7), mk("balkenbaer", 8)], { name: "Polier Paul", short: "Pauls" });
+    if (res === "win") {
+      await say("Polier Paul: Saubere Arbeit, Azubi. Der Weg zum Richtfest ist frei!");
+      G.flags.polier = true; G.map[7][9] = ","; G.map[7][10] = ",";
+      save();
+    }
+  }
+  async function healerScript() {
+    await say("Bauleiterin Bea: Kurze Brotzeit für dein Team?");
+    healAll();
+    if (G.items.haken < 5) G.items.haken = 5;
+    snd.heal();
+    await say("Alle sind wieder fit. Deine Kranhaken hab ich auf 5 aufgefüllt.");
+    save();
+    await say("Spielstand gespeichert.");
+  }
+  async function endingScript() {
+    await say("Der Richtkranz hängt, die Blaskapelle spielt.");
+    await say("Glückwunsch! Du hast es zum Richtfest geschafft.");
+    G.flags.ended = true; snd.level();
+    const header = `<div class="end"><div class="end-t">Richtfest!</div><div class="end-s">Katalog ${G.caught.length}/6 gefangen<br>${G.stats.fights} Kämpfe · ${G.stats.catches} Fänge</div><p>Sammle alle sechs Baumonster. Bea wartet im Baucontainer.</p></div>`;
+    await choose(["Weiterbauen"], { variant: "full", header });
+    Object.assign(P, { y: 5, fy: 5, fx: P.x, t: 1, moving: false, dir: "down" });
+    save();
+  }
+  async function newGame() {
+    resetState();
+    G.scene = "starter"; G.starterSel = 0;
+    await say("Bauleiterin Bea: Ah, der neue Azubi! Willkommen auf der Baustelle.");
+    await say("Ohne Baumonster läuft hier nichts. Such dir einen Kollegen aus!");
+    let pick = -1;
+    while (pick < 0) {
+      hideBox();
+      const k = await choose(STARTERS.map((sp) => SPECIES[sp].name), {
+        variant: "bottom", cols: 3, start: G.starterSel,
+        onMove: (j) => { G.starterSel = j; },
+        info: (j) => { const S = SPECIES[STARTERS[j]]; return `<b>${TYPE_NAME[S.type]}</b> · ${S.dex}`; }
+      });
+      const c = await choose(["Ja", "Nein"], { variant: "side", header: `${SPECIES[STARTERS[k]].name} nehmen?`, cancel: true });
+      if (c === 0) pick = k;
+    }
+    const sp = STARTERS[pick], m = mk(sp, 5);
+    G.starter = sp; G.team = [m]; markSeen(sp); G.caught.push(sp);
+    snd.level();
+    await say(`${name(m)} ist jetzt dein Kollege!`);
+    await say("Hier: 5 Kranhaken und 3 Brotzeiten. Mit dem Haken nimmst du wilde Baumonster mit.");
+    await say("Das Richtfest ist ganz im Norden. Erst musst du aber am Polier vorbei. Viel Erfolg!");
+    G.scene = "world";
+    save();
+  }
+  async function titleFlow() {
+    while (true) {
+      G.scene = "title"; $("title").hidden = false;
+      const s = loadSave();
+      const i = await choose(s ? ["Weiterspielen", "Neues Spiel"] : ["Neues Spiel"], { variant: "title" });
+      if (s && i === 0) { $("title").hidden = true; applySave(s); G.scene = "world"; return; }
+      if (s) {
+        const c = await choose(["Ja, neu", "Nein"], { variant: "title", header: "Alter Spielstand wird überschrieben." });
+        if (c !== 0) continue;
+      }
+      $("title").hidden = true;
+      await newGame();
+      return;
+    }
+  }
+
+  // ================= RENDER =================
+  function scanEllipse(cx, cy, rx, ry, c) {
+    for (let dy = -ry; dy <= ry; dy++) { const h = Math.round(rx * Math.sqrt(1 - (dy * dy) / (ry * ry))); px(ctx, cx - h, cy + dy, h * 2, 1, c); }
+  }
+  function tileImg(ch, x, y) {
+    if (ch === "C" && tileAt(x, y - 1) !== "C") return TILES.Ctop;
+    if (ch === "R" && tileAt(x, y - 1) !== "R") return TILES.Rtop;
+    return TILES[ch] || TILES["."];
+  }
+  function drawWorld() {
+    const k = P.moving ? P.t : 1;
+    const wx = (P.fx + (P.x - P.fx) * k) * T, wy = (P.fy + (P.y - P.fy) * k) * T;
+    const camX = Math.round(clamp(wx - 72, 0, MW * T - W)), camY = Math.round(clamp(wy - 64, 0, MH * T - H));
+    const x0 = Math.floor(camX / T), y0 = Math.floor(camY / T);
+    for (let y = y0; y <= y0 + 9 && y < MH; y++) for (let x = x0; x <= x0 + 10 && x < MW; x++) ctx.drawImage(tileImg(G.map[y][x], x, y), x * T - camX, y * T - camY);
+    const frame = P.moving && P.t < 0.5 ? (P.step ? 1 : 2) : 0;
+    ctx.drawImage(PLAYER[P.dir + frame], Math.round(wx - camX), Math.round(wy - camY) - 2);
+  }
+  function drawHook(h) {
+    const x = Math.round(h.x + h.dx), y = Math.round(h.y);
+    if (y > 0) px(ctx, x, 0, 1, y, 3);
+    if (h.crate) {
+      px(ctx, x - 1, y, 3, 5, 3);
+      px(ctx, x - 9, y + 4, 19, 16, 3); px(ctx, x - 8, y + 5, 17, 14, 2);
+      px(ctx, x - 8, y + 9, 17, 1, 3); px(ctx, x - 8, y + 14, 17, 1, 3);
+      px(ctx, x - 4, y + 5, 1, 14, 1); px(ctx, x + 3, y + 5, 1, 14, 1);
+    } else {
+      px(ctx, x - 5, y, 11, 6, 3); px(ctx, x - 4, y + 1, 9, 4, 1);
+      px(ctx, x, y + 6, 2, 6, 3); px(ctx, x - 3, y + 11, 5, 2, 3); px(ctx, x - 4, y + 8, 2, 4, 3);
+    }
+  }
+  function drawBattle() {
+    px(ctx, 0, 0, W, H, 0);
+    scanEllipse(124, 58, 30, 5, 1); scanEllipse(36, 99, 32, 5, 1);
+    if (B.foe && B.foeVis) ctx.drawImage(MONS[B.foe.sp].flip, Math.round(92 + B.foeOff + B.foeDx), Math.round(B.foeDy), 64, 64);
+    if (B.me && B.meVis) ctx.drawImage(MONS[B.me.sp].normal, Math.round(4 + B.meOff + B.meDx), Math.round(38 + B.meDy), 64, 64);
+    if (B.hook) drawHook(B.hook);
+  }
+  function drawStarter(t) {
+    px(ctx, 0, 0, W, H, 0);
+    STARTERS.forEach((sp, i) => {
+      const x = 16 + i * 48;
+      if (i === G.starterSel) px(ctx, x - 2, 38, 36, 2, 3);
+      ctx.drawImage(MONS[sp].normal, x, 4);
+    });
+    const bob = reduced ? 0 : Math.round(Math.sin(t * 4) * 1.5);
+    scanEllipse(80, 98, 34, 5, 1);
+    ctx.drawImage(MONS[STARTERS[G.starterSel]].normal, 48, 36 + bob, 64, 64);
+  }
+  function drawTitle(t) {
+    px(ctx, 0, 0, W, H, 0);
+    px(ctx, 0, 112, W, 32, 1); px(ctx, 0, 112, W, 2, 3);
+    for (let x = 4; x < W; x += 12) px(ctx, x, 122, 6, 1, 2);
+    px(ctx, 126, 46, 1, 66, 3); px(ctx, 133, 46, 1, 66, 3); px(ctx, 127, 46, 1, 66, 1); px(ctx, 132, 46, 1, 66, 1);
+    for (let y = 46; y < 112; y++) { const m = (y - 46) % 8, d = m < 4 ? m : 7 - m; px(ctx, 128 + d, y, 1, 1, 3); }
+    px(ctx, 60, 44, 82, 1, 3); px(ctx, 60, 50, 82, 1, 3); px(ctx, 60, 45, 82, 1, 1); px(ctx, 60, 49, 82, 1, 1);
+    for (let x = 60; x < 142; x++) { const m = (x - 60) % 8, d = m < 4 ? m : 7 - m; px(ctx, x, 46 + d, 1, 1, 3); }
+    const sw = reduced ? 0 : Math.round(Math.sin(t * 1.6) * 2);
+    px(ctx, 100 + sw, 51, 1, 28, 3); px(ctx, 96 + sw, 79, 9, 5, 3); px(ctx, 97 + sw, 80, 7, 3, 1);
+    const bob = reduced ? 0 : (Math.sin(t * 3) > 0 ? 1 : 0);
+    ctx.drawImage(MONS.kranich.normal, 22, 48 + bob, 64, 64);
+  }
+  function draw(t) {
+    ctx.imageSmoothingEnabled = false;
+    if (G.scene === "world") drawWorld();
+    else if (G.scene === "battle") drawBattle();
+    else if (G.scene === "starter") drawStarter(t);
+    else drawTitle(t);
+  }
+
+  // ================= LOOP =================
+  function fit() { const w = screenEl.clientWidth || 320; screenEl.style.setProperty("--u", (w / 160) + "px"); }
+  window.addEventListener("resize", fit);
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(screenEl);
+  fit();
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    updateTweens(dt);
+    if (G.scene === "world") updateWorld(dt);
+    draw(now / 1000);
+    requestAnimationFrame(frame);
+  }
+  freshMap();
+  requestAnimationFrame(frame);
+  runScript(titleFlow);
+})();
+</script>
+
+<a class="pz-home" href="../" aria-label="Alle Spiele auf playaz.fun" title="Alle Spiele" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#ffcc3d"/></svg></a><style>.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 10px);right:10px;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(23,18,42,.66);color:#f6f2ff;border:1px solid rgba(246,242,255,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}.pz-home:focus-visible{outline:3px solid #ffcc3d;outline-offset:2px}</style></body></html>

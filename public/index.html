@@ -1,0 +1,172 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>playaz.fun</title><meta name="description" content="Vier Browserspiele ohne Anmeldung: Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><link rel="canonical" href="https://playaz.fun/"><meta property="og:type" content="website"><meta property="og:site_name" content="playaz.fun"><meta property="og:title" content="playaz.fun · Browserspiele ohne Anmeldung"><meta property="og:description" content="Vier Browserspiele ohne Anmeldung: Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><meta property="og:url" content="https://playaz.fun/"><meta property="og:image" content="https://playaz.fun/social-preview-1200x630.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playaz.fun/social-preview-1200x630.png"><link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><meta name="theme-color" content="#10104B"><link rel="stylesheet" href="assets/fonts.css"></head><body>
+
+<style>
+/* Layout: Spielhalle. Leuchtschrift oben, darunter ein Hauptautomat über die volle Breite und drei Automaten im Raster.
+   Bewusst ein einziger dunkler Look; alle Farben fest gesetzt. */
+:root{
+  --halle:#11103b;
+  --automat:#1b1a50;
+  --automat-hell:#25236a;
+  --kreide:#f5f4ff;
+  --nebel:#b7b5dd;
+  --muenze:#ffc83a;
+  --koralle:#ff4f9a;
+  --linie:rgba(246,242,255,.13);
+  --f-display:"Dela Gothic One","Arial Black",Impact,sans-serif;
+  --f-body:"Barlow","Segoe UI",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--halle)}
+body{margin:0;background:var(--halle);background-image:radial-gradient(rgba(246,242,255,.05) 1px,transparent 1.2px);background-size:22px 22px;color:var(--kreide);font-family:var(--f-body);font-size:16px;line-height:1.5}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px}
+:focus-visible{outline:3px solid var(--muenze);outline-offset:3px}
+
+/* Kopf */
+header{padding-block:28px 8px}
+.logo{display:inline-block;text-decoration:none}
+.logo img{display:block;height:104px;width:auto;max-width:100%}
+.hero{padding-block:34px 30px;display:grid;gap:14px}
+.hero h1{font-family:var(--f-display);font-weight:400;font-size:clamp(40px,8.4vw,86px);line-height:.98;letter-spacing:-.02em;margin:0;text-wrap:balance;max-width:14ch}
+.hero h1 em{font-style:normal;color:var(--muenze)}
+.hero p{margin:0;max-width:52ch;font-size:clamp(17px,2.2vw,20px);color:var(--nebel)}
+.facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;padding:0;list-style:none}
+.facts li{font-weight:600;font-size:14px;letter-spacing:.04em;padding:6px 12px;border:1px solid var(--linie);border-radius:999px;background:rgba(255,255,255,.03)}
+
+/* Automaten */
+.games{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding-bottom:40px}
+.game{position:relative;display:flex;flex-direction:column;min-width:0;text-decoration:none;background:var(--automat);border:1px solid var(--linie);border-radius:16px;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.game:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--accent) 60%,transparent);box-shadow:0 18px 40px -18px color-mix(in srgb,var(--accent) 70%,transparent)}
+.shot{position:relative;aspect-ratio:16/10;max-width:100%;background:#0d0a18;overflow:hidden}
+.shot img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
+.game:hover .shot img{transform:scale(1.04)}
+.badge{position:absolute;left:12px;top:12px;font-family:var(--f-display);font-size:13px;letter-spacing:.04em;background:var(--koralle);color:#fff;padding:5px 10px;border-radius:6px}
+.info{display:grid;gap:10px;padding:16px 18px 18px;flex:1;align-content:start}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.tags span{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nebel)}
+.tags span+span::before{content:"·";margin-right:6px;color:var(--linie)}
+.game h2{font-family:var(--f-display);font-weight:400;font-size:28px;line-height:1.05;margin:0;letter-spacing:-.01em}
+.game p{margin:0;color:var(--nebel);font-size:16px;line-height:1.45}
+.foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:6px}
+.rec{font-size:14px;font-weight:600;color:var(--kreide);font-variant-numeric:tabular-nums}
+.rec.none{color:var(--nebel);font-weight:500}
+.play{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-display);font-size:16px;padding:9px 16px;border-radius:999px;background:var(--accent);color:var(--accent-ink,#120d1f)}
+.play svg{width:14px;height:14px}
+
+.game.feat{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
+.game.feat .shot{aspect-ratio:auto;min-height:100%}
+.game.feat .info{padding:28px 30px 30px;gap:14px}
+.game.feat h2{font-size:clamp(34px,4.6vw,52px)}
+.game.feat p{font-size:18px}
+
+/* Hinweise und Fuß */
+.note{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;margin-bottom:40px;padding:16px 18px;border:1px dashed var(--linie);border-radius:14px;color:var(--nebel);font-size:15px}
+.note svg{width:22px;height:22px;color:var(--muenze)}
+.note b{color:var(--kreide)}
+footer{border-top:1px solid var(--linie);padding-block:22px 34px;color:var(--nebel);font-size:14px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:space-between}
+footer nav{display:flex;gap:18px}
+
+@media (max-width:900px){
+  .games{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .game.feat{grid-template-columns:1fr}
+  .game.feat .shot{aspect-ratio:16/9}
+}
+@media (max-width:600px){
+  .games{grid-template-columns:1fr}
+  .game.feat .info{padding:18px}
+  .logo img{height:84px}
+}
+@media (prefers-reduced-motion:reduce){.game,.shot img{transition:none}.game:hover{transform:none}.game:hover .shot img{transform:none}}
+</style>
+
+<header class="wrap">
+  <a class="logo" href="./" aria-label="playaz.fun Startseite">
+    <img src="logo.png" width="720" height="519" alt="playaz.fun">
+  </a>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <h1>Einwerfen musst du <em>nichts.</em></h1>
+    <p>Vier Spiele direkt im Browser, am Handy wie am Rechner. Ohne Anmeldung, ohne Download, ohne Werbung. Dein Spielstand bleibt auf deinem Gerät.</p>
+    <ul class="facts"><li>Kein Login</li><li>Handy und PC</li><li>Rekorde lokal gespeichert</li></ul>
+  </section>
+
+  <section class="wrap" aria-label="Spiele">
+    <div class="games">
+      <a class="game feat" href="spiele/linke-spur.html" style="--accent:#5b8ff0">
+        <div class="shot"><img src="bilder/linke-spur.jpg" width="960" height="600" alt="Nächtliche Autobahn aus der Verfolgerkamera, vorne ein dunkler Kombi im Abendrot"><span class="badge">Neu</span></div>
+        <div class="info">
+          <div class="tags"><span>3D</span><span>Rennen</span><span>Tuning</span></div>
+          <h2>Linke Spur</h2>
+          <p>Nachts auf der A7 durch dichten Verkehr. Überhol knapp, halte die Kombo und tune dein Auto. Pass auf Blitzer, Baustellen und Wildwechsel auf.</p>
+          <div class="foot"><span class="rec none" data-rec="linkespur">Noch nicht gefahren</span><span class="play">Losfahren <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a>
+
+      <a class="game" href="spiele/schwindelfrei.html" style="--accent:#ee7a45">
+        <div class="shot"><img src="bilder/schwindelfrei.jpg" width="960" height="600" loading="lazy" alt="Gelbe Kugel auf rostroten Stahlträgern im Zickzack hoch über der Stadt"></div>
+        <div class="info">
+          <div class="tags"><span>3D</span><span>Ein Finger</span></div>
+          <h2>Schwindelfrei</h2>
+          <p>Deine Kugel rollt von allein über die Stahlträger. Tippen wechselt die Richtung, daneben geht es 112 m runter.</p>
+          <div class="foot"><span class="rec none" data-rec="schwindelfrei">Noch nicht gespielt</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a>
+
+      <a class="game" href="spiele/hochstapler.html" style="--accent:#f5b72a">
+        <div class="shot"><img src="bilder/hochstapler.jpg" width="960" height="600" loading="lazy" alt="Ein Turm aus Stockwerken wächst am Kran in den blauen Himmel"></div>
+        <div class="info">
+          <div class="tags"><span>Geschick</span><span>Ein Finger</span></div>
+          <h2>Hochstapler</h2>
+          <p>Setz jedes Stockwerk genau auf das darunter. Was übersteht, wird abgesägt. Drei Treffer in Folge geben Fläche zurück.</p>
+          <div class="foot"><span class="rec none" data-rec="hochstapler">Noch nicht gespielt</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a>
+
+      <a class="game" href="spiele/richtfest.html" style="--accent:#9bbc0f">
+        <div class="shot"><img src="bilder/richtfest.jpg" width="960" height="600" loading="lazy" alt="Gelbe Handheld-Konsole, auf dem Bildschirm drei pixelige Baumonster zur Auswahl"></div>
+        <div class="info">
+          <div class="tags"><span>Retro</span><span>Abenteuer</span></div>
+          <h2>Richtfest</h2>
+          <p>Baumonster fangen wie früher am Gameboy. Sammle alle sechs, Bea wartet im Baucontainer.</p>
+          <div class="foot"><span class="rec none" data-rec="richtfest">Noch nicht gestartet</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a>
+    </div>
+
+    <div class="note">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3.5v6c0 5-3.4 8.9-8 10.5-4.6-1.6-8-5.5-8-10.5v-6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 12l2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <div><b>Deine Rekorde gehören dir.</b> Sie liegen nur im Speicher dieses Browsers. Es gibt kein Konto und keine Tracker. Wer die Browserdaten löscht, fängt wieder bei null an.</div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>playaz.fun · Browserspiele ohne Anmeldung</span>
+    <nav aria-label="Rechtliches"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></nav>
+  </div>
+</footer>
+
+<script>
+(function () {
+  const read = k => { try { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v); } catch (e) { return null; } };
+  const n = v => Math.floor(v).toLocaleString('de-DE');
+  const show = (key, text) => { const el = document.querySelector('[data-rec="' + key + '"]'); if (el && text) { el.textContent = text; el.classList.remove('none'); } };
+  const ls = read('linkespur.v1');
+  if (ls && (ls.best || ls.coins)) show('linkespur', 'Rekord ' + n(ls.best || 0) + ' · ' + n(ls.coins || 0) + ' Münzen');
+  const sf = read('schwindelfrei.best');
+  if (sf) show('schwindelfrei', 'Rekord ' + n(sf));
+  const hs = read('hochstapler.best');
+  if (hs) show('hochstapler', 'Rekord ' + n(hs));
+  const rf = read('richtfest.save.v1');
+  if (rf && rf.caught) {
+    const c = Array.isArray(rf.caught) ? rf.caught.length : Object.keys(rf.caught).filter(k => rf.caught[k]).length;
+    show('richtfest', c + ' von 6 Baumonstern gefangen');
+  }
+})();
+</script>
+</body></html>

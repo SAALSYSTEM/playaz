@@ -1,0 +1,9 @@
+{
+  // Cloudflare Worker "playaz": liefert nur statische Dateien aus ./public aus
+  "name": "playaz",
+  "compatibility_date": "2026-10-09",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "404-page"
+  }
+}
