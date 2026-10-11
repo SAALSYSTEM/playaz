@@ -159,7 +159,12 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     outMax: 24,           // fertige Eistüten an der Ausgabe
     counterMax: 24,       // Eistüten auf der Theke
     coinPerCone: 4,
-    conePeriod: 0.6,      // Maschine: Sekunden pro Eistüte
+    // Eismaschine Stufe 1–4: schneller UND mehr Kunden (sonst bringt die schnellere Maschine nichts,
+    // weil die Kunden der Engpass sind)
+    machinePrices: [100, 220, 400],
+    conePeriods: [0.6, 0.45, 0.34, 0.25],   // Sekunden pro Eistüte
+    spawnPeriods: [2.6, 1.9, 1.4, 1.05],    // Sekunden bis zum nächsten Kunden
+    servePeriods: [0.4, 0.33, 0.28, 0.24],  // Sekunden pro Eistüte an der Theke
     throwPeriod: 0.95,    // Pinguin: Sekunden pro Schneeball
     blockHp: 2,           // Schneebälle pro Eisblock
     helperPrices: [30, 80, 180, 350],
@@ -171,8 +176,6 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     blockGap: 1.2,
     blocksPerHelper: 2,    // so viele freie Blöcke soll jeder Pinguin vor sich haben
     blocksMaxPerHelper: 4, // höchstens so viele Blöcke gleichzeitig im Fluss (+4), damit es nicht zu voll wird
-    spawnPeriod: 2.6,
-    servePeriod: 0.4,
     startPile: 8
   };
 
@@ -186,6 +189,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     helperX: -5.5,
     unlockX: -4.45,
     carrierUnlock: { x: -0.2, z: -1.9 },
+    machineUnlock: { x: -2.55, z: -5.25 },
     hole: { x: -1.3, z: 1.35 },          // Eisloch: hier kann man alles ins Wasser werfen
     pile: { x: -2.95, z: -1.55 },
     igloo: { x: -2.2, z: -8.7, r: 2.25 },
@@ -265,7 +269,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
   /* ---------- Start ---------- */
   async function boot() {
     if (!window.THREE) { fail('Die 3D-Grafik konnte nicht geladen werden. Lade die Seite bitte neu.'); return; }
-    const names = ['muenze', 'erdbeere', 'eistuete', 'helfer', 'stern', 'korb'];
+    const names = ['muenze', 'erdbeere', 'eistuete', 'helfer', 'stern', 'korb', 'upgrade'];
     const imgs = {};
     const fontLoad = (document.fonts && document.fonts.load)
       ? Promise.race([Promise.all([document.fonts.load('700 40px Fredoka'), document.fonts.load('600 40px Fredoka')]), sleep(2000)]).catch(() => {})
@@ -654,6 +658,21 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const tankFill = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.42, 1, 22, 1), new THREE.MeshStandardMaterial({ color: 0xffa3bd, roughness: 0.4 }));
     tankFill.position.set(0, 1.64, -0.1); machine.add(tankFill);
     const nozzleLocal = new THREE.Vector3(0, 0.7, 0.4);
+    const starCanvas = document.createElement('canvas'); starCanvas.width = 256; starCanvas.height = 96;
+    const starTex = tex(starCanvas);
+    const machineStars = new THREE.Sprite(new THREE.SpriteMaterial({ map: starTex, transparent: true }));
+    machineStars.scale.set(2.1, 0.79, 1); machineStars.position.set(L.machine.x, 3.7, L.machine.z); machineStars.visible = false; scene.add(machineStars);
+    let starsDrawn = -1;
+    function drawMachineStars() {
+      const lv = S.machine; // erst aufrufen, wenn der Spielstand geladen ist
+      if (lv === starsDrawn) return; starsDrawn = lv;
+      machineStars.visible = lv > 0;
+      const g = starCanvas.getContext('2d'); g.clearRect(0, 0, 256, 96);
+      if (!lv || !imgs.stern) { starTex.needsUpdate = true; return; }
+      const w = 74, x0 = 128 - (lv * w) / 2;
+      for (let i = 0; i < lv; i++) g.drawImage(imgs.stern, x0 + i * w, 10, 76, 76);
+      starTex.needsUpdate = true;
+    }
     const hopperLocal = new THREE.Vector3(-0.9, 1.5, -0.1);
 
     /* ---------- Theke ---------- */
@@ -913,16 +932,17 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const holeTarget = new THREE.Vector3(L.hole.x, -0.25, L.hole.z);
 
     // Freischaltfelder: Münzen draufbringen, bis der Balken voll ist
-    function makeUnlockTile() {
+    function makeUnlockTile(size) {
       const t = { x: 0, z: 0, r: 0.95, cd: 0, incoming: 0, drawn: '' };
       t.canvas = document.createElement('canvas'); t.canvas.width = t.canvas.height = 256;
       t.tex = tex(t.canvas);
-      t.mesh = new THREE.Mesh(new THREE.PlaneGeometry(1.75, 1.75), new THREE.MeshBasicMaterial({ map: t.tex, transparent: true, depthWrite: false }));
+      t.mesh = new THREE.Mesh(new THREE.PlaneGeometry(size || 1.75, size || 1.75), new THREE.MeshBasicMaterial({ map: t.tex, transparent: true, depthWrite: false }));
       t.mesh.rotation.x = -Math.PI / 2; t.mesh.position.y = 0.06; t.mesh.renderOrder = 1; t.mesh.visible = false; scene.add(t.mesh);
       return t;
     }
     tiles.unlock = makeUnlockTile();        // +1 Helfer-Pinguin am Steg
     tiles.carrierUnlock = makeUnlockTile(); // Erdbeer-Träger
+    tiles.machineUnlock = makeUnlockTile(1.6); // schnellere Eismaschine
     function paintUnlock(t, icon, badge, price, paid) {
       const key = price + '/' + paid; if (key === t.drawn) return; t.drawn = key;
       const g = t.canvas.getContext('2d');
@@ -1022,13 +1042,14 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       carry: { n: 0, inc: 0, max: CFG.carryMax, type: null }
     };
     const RC = { n: 0, inc: 0, max: CFG.carrierMax }; // Erdbeeren im Korb des Trägers
-    const S = { coins: 0, helpers: 1, paid: 0, carrier: false, paidCarrier: 0, sold: 0, tut: 0, tutDone: false };
+    const S = { coins: 0, helpers: 1, paid: 0, carrier: false, paidCarrier: 0, machine: 0, paidMachine: 0, sold: 0, tut: 0, tutDone: false };
     const saved = store.get(KEY_SAVE, null);
     if (saved && saved.v === 1) {
       const n = (v, d, mx) => clamp(Number.isFinite(v) ? Math.floor(v) : d, 0, mx);
       S.coins = n(saved.coins, 0, 1e7); S.helpers = n(saved.helpers, 1, 5) || 1; S.paid = n(saved.paid, 0, 1e6);
       S.sold = n(saved.sold, 0, 1e8); S.tutDone = !!saved.tutDone;
       S.carrier = !!saved.carrier; S.paidCarrier = n(saved.paidCarrier, 0, 1e6);
+      S.machine = n(saved.machine, 0, CFG.machinePrices.length); S.paidMachine = n(saved.paidMachine, 0, 1e6);
       C.pile.n = n(saved.pile, CFG.startPile, CFG.pileMax); C.hopper.n = n(saved.hopper, 0, CFG.hopperMax);
       C.out.n = n(saved.out, 0, CFG.outMax); C.counter.n = n(saved.counter, 0, CFG.counterMax); C.coinPile.n = n(saved.coinPile, 0, 1e7);
       if (saved.carryType === 'berry' || saved.carryType === 'cone') { C.carry.type = saved.carryType; C.carry.n = n(saved.carry, 0, CFG.carryMax); if (!C.carry.n) C.carry.type = null; }
@@ -1038,7 +1059,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     function save() {
       store.set(KEY_SAVE, {
-        v: 1, coins: S.coins, helpers: S.helpers, paid: S.paid, carrier: S.carrier, paidCarrier: S.paidCarrier, sold: S.sold, tutDone: S.tutDone,
+        v: 1, coins: S.coins, helpers: S.helpers, paid: S.paid, carrier: S.carrier, paidCarrier: S.paidCarrier, machine: S.machine, paidMachine: S.paidMachine, sold: S.sold, tutDone: S.tutDone,
         pile: Math.min(CFG.pileMax, C.pile.n + C.pile.inc + RC.n + RC.inc), hopper: C.hopper.n + C.hopper.inc, out: C.out.n + C.out.inc, counter: C.counter.n + C.counter.inc,
         coinPile: C.coinPile.n + C.coinPile.inc, carryType: C.carry.type, carry: C.carry.n + C.carry.inc
       });
@@ -1321,6 +1342,19 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
           celebrate(L.carrierUnlock.x, L.carrierUnlock.z);
           toast('korb', 'Neuer Erdbeer-Träger!');
         }
+      },
+      {
+        tile: tiles.machineUnlock, key: 'paidMachine', icon: 'eistuete', badge: 'upgrade', text: 'Mach die Eismaschine schneller!',
+        price: () => CFG.machinePrices[S.machine],
+        visible: () => S.helpers >= 2 && S.machine < CFG.machinePrices.length,
+        pos: () => L.machineUnlock,
+        done() {
+          S.machine++; S.paidMachine = 0;
+          celebrate(L.machine.x, L.machine.z);
+          burstParticles(L.machine.x, 2.4, L.machine.z, 14, 0xffa9c3, 2.4, 0.09, 0.8, 5);
+          machineState.pulse = 1; drawMachineStars();
+          toast('eistuete', S.machine >= CFG.machinePrices.length ? 'Super-Eismaschine!' : 'Eismaschine schneller!');
+        }
       }
     ];
     const drawUnlock = (u) => paintUnlock(u.tile, imgs[u.icon], u.badge && imgs[u.badge], u.price(), S[u.key]);
@@ -1398,6 +1432,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     }
     if (S.carrier) addCarrier(tiles.pile.x + 0.5, tiles.pile.z - 0.5, false);
     placeUnlocks();
+    drawMachineStars();
 
     function updatePlayer(dt) {
       let ix = input.dx, iy = input.dy;
@@ -1496,18 +1531,19 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       }
     }
 
-    const machineState = { cd: CFG.conePeriod, pulse: 0 };
+    const conePeriod = () => CFG.conePeriods[S.machine];
+    const machineState = { cd: CFG.conePeriods[0], pulse: 0 };
     function updateMachine(dt) {
       if (C.hopper.n > 0 && C.out.n + C.out.inc < C.out.max) {
         machineState.cd -= dt;
         if (machineState.cd <= 0) {
-          machineState.cd += CFG.conePeriod;
+          machineState.cd += conePeriod();
           C.hopper.n--;
           const j = C.out.n + C.out.inc; C.out.inc++;
           fly('cone', nozzlePos, () => outPos(Math.min(j, C.out.n + C.out.inc - 1)), 0.38, 0.7, () => { C.out.inc--; C.out.n++; });
           machineState.pulse = 1;
         }
-      } else machineState.cd = Math.min(CFG.conePeriod, machineState.cd + dt);
+      } else machineState.cd = Math.min(conePeriod(), machineState.cd + dt);
       machineState.pulse = Math.max(0, machineState.pulse - dt * 3);
       const fill = (C.hopper.n + C.hopper.inc * 0.5) / C.hopper.max;
       const h = 0.05 + 0.68 * fill;
@@ -1612,7 +1648,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     function updateCustomers(dt, time) {
       spawnT -= dt;
       const queue = customers.filter((c) => c.state === 'queue');
-      if (spawnT <= 0 && queue.length < CFG.queueMax) { spawnCustomer(false); spawnT = CFG.spawnPeriod * rand(0.7, 1.3); }
+      if (spawnT <= 0 && queue.length < CFG.queueMax) { spawnCustomer(false); spawnT = CFG.spawnPeriods[S.machine] * rand(0.7, 1.3); }
       queue.forEach((c, k) => { c.slot = k; });
       let front = null;
       for (const c of customers) {
@@ -1650,7 +1686,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       if (front) {
         front.serveCd -= dt;
         if (front.got + front.inc < front.want && C.counter.n > 0 && front.serveCd <= 0) {
-          front.serveCd = CFG.servePeriod;
+          front.serveCd = CFG.servePeriods[S.machine];
           const fc = front;
           fc.inc++;
           const from = counterPos(C.counter.n - 1); C.counter.n--;
