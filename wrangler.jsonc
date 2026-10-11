@@ -5,5 +5,7 @@
   "assets": {
     "directory": "./public",
     "not_found_handling": "404-page"
-  }
+  },
+  // Branch-Vorschauen (Worker Previews) nutzen dieselben Einstellungen wie Produktion
+  "previews": {}
 }
