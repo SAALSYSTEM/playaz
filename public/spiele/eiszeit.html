@@ -186,6 +186,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     helperX: -5.5,
     unlockX: -4.45,
     carrierUnlock: { x: -0.2, z: -1.9 },
+    hole: { x: -1.3, z: 1.35 },          // Eisloch: hier kann man alles ins Wasser werfen
     pile: { x: -2.95, z: -1.55 },
     igloo: { x: -2.2, z: -8.7, r: 2.25 },
     machine: { x: -0.75, z: -5.75 },
@@ -256,7 +257,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       pay() { if (gap('pay', 40)) tone(1046, 0.06, 'square', 0.03); },
       happy() { tone(660, 0.12, 'sine', 0.12, 990); tone(990, 0.15, 'sine', 0.1, 1320, 0.1); },
       unlock() { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.2, 'triangle', 0.14, 0, i * 0.08)); },
-      pop() { tone(420, 0.12, 'sine', 0.14, 820); }
+      pop() { tone(420, 0.12, 'sine', 0.14, 820); },
+      splash() { if (gap('splash', 60)) { noise(0.22, 0.12, 700, 'lowpass'); tone(380, 0.16, 'sine', 0.09, 140); } }
     };
   })();
 
@@ -882,13 +884,33 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       input: { x: L.input.x, z: L.input.z, r: 0.95, cd: 0 },
       output: { x: L.output.x, z: L.output.z, r: 1.0, cd: 0 },
       drop: { x: L.drop.x, z: L.drop.z, r: 0.95, cd: 0 },
-      coin: { x: L.coin.x, z: L.coin.z, r: 1.0, cd: 0 }
+      coin: { x: L.coin.x, z: L.coin.z, r: 1.0, cd: 0 },
+      hole: { x: L.hole.x, z: L.hole.z, r: 1.05, cd: 0, hold: 0 }
     };
     tileMesh(tiles.pile.x, tiles.pile.z, 2.1, tileCanvas(imgs.erdbeere));
     tileMesh(tiles.input.x, tiles.input.z, TILE, tileCanvas(imgs.erdbeere, 'drop'));
     tileMesh(tiles.output.x, tiles.output.z, 1.9, tileCanvas(imgs.eistuete));
     tileMesh(tiles.drop.x, tiles.drop.z, TILE, tileCanvas(imgs.eistuete, 'drop'));
     tileMesh(tiles.coin.x, tiles.coin.z, 1.9, tileCanvas(imgs.muenze));
+
+    // Eisloch
+    const holeWaterTex = tex(canvas(128, 128, (g) => {
+      const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64);
+      gr.addColorStop(0, '#0d4f9e'); gr.addColorStop(0.65, '#1b7fdc'); gr.addColorStop(1, '#63bdf2');
+      g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+      g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 3; g.lineCap = 'round';
+      [[64, 64, 22, 0.3, 1.6], [64, 64, 36, 2.2, 3.4], [64, 64, 46, 4.2, 5.4]].forEach(([x, y, r, a0, a1]) => { g.beginPath(); g.arc(x, y, r, a0, a1); g.stroke(); });
+    }));
+    const holeWater = new THREE.Mesh(new THREE.CircleGeometry(0.6, 28), new THREE.MeshLambertMaterial({ map: holeWaterTex }));
+    holeWater.rotation.x = -Math.PI / 2; holeWater.position.set(L.hole.x, 0.012, L.hole.z); scene.add(holeWater);
+    const holeRim = [P(G.tor, '#f1f7ff', M(0, 0.03, 0, 0.66, 0.66, 0.42, Math.PI / 2, 0, 0))];
+    for (let i = 0; i < 7; i++) {
+      const a = (i / 7) * TAU + 0.3, r = 0.74;
+      holeRim.push(P(G.box, i % 2 ? '#cdeeff' : '#e4f6ff', M(Math.cos(a) * r, 0.08, Math.sin(a) * r, 0.2, 0.14, 0.16, 0.2, a, 0.15)));
+      if (i % 3 === 0) holeRim.push(P(G.sl, '#ffffff', M(Math.cos(a + 0.45) * 0.8, 0.06, Math.sin(a + 0.45) * 0.8, 0.16, 0.09, 0.14)));
+    }
+    const holeRimMesh = new THREE.Mesh(bake(holeRim), toyMatFlat); holeRimMesh.position.set(L.hole.x, 0, L.hole.z); scene.add(holeRimMesh);
+    const holeTarget = new THREE.Vector3(L.hole.x, -0.25, L.hole.z);
 
     // Freischaltfelder: Münzen draufbringen, bis der Balken voll ist
     function makeUnlockTile() {
@@ -1241,7 +1263,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const circles = [
       { x: L.igloo.x, z: L.igloo.z, r: L.igloo.r + 0.15 },
       { x: L.machine.x, z: L.machine.z, r: 1.05 },
-      { x: 1.3, z: -8.0, r: 1.0 }
+      { x: 1.3, z: -8.0, r: 1.0 },
+      { x: L.hole.x, z: L.hole.z, r: 0.45 }
     ];
     const boxes = [
       { x0: L.counter.x - L.counter.w / 2 - 0.3, x1: L.counter.x + L.counter.w / 2 + 2, z0: L.counter.z - L.counter.len / 2 - 0.3, z1: L.counter.z + L.counter.len / 2 + 0.3 }
@@ -1255,7 +1278,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       const all = circles.concat(helpers.map((h) => ({ x: h.x, z: h.z, r: 0.62 })));
       for (const c of all) {
         const dx = p.x - c.x, dz = p.z - c.z, d = Math.hypot(dx, dz), rr2 = c.r + 0.3;
-        if (d < rr2 && d > 1e-4) { p.x = c.x + (dx / d) * rr2; p.z = c.z + (dz / d) * rr2; }
+        if (d < rr2) { if (d < 1e-4) { p.x = c.x + rr2; continue; } p.x = c.x + (dx / d) * rr2; p.z = c.z + (dz / d) * rr2; }
       }
       for (const b of boxes) {
         if (p.x > b.x0 && p.x < b.x1 && p.z > b.z0 && p.z < b.z1) {
@@ -1442,6 +1465,20 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         fly('coin', from, () => _v.set(player.x, 1.2, player.z), 0.22, 0.8, () => { S.coins += v; updateCoins(); sfx.coin(); });
         S.tut = Math.max(S.tut, 5);
       }
+      // Ins Eisloch werfen (kurz stehen bleiben, damit man nicht aus Versehen etwas verliert)
+      const th = tiles.hole;
+      if (near(th) && carry.n > 0) {
+        th.hold += dt;
+        if (th.hold > 0.35 && th.cd <= 0) {
+          th.cd = 0.05;
+          const type = carry.type, from = stackPos(carry.n - 1);
+          carry.n--; if (carry.n + carry.inc === 0) carry.type = null;
+          fly(type, from, () => holeTarget, 0.3, 0.9, () => {
+            sfx.splash();
+            burstParticles(L.hole.x + rand(-0.15, 0.15), 0.05, L.hole.z + rand(-0.15, 0.15), 4, 0x9fd8ff, 1.5, 0.07, 0.4, 7);
+          });
+        }
+      } else th.hold = 0;
       // Freischaltfelder bezahlen
       for (const u of UNLOCKS) {
         const t = u.tile;
@@ -1663,6 +1700,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     /* Hinweise: wohin als Nächstes? */
     function nextGoal() {
       const carry = C.carry;
+      // Hände voller Erdbeeren, Maschine und Ausgabe voll: nur das Eisloch hilft weiter
+      if (carry.type === 'berry' && C.hopper.n + C.hopper.inc >= C.hopper.max && C.out.n + C.out.inc >= C.out.max)
+        return { t: tiles.hole, icon: 'erdbeere', text: 'Maschine voll! Wirf sie ins Eisloch!', urgent: true };
       if (carry.type === 'berry') return { t: tiles.input, icon: 'erdbeere', text: 'Bring die Erdbeeren zur Eismaschine!' };
       if (carry.type === 'cone') return { t: tiles.drop, icon: 'eistuete', text: 'Bring das Eis zur Theke!' };
       if (C.coinPile.n > 0) return { t: tiles.coin, icon: 'muenze', text: 'Sammle die Münzen ein!' };
@@ -1673,12 +1713,12 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     }
     function updateGuide(time) {
       const goal = playing ? nextGoal() : null;
-      const showArrow = goal && (!S.tutDone || idleT > 6);
+      const showArrow = goal && (!S.tutDone || idleT > 6 || goal.urgent);
       if (showArrow) {
         arrow.visible = true;
         arrow.position.set(goal.t.x, 1.3 + Math.abs(Math.sin(time * 4)) * 0.45, goal.t.z);
       } else arrow.visible = false;
-      if (playing && !S.tutDone && goal) setHint(goal.icon, goal.text);
+      if (playing && goal && (!S.tutDone || goal.urgent)) setHint(goal.icon, goal.text);
       else setHint('', '');
     }
 
@@ -1781,6 +1821,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         animateKid(time);
         updateCamera(dt, false);
         waterTex.offset.y -= dt * 0.06;
+        holeWater.rotation.z += dt * 0.35;
         saveT += dt; if (playing && saveT > 4) { saveT = 0; save(); }
       }
       drawItems(time);
