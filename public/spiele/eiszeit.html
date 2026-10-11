@@ -164,6 +164,13 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     blockHp: 2,           // Schneebälle pro Eisblock
     helperPrices: [30, 80, 180, 350],
     queueMax: 7,
+    carrierPrice: 120,     // Erdbeer-Träger
+    carrierMax: 6,
+    carrierSpeed: 2.4,
+    blockSpeed: 0.9,       // Eisblöcke im Fluss
+    blockGap: 1.2,
+    blocksPerHelper: 2,    // so viele freie Blöcke soll jeder Pinguin vor sich haben
+    blocksMaxPerHelper: 4, // höchstens so viele Blöcke gleichzeitig im Fluss (+4), damit es nicht zu voll wird
     spawnPeriod: 2.6,
     servePeriod: 0.4,
     startPile: 8
@@ -178,6 +185,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     slots: [-2.4, -0.2, -4.6, 2.0, -6.8],
     helperX: -5.5,
     unlockX: -4.45,
+    carrierUnlock: { x: -0.2, z: -1.9 },
     pile: { x: -2.95, z: -1.55 },
     igloo: { x: -2.2, z: -8.7, r: 2.25 },
     machine: { x: -0.75, z: -5.75 },
@@ -255,7 +263,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
   /* ---------- Start ---------- */
   async function boot() {
     if (!window.THREE) { fail('Die 3D-Grafik konnte nicht geladen werden. Lade die Seite bitte neu.'); return; }
-    const names = ['muenze', 'erdbeere', 'eistuete', 'helfer', 'stern'];
+    const names = ['muenze', 'erdbeere', 'eistuete', 'helfer', 'stern', 'korb'];
     const imgs = {};
     const fontLoad = (document.fonts && document.fonts.load)
       ? Promise.race([Promise.all([document.fonts.load('700 40px Fredoka'), document.fonts.load('600 40px Fredoka')]), sleep(2000)]).catch(() => {})
@@ -464,7 +472,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       if (castColor) { for (let i = 0; i < cap; i++) m.setColorAt(i, new THREE.Color(1, 1, 1)); }
       m.count = 0; m.frustumCulled = false; scene.add(m); return m;
     }
-    const berryIM = makeIM(berryGeo, itemMat, 240);
+    const berryIM = makeIM(berryGeo, itemMat, 340);
     const coneIM = makeIM(coneGeo, itemMat, 240);
     const coinIM = makeIM(coinGeo, itemMat, 320);
 
@@ -753,7 +761,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     ]);
 
     // Pinguin (Helfer mit gelber Mütze, Kunde mit rotem Schal)
-    function penguinGeo(helper) {
+    function penguinGeo(helper, extra) {
       const p = [];
       p.push(P(G.s, C_.black, M(0, 0.55, 0, 0.42, 0.5, 0.38)));
       p.push(P(G.s, C_.white, M(0, 0.48, 0.15, 0.33, 0.4, 0.26)));
@@ -771,10 +779,19 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         p.push(P(G.tor, '#f0ae10', M(0, 1.1, -0.02, 0.29, 0.29, 0.3, Math.PI / 2, 0, 0)));
         p.push(P(G.s, C_.yellow, M(0, 1.42, -0.04, 0.11)));
       }
+      if (extra) extra(p);
       return bake(p);
     }
     const flipperGeo = bake([P(G.s, C_.black, M(0, -0.2, 0, 0.07, 0.26, 0.15))]);
     const helperGeo = penguinGeo(true);
+    // Träger: Helfer-Pinguin mit Weidenkorb vor dem Bauch
+    const BASKET = { y: 0.6, z: 0.5 };
+    const carrierGeo = penguinGeo(true, (p) => {
+      p.push(P(G.cylO, '#c98a4f', M(0, BASKET.y + 0.08, BASKET.z, 0.3, 0.2, 0.24)));
+      p.push(P(G.cyl, '#b7783f', M(0, BASKET.y - 0.02, BASKET.z, 0.28, 0.03, 0.22)));
+      p.push(P(G.tor, '#e3a66c', M(0, BASKET.y + 0.18, BASKET.z, 0.3, 0.24, 0.12, Math.PI / 2, 0, 0)));
+      p.push(P(G.tor, '#a96f38', M(0, BASKET.y - 0.01, BASKET.z, 0.29, 0.23, 0.1, Math.PI / 2, 0, 0)));
+    });
 
     // Kunden
     const customerGeos = [
@@ -865,8 +882,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       input: { x: L.input.x, z: L.input.z, r: 0.95, cd: 0 },
       output: { x: L.output.x, z: L.output.z, r: 1.0, cd: 0 },
       drop: { x: L.drop.x, z: L.drop.z, r: 0.95, cd: 0 },
-      coin: { x: L.coin.x, z: L.coin.z, r: 1.0, cd: 0 },
-      unlock: { x: 0, z: 0, r: 0.95, cd: 0, mesh: null, canvas: null, tex: null }
+      coin: { x: L.coin.x, z: L.coin.z, r: 1.0, cd: 0 }
     };
     tileMesh(tiles.pile.x, tiles.pile.z, 2.1, tileCanvas(imgs.erdbeere));
     tileMesh(tiles.input.x, tiles.input.z, TILE, tileCanvas(imgs.erdbeere, 'drop'));
@@ -874,15 +890,20 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     tileMesh(tiles.drop.x, tiles.drop.z, TILE, tileCanvas(imgs.eistuete, 'drop'));
     tileMesh(tiles.coin.x, tiles.coin.z, 1.9, tileCanvas(imgs.muenze));
 
-    // Freischaltfeld (Helfer)
-    tiles.unlock.canvas = document.createElement('canvas'); tiles.unlock.canvas.width = tiles.unlock.canvas.height = 256;
-    tiles.unlock.tex = tex(tiles.unlock.canvas);
-    tiles.unlock.mesh = new THREE.Mesh(new THREE.PlaneGeometry(1.75, 1.75), new THREE.MeshBasicMaterial({ map: tiles.unlock.tex, transparent: true, depthWrite: false }));
-    tiles.unlock.mesh.rotation.x = -Math.PI / 2; tiles.unlock.mesh.position.y = 0.06; tiles.unlock.mesh.renderOrder = 1; scene.add(tiles.unlock.mesh);
-    let unlockDrawn = '';
-    function drawUnlock(price, paid) {
-      const key = price + '/' + paid; if (key === unlockDrawn) return; unlockDrawn = key;
-      const g = tiles.unlock.canvas.getContext('2d');
+    // Freischaltfelder: Münzen draufbringen, bis der Balken voll ist
+    function makeUnlockTile() {
+      const t = { x: 0, z: 0, r: 0.95, cd: 0, incoming: 0, drawn: '' };
+      t.canvas = document.createElement('canvas'); t.canvas.width = t.canvas.height = 256;
+      t.tex = tex(t.canvas);
+      t.mesh = new THREE.Mesh(new THREE.PlaneGeometry(1.75, 1.75), new THREE.MeshBasicMaterial({ map: t.tex, transparent: true, depthWrite: false }));
+      t.mesh.rotation.x = -Math.PI / 2; t.mesh.position.y = 0.06; t.mesh.renderOrder = 1; t.mesh.visible = false; scene.add(t.mesh);
+      return t;
+    }
+    tiles.unlock = makeUnlockTile();        // +1 Helfer-Pinguin am Steg
+    tiles.carrierUnlock = makeUnlockTile(); // Erdbeer-Träger
+    function paintUnlock(t, icon, badge, price, paid) {
+      const key = price + '/' + paid; if (key === t.drawn) return; t.drawn = key;
+      const g = t.canvas.getContext('2d');
       g.clearRect(0, 0, 256, 256);
       rr(g, 16, 16, 224, 224, 40); g.fillStyle = '#a49c95'; g.fill();
       // Fortschritt
@@ -890,7 +911,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       if (f > 0) { g.save(); rr(g, 16, 16, 224, 224, 40); g.clip(); g.fillStyle = '#ffd34d'; g.fillRect(16, 240 - 224 * f, 224, 224 * f); g.restore(); }
       g.setLineDash([22, 14]); g.lineWidth = 10; g.strokeStyle = '#ffd23f'; rr(g, 16, 16, 224, 224, 40); g.stroke(); g.setLineDash([]);
       g.save(); g.translate(128, 128); g.rotate(-Math.PI / 4);
-      if (imgs.helfer) g.drawImage(imgs.helfer, -54, -84, 108, 108);
+      if (icon) g.drawImage(icon, -54, -84, 108, 108);
+      if (badge) g.drawImage(badge, 4, -86, 58, 58);
       const left = Math.max(0, price - paid);
       g.font = '700 50px Fredoka, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
       const tw = g.measureText(String(left)).width;
@@ -898,7 +920,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       g.lineWidth = 8; g.strokeStyle = 'rgba(22,50,92,.55)'; g.strokeText(String(left), 18, 50);
       g.fillStyle = '#ffffff'; g.fillText(String(left), 18, 50);
       g.restore();
-      tiles.unlock.tex.needsUpdate = true;
+      t.tex.needsUpdate = true;
     }
 
     /* ---------- Schatten, Schneebälle, Partikel, Eisblöcke ---------- */
@@ -928,7 +950,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       g.lineWidth = 2; g.strokeStyle = 'rgba(255,255,255,.7)';
       g.beginPath(); g.moveTo(20, 30); g.lineTo(52, 58); g.lineTo(46, 92); g.moveTo(52, 58); g.lineTo(96, 70); g.lineTo(108, 104); g.stroke();
     }));
-    const iceIM = makeIM(iceGeo, new THREE.MeshStandardMaterial({ map: iceTex, color: 0xffffff, transparent: true, depthWrite: false, roughness: 0.15, metalness: 0.0, emissive: 0x9fd8ff, emissiveIntensity: 0.18 }), 40);
+    const iceIM = makeIM(iceGeo, new THREE.MeshStandardMaterial({ map: iceTex, color: 0xffffff, transparent: true, depthWrite: false, roughness: 0.15, metalness: 0.0, emissive: 0x9fd8ff, emissiveIntensity: 0.18 }), 96);
     iceIM.renderOrder = 3;
 
     const parts = [];
@@ -977,12 +999,14 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       coinPile: { n: 0, inc: 0, max: 100000 },
       carry: { n: 0, inc: 0, max: CFG.carryMax, type: null }
     };
-    const S = { coins: 0, helpers: 1, paid: 0, sold: 0, tut: 0, tutDone: false };
+    const RC = { n: 0, inc: 0, max: CFG.carrierMax }; // Erdbeeren im Korb des Trägers
+    const S = { coins: 0, helpers: 1, paid: 0, carrier: false, paidCarrier: 0, sold: 0, tut: 0, tutDone: false };
     const saved = store.get(KEY_SAVE, null);
     if (saved && saved.v === 1) {
       const n = (v, d, mx) => clamp(Number.isFinite(v) ? Math.floor(v) : d, 0, mx);
       S.coins = n(saved.coins, 0, 1e7); S.helpers = n(saved.helpers, 1, 5) || 1; S.paid = n(saved.paid, 0, 1e6);
       S.sold = n(saved.sold, 0, 1e8); S.tutDone = !!saved.tutDone;
+      S.carrier = !!saved.carrier; S.paidCarrier = n(saved.paidCarrier, 0, 1e6);
       C.pile.n = n(saved.pile, CFG.startPile, CFG.pileMax); C.hopper.n = n(saved.hopper, 0, CFG.hopperMax);
       C.out.n = n(saved.out, 0, CFG.outMax); C.counter.n = n(saved.counter, 0, CFG.counterMax); C.coinPile.n = n(saved.coinPile, 0, 1e7);
       if (saved.carryType === 'berry' || saved.carryType === 'cone') { C.carry.type = saved.carryType; C.carry.n = n(saved.carry, 0, CFG.carryMax); if (!C.carry.n) C.carry.type = null; }
@@ -992,8 +1016,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     function save() {
       store.set(KEY_SAVE, {
-        v: 1, coins: S.coins, helpers: S.helpers, paid: S.paid, sold: S.sold, tutDone: S.tutDone,
-        pile: C.pile.n + C.pile.inc, hopper: C.hopper.n + C.hopper.inc, out: C.out.n + C.out.inc, counter: C.counter.n + C.counter.inc,
+        v: 1, coins: S.coins, helpers: S.helpers, paid: S.paid, carrier: S.carrier, paidCarrier: S.paidCarrier, sold: S.sold, tutDone: S.tutDone,
+        pile: Math.min(CFG.pileMax, C.pile.n + C.pile.inc + RC.n + RC.inc), hopper: C.hopper.n + C.hopper.inc, out: C.out.n + C.out.inc, counter: C.counter.n + C.counter.inc,
         coinPile: C.coinPile.n + C.coinPile.inc, carryType: C.carry.type, carry: C.carry.n + C.carry.inc
       });
     }
@@ -1042,17 +1066,37 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       fly(type, from, () => dstPos(Math.min(j, dst.n + dst.inc - 1)), dur, arc, () => { dst.inc--; dst.n++; if (onArrive) onArrive(); });
     }
 
-    /* ---------- Eisblöcke ---------- */
+    /* ---------- Eisblöcke ----------
+       Vier Spuren im Fluss. Jeder Pinguin bekommt eigenen Nachschub: Fehlen vor ihm Blöcke,
+       taucht kurz oberhalb von ihm einer auf. So wirft jeder, nicht nur der vorderste. */
+    const LANES = [L.bankX - 1.3, L.bankX - 2.45, L.bankX - 3.6, L.bankX - 4.75];
+    const SPAWN_Z = -11.5, BLOCK_END = 7, EMERGE = 1.4; // Blöcke tauchen oben im Fluss auf
     const blocks = [];
-    let blockT = 0;
-    function spawnBlock(z0, deco) {
+    let spawnAcc = 0.5, decoT = 3;
+    function laneFree(li, z) {
+      for (const b of blocks) if (b.lane === li && Math.abs(b.z - z) < CFG.blockGap) return false;
+      return true;
+    }
+    function spawnBlock(z0, deco, li) {
       blocks.push({
-        x: deco ? rand(L.bankX - 5.2, L.bankX - 3.6) : rand(L.bankX - 2.7, L.bankX - 1.35), z: z0, y: -0.05, hp: CFG.blockHp, inc: 0,
-        rot: rand(-0.5, 0.5), shake: 0, phase: rand(0, TAU), reserved: false, deco: !!deco, s: deco ? rand(0.45, 0.7) : 1
+        lane: li, x: LANES[li] + rand(-0.1, 0.1), z: z0, y: -0.05, hp: CFG.blockHp, inc: 0,
+        rot: rand(-0.5, 0.5), shake: 0, phase: rand(0, TAU), reserved: false, deco: !!deco, s: deco ? rand(0.5, 0.7) : 1
       });
     }
-    for (let z = -15; z < 7; z += 2.4) spawnBlock(z + rand(-0.6, 0.6), false);
-    for (let z = -15; z < 7; z += 4.5) spawnBlock(z, true);
+    function spawnInFreeLane(deco, z) {
+      const free = [];
+      for (let i = 0; i < LANES.length; i++) if (laneFree(i, z)) free.push(i);
+      if (!free.length) return false;
+      // echte Blöcke lieber nah am Steg (kurze Würfe), Deko in der fernsten freien Spur
+      const li = deco ? free[free.length - 1] : free[Math.floor(Math.pow(Math.random(), 1.8) * free.length)];
+      spawnBlock(z, deco, li);
+      const b = blocks[blocks.length - 1]; b.born = z;
+      if (z > SPAWN_Z + 0.5) burstParticles(b.x, 0.05, z, 6, 0xd8f1ff, 1.2, 0.07, 0.45, 5);
+      return true;
+    }
+    for (let z = SPAWN_Z + 1; z < BLOCK_END; z += 2.4) spawnBlock(z + rand(-0.3, 0.3), false, 0);
+    for (let z = SPAWN_Z + 2.2; z < BLOCK_END; z += 4.8) spawnBlock(z + rand(-0.3, 0.3), false, 1);
+    for (let z = SPAWN_Z + 3; z < BLOCK_END; z += 6.5) spawnBlock(z, true, 3);
 
     const snowballs = [];
     function burst(b) {
@@ -1224,27 +1268,113 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const near = (t) => Math.abs(player.x - t.x) < t.r && Math.abs(player.z - t.z) < t.r;
 
     /* ---------- Spiellogik ---------- */
-    const unlockPrice = () => CFG.helperPrices[S.helpers - 1];
-    function placeUnlock() {
-      if (S.helpers >= L.slots.length) { tiles.unlock.mesh.visible = false; return; }
-      tiles.unlock.x = L.unlockX; tiles.unlock.z = L.slots[S.helpers];
-      tiles.unlock.mesh.position.set(tiles.unlock.x, 0.06, tiles.unlock.z); tiles.unlock.mesh.visible = true;
-      drawUnlock(unlockPrice(), S.paid);
-    }
-    placeUnlock();
-    let unlockIncoming = 0;
-
-    function doUnlock() {
-      addHelper(S.helpers, true);
-      const h = helpers[helpers.length - 1];
-      burstParticles(h.x, 0.8, h.z, 18, 0xffd23f, 3, 0.09, 0.8, 7);
-      burstParticles(h.x, 0.8, h.z, 10, 0xffffff, 2.4, 0.11, 0.7, 6);
-      S.helpers++; S.paid = 0; unlockIncoming = 0;
+    function celebrate(x, z) {
+      burstParticles(x, 0.8, z, 18, 0xffd23f, 3, 0.09, 0.8, 7);
+      burstParticles(x, 0.8, z, 10, 0xffffff, 2.4, 0.11, 0.7, 6);
       sfx.unlock();
-      toast('helfer', S.helpers >= L.slots.length ? 'Alle Helfer sind da!' : 'Neuer Helfer!');
-      if (!S.tutDone) S.tutDone = true;
-      placeUnlock(); save();
     }
+    const UNLOCKS = [
+      {
+        tile: tiles.unlock, key: 'paid', icon: 'helfer', text: 'Hol dir einen neuen Helfer!',
+        price: () => CFG.helperPrices[S.helpers - 1],
+        visible: () => S.helpers < L.slots.length,
+        pos: () => ({ x: L.unlockX, z: L.slots[S.helpers] }),
+        done() {
+          addHelper(S.helpers, true);
+          const h = helpers[helpers.length - 1];
+          celebrate(h.x, h.z);
+          S.helpers++; S.paid = 0;
+          toast('helfer', S.helpers >= L.slots.length ? 'Alle Helfer sind da!' : 'Neuer Helfer!');
+        }
+      },
+      {
+        tile: tiles.carrierUnlock, key: 'paidCarrier', icon: 'korb', badge: 'erdbeere', text: 'Hol dir einen Erdbeer-Träger!',
+        price: () => CFG.carrierPrice,
+        visible: () => !S.carrier && S.helpers >= 2,
+        pos: () => L.carrierUnlock,
+        done() {
+          S.carrier = true; S.paidCarrier = 0;
+          addCarrier(L.carrierUnlock.x, L.carrierUnlock.z, true);
+          celebrate(L.carrierUnlock.x, L.carrierUnlock.z);
+          toast('korb', 'Neuer Erdbeer-Träger!');
+        }
+      }
+    ];
+    const drawUnlock = (u) => paintUnlock(u.tile, imgs[u.icon], u.badge && imgs[u.badge], u.price(), S[u.key]);
+    function placeUnlocks() {
+      for (const u of UNLOCKS) {
+        const t = u.tile, vis = u.visible();
+        t.mesh.visible = vis;
+        if (!vis) continue;
+        const p = u.pos(); t.x = p.x; t.z = p.z; t.mesh.position.set(p.x, 0.06, p.z);
+        drawUnlock(u);
+      }
+    }
+    function finishUnlock(u) {
+      u.tile.incoming = 0;
+      u.done();
+      if (!S.tutDone) S.tutDone = true;
+      placeUnlocks(); save();
+    }
+
+    /* ---------- Erdbeer-Träger: bringt Erdbeeren vom Steg zur Maschine ---------- */
+    const CAR_S = 1.1;
+    const carrier = { on: false, x: 0, z: 0, yaw: Math.PI / 4, state: 'toPile', cd: 0, wait: 0, walk: 0, move: 0, pop: 1, root: null, body: null, fl: null, fr: null };
+    function addCarrier(x, z, pop) {
+      const root = new THREE.Group(); root.scale.setScalar(CAR_S);
+      const body = mesh(carrierGeo); root.add(body);
+      const fl = mesh(flipperGeo), fr = mesh(flipperGeo);
+      fl.position.set(-0.38, 0.74, 0.05); fr.position.set(0.38, 0.74, 0.05);
+      fl.rotation.set(-1.1, 0, -0.25); fr.rotation.set(-1.1, 0, 0.25);
+      body.add(fl, fr); scene.add(root);
+      Object.assign(carrier, { on: true, x, z, root, body, fl, fr, state: 'toPile', pop: pop ? 0 : 1 });
+    }
+    function carrierStackPos(i, out) {
+      out = out || new THREE.Vector3();
+      const layer = Math.floor(i / 3), k = i % 3, a = k * 2.09 + layer * 1.05, r = layer ? 0.09 : 0.14;
+      const lx = Math.cos(a) * r, lz = BASKET.z + Math.sin(a) * r * 0.8, ly = BASKET.y + 0.02 + layer * 0.17;
+      const c = Math.cos(carrier.yaw), s2 = Math.sin(carrier.yaw);
+      out.set(carrier.x + (lx * c + lz * s2) * CAR_S, (carrier.root ? carrier.root.position.y : 0) + ly * CAR_S, carrier.z + (-lx * s2 + lz * c) * CAR_S);
+      return out;
+    }
+    function updateCarrier(dt, time) {
+      if (!carrier.on) return;
+      carrier.pop = Math.min(1, carrier.pop + dt * 2.5);
+      const pop = carrier.pop < 1 ? Math.min(1, carrier.pop * 1.4) * (1 + Math.sin(carrier.pop * Math.PI) * 0.35) : 1;
+      carrier.root.scale.setScalar(CAR_S * Math.max(0.001, pop));
+      carrier.cd -= dt;
+      const goal = carrier.state === 'toPile' || carrier.state === 'loading' ? tiles.pile : tiles.input;
+      const dx = goal.x - carrier.x, dz = goal.z - carrier.z, d = Math.hypot(dx, dz);
+      let moving = false;
+      if ((carrier.state === 'toPile' || carrier.state === 'toInput') && carrier.pop >= 1) {
+        if (d > 0.12) {
+          const st = Math.min(d, CFG.carrierSpeed * dt);
+          carrier.x += (dx / d) * st; carrier.z += (dz / d) * st; moving = true;
+          let dy = Math.atan2(dx, dz) - carrier.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); carrier.yaw += dy * Math.min(1, dt * 10);
+        } else { carrier.state = carrier.state === 'toPile' ? 'loading' : 'unloading'; carrier.wait = 0; }
+      }
+      const load = RC.n + RC.inc;
+      if (carrier.state === 'loading') {
+        if (load < RC.max && C.pile.n > 0) {
+          carrier.wait = 0;
+          if (carrier.cd <= 0) { carrier.cd = 0.14; moveItem('berry', C.pile, pilePos, RC, carrierStackPos, 0.22, 0.7, () => sfx.pick(RC.n)); }
+        } else if (load >= RC.max || (load > 0 && (carrier.wait += dt) > 1.0)) carrier.state = 'toInput';
+      } else if (carrier.state === 'unloading') {
+        if (RC.n > 0 && C.hopper.n + C.hopper.inc < C.hopper.max) {
+          if (carrier.cd <= 0) { carrier.cd = 0.12; moveItem('berry', RC, carrierStackPos, C.hopper, () => hopperPos, 0.3, 1.1, () => sfx.drop(C.hopper.n)); }
+        } else if (load === 0) carrier.state = 'toPile';
+      }
+      if (!moving) { // im Stehen langsam zur Kamera drehen
+        let dy = Math.PI / 4 - carrier.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); carrier.yaw += dy * Math.min(1, dt * 3);
+      }
+      carrier.move = damp(carrier.move, moving ? 1 : 0, 10, dt);
+      carrier.walk += dt * 11 * carrier.move;
+      carrier.root.position.set(carrier.x, Math.abs(Math.sin(carrier.walk)) * 0.07 * carrier.move, carrier.z);
+      carrier.root.rotation.y = carrier.yaw;
+      carrier.body.rotation.z = Math.sin(carrier.walk) * 0.09 * carrier.move + Math.sin(time * 2) * 0.03 * (1 - carrier.move);
+    }
+    if (S.carrier) addCarrier(tiles.pile.x + 0.5, tiles.pile.z - 0.5, false);
+    placeUnlocks();
 
     function updatePlayer(dt) {
       let ix = input.dx, iy = input.dy;
@@ -1312,19 +1442,20 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         fly('coin', from, () => _v.set(player.x, 1.2, player.z), 0.22, 0.8, () => { S.coins += v; updateCoins(); sfx.coin(); });
         S.tut = Math.max(S.tut, 5);
       }
-      // Helfer freischalten
-      if (tiles.unlock.mesh.visible && near(tiles.unlock) && S.coins > 0 && tiles.unlock.cd <= 0) {
-        const left = unlockPrice() - S.paid - unlockIncoming;
-        if (left > 0) {
-          tiles.unlock.cd = 0.045;
-          const v = Math.min(S.coins, left, Math.max(1, Math.ceil(unlockPrice() / 24)));
-          S.coins -= v; unlockIncoming += v; updateCoins();
-          fly('coin', _v.set(player.x, 1.2, player.z), () => new THREE.Vector3(tiles.unlock.x, 0.1, tiles.unlock.z), 0.25, 1.0, () => {
-            unlockIncoming -= v; S.paid += v; sfx.pay();
-            drawUnlock(unlockPrice(), S.paid);
-            if (S.paid >= unlockPrice()) doUnlock();
-          });
-        }
+      // Freischaltfelder bezahlen
+      for (const u of UNLOCKS) {
+        const t = u.tile;
+        if (!t.mesh.visible || !near(t) || S.coins <= 0 || t.cd > 0) continue;
+        const price = u.price(), left = price - S[u.key] - t.incoming;
+        if (left <= 0) continue;
+        t.cd = 0.045;
+        const v = Math.min(S.coins, left, Math.max(1, Math.ceil(price / 24)));
+        S.coins -= v; t.incoming += v; updateCoins();
+        fly('coin', _v.set(player.x, 1.2, player.z), () => new THREE.Vector3(t.x, 0.1, t.z), 0.25, 1.0, () => {
+          t.incoming -= v; S[u.key] += v; sfx.pay();
+          drawUnlock(u);
+          if (S[u.key] >= u.price() && t.incoming <= 0) finishUnlock(u);
+        });
       }
     }
 
@@ -1349,19 +1480,26 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     }
 
     function updateBlocks(dt) {
-      blockT -= dt;
-      if (blockT <= 0) {
-        blockT = clamp(1.7 / (0.6 + helpers.length * 0.6), 0.45, 1.6) * rand(0.8, 1.2);
-        const live = blocks.reduce((n, b) => n + (b.deco ? 0 : 1), 0);
-        const gapOk = !blocks.some((b) => !b.deco && b.z < -13.7);
-        if (live < 16 && gapOk) spawnBlock(-15, false);
-        if (Math.random() < 0.25 && blocks.length < 26) spawnBlock(-15, true);
+      let live = 0; for (const b of blocks) if (!b.deco) live++;
+      const cap = 4 + CFG.blocksMaxPerHelper * helpers.length;
+      // Nachschub je Pinguin: freie Blöcke vor ihm zählen, sonst einen auftauchen lassen
+      for (const h of helpers) {
+        h.feedCd = (h.feedCd || 0) - dt;
+        if (h.feedCd > 0 || live >= cap || h.pop < 1) continue;
+        let avail = 0;
+        for (const b of blocks) if (!b.deco && b.hp - b.inc > 0 && b.z > h.z - 4.6 && b.z < h.z + 1.0) avail++;
+        if (avail < CFG.blocksPerHelper && spawnInFreeLane(false, Math.max(SPAWN_Z, h.z - 4.2 + rand(-0.4, 0.4)))) { live++; h.feedCd = 0.6; }
       }
+      // etwas Treibeis von oben, damit der Fluss lebendig bleibt
+      spawnAcc = Math.min(spawnAcc + dt * 0.22, 1.5);
+      if (spawnAcc >= 1 && live < cap && spawnInFreeLane(false, SPAWN_Z)) spawnAcc -= 1;
+      decoT -= dt;
+      if (decoT <= 0) { decoT = rand(3, 6); spawnInFreeLane(true, SPAWN_Z); }
       for (const b of blocks) {
-        b.z += dt * (b.deco ? 0.7 : 0.85);
+        b.z += dt * CFG.blockSpeed;
         b.phase += dt * 2;
         b.shake = Math.max(0, b.shake - dt * 5);
-        if (b.z > 7 && !b.dead) { b.dead = true; if (b.reserved) { b.reserved = false; C.pile.inc--; } }
+        if (b.z > BLOCK_END && !b.dead) { b.dead = true; if (b.reserved) { b.reserved = false; C.pile.inc--; } }
       }
       for (let i = blocks.length - 1; i >= 0; i--) if (blocks[i].dead) blocks.splice(i, 1);
     }
@@ -1378,7 +1516,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
             const b = h.target;
             if (b && !b.dead) {
               sfx.throw();
-              snowballs.push({ from: new THREE.Vector3(h.x - 0.05, 1.25, h.z + 0.45), b, t: 0, dur: 0.42, pos: new THREE.Vector3() });
+              const dist = Math.hypot(b.x - h.x, b.z - h.z);
+              snowballs.push({ from: new THREE.Vector3(h.x - 0.05, 1.25, h.z + 0.45), b, t: 0, dur: 0.3 + dist * 0.05, arc: 0.7 + dist * 0.12, pos: new THREE.Vector3() });
+              h.throws = (h.throws || 0) + 1;
             } else if (b) { b.inc--; if (b.reserved && b.reservedBy === h) { b.reserved = false; C.pile.inc--; } }
           }
           if (h.throwT >= 1) h.throwT = -1;
@@ -1390,7 +1530,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
             if (b.dead || b.deco || b.hp - b.inc <= 0) continue;
             const dz = b.z - h.z;
             if (dz < -3.2 || dz > 2.6) continue;
-            const d = Math.abs(dz + 0.6);
+            const d = Math.abs(dz + 0.6) + b.lane * 0.2;
             if (d < bestD) { bestD = d; best = b; }
           }
           if (best) {
@@ -1419,7 +1559,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       for (let i = snowballs.length - 1; i >= 0; i--) {
         const s = snowballs[i]; s.t += dt / s.dur;
         const b = s.b, k = Math.min(1, s.t);
-        s.pos.set(lerp(s.from.x, b.x, k), lerp(s.from.y, b.y + 0.5, k) + Math.sin(k * Math.PI) * 1.0, lerp(s.from.z, b.z, k));
+        s.pos.set(lerp(s.from.x, b.x, k), lerp(s.from.y, b.y + 0.5, k) + Math.sin(k * Math.PI) * s.arc, lerp(s.from.z, b.z, k));
         if (s.t >= 1) {
           snowballs.splice(i, 1);
           b.inc--;
@@ -1526,9 +1666,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       if (carry.type === 'berry') return { t: tiles.input, icon: 'erdbeere', text: 'Bring die Erdbeeren zur Eismaschine!' };
       if (carry.type === 'cone') return { t: tiles.drop, icon: 'eistuete', text: 'Bring das Eis zur Theke!' };
       if (C.coinPile.n > 0) return { t: tiles.coin, icon: 'muenze', text: 'Sammle die Münzen ein!' };
-      if (tiles.unlock.mesh.visible && S.coins + S.paid >= unlockPrice()) return { t: tiles.unlock, icon: 'helfer', text: 'Hol dir einen neuen Helfer!' };
+      for (const u of UNLOCKS) if (u.tile.mesh.visible && S.coins + S[u.key] >= u.price()) return { t: u.tile, icon: u.icon, text: u.text };
       if (C.out.n > 0) return { t: tiles.output, icon: 'eistuete', text: 'Hol das fertige Eis!' };
-      if (C.pile.n > 0) return { t: tiles.pile, icon: 'erdbeere', text: 'Hol die Erdbeeren vom Steg!' };
+      if (C.pile.n > 0 && !S.carrier) return { t: tiles.pile, icon: 'erdbeere', text: 'Hol die Erdbeeren vom Steg!' };
       return null;
     }
     function updateGuide(time) {
@@ -1554,6 +1694,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       for (let i = 0; i < nc; i++) { coinPos(i, v); put(coinIM, v.x, v.y, v.z, i * 0.37, 1, 0, (i % 3 - 1) * 0.05); }
       const im = ITEM[C.carry.type];
       if (im) for (let i = 0; i < C.carry.n; i++) { stackPos(i, v); put(im, v.x, v.y, v.z, player.yaw + (C.carry.type === 'berry' ? i * 1.7 : 0), 1, -player.leanZ * 0.5); }
+      for (let i = 0; i < RC.n; i++) { carrierStackPos(i, v); put(berryIM, v.x, v.y, v.z, carrier.yaw + i * 1.9, 0.85); }
       for (const f of flies) if (f.t >= 0) put(ITEM[f.type], f.pos.x, f.pos.y, f.pos.z, f.rot + f.t * 5, 1);
       // Kunden, die mit Eis weggehen
       for (const c of customers) if (c.state === 'leave') {
@@ -1563,7 +1704,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       // Eisblöcke im Fluss
       for (const b of blocks) {
         const sh = b.shake, ox = sh ? rand(-0.06, 0.06) * sh : 0, oz = sh ? rand(-0.06, 0.06) * sh : 0;
-        const y = b.y + Math.sin(b.phase) * 0.06, s = b.s * (1 + sh * 0.08);
+        const em = clamp((b.z - (b.born == null ? SPAWN_Z : b.born)) / EMERGE, 0, 1), eme = em * em * (3 - 2 * em);
+        const y = b.y + Math.sin(b.phase) * 0.06 - (1 - eme) * 0.8, s = b.s * (1 + sh * 0.08) * (0.55 + 0.45 * eme);
         put(iceIM, b.x + ox, y + 0.38 * b.s, b.z + oz, b.rot + Math.sin(b.phase * 0.5) * 0.05, s * 0.95);
         if (!b.deco) put(berryIM, b.x + ox, y + 0.08, b.z + oz, b.rot + time * 0.3, 1.6);
       }
@@ -1577,6 +1719,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       const sh = (x, z, s) => put(shadowIM, x, 0.035, z, 0, s, -Math.PI / 2);
       sh(player.x, player.z, 1.1);
       for (const h of helpers) sh(h.x, h.z, 1.0 * h.root.scale.x);
+      if (carrier.on) sh(carrier.x, carrier.z, 1.0 * carrier.root.scale.x);
       for (const c of customers) sh(c.root.position.x, c.root.position.z, 1.15 * c.scale);
       [berryIM, coneIM, coinIM, shadowIM, snowballIM, partIM, iceIM].forEach((m) => { m.instanceMatrix.needsUpdate = true; });
       if (partIM.instanceColor) partIM.instanceColor.needsUpdate = true;
@@ -1630,6 +1773,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         updateMachine(dt);
         updateBlocks(dt);
         updateHelpers(dt, time);
+        updateCarrier(dt, time);
         updateCustomers(dt, time);
         updateFlies(dt);
         updateParticles(dt);
@@ -1652,10 +1796,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     if (/[?&]debug\b/.test(location.search)) {
       window.__eis = {
-        S, C, player, tiles, helpers, customers, blocks, L,
+        S, C, RC, carrier, UNLOCKS, player, tiles, helpers, customers, blocks, L,
         go(x, z) { player.x = x; player.z = z; },
         begin, save,
-        step(sec, fn) { const n = Math.round(sec * 60); for (let i = 0; i < n; i++) { if (fn) fn(); const dt = 1 / 60; time += dt; updatePlayer(dt); updateInteractions(dt); updateMachine(dt); updateBlocks(dt); updateHelpers(dt, time); updateCustomers(dt, time); updateFlies(dt); updateParticles(dt); } }
+        step(sec, fn) { const n = Math.round(sec * 60); for (let i = 0; i < n; i++) { if (fn) fn(); const dt = 1 / 60; time += dt; updatePlayer(dt); updateInteractions(dt); updateMachine(dt); updateBlocks(dt); updateHelpers(dt, time); updateCarrier(dt, time); updateCustomers(dt, time); updateFlies(dt); updateParticles(dt); } }
       };
     }
   }
