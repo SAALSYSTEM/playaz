@@ -176,7 +176,17 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     blockGap: 1.2,
     blocksPerHelper: 2,    // so viele freie Blöcke soll jeder Pinguin vor sich haben
     blocksMaxPerHelper: 4, // höchstens so viele Blöcke gleichzeitig im Fluss (+4), damit es nicht zu voll wird
-    startPile: 8
+    startPile: 8,
+    // Blaubeer-Garten (neuer Bereich, wenn alles andere freigeschaltet ist)
+    gardenPrice: 500,
+    pickerPrice: 300,      // Blaubeer-Helfer
+    coinPerBlue: 9,        // Blaubeer-Eis ist mehr wert
+    bushMax: 6,            // Beeren pro Busch
+    bushGrow: 1.8,         // Sekunden, bis eine Beere nachwächst
+    blueHopperMax: 30,
+    blueOutMax: 24,
+    bluePeriod: 0.5,       // Blaubeer-Maschine: Sekunden pro Eistüte
+    blueSpawnFactor: 0.8   // mit Blaubeer-Eis kommen mehr Kunden
   };
 
   /* Weltaufbau. Kamera schaut schräg von +x/+z, also: -x/-z ist oben am Bildschirm. */
@@ -191,6 +201,15 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     carrierUnlock: { x: -0.2, z: -1.9 },
     machineUnlock: { x: -2.55, z: -5.25 },
     hole: { x: -1.3, z: 1.35 },          // Eisloch: hier kann man alles ins Wasser werfen
+    // Blaubeer-Garten südlich vom Platz (unten links im Bild)
+    garden: { x0: -3.4, x1: 4.3, z0: 6.4, z1: 12.8 },
+    gardenGate: { x: 0.45, z: 5.95 },
+    bushes: [[-2.55, 7.92], [-2.83, 9.33], [-1.13, 8.77], [-2.55, 11.03]],
+    blueMachine: { x: 0.71, z: 9.19 },
+    blueInput: { x: -0.14, z: 11.6 },
+    blueOutput: { x: 3.42, z: 10.0 },
+    pickerUnlock: { x: 3.25, z: 6.93 },
+    hole2: { x: 1.98, z: 12.16 },
     pile: { x: -2.95, z: -1.55 },
     igloo: { x: -2.2, z: -8.7, r: 2.25 },
     machine: { x: -0.75, z: -5.75 },
@@ -269,7 +288,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
   /* ---------- Start ---------- */
   async function boot() {
     if (!window.THREE) { fail('Die 3D-Grafik konnte nicht geladen werden. Lade die Seite bitte neu.'); return; }
-    const names = ['muenze', 'erdbeere', 'eistuete', 'helfer', 'stern', 'korb', 'upgrade'];
+    const names = ['muenze', 'erdbeere', 'eistuete', 'helfer', 'stern', 'korb', 'upgrade', 'blaubeere', 'eistuete-blau'];
     const imgs = {};
     const fontLoad = (document.fonts && document.fonts.load)
       ? Promise.race([Promise.all([document.fonts.load('700 40px Fredoka'), document.fonts.load('600 40px Fredoka')]), sleep(2000)]).catch(() => {})
@@ -337,20 +356,29 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       waffle: [0, 256, 256, 256], scoop: [256, 256, 256, 256]
     };
     const uvr = (r) => [r[0] / A, 1 - (r[1] + r[3]) / A, r[2] / A, r[3] / A];
-    const atlasTex = tex(canvas(A, A, (g) => {
-      // Erdbeerhaut
+    const makeAtlas = (blue) => tex(canvas(A, A, (g) => {
       let [x, y, w, h] = REG.berry;
       let gr = g.createLinearGradient(0, y, 0, y + h);
-      gr.addColorStop(0, '#ff6b78'); gr.addColorStop(0.5, '#ff3b4e'); gr.addColorStop(1, '#e62a3f');
-      g.fillStyle = gr; g.fillRect(x, y, w, h);
-      g.fillStyle = '#ffd84a';
-      for (let r = 0; r < 9; r++) for (let c = 0; c < 12; c++) {
-        const sx = x + (c + (r % 2) * 0.5) * (w / 12) + 4, sy = y + 34 + r * 24;
-        g.beginPath(); g.ellipse(sx % (x + w), sy, 3.2, 5, 0, 0, TAU); g.fill();
+      if (blue) {
+        // Blaubeerhaut: dunkelblau mit hellem Reif
+        gr.addColorStop(0, '#5a6fe0'); gr.addColorStop(0.5, '#3346b8'); gr.addColorStop(1, '#1f2a7a');
+        g.fillStyle = gr; g.fillRect(x, y, w, h);
+        g.fillStyle = 'rgba(190,205,255,.25)';
+        for (let i = 0; i < 70; i++) { g.beginPath(); g.arc(x + Math.random() * w, y + Math.random() * h, 2 + Math.random() * 4, 0, TAU); g.fill(); }
+      } else {
+        // Erdbeerhaut
+        gr.addColorStop(0, '#ff6b78'); gr.addColorStop(0.5, '#ff3b4e'); gr.addColorStop(1, '#e62a3f');
+        g.fillStyle = gr; g.fillRect(x, y, w, h);
+        g.fillStyle = '#ffd84a';
+        for (let r = 0; r < 9; r++) for (let c = 0; c < 12; c++) {
+          const sx = x + (c + (r % 2) * 0.5) * (w / 12) + 4, sy = y + 34 + r * 24;
+          g.beginPath(); g.ellipse(sx % (x + w), sy, 3.2, 5, 0, 0, TAU); g.fill();
+        }
       }
-      // Blätter
+      // Blätter (bei Blaubeeren: dunkle Krone)
       [x, y, w, h] = REG.leaf;
-      gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, '#5cc25f'); gr.addColorStop(1, '#2f8f43');
+      gr = g.createLinearGradient(0, y, 0, y + h);
+      if (blue) { gr.addColorStop(0, '#2b3580'); gr.addColorStop(1, '#151a4d'); } else { gr.addColorStop(0, '#5cc25f'); gr.addColorStop(1, '#2f8f43'); }
       g.fillStyle = gr; g.fillRect(x, y, w, h);
       // Münzrand
       [x, y, w, h] = REG.edge;
@@ -378,7 +406,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       g.restore();
       // Eiskugel mit Streuseln
       [x, y, w, h] = REG.scoop;
-      gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, '#ffd3e0'); gr.addColorStop(0.55, '#ffa9c3'); gr.addColorStop(1, '#ff8fb0');
+      gr = g.createLinearGradient(0, y, 0, y + h);
+      if (blue) { gr.addColorStop(0, '#e3e6ff'); gr.addColorStop(0.55, '#a9b2ff'); gr.addColorStop(1, '#8590f2'); }
+      else { gr.addColorStop(0, '#ffd3e0'); gr.addColorStop(0.55, '#ffa9c3'); gr.addColorStop(1, '#ff8fb0'); }
       g.fillStyle = gr; g.fillRect(x, y, w, h);
       const cols = ['#ff4f6d', '#ffd23f', '#5cc8f2', '#7bd36b', '#b98cff', '#ffffff'];
       for (let i = 0; i < 60; i++) {
@@ -386,7 +416,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         g.rotate(Math.random() * Math.PI); g.fillStyle = cols[i % cols.length]; rr(g, -6, -2.5, 12, 5, 2.5); g.fill(); g.restore();
       }
     }));
+    const atlasTex = makeAtlas(false);
     const itemMat = new THREE.MeshStandardMaterial({ map: atlasTex, roughness: 0.5, metalness: 0 });
+    const blueMat = new THREE.MeshStandardMaterial({ map: makeAtlas(true), roughness: 0.45, metalness: 0 });
 
     /* Geometrien zu einem Mesh verbacken (Farben je Teil oder Atlas-UVs) */
     const _e = new THREE.Euler(), _q = new THREE.Quaternion();
@@ -466,6 +498,14 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       { g: G.s, r: 'scoop', m: M(0, 0.62, 0, 0.07) }
     ], true);
 
+    const blueParts = [{ g: G.s, r: 'berry', m: M(0, 0.15, 0, 0.15, 0.14, 0.15) }];
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * TAU;
+      blueParts.push({ g: G.cone, r: 'leaf', m: M(Math.sin(a) * 0.045, 0.29, Math.cos(a) * 0.045, 0.03, 0.06, 0.03, Math.cos(a) * 0.5, 0, -Math.sin(a) * 0.5) });
+    }
+    blueParts.push({ g: G.cyl, r: 'leaf', m: M(0, 0.282, 0, 0.055, 0.02, 0.055) });
+    const blueberryGeo = bake(blueParts, true);
+
     const coinGeo = bake([
       { g: new THREE.CylinderGeometry(1, 1, 1, 22, 1, true), r: 'edge', m: M(0, 0.035, 0, 0.22, 0.07, 0.22) },
       { g: G.circ, r: 'coin', m: M(0, 0.07, 0, 0.22, 0.22, 0.22, -Math.PI / 2, 0, 0) },
@@ -481,6 +521,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const berryIM = makeIM(berryGeo, itemMat, 340);
     const coneIM = makeIM(coneGeo, itemMat, 240);
     const coinIM = makeIM(coinGeo, itemMat, 320);
+    const blueIM = makeIM(blueberryGeo, blueMat, 240);
+    const bconeIM = makeIM(coneGeo, blueMat, 200);
 
     const _m4 = new THREE.Matrix4(), _p3 = new THREE.Vector3(), _s3 = new THREE.Vector3();
     function put(im, x, y, z, ry, s, rx, rz, sy) {
@@ -489,7 +531,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       _p3.set(x, y, z); _s3.set(s, sy == null ? s : sy, s);
       _m4.compose(_p3, _q, _s3); im.setMatrixAt(im.count++, _m4);
     }
-    const ITEM = { berry: berryIM, cone: coneIM, coin: coinIM };
+    const ITEM = { berry: berryIM, cone: coneIM, coin: coinIM, blue: blueIM, bcone: bconeIM };
 
     /* ---------- Boden, Fluss, Steg ---------- */
     // Schneeboden diesseits und jenseits des Flusses (der Fluss selbst bleibt frei)
@@ -529,12 +571,25 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       return s;
     }
     const plazaMat = new THREE.MeshLambertMaterial({ map: paveTex });
-    function plazaPatch(x0, z0, x1, z1, r, y) {
-      const m = new THREE.Mesh(new THREE.ShapeGeometry(roundedShape(x0, z0, x1, z1, r), 6), plazaMat);
+    function plazaPatch(x0, z0, x1, z1, r, y, mat) {
+      const m = new THREE.Mesh(new THREE.ShapeGeometry(roundedShape(x0, z0, x1, z1, r), 6), mat || plazaMat);
       m.rotation.x = -Math.PI / 2; m.position.y = y; scene.add(m); return m;
     }
     plazaPatch(L.plaza.x0 - 0.5, L.plaza.z0 - 0.4, L.plaza.x1 + 0.45, L.plaza.z1 + 0.5, 1.6, 0.0);
     plazaPatch(L.laneX - 1.1, -3.4, L.laneX + 1.0, 12, 0.8, 0.002); // Weg für die Schlange
+    // Blaubeer-Garten: lila Pflaster
+    const gardenTex = tex(canvas(256, 256, (g) => {
+      g.fillStyle = '#ece6fb'; g.fillRect(0, 0, 256, 256);
+      const shades = ['#d6ccf4', '#cfc3f1', '#ddd4f7', '#c8bbee'];
+      for (let r = 0; r < 4; r++) for (let c = -1; c < 5; c++) {
+        const ox = (r % 2) * 32;
+        g.fillStyle = shades[(r * 5 + c * 3 + 8) % 4];
+        rr(g, c * 64 + ox + 4, r * 64 + 4, 56, 56, 12); g.fill();
+        g.fillStyle = 'rgba(255,255,255,.25)'; rr(g, c * 64 + ox + 10, r * 64 + 8, 40, 12, 6); g.fill();
+      }
+    }), true);
+    gardenTex.repeat.set(0.42, 0.42);
+    plazaPatch(L.garden.x0 - 0.45, L.garden.z0 - 0.1, L.garden.x1 + 0.15, L.garden.z1 + 0.5, 1.4, -0.004, new THREE.MeshLambertMaterial({ map: gardenTex }));
 
     // Fluss
     const waterTex = tex(canvas(256, 256, (g) => {
@@ -633,25 +688,26 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     const machine = new THREE.Group(); machine.position.set(L.machine.x, 0, L.machine.z); machine.rotation.y = Math.PI / 4; scene.add(machine);
     const STEEL = '#c3ccd6', STEEL_D = '#8e9aa8';
-    const machineGeo = bake([
+    const machineParts = (top, b1, b2) => [
       P(G.box, WOOD, M(0, 0.18, 0, 1.9, 0.36, 1.4)),
       P(G.box, WOOD_D, M(0, 0.37, 0, 1.96, 0.06, 1.46)),
       P(G.box, STEEL, M(0, 0.95, -0.1, 1.15, 1.1, 0.85)),
       P(G.box, STEEL_D, M(0, 1.52, -0.1, 1.22, 0.08, 0.92)),
       P(G.cyl, STEEL_D, M(0, 1.6, -0.1, 0.5, 0.12, 0.5)),
       P(G.cyl, STEEL, M(0, 2.42, -0.1, 0.5, 0.1, 0.5)),
-      P(G.hemi, '#ff3b4e', M(0, 2.46, -0.1, 0.44, 0.34, 0.44)),
+      P(G.hemi, top, M(0, 2.46, -0.1, 0.44, 0.34, 0.44)),
       P(G.s, '#3fa34d', M(0, 2.8, -0.1, 0.09, 0.06, 0.09)),
       P(G.cyl, STEEL_D, M(0, 1.02, 0.4, 0.13, 0.32, 0.13)),
       P(G.cone, STEEL_D, M(0, 0.8, 0.4, 0.1, 0.14, 0.1, Math.PI, 0, 0)),
       P(G.cyl, '#6d7886', M(0, 0.44, 0.45, 0.32, 0.06, 0.32)),
-      P(G.box, '#ff6b7c', M(-0.3, 1.0, 0.33, 0.2, 0.2, 0.04)),
-      P(G.box, '#ffd23f', M(0.3, 1.0, 0.33, 0.2, 0.2, 0.04)),
+      P(G.box, b1, M(-0.3, 1.0, 0.33, 0.2, 0.2, 0.04)),
+      P(G.box, b2, M(0.3, 1.0, 0.33, 0.2, 0.2, 0.04)),
       // Trichter für Erdbeeren
       P(G.coneO, STEEL, M(-0.9, 1.25, -0.1, 0.36, 0.42, 0.36, Math.PI, 0, 0)),
       P(G.cyl, STEEL_D, M(-0.9, 0.85, -0.1, 0.1, 0.5, 0.1)),
       P(G.box, STEEL_D, M(-0.68, 0.8, -0.1, 0.4, 0.1, 0.1))
-    ]);
+    ];
+    const machineGeo = bake(machineParts('#ff3b4e', '#ff6b7c', '#ffd23f'));
     machine.add(new THREE.Mesh(machineGeo, toyMat));
     const tankGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.75, 22, 1, true), new THREE.MeshStandardMaterial({ color: 0xdff4ff, transparent: true, opacity: 0.35, roughness: 0.1, depthWrite: false, side: THREE.DoubleSide }));
     tankGlass.position.set(0, 1.99, -0.1); machine.add(tankGlass);
@@ -674,6 +730,21 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       starTex.needsUpdate = true;
     }
     const hopperLocal = new THREE.Vector3(-0.9, 1.5, -0.1);
+
+    // Blaubeer-Maschine im Garten
+    const blueMachine = new THREE.Group(); blueMachine.position.set(L.blueMachine.x, 0, L.blueMachine.z); blueMachine.rotation.y = Math.PI / 4; scene.add(blueMachine);
+    blueMachine.add(new THREE.Mesh(bake(machineParts('#4c63e0', '#8c9cff', '#ffd23f')), toyMat));
+    const blueTankGlass = tankGlass.clone(); blueMachine.add(blueTankGlass);
+    const blueTankFill = new THREE.Mesh(tankFill.geometry, new THREE.MeshStandardMaterial({ color: 0x9aa6ff, roughness: 0.4 }));
+    blueTankFill.position.copy(tankFill.position); blueMachine.add(blueTankFill);
+    // kleines Dach mit lila Streifen über der Blaubeer-Maschine
+    const blueStripeTex = tex(canvas(128, 32, (g) => { for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#f4f2ff' : '#6f7cf0'; g.fillRect(i * 16, 0, 16, 32); } }), true);
+    blueStripeTex.repeat.set(1.5, 1);
+    const blueAwning = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 1.0), new THREE.MeshLambertMaterial({ map: blueStripeTex, side: THREE.DoubleSide }));
+    blueAwning.position.set(0, 3.15, -0.55); blueAwning.rotation.x = -1.05; blueMachine.add(blueAwning);
+    blueMachine.add(new THREE.Mesh(bake([
+      P(G.cyl, WOOD, M(-0.95, 1.5, -0.7, 0.06, 3.0, 0.06)), P(G.cyl, WOOD, M(0.95, 1.5, -0.7, 0.06, 3.0, 0.06))
+    ]), toyMat));
 
     /* ---------- Theke ---------- */
     const counterGeo = bake([
@@ -702,6 +773,43 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     fenceLine(L.laneX - 0.88, 0.95, 12);
     fenceLine(L.laneX + 0.95, -3.1, 12);
 
+    // Zaun vor dem Blaubeer-Garten (verschwindet beim Freischalten)
+    const gardenFenceParts = [];
+    {
+      const z = L.garden.z0 + 0.45, xs = [];
+      for (let x = L.garden.x0 - 0.1; x <= L.garden.x1 + 0.01; x += 1.1) xs.push(x);
+      xs.forEach((x) => {
+        gardenFenceParts.push(P(G.cyl, WOOD, M(x, 0.42, z, 0.13, 0.84, 0.13)));
+        gardenFenceParts.push(P(G.sl, SNOW, M(x, 0.86, z, 0.17, 0.09, 0.17)));
+      });
+      for (let i = 0; i < xs.length - 1; i++) {
+        const a = new THREE.Vector3(xs[i], 0.62, z), b = new THREE.Vector3(xs[i + 1], 0.62, z);
+        const mid = a.clone().add(b).multiplyScalar(0.5); mid.y -= 0.12;
+        gardenFenceParts.push(P(new THREE.TubeGeometry(new THREE.QuadraticBezierCurve3(a, mid, b), 8, 0.035, 5), '#c99a5b', new THREE.Matrix4()));
+      }
+    }
+    const gardenFence = new THREE.Mesh(bake(gardenFenceParts), toyMatFlat); scene.add(gardenFence);
+
+    // Blaubeer-Büsche
+    const bushGeo = bake([
+      P(G.s, '#2f7d52', M(0, 0.45, 0, 0.56, 0.5, 0.56)),
+      P(G.s, '#358a5a', M(0.3, 0.36, 0.18, 0.4, 0.36, 0.4)),
+      P(G.s, '#2b7049', M(-0.3, 0.34, 0.12, 0.4, 0.34, 0.4)),
+      P(G.s, '#3b955f', M(0.02, 0.76, -0.05, 0.4, 0.34, 0.4)),
+      P(G.s, SNOW, M(0.0, 1.02, -0.08, 0.3, 0.12, 0.28)),
+      P(G.s, SNOW, M(-0.32, 0.62, -0.1, 0.18, 0.08, 0.16)),
+      P(G.sl, SNOW, M(0, 0.04, 0, 0.7, 0.16, 0.7))
+    ]);
+    const BUSH_SPOTS = [[0.36, 0.56, 0.36], [0.06, 0.82, 0.38], [-0.32, 0.58, 0.4], [0.5, 0.78, -0.02], [-0.08, 1.0, 0.12], [0.18, 0.38, 0.55]];
+    const bushes = L.bushes.map(([x, z]) => {
+      const m = new THREE.Mesh(bushGeo, toyMatFlat); m.position.set(x, 0, z); m.rotation.y = rand(-0.3, 0.3); scene.add(m);
+      return { x, z, r: 1.15, n: CFG.bushMax, t: 0, mesh: m };
+    });
+    function bushBerryPos(b, i, out) {
+      const s = BUSH_SPOTS[i % BUSH_SPOTS.length];
+      return (out || new THREE.Vector3()).set(b.x + s[0], s[1], b.z + s[2]);
+    }
+
     // Bude mit Markise und Erdbeerkiste neben dem Iglu (Deko)
     const stripeTex = tex(canvas(128, 32, (g) => { for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#fff4f4' : '#ff5a6e'; g.fillRect(i * 16, 0, 16, 32); } }), true);
     const stall = new THREE.Group(); stall.position.set(1.3, 0, -8.0); stall.rotation.y = Math.PI / 4; scene.add(stall);
@@ -726,12 +834,14 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       [-6.4, 0.4], [-7.0, 3.1], [-5.7, 5.4], [-6.8, 7.8], [-4.5, 9.7], [-6.4, 11.6], [-2.9, 12.4], [0.2, 13.5], [3.2, 13.6], [5.9, 12.3],
       [7.4, 9.6], [7.6, 6.8], [7.3, -0.6], [7.6, -3.2], [7.0, -10.8], [4.6, -12.2], [1.6, -13.6], [-1.6, -14.5], [8.2, -6.4], [-8.0, 13.6], [8.6, 3.0]
     ];
-    const treeIM = new THREE.InstancedMesh(treeGeo, toyMatFlat, treeSpots.length + 30); treeIM.count = 0;
-    treeSpots.forEach(([u, v]) => { const w = W(u, v); put(treeIM, w.x, 0, w.z, rand(0, TAU), rand(0.85, 1.15)); });
+    const treeIM = new THREE.InstancedMesh(treeGeo, toyMatFlat, treeSpots.length + 40); treeIM.count = 0;
+    const inGarden = (x, z) => x > L.garden.x0 - 1.0 && x < L.garden.x1 + 0.4 && z > L.garden.z0 - 0.9 && z < L.garden.z1 + 1.0;
+    treeSpots.forEach(([u, v]) => { const w = W(u, v); if (!inGarden(w.x, w.z)) put(treeIM, w.x, 0, w.z, rand(0, TAU), rand(0.85, 1.15)); });
+    [[-4.5, 8.0], [-4.6, 11.2], [-3.6, 14.6], [-1.0, 15.3], [3.2, 15.4]].forEach(([x, z]) => put(treeIM, x, 0, z, rand(0, TAU), rand(0.85, 1.1)));
     for (let z = -26; z < 26; z += 2.6) put(treeIM, farX - rand(1.2, 3.6), 0.65, z + rand(-0.6, 0.6), rand(0, TAU), rand(0.8, 1.1));
     treeIM.instanceMatrix.needsUpdate = true; scene.add(treeIM);
-    const moundSpots = [[-5.2, 1.4], [-6.0, 9.6], [-1.6, 11.0], [1.8, 11.8], [6.2, 8.4], [6.5, -1.9], [5.2, -11.6], [-0.4, -12.4], [7.6, 1.1], [-3.8, 7.6]];
-    moundSpots.forEach(([u, v]) => { const w = W(u, v); decoParts.push(P(G.sl, SNOW, M(w.x, 0, w.z, rand(0.6, 1.0), rand(0.35, 0.55), rand(0.6, 1.0)))); });
+    const moundSpots = [[-6.0, 9.6], [-1.6, 11.0], [1.8, 11.8], [6.2, 8.4], [6.5, -1.9], [5.2, -11.6], [-0.4, -12.4], [7.6, 1.1], [-3.8, 7.6]];
+    moundSpots.forEach(([u, v]) => { const w = W(u, v); if (!inGarden(w.x, w.z)) decoParts.push(P(G.sl, SNOW, M(w.x, 0, w.z, rand(0.6, 1.0), rand(0.35, 0.55), rand(0.6, 1.0)))); });
 
     const deco = new THREE.Mesh(bake(decoParts), toyMatFlat); scene.add(deco);
 
@@ -782,7 +892,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     ]);
 
     // Pinguin (Helfer mit gelber Mütze, Kunde mit rotem Schal)
-    function penguinGeo(helper, extra) {
+    function penguinGeo(helper, extra, hat) {
+      hat = hat || { main: C_.yellow, brim: '#f0ae10' };
       const p = [];
       p.push(P(G.s, C_.black, M(0, 0.55, 0, 0.42, 0.5, 0.38)));
       p.push(P(G.s, C_.white, M(0, 0.48, 0.15, 0.33, 0.4, 0.26)));
@@ -792,13 +903,13 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       cheeks(p, 0.91, 0.26, 0.19, 0.045);
       p.push(P(G.cone, C_.orange, M(0, 0.9, 0.36, 0.07, 0.14, 0.05, Math.PI / 2, 0, 0)));
       [-1, 1].forEach((k) => p.push(P(G.s, C_.orange, M(k * 0.14, 0.04, 0.12, 0.12, 0.05, 0.16))));
-      const sc = helper ? C_.yellow : C_.red;
+      const sc = helper ? hat.main : C_.red;
       p.push(P(G.tor, sc, M(0, 0.72, 0.02, 0.3, 0.3, 0.3, Math.PI / 2, 0, 0)));
       p.push(P(G.box, sc, M(0.16, 0.56, 0.26, 0.1, 0.26, 0.05, 0.1, 0, -0.15)));
       if (helper) {
-        p.push(P(G.s, C_.yellow, M(0, 1.16, -0.02, 0.31, 0.24, 0.31)));
-        p.push(P(G.tor, '#f0ae10', M(0, 1.1, -0.02, 0.29, 0.29, 0.3, Math.PI / 2, 0, 0)));
-        p.push(P(G.s, C_.yellow, M(0, 1.42, -0.04, 0.11)));
+        p.push(P(G.s, hat.main, M(0, 1.16, -0.02, 0.31, 0.24, 0.31)));
+        p.push(P(G.tor, hat.brim, M(0, 1.1, -0.02, 0.29, 0.29, 0.3, Math.PI / 2, 0, 0)));
+        p.push(P(G.s, hat.main, M(0, 1.42, -0.04, 0.11)));
       }
       if (extra) extra(p);
       return bake(p);
@@ -807,12 +918,14 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const helperGeo = penguinGeo(true);
     // Träger: Helfer-Pinguin mit Weidenkorb vor dem Bauch
     const BASKET = { y: 0.6, z: 0.5 };
-    const carrierGeo = penguinGeo(true, (p) => {
+    const basket = (p) => {
       p.push(P(G.cylO, '#c98a4f', M(0, BASKET.y + 0.08, BASKET.z, 0.3, 0.2, 0.24)));
       p.push(P(G.cyl, '#b7783f', M(0, BASKET.y - 0.02, BASKET.z, 0.28, 0.03, 0.22)));
       p.push(P(G.tor, '#e3a66c', M(0, BASKET.y + 0.18, BASKET.z, 0.3, 0.24, 0.12, Math.PI / 2, 0, 0)));
       p.push(P(G.tor, '#a96f38', M(0, BASKET.y - 0.01, BASKET.z, 0.29, 0.23, 0.1, Math.PI / 2, 0, 0)));
-    });
+    };
+    const carrierGeo = penguinGeo(true, basket);
+    const pickerGeo = penguinGeo(true, basket, { main: '#5b7cf0', brim: '#3a56c8' }); // Blaubeer-Helfer mit blauer Mütze
 
     // Kunden
     const customerGeos = [
@@ -904,13 +1017,18 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       output: { x: L.output.x, z: L.output.z, r: 1.0, cd: 0 },
       drop: { x: L.drop.x, z: L.drop.z, r: 0.95, cd: 0 },
       coin: { x: L.coin.x, z: L.coin.z, r: 1.0, cd: 0 },
-      hole: { x: L.hole.x, z: L.hole.z, r: 1.05, cd: 0, hold: 0 }
+      hole: { x: L.hole.x, z: L.hole.z, r: 1.05, cd: 0, hold: 0 },
+      hole2: { x: L.hole2.x, z: L.hole2.z, r: 1.05, cd: 0, hold: 0 },
+      blueInput: { x: L.blueInput.x, z: L.blueInput.z, r: 0.95, cd: 0 },
+      blueOutput: { x: L.blueOutput.x, z: L.blueOutput.z, r: 1.0, cd: 0 }
     };
     tileMesh(tiles.pile.x, tiles.pile.z, 2.1, tileCanvas(imgs.erdbeere));
     tileMesh(tiles.input.x, tiles.input.z, TILE, tileCanvas(imgs.erdbeere, 'drop'));
     tileMesh(tiles.output.x, tiles.output.z, 1.9, tileCanvas(imgs.eistuete));
     tileMesh(tiles.drop.x, tiles.drop.z, TILE, tileCanvas(imgs.eistuete, 'drop'));
     tileMesh(tiles.coin.x, tiles.coin.z, 1.9, tileCanvas(imgs.muenze));
+    tileMesh(tiles.blueInput.x, tiles.blueInput.z, TILE, tileCanvas(imgs.blaubeere, 'drop'));
+    tileMesh(tiles.blueOutput.x, tiles.blueOutput.z, 1.9, tileCanvas(imgs['eistuete-blau']));
 
     // Eisloch
     const holeWaterTex = tex(canvas(128, 128, (g) => {
@@ -920,16 +1038,21 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       g.strokeStyle = 'rgba(255,255,255,.5)'; g.lineWidth = 3; g.lineCap = 'round';
       [[64, 64, 22, 0.3, 1.6], [64, 64, 36, 2.2, 3.4], [64, 64, 46, 4.2, 5.4]].forEach(([x, y, r, a0, a1]) => { g.beginPath(); g.arc(x, y, r, a0, a1); g.stroke(); });
     }));
-    const holeWater = new THREE.Mesh(new THREE.CircleGeometry(0.6, 28), new THREE.MeshLambertMaterial({ map: holeWaterTex }));
-    holeWater.rotation.x = -Math.PI / 2; holeWater.position.set(L.hole.x, 0.012, L.hole.z); scene.add(holeWater);
     const holeRim = [P(G.tor, '#f1f7ff', M(0, 0.03, 0, 0.66, 0.66, 0.42, Math.PI / 2, 0, 0))];
     for (let i = 0; i < 7; i++) {
       const a = (i / 7) * TAU + 0.3, r = 0.74;
       holeRim.push(P(G.box, i % 2 ? '#cdeeff' : '#e4f6ff', M(Math.cos(a) * r, 0.08, Math.sin(a) * r, 0.2, 0.14, 0.16, 0.2, a, 0.15)));
       if (i % 3 === 0) holeRim.push(P(G.sl, '#ffffff', M(Math.cos(a + 0.45) * 0.8, 0.06, Math.sin(a + 0.45) * 0.8, 0.16, 0.09, 0.14)));
     }
-    const holeRimMesh = new THREE.Mesh(bake(holeRim), toyMatFlat); holeRimMesh.position.set(L.hole.x, 0, L.hole.z); scene.add(holeRimMesh);
-    const holeTarget = new THREE.Vector3(L.hole.x, -0.25, L.hole.z);
+    const holeRimGeo = bake(holeRim), holeWaterGeo = new THREE.CircleGeometry(0.6, 28), holeWaterMat = new THREE.MeshLambertMaterial({ map: holeWaterTex });
+    const holeWaters = [];
+    function makeHole(t) {
+      const w = new THREE.Mesh(holeWaterGeo, holeWaterMat);
+      w.rotation.x = -Math.PI / 2; w.position.set(t.x, 0.012, t.z); scene.add(w); holeWaters.push(w);
+      const rim = new THREE.Mesh(holeRimGeo, toyMatFlat); rim.position.set(t.x, 0, t.z); scene.add(rim);
+      return { t, target: new THREE.Vector3(t.x, -0.25, t.z) };
+    }
+    const HOLES = [makeHole(tiles.hole), makeHole(tiles.hole2)];
 
     // Freischaltfelder: Münzen draufbringen, bis der Balken voll ist
     function makeUnlockTile(size) {
@@ -943,6 +1066,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     tiles.unlock = makeUnlockTile();        // +1 Helfer-Pinguin am Steg
     tiles.carrierUnlock = makeUnlockTile(); // Erdbeer-Träger
     tiles.machineUnlock = makeUnlockTile(1.6); // schnellere Eismaschine
+    tiles.gardenUnlock = makeUnlockTile(2.0);  // Blaubeer-Garten
+    tiles.pickerUnlock = makeUnlockTile();     // Blaubeer-Helfer
     function paintUnlock(t, icon, badge, price, paid) {
       const key = price + '/' + paid; if (key === t.drawn) return; t.drawn = key;
       const g = t.canvas.getContext('2d');
@@ -1041,8 +1166,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       coinPile: { n: 0, inc: 0, max: 100000 },
       carry: { n: 0, inc: 0, max: CFG.carryMax, type: null }
     };
-    const RC = { n: 0, inc: 0, max: CFG.carrierMax }; // Erdbeeren im Korb des Trägers
-    const S = { coins: 0, helpers: 1, paid: 0, carrier: false, paidCarrier: 0, machine: 0, paidMachine: 0, sold: 0, tut: 0, tutDone: false };
+    const B = { hopper: { n: 0, inc: 0, max: CFG.blueHopperMax }, out: { n: 0, inc: 0, max: CFG.blueOutMax } }; // Blaubeer-Maschine
+    const counterTypes = []; // Sorte jeder Eistüte auf der Theke ('cone' oder 'bcone'), unten zuerst
+    const S = { coins: 0, helpers: 1, paid: 0, carrier: false, paidCarrier: 0, machine: 0, paidMachine: 0,
+      garden: false, paidGarden: 0, picker: false, paidPicker: 0, blueSold: 0, sold: 0, tut: 0, tutDone: false };
     const saved = store.get(KEY_SAVE, null);
     if (saved && saved.v === 1) {
       const n = (v, d, mx) => clamp(Number.isFinite(v) ? Math.floor(v) : d, 0, mx);
@@ -1052,8 +1179,17 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       S.machine = n(saved.machine, 0, CFG.machinePrices.length); S.paidMachine = n(saved.paidMachine, 0, 1e6);
       C.pile.n = n(saved.pile, CFG.startPile, CFG.pileMax); C.hopper.n = n(saved.hopper, 0, CFG.hopperMax);
       C.out.n = n(saved.out, 0, CFG.outMax); C.counter.n = n(saved.counter, 0, CFG.counterMax); C.coinPile.n = n(saved.coinPile, 0, 1e7);
-      if (saved.carryType === 'berry' || saved.carryType === 'cone') { C.carry.type = saved.carryType; C.carry.n = n(saved.carry, 0, CFG.carryMax); if (!C.carry.n) C.carry.type = null; }
+      if (['berry', 'cone', 'blue', 'bcone'].includes(saved.carryType)) { C.carry.type = saved.carryType; C.carry.n = n(saved.carry, 0, CFG.carryMax); if (!C.carry.n) C.carry.type = null; }
+      S.garden = !!saved.garden; S.paidGarden = n(saved.paidGarden, 0, 1e6);
+      S.picker = !!saved.picker; S.paidPicker = n(saved.paidPicker, 0, 1e6); S.blueSold = n(saved.blueSold, 0, 1e8);
+      B.hopper.n = n(saved.blueHopper, 0, CFG.blueHopperMax); B.out.n = n(saved.blueOut, 0, CFG.blueOutMax);
+      if (Array.isArray(saved.bushes)) bushes.forEach((b, i) => { b.n = n(saved.bushes[i], CFG.bushMax, CFG.bushMax); });
     }
+    {
+      const ct = typeof (saved && saved.counterTypes) === 'string' ? saved.counterTypes : '';
+      for (let i = 0; i < C.counter.n; i++) counterTypes.push(ct[i] === 'b' ? 'bcone' : 'cone');
+    }
+    gardenFence.visible = !S.garden;
     for (let i = 0; i < S.helpers; i++) addHelper(i, false);
     const hasProgress = !!(saved && saved.v === 1);
 
@@ -1061,7 +1197,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       store.set(KEY_SAVE, {
         v: 1, coins: S.coins, helpers: S.helpers, paid: S.paid, carrier: S.carrier, paidCarrier: S.paidCarrier, machine: S.machine, paidMachine: S.paidMachine, sold: S.sold, tutDone: S.tutDone,
         pile: Math.min(CFG.pileMax, C.pile.n + C.pile.inc + RC.n + RC.inc), hopper: C.hopper.n + C.hopper.inc, out: C.out.n + C.out.inc, counter: C.counter.n + C.counter.inc,
-        coinPile: C.coinPile.n + C.coinPile.inc, carryType: C.carry.type, carry: C.carry.n + C.carry.inc
+        coinPile: C.coinPile.n + C.coinPile.inc, carryType: C.carry.type, carry: C.carry.n + C.carry.inc,
+        garden: S.garden, paidGarden: S.paidGarden, picker: S.picker, paidPicker: S.paidPicker, blueSold: S.blueSold,
+        blueHopper: Math.min(CFG.blueHopperMax, B.hopper.n + B.hopper.inc + picker.load.n + picker.load.inc), blueOut: B.out.n + B.out.inc,
+        bushes: bushes.map((b) => b.n), counterTypes: counterTypes.map((t) => (t === 'bcone' ? 'b' : 'c')).join('')
       });
     }
 
@@ -1073,11 +1212,12 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       out.set(cx + (c - (cols - 1) / 2) * gap, y0 + layer * layerH, cz + (r - (rows - 1) / 2) * gap);
       return out;
     }
+    const blueOutPos = (i, o) => gridPos(tiles.blueOutput.x, tiles.blueOutput.z, i, 3, 2, 0.46, 0.36, 0.03, o || new THREE.Vector3());
     const pilePos = (i, o) => gridPos(tiles.pile.x, tiles.pile.z, i, 3, 3, 0.42, 0.3, 0.05, o || new THREE.Vector3());
     const outPos = (i, o) => gridPos(tiles.output.x, tiles.output.z, i, 3, 2, 0.46, 0.36, 0.03, o || new THREE.Vector3());
     const counterPos = (i, o) => gridPos(L.counter.x, L.counter.z, i, 2, 6, 0.42, 0.36, L.counter.h + 0.09, o || new THREE.Vector3());
     const coinPos = (i, o) => gridPos(tiles.coin.x, tiles.coin.z, i, 3, 3, 0.48, 0.075, 0.04, o || new THREE.Vector3());
-    const ITEM_GAP = { berry: 0.3, cone: 0.34 };
+    const ITEM_GAP = { berry: 0.3, cone: 0.34, blue: 0.26, bcone: 0.34 };
     function stackLocal(i, type, out) {
       const k = i * 0.12, f = Math.pow(k, 1.6);
       out.set(player.leanX * f, 0.86 + i * (ITEM_GAP[type] || 0.3), 0.44 + player.leanZ * f);
@@ -1094,6 +1234,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const machineWorld = (local) => { machine.updateMatrixWorld(); return local.clone().applyMatrix4(machine.matrixWorld); };
     const hopperPos = machineWorld(hopperLocal);
     const nozzlePos = machineWorld(nozzleLocal);
+    blueMachine.updateMatrixWorld();
+    const blueHopperPos = hopperLocal.clone().applyMatrix4(blueMachine.matrixWorld);
+    const blueNozzlePos = nozzleLocal.clone().applyMatrix4(blueMachine.matrixWorld);
 
     /* ---------- Fliegende Gegenstände ---------- */
     const flies = [];
@@ -1182,7 +1325,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       const roll = Math.random();
       const c = {
         id: customerSerial++, type, root, body, x: p.x, z: p.z, yaw: Math.PI, state: 'queue', want: roll < 0.45 ? 1 : roll < 0.85 ? 2 : 3, got: 0, inc: 0,
-        hop: rand(0, TAU), happy: 0, leaveStep: 0, serveCd: 0.2, scale: type === 3 ? 1.22 : 1.12
+        hop: rand(0, TAU), happy: 0, leaveStep: 0, serveCd: 0.2, scale: type === 3 ? 1.22 : 1.12, pay: 0, lastType: 'cone'
       };
       root.scale.setScalar(c.scale);
       customers.push(c);
@@ -1285,16 +1428,19 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       { x: L.igloo.x, z: L.igloo.z, r: L.igloo.r + 0.15 },
       { x: L.machine.x, z: L.machine.z, r: 1.05 },
       { x: 1.3, z: -8.0, r: 1.0 },
-      { x: L.hole.x, z: L.hole.z, r: 0.45 }
-    ];
+      { x: L.hole.x, z: L.hole.z, r: 0.45 },
+      { x: L.hole2.x, z: L.hole2.z, r: 0.45 },
+      { x: L.blueMachine.x, z: L.blueMachine.z, r: 1.05 }
+    ].concat(L.bushes.map(([x, z]) => ({ x, z, r: 0.5 })));
     const boxes = [
       { x0: L.counter.x - L.counter.w / 2 - 0.3, x1: L.counter.x + L.counter.w / 2 + 2, z0: L.counter.z - L.counter.len / 2 - 0.3, z1: L.counter.z + L.counter.len / 2 + 0.3 }
     ];
     function collide(p) {
-      if (!inRect(p.x, p.z, L.plaza, 0) && !inRect(p.x, p.z, L.walkDock, 0)) {
-        const a = clampRect(p.x, p.z, L.plaza), b = clampRect(p.x, p.z, L.walkDock);
-        const da = (a.x - p.x) ** 2 + (a.z - p.z) ** 2, db = (b.x - p.x) ** 2 + (b.z - p.z) ** 2;
-        const q = da <= db ? a : b; p.x = q.x; p.z = q.z;
+      const rects = S.garden ? [L.plaza, L.walkDock, L.garden] : [L.plaza, L.walkDock];
+      if (!rects.some((r) => inRect(p.x, p.z, r, 0))) {
+        let best = null, bd = 1e9;
+        for (const r of rects) { const q = clampRect(p.x, p.z, r), d = (q.x - p.x) ** 2 + (q.z - p.z) ** 2; if (d < bd) { bd = d; best = q; } }
+        p.x = best.x; p.z = best.z;
       }
       const all = circles.concat(helpers.map((h) => ({ x: h.x, z: h.z, r: 0.62 })));
       for (const c of all) {
@@ -1355,6 +1501,30 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
           machineState.pulse = 1; drawMachineStars();
           toast('eistuete', S.machine >= CFG.machinePrices.length ? 'Super-Eismaschine!' : 'Eismaschine schneller!');
         }
+      },
+      {
+        tile: tiles.gardenUnlock, key: 'paidGarden', icon: 'blaubeere', text: 'Öffne den Blaubeer-Garten!',
+        price: () => CFG.gardenPrice,
+        visible: () => !S.garden && S.helpers >= L.slots.length && S.carrier && S.machine >= CFG.machinePrices.length,
+        pos: () => L.gardenGate,
+        done() {
+          S.garden = true; S.paidGarden = 0; gardenFence.visible = false;
+          celebrate(L.gardenGate.x, L.gardenGate.z + 1.2);
+          for (const b of bushes) burstParticles(b.x, 0.9, b.z, 8, 0x5b6fe0, 2.2, 0.09, 0.8, 6);
+          toast('blaubeere', 'Blaubeer-Garten ist offen!');
+        }
+      },
+      {
+        tile: tiles.pickerUnlock, key: 'paidPicker', icon: 'helfer', badge: 'blaubeere', text: 'Hol dir einen Blaubeer-Helfer!',
+        price: () => CFG.pickerPrice,
+        visible: () => S.garden && !S.picker && S.blueSold > 0,
+        pos: () => L.pickerUnlock,
+        done() {
+          S.picker = true; S.paidPicker = 0;
+          spawnCourier(picker, L.pickerUnlock.x, L.pickerUnlock.z, true);
+          celebrate(L.pickerUnlock.x, L.pickerUnlock.z);
+          toast('blaubeere', 'Neuer Blaubeer-Helfer!');
+        }
       }
     ];
     const drawUnlock = (u) => paintUnlock(u.tile, imgs[u.icon], u.badge && imgs[u.badge], u.price(), S[u.key]);
@@ -1374,63 +1544,96 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       placeUnlocks(); save();
     }
 
-    /* ---------- Erdbeer-Träger: bringt Erdbeeren vom Steg zur Maschine ---------- */
+    /* ---------- Träger: holen etwas an einer Stelle ab und bringen es zur Maschine ---------- */
     const CAR_S = 1.1;
-    const carrier = { on: false, x: 0, z: 0, yaw: Math.PI / 4, state: 'toPile', cd: 0, wait: 0, walk: 0, move: 0, pop: 1, root: null, body: null, fl: null, fr: null };
-    function addCarrier(x, z, pop) {
+    const couriers = [];
+    function makeCourier(geo, o) {
+      const cr = { geo, o, on: false, x: 0, z: 0, yaw: Math.PI / 4, state: 'toSrc', src: null, cd: 0, wait: 0, walk: 0, move: 0, pop: 1, root: null, body: null,
+        load: { n: 0, inc: 0, max: o.max } };
+      cr.stackPos = (i, out) => {
+        out = out || new THREE.Vector3();
+        const layer = Math.floor(i / 3), k = i % 3, a = k * 2.09 + layer * 1.05, r = layer ? 0.09 : 0.14;
+        const lx = Math.cos(a) * r, lz = BASKET.z + Math.sin(a) * r * 0.8, ly = BASKET.y + 0.02 + layer * 0.17;
+        const c = Math.cos(cr.yaw), s2 = Math.sin(cr.yaw);
+        return out.set(cr.x + (lx * c + lz * s2) * CAR_S, (cr.root ? cr.root.position.y : 0) + ly * CAR_S, cr.z + (-lx * s2 + lz * c) * CAR_S);
+      };
+      couriers.push(cr); return cr;
+    }
+    function spawnCourier(cr, x, z, pop) {
       const root = new THREE.Group(); root.scale.setScalar(CAR_S);
-      const body = mesh(carrierGeo); root.add(body);
+      const body = mesh(cr.geo); root.add(body);
       const fl = mesh(flipperGeo), fr = mesh(flipperGeo);
       fl.position.set(-0.38, 0.74, 0.05); fr.position.set(0.38, 0.74, 0.05);
       fl.rotation.set(-1.1, 0, -0.25); fr.rotation.set(-1.1, 0, 0.25);
       body.add(fl, fr); scene.add(root);
-      Object.assign(carrier, { on: true, x, z, root, body, fl, fr, state: 'toPile', pop: pop ? 0 : 1 });
+      Object.assign(cr, { on: true, x, z, root, body, state: 'toSrc', src: null, pop: pop ? 0 : 1 });
     }
-    function carrierStackPos(i, out) {
-      out = out || new THREE.Vector3();
-      const layer = Math.floor(i / 3), k = i % 3, a = k * 2.09 + layer * 1.05, r = layer ? 0.09 : 0.14;
-      const lx = Math.cos(a) * r, lz = BASKET.z + Math.sin(a) * r * 0.8, ly = BASKET.y + 0.02 + layer * 0.17;
-      const c = Math.cos(carrier.yaw), s2 = Math.sin(carrier.yaw);
-      out.set(carrier.x + (lx * c + lz * s2) * CAR_S, (carrier.root ? carrier.root.position.y : 0) + ly * CAR_S, carrier.z + (-lx * s2 + lz * c) * CAR_S);
-      return out;
-    }
-    function updateCarrier(dt, time) {
-      if (!carrier.on) return;
-      carrier.pop = Math.min(1, carrier.pop + dt * 2.5);
-      const pop = carrier.pop < 1 ? Math.min(1, carrier.pop * 1.4) * (1 + Math.sin(carrier.pop * Math.PI) * 0.35) : 1;
-      carrier.root.scale.setScalar(CAR_S * Math.max(0.001, pop));
-      carrier.cd -= dt;
-      const goal = carrier.state === 'toPile' || carrier.state === 'loading' ? tiles.pile : tiles.input;
-      const dx = goal.x - carrier.x, dz = goal.z - carrier.z, d = Math.hypot(dx, dz);
+    function updateCourier(cr, dt, time) {
+      if (!cr.on) return;
+      cr.pop = Math.min(1, cr.pop + dt * 2.5);
+      const pop = cr.pop < 1 ? Math.min(1, cr.pop * 1.4) * (1 + Math.sin(cr.pop * Math.PI) * 0.35) : 1;
+      cr.root.scale.setScalar(CAR_S * Math.max(0.001, pop));
+      cr.cd -= dt;
+      if (cr.state === 'toSrc' && !cr.src) cr.src = cr.o.source();
+      const goal = cr.state === 'toSrc' || cr.state === 'loading' ? cr.src : cr.o.target();
       let moving = false;
-      if ((carrier.state === 'toPile' || carrier.state === 'toInput') && carrier.pop >= 1) {
+      if (goal && (cr.state === 'toSrc' || cr.state === 'toDst') && cr.pop >= 1) {
+        const dx = goal.x - cr.x, dz = goal.z - cr.z, d = Math.hypot(dx, dz);
         if (d > 0.12) {
           const st = Math.min(d, CFG.carrierSpeed * dt);
-          carrier.x += (dx / d) * st; carrier.z += (dz / d) * st; moving = true;
-          let dy = Math.atan2(dx, dz) - carrier.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); carrier.yaw += dy * Math.min(1, dt * 10);
-        } else { carrier.state = carrier.state === 'toPile' ? 'loading' : 'unloading'; carrier.wait = 0; }
+          cr.x += (dx / d) * st; cr.z += (dz / d) * st; moving = true;
+          let dy = Math.atan2(dx, dz) - cr.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); cr.yaw += dy * Math.min(1, dt * 10);
+        } else { cr.state = cr.state === 'toSrc' ? 'loading' : 'unloading'; cr.wait = 0; }
       }
-      const load = RC.n + RC.inc;
-      if (carrier.state === 'loading') {
-        if (load < RC.max && C.pile.n > 0) {
-          carrier.wait = 0;
-          if (carrier.cd <= 0) { carrier.cd = 0.14; moveItem('berry', C.pile, pilePos, RC, carrierStackPos, 0.22, 0.7, () => sfx.pick(RC.n)); }
-        } else if (load >= RC.max || (load > 0 && (carrier.wait += dt) > 1.0)) carrier.state = 'toInput';
-      } else if (carrier.state === 'unloading') {
-        if (RC.n > 0 && C.hopper.n + C.hopper.inc < C.hopper.max) {
-          if (carrier.cd <= 0) { carrier.cd = 0.12; moveItem('berry', RC, carrierStackPos, C.hopper, () => hopperPos, 0.3, 1.1, () => sfx.drop(C.hopper.n)); }
-        } else if (load === 0) carrier.state = 'toPile';
+      const L2 = cr.load, load = L2.n + L2.inc, src = cr.src;
+      if (cr.state === 'loading') {
+        if (load < L2.max && src.stack.n > 0) {
+          cr.wait = 0;
+          if (cr.cd <= 0) { cr.cd = 0.14; moveItem(cr.o.item, src.stack, src.pos, L2, cr.stackPos, 0.22, 0.7, () => sfx.pick(L2.n)); }
+        } else if (load >= L2.max) cr.state = 'toDst';
+        else {
+          cr.wait += dt;
+          const next = cr.o.source();
+          if (next && next.stack !== src.stack) { cr.src = next; cr.state = 'toSrc'; } // nächster Busch
+          else if (load > 0 && cr.wait > 1.0) cr.state = 'toDst';
+        }
+      } else if (cr.state === 'unloading') {
+        const dst = cr.o.target();
+        if (L2.n > 0 && dst.stack.n + dst.stack.inc < dst.stack.max) {
+          if (cr.cd <= 0) { cr.cd = 0.12; moveItem(cr.o.item, L2, cr.stackPos, dst.stack, dst.pos, 0.3, 1.1, () => sfx.drop(dst.stack.n)); }
+        } else if (load === 0) { cr.state = 'toSrc'; cr.src = null; }
       }
       if (!moving) { // im Stehen langsam zur Kamera drehen
-        let dy = Math.PI / 4 - carrier.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); carrier.yaw += dy * Math.min(1, dt * 3);
+        let dy = Math.PI / 4 - cr.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); cr.yaw += dy * Math.min(1, dt * 3);
       }
-      carrier.move = damp(carrier.move, moving ? 1 : 0, 10, dt);
-      carrier.walk += dt * 11 * carrier.move;
-      carrier.root.position.set(carrier.x, Math.abs(Math.sin(carrier.walk)) * 0.07 * carrier.move, carrier.z);
-      carrier.root.rotation.y = carrier.yaw;
-      carrier.body.rotation.z = Math.sin(carrier.walk) * 0.09 * carrier.move + Math.sin(time * 2) * 0.03 * (1 - carrier.move);
+      cr.move = damp(cr.move, moving ? 1 : 0, 10, dt);
+      cr.walk += dt * 11 * cr.move;
+      cr.root.position.set(cr.x, Math.abs(Math.sin(cr.walk)) * 0.07 * cr.move, cr.z);
+      cr.root.rotation.y = cr.yaw;
+      cr.body.rotation.z = Math.sin(cr.walk) * 0.09 * cr.move + Math.sin(time * 2) * 0.03 * (1 - cr.move);
     }
+    function updateCarrier(dt, time) { for (const cr of couriers) updateCourier(cr, dt, time); }
+
+    // Erdbeer-Träger: vom Steg zur Eismaschine
+    const pileSrc = { x: tiles.pile.x, z: tiles.pile.z, stack: C.pile, pos: pilePos };
+    const carrier = makeCourier(carrierGeo, {
+      max: CFG.carrierMax, item: 'berry', source: () => pileSrc,
+      target: () => ({ x: tiles.input.x, z: tiles.input.z, stack: C.hopper, pos: () => hopperPos })
+    });
+    const RC = carrier.load;
+    const addCarrier = (x, z, pop) => spawnCourier(carrier, x, z, pop);
+    // Blaubeer-Helfer: von den Büschen zur Blaubeer-Maschine
+    bushes.forEach((b) => {
+      const dx = tiles.blueInput.x - b.x, dz = tiles.blueInput.z - b.z, d = Math.hypot(dx, dz) || 1;
+      b.src = { x: b.x + (dx / d) * 0.85, z: b.z + (dz / d) * 0.85, stack: b, pos: (i, o) => bushBerryPos(b, i, o) };
+    });
+    const picker = makeCourier(pickerGeo, {
+      max: CFG.carrierMax, item: 'blue',
+      source: () => { let best = null; for (const b of bushes) if (b.n > 0 && (!best || b.n > best.n)) best = b; return best && best.src; },
+      target: () => ({ x: tiles.blueInput.x, z: tiles.blueInput.z, stack: B.hopper, pos: () => blueHopperPos })
+    });
     if (S.carrier) addCarrier(tiles.pile.x + 0.5, tiles.pile.z - 0.5, false);
+    if (S.picker) spawnCourier(picker, L.pickerUnlock.x, L.pickerUnlock.z, false);
     placeUnlocks();
     drawMachineStars();
 
@@ -1463,6 +1666,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       player.leanZ = damp(player.leanZ, -player.move * 0.12, 5, dt);
     }
 
+    let bushCd = 0;
     function updateInteractions(dt) {
       for (const k in tiles) tiles[k].cd = Math.max(0, tiles[k].cd - dt);
       const carry = C.carry;
@@ -1485,11 +1689,32 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         moveItem('cone', C.out, outPos, carry, stackPos, 0.24, 0.9, () => sfx.pick(carry.n));
         S.tut = Math.max(S.tut, 3);
       }
-      // Eis auf die Theke
-      if (near(tiles.drop) && carry.type === 'cone' && carry.n > 0 && C.counter.n + C.counter.inc < C.counter.max && tiles.drop.cd <= 0) {
+      // Eis auf die Theke (Erdbeer- und Blaubeer-Eis)
+      if (near(tiles.drop) && (carry.type === 'cone' || carry.type === 'bcone') && carry.n > 0 && C.counter.n + C.counter.inc < C.counter.max && tiles.drop.cd <= 0) {
         tiles.drop.cd = 0.07;
-        moveItem('cone', carry, stackPos, C.counter, counterPos, 0.28, 0.9, () => sfx.drop(C.counter.n));
+        const type = carry.type;
+        moveItem(type, carry, stackPos, C.counter, counterPos, 0.28, 0.9, () => { counterTypes.push(type); sfx.drop(C.counter.n); });
         S.tut = Math.max(S.tut, 4);
+      }
+      if (S.garden) {
+        // Blaubeeren pflücken
+        bushCd -= dt;
+        if ((carry.type === null || carry.type === 'blue') && carry.n + carry.inc < carry.max && bushCd <= 0) {
+          const b = bushes.find((b) => b.n > 0 && near(b));
+          if (b) { bushCd = 0.09; moveItem('blue', b, (i) => bushBerryPos(b, i), carry, stackPos, 0.24, 0.9, () => sfx.pick(carry.n)); }
+        }
+        // Blaubeeren in die Blaubeer-Maschine
+        const bi = tiles.blueInput;
+        if (near(bi) && carry.type === 'blue' && carry.n > 0 && B.hopper.n + B.hopper.inc < B.hopper.max && bi.cd <= 0) {
+          bi.cd = 0.06;
+          moveItem('blue', carry, stackPos, B.hopper, () => blueHopperPos, 0.3, 1.2, () => sfx.drop(B.hopper.n));
+        }
+        // Blaubeer-Eis abholen
+        const bo = tiles.blueOutput;
+        if (near(bo) && B.out.n > 0 && (carry.type === null || carry.type === 'bcone') && carry.n + carry.inc < carry.max && bo.cd <= 0) {
+          bo.cd = 0.065;
+          moveItem('bcone', B.out, blueOutPos, carry, stackPos, 0.24, 0.9, () => sfx.pick(carry.n));
+        }
       }
       // Münzen einsammeln
       if (near(tiles.coin) && C.coinPile.n > 0 && tiles.coin.cd <= 0) {
@@ -1501,19 +1726,21 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         S.tut = Math.max(S.tut, 5);
       }
       // Ins Eisloch werfen (kurz stehen bleiben, damit man nicht aus Versehen etwas verliert)
-      const th = tiles.hole;
-      if (near(th) && carry.n > 0) {
-        th.hold += dt;
-        if (th.hold > 0.35 && th.cd <= 0) {
-          th.cd = 0.05;
-          const type = carry.type, from = stackPos(carry.n - 1);
-          carry.n--; if (carry.n + carry.inc === 0) carry.type = null;
-          fly(type, from, () => holeTarget, 0.3, 0.9, () => {
-            sfx.splash();
-            burstParticles(L.hole.x + rand(-0.15, 0.15), 0.05, L.hole.z + rand(-0.15, 0.15), 4, 0x9fd8ff, 1.5, 0.07, 0.4, 7);
-          });
-        }
-      } else th.hold = 0;
+      for (const h of HOLES) {
+        const th = h.t;
+        if (near(th) && carry.n > 0) {
+          th.hold += dt;
+          if (th.hold > 0.35 && th.cd <= 0) {
+            th.cd = 0.05;
+            const type = carry.type, from = stackPos(carry.n - 1);
+            carry.n--; if (carry.n + carry.inc === 0) carry.type = null;
+            fly(type, from, () => h.target, 0.3, 0.9, () => {
+              sfx.splash();
+              burstParticles(th.x + rand(-0.15, 0.15), 0.05, th.z + rand(-0.15, 0.15), 4, 0x9fd8ff, 1.5, 0.07, 0.4, 7);
+            });
+          }
+        } else th.hold = 0;
+      }
       // Freischaltfelder bezahlen
       for (const u of UNLOCKS) {
         const t = u.tile;
@@ -1533,23 +1760,34 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     const conePeriod = () => CFG.conePeriods[S.machine];
     const machineState = { cd: CFG.conePeriods[0], pulse: 0 };
-    function updateMachine(dt) {
-      if (C.hopper.n > 0 && C.out.n + C.out.inc < C.out.max) {
-        machineState.cd -= dt;
-        if (machineState.cd <= 0) {
-          machineState.cd += conePeriod();
-          C.hopper.n--;
-          const j = C.out.n + C.out.inc; C.out.inc++;
-          fly('cone', nozzlePos, () => outPos(Math.min(j, C.out.n + C.out.inc - 1)), 0.38, 0.7, () => { C.out.inc--; C.out.n++; });
-          machineState.pulse = 1;
+    const M1 = { hopper: C.hopper, out: C.out, outPos, item: 'cone', period: conePeriod, st: machineState, nozzle: nozzlePos, fill: tankFill, glass: tankGlass };
+    const M2 = { hopper: B.hopper, out: B.out, outPos: blueOutPos, item: 'bcone', period: () => CFG.bluePeriod, st: { cd: CFG.bluePeriod, pulse: 0 }, nozzle: blueNozzlePos, fill: blueTankFill, glass: blueTankGlass };
+    function runMachine(m, dt) {
+      if (m.hopper.n > 0 && m.out.n + m.out.inc < m.out.max) {
+        m.st.cd -= dt;
+        if (m.st.cd <= 0) {
+          m.st.cd += m.period();
+          m.hopper.n--;
+          const j = m.out.n + m.out.inc; m.out.inc++;
+          fly(m.item, m.nozzle, () => m.outPos(Math.min(j, m.out.n + m.out.inc - 1)), 0.38, 0.7, () => { m.out.inc--; m.out.n++; });
+          m.st.pulse = 1;
         }
-      } else machineState.cd = Math.min(conePeriod(), machineState.cd + dt);
-      machineState.pulse = Math.max(0, machineState.pulse - dt * 3);
-      const fill = (C.hopper.n + C.hopper.inc * 0.5) / C.hopper.max;
+      } else m.st.cd = Math.min(m.period(), m.st.cd + dt);
+      m.st.pulse = Math.max(0, m.st.pulse - dt * 3);
+      const fill = (m.hopper.n + m.hopper.inc * 0.5) / m.hopper.max;
       const h = 0.05 + 0.68 * fill;
-      tankFill.scale.set(1, h, 1); tankFill.position.y = 1.62 + h / 2;
-      const s = 1 + machineState.pulse * 0.05;
-      tankGlass.scale.set(s, 1, s);
+      m.fill.scale.set(1, h, 1); m.fill.position.y = 1.62 + h / 2;
+      const s = 1 + m.st.pulse * 0.05;
+      m.glass.scale.set(s, 1, s);
+    }
+    function updateMachine(dt) {
+      runMachine(M1, dt); runMachine(M2, dt);
+      // Büsche wachsen nach
+      for (const b of bushes) {
+        if (b.n >= CFG.bushMax) { b.t = 0; continue; }
+        b.t += dt;
+        if (b.t >= CFG.bushGrow) { b.t = 0; b.n++; }
+      }
     }
 
     function updateBlocks(dt) {
@@ -1648,7 +1886,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     function updateCustomers(dt, time) {
       spawnT -= dt;
       const queue = customers.filter((c) => c.state === 'queue');
-      if (spawnT <= 0 && queue.length < CFG.queueMax) { spawnCustomer(false); spawnT = CFG.spawnPeriods[S.machine] * rand(0.7, 1.3); }
+      if (spawnT <= 0 && queue.length < CFG.queueMax) { spawnCustomer(false); spawnT = CFG.spawnPeriods[S.machine] * (S.garden ? CFG.blueSpawnFactor : 1) * rand(0.7, 1.3); }
       queue.forEach((c, k) => { c.slot = k; });
       let front = null;
       for (const c of customers) {
@@ -1690,12 +1928,15 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
           const fc = front;
           fc.inc++;
           const from = counterPos(C.counter.n - 1); C.counter.n--;
-          fly('cone', from, () => _v.set(fc.x, 1.15 * fc.scale, fc.z), 0.3, 0.8, () => {
+          const ctype = counterTypes.pop() || 'cone'; // die oberste Eistüte
+          fly(ctype, from, () => _v.set(fc.x, 1.15 * fc.scale, fc.z), 0.3, 0.8, () => {
             fc.inc--; fc.got++; sfx.drop(fc.got); S.sold++;
+            fc.pay += ctype === 'bcone' ? CFG.coinPerBlue : CFG.coinPerCone; fc.lastType = ctype;
+            if (ctype === 'bcone' && ++S.blueSold === 1) placeUnlocks();
             if (fc.got >= fc.want) {
               fc.state = 'leave'; fc.happy = 1; fc.leaveStep = 0; sfx.happy();
               burstParticles(fc.x, 1.4, fc.z, 6, 0xff8fb0, 1.6, 0.09, 0.7, 2);
-              const n = fc.want * CFG.coinPerCone;
+              const n = fc.pay;
               for (let i = 0; i < n; i++) {
                 const j = C.coinPile.n + C.coinPile.inc; C.coinPile.inc++;
                 fly('coin', new THREE.Vector3(fc.x, 0.9, fc.z), () => coinPos(Math.min(j, 134)), 0.45, 1.4, () => { C.coinPile.inc--; C.coinPile.n++; sfx.coin(); }, i * 0.05);
@@ -1739,6 +1980,17 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       // Hände voller Erdbeeren, Maschine und Ausgabe voll: nur das Eisloch hilft weiter
       if (carry.type === 'berry' && C.hopper.n + C.hopper.inc >= C.hopper.max && C.out.n + C.out.inc >= C.out.max)
         return { t: tiles.hole, icon: 'erdbeere', text: 'Maschine voll! Wirf sie ins Eisloch!', urgent: true };
+      if (carry.type === 'blue' && B.hopper.n + B.hopper.inc >= B.hopper.max && B.out.n + B.out.inc >= B.out.max)
+        return { t: tiles.hole2, icon: 'blaubeere', text: 'Maschine voll! Wirf sie ins Eisloch!', urgent: true };
+      // Blaubeer-Garten: zeigen, wie es geht, bis das erste Blaubeer-Eis verkauft ist
+      if (S.garden && S.blueSold === 0 && carry.type !== 'berry' && carry.type !== 'cone') {
+        if (carry.type === 'blue') return { t: tiles.blueInput, icon: 'blaubeere', text: 'Ab in die Blaubeer-Maschine!', urgent: true };
+        if (carry.type === 'bcone') return { t: tiles.drop, icon: 'eistuete-blau', text: 'Blaubeer-Eis bringt 9 Münzen!', urgent: true };
+        if (B.out.n > 0) return { t: tiles.blueOutput, icon: 'eistuete-blau', text: 'Hol das Blaubeer-Eis!', urgent: true };
+        if (B.hopper.n + B.hopper.inc === 0) { const b = bushes.find((b) => b.n > 0); if (b) return { t: b, icon: 'blaubeere', text: 'Pflück Blaubeeren am Busch!', urgent: true }; }
+      }
+      if (carry.type === 'blue') return { t: tiles.blueInput, icon: 'blaubeere', text: 'Ab in die Blaubeer-Maschine!' };
+      if (carry.type === 'bcone') return { t: tiles.drop, icon: 'eistuete-blau', text: 'Bring das Eis zur Theke!' };
       if (carry.type === 'berry') return { t: tiles.input, icon: 'erdbeere', text: 'Bring die Erdbeeren zur Eismaschine!' };
       if (carry.type === 'cone') return { t: tiles.drop, icon: 'eistuete', text: 'Bring das Eis zur Theke!' };
       if (C.coinPile.n > 0) return { t: tiles.coin, icon: 'muenze', text: 'Sammle die Münzen ein!' };
@@ -1760,22 +2012,24 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     /* ---------- Zeichnen der Gegenstände ---------- */
     function drawItems(time) {
-      berryIM.count = coneIM.count = coinIM.count = 0;
+      berryIM.count = coneIM.count = coinIM.count = blueIM.count = bconeIM.count = 0;
       shadowIM.count = snowballIM.count = partIM.count = iceIM.count = 0;
       const v = new THREE.Vector3();
       for (let i = 0; i < C.pile.n; i++) { pilePos(i, v); put(berryIM, v.x, v.y, v.z, i * 2.1, 1); }
       for (let i = 0; i < C.out.n; i++) { outPos(i, v); put(coneIM, v.x, v.y, v.z, i * 0.7, 1); }
-      for (let i = 0; i < C.counter.n; i++) { counterPos(i, v); put(coneIM, v.x, v.y, v.z, i * 0.9, 1); }
+      for (let i = 0; i < C.counter.n; i++) { counterPos(i, v); put(ITEM[counterTypes[i]] || coneIM, v.x, v.y, v.z, i * 0.9, 1); }
+      for (let i = 0; i < B.out.n; i++) { blueOutPos(i, v); put(bconeIM, v.x, v.y, v.z, i * 0.7, 1); }
+      for (const b of bushes) for (let i = 0; i < b.n; i++) { bushBerryPos(b, i, v); put(blueIM, v.x, v.y - 0.12, v.z, i * 1.3, 0.95); }
       const nc = Math.min(C.coinPile.n, 135);
       for (let i = 0; i < nc; i++) { coinPos(i, v); put(coinIM, v.x, v.y, v.z, i * 0.37, 1, 0, (i % 3 - 1) * 0.05); }
       const im = ITEM[C.carry.type];
-      if (im) for (let i = 0; i < C.carry.n; i++) { stackPos(i, v); put(im, v.x, v.y, v.z, player.yaw + (C.carry.type === 'berry' ? i * 1.7 : 0), 1, -player.leanZ * 0.5); }
-      for (let i = 0; i < RC.n; i++) { carrierStackPos(i, v); put(berryIM, v.x, v.y, v.z, carrier.yaw + i * 1.9, 0.85); }
+      if (im) for (let i = 0; i < C.carry.n; i++) { stackPos(i, v); put(im, v.x, v.y, v.z, player.yaw + (C.carry.type === 'berry' || C.carry.type === 'blue' ? i * 1.7 : 0), 1, -player.leanZ * 0.5); }
+      for (const cr of couriers) if (cr.on) for (let i = 0; i < cr.load.n; i++) { cr.stackPos(i, v); put(ITEM[cr.o.item], v.x, v.y, v.z, cr.yaw + i * 1.9, 0.85); }
       for (const f of flies) if (f.t >= 0) put(ITEM[f.type], f.pos.x, f.pos.y, f.pos.z, f.rot + f.t * 5, 1);
       // Kunden, die mit Eis weggehen
       for (const c of customers) if (c.state === 'leave') {
         const cx = Math.cos(c.yaw), sx = Math.sin(c.yaw);
-        put(coneIM, c.root.position.x + sx * 0.35 + cx * 0.22, c.root.position.y + 0.55 * c.scale, c.root.position.z + cx * 0.35 - sx * 0.22, c.yaw, 0.9);
+        put(ITEM[c.lastType] || coneIM, c.root.position.x + sx * 0.35 + cx * 0.22, c.root.position.y + 0.55 * c.scale, c.root.position.z + cx * 0.35 - sx * 0.22, c.yaw, 0.9);
       }
       // Eisblöcke im Fluss
       for (const b of blocks) {
@@ -1795,9 +2049,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       const sh = (x, z, s) => put(shadowIM, x, 0.035, z, 0, s, -Math.PI / 2);
       sh(player.x, player.z, 1.1);
       for (const h of helpers) sh(h.x, h.z, 1.0 * h.root.scale.x);
-      if (carrier.on) sh(carrier.x, carrier.z, 1.0 * carrier.root.scale.x);
+      for (const cr of couriers) if (cr.on) sh(cr.x, cr.z, 1.0 * cr.root.scale.x);
       for (const c of customers) sh(c.root.position.x, c.root.position.z, 1.15 * c.scale);
-      [berryIM, coneIM, coinIM, shadowIM, snowballIM, partIM, iceIM].forEach((m) => { m.instanceMatrix.needsUpdate = true; });
+      [berryIM, coneIM, coinIM, blueIM, bconeIM, shadowIM, snowballIM, partIM, iceIM].forEach((m) => { m.instanceMatrix.needsUpdate = true; });
       if (partIM.instanceColor) partIM.instanceColor.needsUpdate = true;
     }
 
@@ -1831,7 +2085,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     function updateCamera(dt, snap) {
       // Folgt dem Kind nur ein Stück, die ganze Eisdiele bleibt im Bild
       let u = (player.x - player.z) * SQ, v = (player.x + player.z) * SQ;
-      u = clamp(u * 0.7, -2.4, 2.6); v = clamp(v * 0.6 - 0.6, -4.2, 3.4);
+      u = clamp(u * 0.7, S.garden ? -6.0 : -2.4, 2.6); v = clamp(v * 0.6 - 0.6, -4.2, 3.4); // im Garten weiter nach links
       const tx = (u + v) * SQ, tz = (v - u) * SQ;
       if (snap) camT.set(tx, 0, tz); else { camT.x = damp(camT.x, tx, 3, dt); camT.z = damp(camT.z, tz, 3, dt); }
       camera.position.copy(camT).addScaledVector(CAM_DIR, 60);
@@ -1857,7 +2111,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         animateKid(time);
         updateCamera(dt, false);
         waterTex.offset.y -= dt * 0.06;
-        holeWater.rotation.z += dt * 0.35;
+        for (const w of holeWaters) w.rotation.z += dt * 0.35;
         saveT += dt; if (playing && saveT > 4) { saveT = 0; save(); }
       }
       drawItems(time);
@@ -1873,9 +2127,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     if (/[?&]debug\b/.test(location.search)) {
       window.__eis = {
-        S, C, RC, carrier, UNLOCKS, player, tiles, helpers, customers, blocks, L,
+        S, C, RC, B, bushes, counterTypes, couriers, picker, carrier, UNLOCKS, player, tiles, helpers, customers, blocks, L, placeUnlocks,
         go(x, z) { player.x = x; player.z = z; },
-        begin, save,
+        begin, save, cam() { updateCamera(0, true); },
         step(sec, fn) { const n = Math.round(sec * 60); for (let i = 0; i < n; i++) { if (fn) fn(); const dt = 1 / 60; time += dt; updatePlayer(dt); updateInteractions(dt); updateMachine(dt); updateBlocks(dt); updateHelpers(dt, time); updateCarrier(dt, time); updateCustomers(dt, time); updateFlies(dt); updateParticles(dt); } }
       };
     }
