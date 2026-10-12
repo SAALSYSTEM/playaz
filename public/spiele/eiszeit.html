@@ -161,7 +161,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     coinPerCone: 4,
     // Eismaschine Stufe 1–4: schneller UND mehr Kunden (sonst bringt die schnellere Maschine nichts,
     // weil die Kunden der Engpass sind)
-    machinePrices: [100, 220, 400],
+    machinePrices: [250, 700, 1600],
     conePeriods: [0.6, 0.45, 0.34, 0.25],   // Sekunden pro Eistüte
     spawnPeriods: [2.6, 1.9, 1.4, 1.05],    // Sekunden bis zum nächsten Kunden
     servePeriods: [0.3, 0.26, 0.22, 0.19],  // Sekunden pro Eistüte an der Theke
@@ -171,11 +171,11 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     queueMax: 9,
     queueMin: 5,           // so viele Tiere sollen mindestens warten (sonst kommt sofort Nachschub)
     customerSpeed: 3.6,
-    iceHelperPrice: 150,   // Eis-Helfer: Maschine -> Theke
+    iceHelperPrice: 600,   // Eis-Helfer: Maschine -> Theke
     iceHelperMax: 8,
-    iceHelper2Price: 400,  // zweiter Eis-Helfer
-    counter2Price: 250,    // zweite Theke
-    carrierPrice: 120,     // Erdbeer-Träger
+    iceHelper2Price: 2000,  // zweiter Eis-Helfer
+    counter2Price: 900,    // zweite Theke
+    carrierPrice: 400,     // Erdbeer-Träger
     carrierMax: 6,
     carrierSpeed: 2.4,
     blockSpeed: 0.9,       // Eisblöcke im Fluss
@@ -185,7 +185,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     startPile: 8,
     // Blaubeer-Garten (neuer Bereich, wenn alles andere freigeschaltet ist)
     gardenPrice: 2500,
-    pickerPrice: 900,      // Blaubeer-Helfer
+    pickerPrice: 2500,      // Blaubeer-Helfer
     coinPerBlue: 9,        // Blaubeer-Eis ist mehr wert
     bushMax: 6,            // Beeren pro Busch
     bushGrow: 1.8,         // Sekunden, bis eine Beere nachwächst
@@ -195,13 +195,13 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     blueSpawnFactor: 0.8,  // mit Blaubeer-Eis kommen mehr Kunden
     // Kakao-Insel hinter der Brücke
     bridgePrice: 8000,
-    cocoaHelperPrice: 3000,
+    cocoaHelperPrice: 6000,
     coinPerChoc: 15,
     treeMax: 6, treeGrow: 2.2,
     chocHopperMax: 30, chocOutMax: 24, chocPeriod: 0.5,
     // kleine Störungen: Helfer wollen Münzen, Maschinen gehen kaputt
-    pauseEvery: [40, 75], pauseCost: 10,
-    breakEvery: [70, 120], repairTime: 1.2
+    pauseEvery: [40, 75], pauseCost: [25, 0.08],   // mindestens 25 oder 8 % vom Ersparten
+    breakEvery: [70, 120], repairTime: 1.2, repairCost: [60, 0.15]
   };
 
   /* Weltaufbau. Kamera schaut schräg von +x/+z, also: -x/-z ist oben am Bildschirm. */
@@ -2066,16 +2066,21 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     function needBubble(draw) {
       const cv = document.createElement('canvas'); cv.width = 256; cv.height = 176;
       const g = cv.getContext('2d');
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(cv), depthTest: false, transparent: true }));
+      sp.redraw = (arg) => { g.clearRect(0, 0, 256, 176); paint(arg); sp.material.map.needsUpdate = true; };
+      function paint(arg) {
       g.fillStyle = '#ffffff'; g.shadowColor = 'rgba(22,50,92,.25)'; g.shadowBlur = 10; g.shadowOffsetY = 4;
       rr(g, 14, 10, 228, 126, 46); g.fill(); g.beginPath(); g.moveTo(108, 130); g.lineTo(128, 164); g.lineTo(150, 130); g.fill();
-      g.shadowColor = 'transparent'; draw(g);
-      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(cv), depthTest: false, transparent: true }));
+      g.shadowColor = 'transparent'; draw(g, arg);
+      }
+      paint();
       sp.scale.set(1.25, 0.86, 1); sp.renderOrder = 11; sp.visible = false; scene.add(sp); return sp;
     }
-    const coinBubble = needBubble((g) => {
-      if (imgs.muenze) g.drawImage(imgs.muenze, 30, 18, 110, 110);
-      g.font = '700 58px Fredoka, sans-serif'; g.fillStyle = '#16325c'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(CFG.pauseCost), 186, 76);
+    const coinBubble = needBubble((g, cost) => {
+      if (imgs.muenze) g.drawImage(imgs.muenze, 20, 22, 100, 100);
+      const t = String(cost || ''); g.font = '700 ' + (t.length > 3 ? 44 : 56) + 'px Fredoka, sans-serif'; g.fillStyle = '#16325c'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 178, 76);
     });
+    const costOf = (c) => Math.max(c[0], Math.round(S.coins * c[1]));
     const fixBubble = needBubble((g) => {
       g.fillStyle = '#ff4d5e'; g.beginPath(); g.arc(128, 72, 50, 0, TAU); g.fill();
       g.font = '700 80px Fredoka, sans-serif'; g.fillStyle = '#ffffff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('!', 128, 76);
@@ -2086,16 +2091,16 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       if (playing && S.tutDone) {
         if (!trouble.worker && (trouble.pauseT -= dt) <= 0) {
           const ws = workers(); trouble.pauseT = rand(...CFG.pauseEvery);
-          if (ws.length) { trouble.worker = ws[Math.floor(Math.random() * ws.length)]; trouble.worker.want = true; sfx.pop(); } else trouble.pauseT = 2;
+          if (ws.length) { trouble.worker = ws[Math.floor(Math.random() * ws.length)]; trouble.worker.want = true; trouble.cost = costOf(CFG.pauseCost); coinBubble.redraw(trouble.cost); sfx.pop(); } else trouble.pauseT = 2;
         }
         if (!trouble.machine && (trouble.breakT -= dt) <= 0) {
           const ms = machinesOn(); trouble.breakT = rand(...CFG.breakEvery);
-          trouble.machine = ms[Math.floor(Math.random() * ms.length)]; trouble.machine.broken = true; trouble.fix = 0; sfx.burst();
+          trouble.machine = ms[Math.floor(Math.random() * ms.length)]; trouble.machine.broken = true; trouble.fix = 0; trouble.repair = costOf(CFG.repairCost); sfx.burst();
         }
         // Kind geht hin: Helfer bekommt Münzen, Maschine wird repariert
         const w = trouble.worker;
         if (w && Math.hypot(player.x - w.x, player.z - w.z) < 1.5) {
-          const pay = Math.min(CFG.pauseCost, S.coins); S.coins -= pay; updateCoins();
+          const pay = Math.min(trouble.cost, S.coins); S.coins -= pay; updateCoins();
           for (let i = 0; i < Math.min(pay, 5); i++) fly('coin', new THREE.Vector3(player.x, 1.2, player.z), () => _v.set(w.x, 1.0, w.z), 0.3, 1.0, () => sfx.coin(), i * 0.05);
           burstParticles(w.x, 1.2, w.z, 10, 0xffd23f, 2, 0.08, 0.6, 6); sfx.happy();
           w.want = false; trouble.worker = null;
@@ -2104,7 +2109,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         if (m && Math.hypot(player.x - m.at.x, player.z - m.at.z) < 2.2) {
           trouble.fix += dt;
           if (Math.random() < dt * 12) burstParticles(m.at.x + rand(-0.5, 0.5), 1.2, m.at.z + rand(-0.5, 0.5), 1, 0xffd23f, 1.5, 0.07, 0.4, 6);
-          if (trouble.fix >= CFG.repairTime) { m.broken = false; trouble.machine = null; celebrate(m.at.x, m.at.z); toast('stern', 'Repariert!'); }
+          if (trouble.fix >= CFG.repairTime) {
+            const pay = Math.min(trouble.repair, S.coins); S.coins -= pay; updateCoins();
+            m.broken = false; trouble.machine = null; celebrate(m.at.x, m.at.z); toast('muenze', 'Repariert! −' + pay);
+          }
         } else trouble.fix = Math.max(0, trouble.fix - dt);
       }
       const t = performance.now() / 1000, w = trouble.worker, m = trouble.machine;
@@ -2345,8 +2353,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     /* Hinweise: wohin als Nächstes? */
     function nextGoal() {
       const carry = C.carry;
-      if (trouble.machine) return { t: trouble.machine.at, icon: 'upgrade', text: (trouble.machine.name || 'Maschine') + ' ist kaputt! Lauf hin!', urgent: true };
-      if (trouble.worker) return { t: trouble.worker, icon: 'muenze', text: 'Ein Helfer macht Pause. Bring ihm Münzen!', urgent: true };
+      if (trouble.machine) return { t: trouble.machine.at, icon: 'upgrade', text: (trouble.machine.name || 'Maschine') + ' kaputt! Reparatur: ' + trouble.repair, urgent: true };
+      if (trouble.worker) return { t: trouble.worker, icon: 'muenze', text: 'Ein Helfer will ' + trouble.cost + ' Münzen!', urgent: true };
       // Hände voller Erdbeeren, Maschine und Ausgabe voll: nur das Eisloch hilft weiter
       if (carry.type === 'berry' && C.hopper.n + C.hopper.inc >= C.hopper.max && C.out.n + C.out.inc >= C.out.max)
         return { t: tiles.hole, icon: 'erdbeere', text: 'Maschine voll! Wirf sie ins Eisloch!', urgent: true };
