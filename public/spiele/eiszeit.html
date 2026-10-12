@@ -192,7 +192,16 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     blueHopperMax: 30,
     blueOutMax: 24,
     bluePeriod: 0.5,       // Blaubeer-Maschine: Sekunden pro Eistüte
-    blueSpawnFactor: 0.8   // mit Blaubeer-Eis kommen mehr Kunden
+    blueSpawnFactor: 0.8,  // mit Blaubeer-Eis kommen mehr Kunden
+    // Kakao-Insel hinter der Brücke
+    bridgePrice: 8000,
+    cocoaHelperPrice: 3000,
+    coinPerChoc: 15,
+    treeMax: 6, treeGrow: 2.2,
+    chocHopperMax: 30, chocOutMax: 24, chocPeriod: 0.5,
+    // kleine Störungen: Helfer wollen Münzen, Maschinen gehen kaputt
+    pauseEvery: [40, 75], pauseCost: 10,
+    breakEvery: [70, 120], repairTime: 1.2
   };
 
   /* Weltaufbau. Kamera schaut schräg von +x/+z, also: -x/-z ist oben am Bildschirm. */
@@ -210,12 +219,22 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     // Blaubeer-Garten südlich vom Platz (unten links im Bild)
     garden: { x0: -3.4, x1: 4.3, z0: 6.4, z1: 12.8 },
     gardenGate: { x: 0.45, z: 5.95 },
-    bushes: [[-2.55, 7.92], [-2.83, 9.33], [-1.13, 8.77], [-2.55, 11.03]],
+    bushes: [[-2.55, 7.92], [-1.55, 12.2], [-1.13, 8.77], [-2.55, 11.13]],
     blueMachine: { x: 0.71, z: 9.19 },
     blueInput: { x: -0.14, z: 11.6 },
     blueOutput: { x: 3.42, z: 10.0 },
     pickerUnlock: { x: 3.25, z: 6.93 },
     hole2: { x: 1.98, z: 12.16 },
+    // Kakao-Insel auf der anderen Flussseite, Brücke vom Blaubeer-Garten aus
+    island: { x0: -16.6, x1: -12.3, z0: 5.6, z1: 13.0 },
+    bridge: { x0: -12.6, x1: -3.2, z0: 9.15, z1: 10.25 },
+    bridgeUnlock: { x: -2.75, z: 9.7 },
+    trees: [[-16.0, 12.3], [-14.4, 12.6], [-14.6, 10.7], [-12.95, 12.2]],
+    chocMachine: { x: -15.5, z: 7.3 },
+    chocInput: { x: -16.2, z: 9.55 },
+    chocOutput: { x: -12.95, z: 8.2 },
+    cocoaUnlock: { x: -14.2, z: 6.15 },
+    hole3: { x: -12.85, z: 6.2 },
     pile: { x: -2.95, z: -1.55 },
     igloo: { x: -2.2, z: -8.7, r: 2.25 },
     machine: { x: -0.75, z: -5.75 },
@@ -297,7 +316,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
   /* ---------- Start ---------- */
   async function boot() {
     if (!window.THREE) { fail('Die 3D-Grafik konnte nicht geladen werden. Lade die Seite bitte neu.'); return; }
-    const names = ['muenze', 'erdbeere', 'eistuete', 'helfer', 'stern', 'korb', 'upgrade', 'blaubeere', 'eistuete-blau'];
+    const names = ['muenze', 'erdbeere', 'eistuete', 'helfer', 'stern', 'korb', 'upgrade', 'blaubeere', 'eistuete-blau', 'kakao', 'eistuete-schoko', 'bruecke'];
     const imgs = {};
     const fontLoad = (document.fonts && document.fonts.load)
       ? Promise.race([Promise.all([document.fonts.load('700 40px Fredoka'), document.fonts.load('600 40px Fredoka')]), sleep(2000)]).catch(() => {})
@@ -365,7 +384,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       waffle: [0, 256, 256, 256], scoop: [256, 256, 256, 256]
     };
     const uvr = (r) => [r[0] / A, 1 - (r[1] + r[3]) / A, r[2] / A, r[3] / A];
-    const makeAtlas = (blue) => tex(canvas(A, A, (g) => {
+    const makeAtlas = (kind, blue = kind === true, choc = kind === 'choc') => tex(canvas(A, A, (g) => {
       let [x, y, w, h] = REG.berry;
       let gr = g.createLinearGradient(0, y, 0, y + h);
       if (blue) {
@@ -374,6 +393,12 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         g.fillStyle = gr; g.fillRect(x, y, w, h);
         g.fillStyle = 'rgba(190,205,255,.25)';
         for (let i = 0; i < 70; i++) { g.beginPath(); g.arc(x + Math.random() * w, y + Math.random() * h, 2 + Math.random() * 4, 0, TAU); g.fill(); }
+      } else if (choc) {
+        // Kakaofrucht: gelb-orange mit Rillen
+        gr.addColorStop(0, '#ffcf3a'); gr.addColorStop(0.5, '#ff9a1f'); gr.addColorStop(1, '#d9661a');
+        g.fillStyle = gr; g.fillRect(x, y, w, h);
+        g.fillStyle = 'rgba(150,60,10,.28)';
+        for (let i = 0; i < 10; i++) g.fillRect(x + i * (w / 10), y, 6, h);
       } else {
         // Erdbeerhaut
         gr.addColorStop(0, '#ff6b78'); gr.addColorStop(0.5, '#ff3b4e'); gr.addColorStop(1, '#e62a3f');
@@ -417,6 +442,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       [x, y, w, h] = REG.scoop;
       gr = g.createLinearGradient(0, y, 0, y + h);
       if (blue) { gr.addColorStop(0, '#e3e6ff'); gr.addColorStop(0.55, '#a9b2ff'); gr.addColorStop(1, '#8590f2'); }
+      else if (choc) { gr.addColorStop(0, '#a9714a'); gr.addColorStop(0.55, '#7a4527'); gr.addColorStop(1, '#5e321b'); }
       else { gr.addColorStop(0, '#ffd3e0'); gr.addColorStop(0.55, '#ffa9c3'); gr.addColorStop(1, '#ff8fb0'); }
       g.fillStyle = gr; g.fillRect(x, y, w, h);
       const cols = ['#ff4f6d', '#ffd23f', '#5cc8f2', '#7bd36b', '#b98cff', '#ffffff'];
@@ -428,6 +454,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const atlasTex = makeAtlas(false);
     const itemMat = new THREE.MeshStandardMaterial({ map: atlasTex, roughness: 0.5, metalness: 0 });
     const blueMat = new THREE.MeshStandardMaterial({ map: makeAtlas(true), roughness: 0.45, metalness: 0 });
+    const chocMat = new THREE.MeshStandardMaterial({ map: makeAtlas('choc'), roughness: 0.45, metalness: 0 });
 
     /* Geometrien zu einem Mesh verbacken (Farben je Teil oder Atlas-UVs) */
     const _e = new THREE.Euler(), _q = new THREE.Quaternion();
@@ -514,6 +541,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     }
     blueParts.push({ g: G.cyl, r: 'leaf', m: M(0, 0.282, 0, 0.055, 0.02, 0.055) });
     const blueberryGeo = bake(blueParts, true);
+    const podGeo = bake([
+      { g: G.s, r: 'berry', m: M(0, 0.17, 0, 0.11, 0.17, 0.11) },
+      { g: G.cyl, r: 'leaf', m: M(0, 0.35, 0, 0.022, 0.07, 0.022) }
+    ], true);
 
     const coinGeo = bake([
       { g: new THREE.CylinderGeometry(1, 1, 1, 22, 1, true), r: 'edge', m: M(0, 0.035, 0, 0.22, 0.07, 0.22) },
@@ -532,6 +563,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const coinIM = makeIM(coinGeo, itemMat, 320);
     const blueIM = makeIM(blueberryGeo, blueMat, 240);
     const bconeIM = makeIM(coneGeo, blueMat, 200);
+    const podIM = makeIM(podGeo, chocMat, 200);
+    const cconeIM = makeIM(coneGeo, chocMat, 200);
 
     const _m4 = new THREE.Matrix4(), _p3 = new THREE.Vector3(), _s3 = new THREE.Vector3();
     function put(im, x, y, z, ry, s, rx, rz, sy) {
@@ -540,7 +573,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       _p3.set(x, y, z); _s3.set(s, sy == null ? s : sy, s);
       _m4.compose(_p3, _q, _s3); im.setMatrixAt(im.count++, _m4);
     }
-    const ITEM = { berry: berryIM, cone: coneIM, coin: coinIM, blue: blueIM, bcone: bconeIM };
+    const ITEM = { berry: berryIM, cone: coneIM, coin: coinIM, blue: blueIM, bcone: bconeIM, pod: podIM, ccone: cconeIM };
 
     /* ---------- Boden, Fluss, Steg ---------- */
     // Schneeboden diesseits und jenseits des Flusses (der Fluss selbst bleibt frei)
@@ -621,9 +654,17 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const SNOW = '#f7fbff', SNOW2 = '#e8f1fb';
     for (let z = -40; z < 40; z += 1.1) {
       if (z > L.dock.z0 - 0.4 && z < L.dock.z1 + 0.4) continue;
+      if (z > L.bridge.z0 - 0.5 && z < L.bridge.z1 + 0.5) continue;
       decoParts.push(P(G.sl, SNOW, M(L.bankX + rand(-0.1, 0.1), -0.05, z, rand(0.55, 0.75), rand(0.24, 0.34), rand(0.6, 0.8))));
     }
     for (let z = -40; z < 40; z += 1.3) {
+      if (z > L.island.z0 - 0.6 && z < L.island.z1 + 0.6) { // Kakao-Insel: flacher Rand aus Fels und Schnee
+        if (z < L.bridge.z0 - 0.4 || z > L.bridge.z1 + 0.4) {
+          decoParts.push(P(G.box, '#9a6b47', M(farX + 0.1, -0.05, z, 0.9, 0.45, 1.25)));
+          decoParts.push(P(G.sl, SNOW, M(farX + 0.1, 0.2, z, 0.6, 0.18, 0.7)));
+        }
+        continue;
+      }
       decoParts.push(P(G.box, '#f3f8ff', M(farX - 2.5, 0.25, z, 5, 0.9, 1.4)));
       decoParts.push(P(G.sl, SNOW, M(farX + rand(-0.2, 0.2), 0.55, z, rand(0.8, 1.1), rand(0.35, 0.5), rand(0.8, 1.0))));
       if (Math.random() < 0.55) decoParts.push(P(G.box, '#bfe4f8', M(farX + 0.25, 0.05, z + rand(-0.3, 0.3), 0.3, 0.6, rand(0.4, 0.8))));
@@ -755,6 +796,20 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       P(G.cyl, WOOD, M(-0.95, 1.5, -0.7, 0.06, 3.0, 0.06)), P(G.cyl, WOOD, M(0.95, 1.5, -0.7, 0.06, 3.0, 0.06))
     ]), toyMat));
 
+    // Schoko-Maschine auf der Kakao-Insel
+    const chocMachine = new THREE.Group(); chocMachine.position.set(L.chocMachine.x, 0, L.chocMachine.z); chocMachine.rotation.y = Math.PI / 4; scene.add(chocMachine);
+    chocMachine.add(new THREE.Mesh(bake(machineParts('#7a4527', '#c58a5a', '#ffd23f')), toyMat));
+    const chocTankGlass = tankGlass.clone(); chocMachine.add(chocTankGlass);
+    const chocTankFill = new THREE.Mesh(tankFill.geometry, new THREE.MeshStandardMaterial({ color: 0x8a5232, roughness: 0.4 }));
+    chocTankFill.position.copy(tankFill.position); chocMachine.add(chocTankFill);
+    const chocStripeTex = tex(canvas(128, 32, (g) => { for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#fbf1e2' : '#7a4527'; g.fillRect(i * 16, 0, 16, 32); } }), true);
+    chocStripeTex.repeat.set(1.5, 1);
+    const chocAwning = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 1.0), new THREE.MeshLambertMaterial({ map: chocStripeTex, side: THREE.DoubleSide }));
+    chocAwning.position.set(0, 3.15, -0.55); chocAwning.rotation.x = -1.05; chocMachine.add(chocAwning);
+    chocMachine.add(new THREE.Mesh(bake([
+      P(G.cyl, WOOD, M(-0.95, 1.5, -0.7, 0.06, 3.0, 0.06)), P(G.cyl, WOOD, M(0.95, 1.5, -0.7, 0.06, 3.0, 0.06))
+    ]), toyMat));
+
     /* ---------- Theke ---------- */
     const counterGeo = bake([
       P(G.box, WOOD, M(0, L.counter.h / 2, 0, L.counter.w, L.counter.h, L.counter.len)),
@@ -784,6 +839,51 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     fenceLine(L.laneX - 0.88, 0.95, 12);
     fenceLine(L.laneX + 0.95, -3.1, 1.9);   // Lücke neben der zweiten Theke: dort gehen die Kunden raus
     fenceLine(L.laneX + 0.95, 3.6, 12);
+
+    // Kakao-Insel: Boden
+    const islandTex = tex(canvas(256, 256, (g) => {
+      g.fillStyle = '#f4e6d4'; g.fillRect(0, 0, 256, 256);
+      const shades = ['#e6cfb2', '#dfc4a3', '#ead6bd', '#d9bb98'];
+      for (let r = 0; r < 4; r++) for (let c = -1; c < 5; c++) {
+        const ox = (r % 2) * 32;
+        g.fillStyle = shades[(r * 5 + c * 3 + 8) % 4];
+        rr(g, c * 64 + ox + 4, r * 64 + 4, 56, 56, 12); g.fill();
+        g.fillStyle = 'rgba(255,255,255,.25)'; rr(g, c * 64 + ox + 10, r * 64 + 8, 40, 12, 6); g.fill();
+      }
+    }), true);
+    islandTex.repeat.set(0.42, 0.42);
+    plazaPatch(L.island.x0 - 0.4, L.island.z0 - 0.3, L.island.x1 + 0.35, L.island.z1 + 0.4, 1.4, 0.0, new THREE.MeshLambertMaterial({ map: islandTex }));
+    // Brücke (erst nach dem Kauf zu sehen)
+    const bridgeParts = [];
+    {
+      const x0 = L.bridge.x0 + 0.1, x1 = L.bankX + 0.5, zc = (L.bridge.z0 + L.bridge.z1) / 2, len = x1 - x0, xc = (x0 + x1) / 2;
+      for (let x = x0 + 0.25; x < x1; x += 0.55) bridgeParts.push(P(G.box, (Math.round(x * 2) % 2) ? '#dda16a' : '#e7ad76', M(x, 0.22 + Math.sin(((x - x0) / len) * Math.PI) * 0.35, zc, 0.5, 0.12, 1.3)));
+      [x0, x0 + len / 2, x1].forEach((x) => [-1, 1].forEach((k) => {
+        const y0 = Math.sin(((x - x0) / len) * Math.PI) * 0.35;
+        bridgeParts.push(P(G.box, WOOD, M(x, 0.3 + y0, zc + k * 0.68, 0.18, 1.0, 0.18)));
+        bridgeParts.push(P(G.sl, SNOW, M(x, 0.84 + y0, zc + k * 0.68, 0.17, 0.09, 0.17)));
+      }));
+      [-1, 1].forEach((k) => {
+        const pts = []; for (let i = 0; i <= 12; i++) { const x = x0 + (len * i) / 12; pts.push(new THREE.Vector3(x, 0.66 + Math.sin((i / 12) * Math.PI) * 0.35 - Math.abs(Math.sin((i / 6) * Math.PI)) * 0.08, zc + k * 0.68)); }
+        bridgeParts.push(P(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 30, 0.04, 5), '#c99a5b', new THREE.Matrix4()));
+      });
+      bridgeParts.push(P(G.box, '#b97a42', M(xc, -0.1, zc, len, 0.12, 0.2)));
+    }
+    const bridgeMesh = new THREE.Mesh(bake(bridgeParts), toyMat); bridgeMesh.visible = false; scene.add(bridgeMesh);
+    // Kakaobäume
+    const cocoaTreeGeo = bake([
+      P(G.cyl, '#8a5a35', M(0, 0.7, 0, 0.18, 1.4, 0.18)),
+      P(G.s, '#2f8f4f', M(0, 1.75, 0, 0.95, 0.62, 0.95)), P(G.s, '#3aa05a', M(0.45, 1.6, 0.35, 0.55, 0.42, 0.55)),
+      P(G.s, '#2b7f47', M(-0.45, 1.62, 0.2, 0.55, 0.42, 0.55)), P(G.s, '#36985a', M(0.05, 2.05, -0.25, 0.6, 0.42, 0.6)),
+      P(G.s, SNOW, M(0, 2.3, 0, 0.6, 0.18, 0.6)), P(G.s, SNOW, M(0.5, 1.95, 0.4, 0.3, 0.1, 0.3)),
+      P(G.sl, SNOW, M(0, 0.04, 0, 0.7, 0.16, 0.7))
+    ]);
+    const TREE_SPOTS = [[0.3, 1.15, 0.32], [-0.32, 1.1, 0.3], [0.05, 0.95, 0.42], [0.42, 1.2, -0.12], [-0.38, 1.2, -0.08], [0.0, 1.05, -0.4]];
+    const cocoaTrees = L.trees.map(([x, z]) => {
+      const m = new THREE.Mesh(cocoaTreeGeo, toyMatFlat); m.position.set(x, 0, z); m.rotation.y = rand(-0.3, 0.3); scene.add(m);
+      return { x, z, r: 1.2, n: CFG.treeMax, t: 0, mesh: m };
+    });
+    const treePodPos = (b, i, out) => { const s = TREE_SPOTS[i % TREE_SPOTS.length]; return (out || new THREE.Vector3()).set(b.x + s[0], s[1], b.z + s[2]); };
 
     // Zaun vor dem Blaubeer-Garten (verschwindet beim Freischalten)
     const gardenFenceParts = [];
@@ -847,10 +947,11 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       [7.4, 9.6], [7.6, 6.8], [7.3, -0.6], [7.6, -3.2], [7.0, -10.8], [4.6, -12.2], [1.6, -13.6], [-1.6, -14.5], [8.2, -6.4], [-8.0, 13.6], [8.6, 3.0]
     ];
     const treeIM = new THREE.InstancedMesh(treeGeo, toyMatFlat, treeSpots.length + 40); treeIM.count = 0;
-    const inGarden = (x, z) => x > L.garden.x0 - 1.0 && x < L.garden.x1 + 0.4 && z > L.garden.z0 - 0.9 && z < L.garden.z1 + 1.0;
+    const inBridge = (x, z) => x > L.bridge.x0 - 1 && x < L.bridge.x1 + 1.2 && z > L.bridge.z0 - 1.0 && z < L.bridge.z1 + 1.0;
+    const inGarden = (x, z) => inBridge(x, z) || x > L.garden.x0 - 1.0 && x < L.garden.x1 + 0.4 && z > L.garden.z0 - 0.9 && z < L.garden.z1 + 1.0;
     treeSpots.forEach(([u, v]) => { const w = W(u, v); if (!inGarden(w.x, w.z)) put(treeIM, w.x, 0, w.z, rand(0, TAU), rand(0.85, 1.15)); });
     [[-4.5, 8.0], [-4.6, 11.2], [-3.6, 14.6], [-1.0, 15.3], [3.2, 15.4]].forEach(([x, z]) => put(treeIM, x, 0, z, rand(0, TAU), rand(0.85, 1.1)));
-    for (let z = -26; z < 26; z += 2.6) put(treeIM, farX - rand(1.2, 3.6), 0.65, z + rand(-0.6, 0.6), rand(0, TAU), rand(0.8, 1.1));
+    for (let z = -26; z < 26; z += 2.6) { const zz = z + rand(-0.6, 0.6); if (zz > L.island.z0 - 1 && zz < L.island.z1 + 1) continue; put(treeIM, farX - rand(1.2, 3.6), 0.65, zz, rand(0, TAU), rand(0.8, 1.1)); }
     treeIM.instanceMatrix.needsUpdate = true; scene.add(treeIM);
     const moundSpots = [[-6.0, 9.6], [-1.6, 11.0], [1.8, 11.8], [6.2, 8.4], [6.5, -1.9], [5.2, -11.6], [-0.4, -12.4], [7.6, 1.1], [-3.8, 7.6]];
     moundSpots.forEach(([u, v]) => { const w = W(u, v); if (!inGarden(w.x, w.z)) decoParts.push(P(G.sl, SNOW, M(w.x, 0, w.z, rand(0.6, 1.0), rand(0.35, 0.55), rand(0.6, 1.0)))); });
@@ -938,6 +1039,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     };
     const carrierGeo = penguinGeo(true, basket);
     const pickerGeo = penguinGeo(true, basket, { main: '#5b7cf0', brim: '#3a56c8' }); // Blaubeer-Helfer mit blauer Mütze
+    const cocoaGeo = penguinGeo(true, basket, { main: '#4caf50', brim: '#2e8b3c' }); // Kakao-Helfer mit grüner Mütze
     const iceHelperGeo = penguinGeo(true, basket, { main: '#ff7aa8', brim: '#e2558a' }); // Eis-Helfer mit rosa Mütze
 
     // Kunden
@@ -1034,7 +1136,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       hole: { x: L.hole.x, z: L.hole.z, r: 1.05, cd: 0, hold: 0 },
       hole2: { x: L.hole2.x, z: L.hole2.z, r: 1.05, cd: 0, hold: 0 },
       blueInput: { x: L.blueInput.x, z: L.blueInput.z, r: 0.95, cd: 0 },
-      blueOutput: { x: L.blueOutput.x, z: L.blueOutput.z, r: 1.0, cd: 0 }
+      blueOutput: { x: L.blueOutput.x, z: L.blueOutput.z, r: 1.0, cd: 0 },
+      hole3: { x: L.hole3.x, z: L.hole3.z, r: 1.05, cd: 0, hold: 0 },
+      chocInput: { x: L.chocInput.x, z: L.chocInput.z, r: 0.95, cd: 0 },
+      chocOutput: { x: L.chocOutput.x, z: L.chocOutput.z, r: 1.0, cd: 0 }
     };
     tileMesh(tiles.pile.x, tiles.pile.z, 2.1, tileCanvas(imgs.erdbeere));
     tileMesh(tiles.input.x, tiles.input.z, TILE, tileCanvas(imgs.erdbeere, 'drop'));
@@ -1044,6 +1149,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     tileMesh(tiles.coin.x, tiles.coin.z, 1.9, tileCanvas(imgs.muenze));
     tileMesh(tiles.blueInput.x, tiles.blueInput.z, TILE, tileCanvas(imgs.blaubeere, 'drop'));
     tileMesh(tiles.blueOutput.x, tiles.blueOutput.z, 1.9, tileCanvas(imgs['eistuete-blau']));
+    tileMesh(tiles.chocInput.x, tiles.chocInput.z, TILE, tileCanvas(imgs.kakao, 'drop'));
+    tileMesh(tiles.chocOutput.x, tiles.chocOutput.z, 1.9, tileCanvas(imgs['eistuete-schoko']));
 
     // Eisloch
     const holeWaterTex = tex(canvas(128, 128, (g) => {
@@ -1067,7 +1174,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       const rim = new THREE.Mesh(holeRimGeo, toyMatFlat); rim.position.set(t.x, 0, t.z); scene.add(rim);
       return { t, target: new THREE.Vector3(t.x, -0.25, t.z) };
     }
-    const HOLES = [makeHole(tiles.hole), makeHole(tiles.hole2)];
+    const HOLES = [makeHole(tiles.hole), makeHole(tiles.hole2), makeHole(tiles.hole3)];
 
     // Freischaltfelder: Münzen draufbringen, bis der Balken voll ist
     function makeUnlockTile(size) {
@@ -1083,6 +1190,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     tiles.machineUnlock = makeUnlockTile(1.6); // schnellere Eismaschine
     tiles.gardenUnlock = makeUnlockTile(2.0);  // Blaubeer-Garten
     tiles.pickerUnlock = makeUnlockTile();     // Blaubeer-Helfer
+    tiles.bridgeUnlock = makeUnlockTile(2.0);  // Brücke zur Kakao-Insel
+    tiles.cocoaUnlock = makeUnlockTile();      // Kakao-Helfer
     tiles.iceUnlock = makeUnlockTile(1.6);     // Eis-Helfer
     tiles.ice2Unlock = makeUnlockTile(1.6);    // zweiter Eis-Helfer (gleicher Platz, eigenes Feld)
     tiles.counter2Unlock = makeUnlockTile();   // zweite Theke
@@ -1184,13 +1293,15 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       coinPile: { n: 0, inc: 0, max: 100000 },
       carry: { n: 0, inc: 0, max: CFG.carryMax, type: null }
     };
+    const K = { hopper: { n: 0, inc: 0, max: CFG.chocHopperMax }, out: { n: 0, inc: 0, max: CFG.chocOutMax } }; // Schoko-Maschine
     const B = { hopper: { n: 0, inc: 0, max: CFG.blueHopperMax }, out: { n: 0, inc: 0, max: CFG.blueOutMax } }; // Blaubeer-Maschine
     const counterTypes = []; // Sorte jeder Eistüte auf der Theke ('cone' oder 'bcone'), unten zuerst
     C.counter2 = { n: 0, inc: 0, max: CFG.counterMax };
     const counter2Types = [];
     const S = { coins: 0, helpers: 1, paid: 0, carrier: false, paidCarrier: 0, machine: 0, paidMachine: 0,
       garden: false, paidGarden: 0, picker: false, paidPicker: 0, blueSold: 0, sold: 0, tut: 0, tutDone: false,
-      iceHelper: false, paidIce: 0, counter2: false, paidCounter2: 0, iceHelper2: false, paidIce2: 0 };
+      iceHelper: false, paidIce: 0, counter2: false, paidCounter2: 0, iceHelper2: false, paidIce2: 0,
+      island: false, paidBridge: 0, cocoa: false, paidCocoa: 0, chocSold: 0 };
     const saved = store.get(KEY_SAVE, null);
     if (saved && saved.v === 1) {
       const n = (v, d, mx) => clamp(Number.isFinite(v) ? Math.floor(v) : d, 0, mx);
@@ -1200,7 +1311,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       S.machine = n(saved.machine, 0, CFG.machinePrices.length); S.paidMachine = n(saved.paidMachine, 0, 1e6);
       C.pile.n = n(saved.pile, CFG.startPile, CFG.pileMax); C.hopper.n = n(saved.hopper, 0, CFG.hopperMax);
       C.out.n = n(saved.out, 0, CFG.outMax); C.counter.n = n(saved.counter, 0, CFG.counterMax); C.coinPile.n = n(saved.coinPile, 0, 1e7);
-      if (['berry', 'cone', 'blue', 'bcone'].includes(saved.carryType)) { C.carry.type = saved.carryType; C.carry.n = n(saved.carry, 0, CFG.carryMax); if (!C.carry.n) C.carry.type = null; }
+      S.island = !!saved.island; S.paidBridge = n(saved.paidBridge, 0, 1e7); S.cocoa = !!saved.cocoa; S.paidCocoa = n(saved.paidCocoa, 0, 1e7); S.chocSold = n(saved.chocSold, 0, 1e8);
+      K.hopper.n = n(saved.chocHopper, 0, CFG.chocHopperMax); K.out.n = Math.min(CFG.chocOutMax, n(saved.chocOut, 0, CFG.chocOutMax) + n(saved.chocOut2, 0, 50));
+      if (Array.isArray(saved.trees)) cocoaTrees.forEach((b, i) => { b.n = n(saved.trees[i], CFG.treeMax, CFG.treeMax); });
+      if (['berry', 'cone', 'blue', 'bcone', 'pod', 'ccone'].includes(saved.carryType)) { C.carry.type = saved.carryType; C.carry.n = n(saved.carry, 0, CFG.carryMax); if (!C.carry.n) C.carry.type = null; }
       S.garden = !!saved.garden; S.paidGarden = n(saved.paidGarden, 0, 1e6);
       S.picker = !!saved.picker; S.paidPicker = n(saved.paidPicker, 0, 1e6); S.blueSold = n(saved.blueSold, 0, 1e8);
       B.hopper.n = n(saved.blueHopper, 0, CFG.blueHopperMax); B.out.n = Math.min(CFG.blueOutMax, n(saved.blueOut, 0, CFG.blueOutMax) + n(saved.blueOut2, 0, 50));
@@ -1212,15 +1326,18 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     }
     {
       const ct = typeof (saved && saved.counterTypes) === 'string' ? saved.counterTypes : '';
-      for (let i = 0; i < C.counter.n; i++) counterTypes.push(ct[i] === 'b' ? 'bcone' : 'cone');
+      const T = { b: 'bcone', k: 'ccone' };
+      for (let i = 0; i < C.counter.n; i++) counterTypes.push(T[ct[i]] || 'cone');
       const ct2 = typeof (saved && saved.counter2Types) === 'string' ? saved.counter2Types : '';
-      for (let i = 0; i < C.counter2.n; i++) counter2Types.push(ct2[i] === 'b' ? 'bcone' : 'cone');
+      for (let i = 0; i < C.counter2.n; i++) counter2Types.push(T[ct2[i]] || 'cone');
     }
     counter2Mesh.visible = drop2Mesh.visible = S.counter2;
+    bridgeMesh.visible = S.island;
     gardenFence.visible = !S.garden;
     for (let i = 0; i < S.helpers; i++) addHelper(i, false);
     const hasProgress = !!(saved && saved.v === 1);
 
+    const typeCode = (t) => (t === 'bcone' ? 'b' : t === 'ccone' ? 'k' : 'c');
     function save() {
       store.set(KEY_SAVE, {
         v: 1, coins: S.coins, helpers: S.helpers, paid: S.paid, carrier: S.carrier, paidCarrier: S.paidCarrier, machine: S.machine, paidMachine: S.paidMachine, sold: S.sold, tutDone: S.tutDone,
@@ -1228,12 +1345,15 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         coinPile: C.coinPile.n + C.coinPile.inc, carryType: C.carry.type, carry: C.carry.n + C.carry.inc,
         garden: S.garden, paidGarden: S.paidGarden, picker: S.picker, paidPicker: S.paidPicker, blueSold: S.blueSold,
         blueHopper: Math.min(CFG.blueHopperMax, B.hopper.n + B.hopper.inc + picker.load.n + picker.load.inc), blueOut: B.out.n + B.out.inc,
-        bushes: bushes.map((b) => b.n), counterTypes: counterTypes.map((t) => (t === 'bcone' ? 'b' : 'c')).join(''),
+        bushes: bushes.map((b) => b.n), counterTypes: counterTypes.map(typeCode).join(''),
         iceHelper: S.iceHelper, paidIce: S.paidIce, iceHelper2: S.iceHelper2, paidIce2: S.paidIce2, counter2: S.counter2, paidCounter2: S.paidCounter2,
-        counter2N: C.counter2.n + C.counter2.inc, counter2Types: counter2Types.map((t) => (t === 'bcone' ? 'b' : 'c')).join(''),
+        counter2N: C.counter2.n + C.counter2.inc, counter2Types: counter2Types.map(typeCode).join(''),
         // was der Eis-Helfer gerade trägt, kommt zurück an die Ausgabe
         out: Math.min(CFG.outMax, C.out.n + C.out.inc + iceLoad('cone')),
-        blueOut2: iceLoad('bcone')
+        blueOut2: iceLoad('bcone'),
+        island: S.island, paidBridge: S.paidBridge, cocoa: S.cocoa, paidCocoa: S.paidCocoa, chocSold: S.chocSold,
+        chocHopper: Math.min(CFG.chocHopperMax, K.hopper.n + K.hopper.inc + cocoaHelper.load.n + cocoaHelper.load.inc), chocOut: K.out.n + K.out.inc,
+        chocOut2: iceLoad('ccone'), trees: cocoaTrees.map((b) => b.n)
       });
     }
 
@@ -1245,6 +1365,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       out.set(cx + (c - (cols - 1) / 2) * gap, y0 + layer * layerH, cz + (r - (rows - 1) / 2) * gap);
       return out;
     }
+    const chocOutPos = (i, o) => gridPos(tiles.chocOutput.x, tiles.chocOutput.z, i, 3, 2, 0.46, 0.36, 0.03, o || new THREE.Vector3());
     const blueOutPos = (i, o) => gridPos(tiles.blueOutput.x, tiles.blueOutput.z, i, 3, 2, 0.46, 0.36, 0.03, o || new THREE.Vector3());
     const pilePos = (i, o) => gridPos(tiles.pile.x, tiles.pile.z, i, 3, 3, 0.42, 0.3, 0.05, o || new THREE.Vector3());
     const outPos = (i, o) => gridPos(tiles.output.x, tiles.output.z, i, 3, 2, 0.46, 0.36, 0.03, o || new THREE.Vector3());
@@ -1261,7 +1382,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     // Theke mit dem meisten Platz (für Kind und Eis-Helfer)
     const bestWindow = () => { let b = null; for (const w of WINDOWS) if (w.open() && w.stack.n + w.stack.inc < w.stack.max && (!b || w.stack.n + w.stack.inc < b.stack.n + b.stack.inc)) b = w; return b; };
     const coinPos = (i, o) => gridPos(tiles.coin.x, tiles.coin.z, i, 3, 3, 0.48, 0.075, 0.04, o || new THREE.Vector3());
-    const ITEM_GAP = { berry: 0.3, cone: 0.34, blue: 0.26, bcone: 0.34 };
+    const ITEM_GAP = { berry: 0.3, cone: 0.34, blue: 0.26, bcone: 0.34, pod: 0.33, ccone: 0.34 };
     function stackLocal(i, type, out) {
       const k = i * 0.12, f = Math.pow(k, 1.6);
       out.set(player.leanX * f, 0.86 + i * (ITEM_GAP[type] || 0.3), 0.44 + player.leanZ * f);
@@ -1281,6 +1402,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     blueMachine.updateMatrixWorld();
     const blueHopperPos = hopperLocal.clone().applyMatrix4(blueMachine.matrixWorld);
     const blueNozzlePos = nozzleLocal.clone().applyMatrix4(blueMachine.matrixWorld);
+    chocMachine.updateMatrixWorld();
+    const chocHopperPos = hopperLocal.clone().applyMatrix4(chocMachine.matrixWorld);
+    const chocNozzlePos = nozzleLocal.clone().applyMatrix4(chocMachine.matrixWorld);
 
     /* ---------- Fliegende Gegenstände ---------- */
     const flies = [];
@@ -1478,15 +1602,17 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       { x: 1.3, z: -8.0, r: 1.0 },
       { x: L.hole.x, z: L.hole.z, r: 0.45 },
       { x: L.hole2.x, z: L.hole2.z, r: 0.45 },
-      { x: L.blueMachine.x, z: L.blueMachine.z, r: 1.05 }
-    ].concat(L.bushes.map(([x, z]) => ({ x, z, r: 0.5 })));
+      { x: L.blueMachine.x, z: L.blueMachine.z, r: 1.05 },
+      { x: L.chocMachine.x, z: L.chocMachine.z, r: 1.05 },
+      { x: L.hole3.x, z: L.hole3.z, r: 0.45 }
+    ].concat(L.bushes.map(([x, z]) => ({ x, z, r: 0.5 })), L.trees.map(([x, z]) => ({ x, z, r: 0.45 })));
     const boxes = [
       { x0: L.counter.x - L.counter.w / 2 - 0.3, x1: L.counter.x + L.counter.w / 2 + 2, z0: L.counter.z - L.counter.len / 2 - 0.3, z1: L.counter.z + L.counter.len / 2 + 0.3 }
     ];
     const counter2Box = { x0: L.counter2.x - L.counter.w / 2 - 0.3, x1: L.counter2.x + L.counter.w / 2 + 2, z0: L.counter2.z - L.counter2.len / 2 - 0.3, z1: L.counter2.z + L.counter2.len / 2 + 0.3 };
     if (S.counter2) boxes.push(counter2Box);
     function collide(p) {
-      const rects = S.garden ? [L.plaza, L.walkDock, L.garden] : [L.plaza, L.walkDock];
+      const rects = [L.plaza, L.walkDock]; if (S.garden) rects.push(L.garden); if (S.island) rects.push(L.bridge, L.island);
       if (!rects.some((r) => inRect(p.x, p.z, r, 0))) {
         let best = null, bd = 1e9;
         for (const r of rects) { const q = clampRect(p.x, p.z, r), d = (q.x - p.x) ** 2 + (q.z - p.z) ** 2; if (d < bd) { bd = d; best = q; } }
@@ -1611,6 +1737,30 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
           celebrate(L.pickerUnlock.x, L.pickerUnlock.z);
           toast('blaubeere', 'Neuer Blaubeer-Helfer!');
         }
+      },
+      {
+        tile: tiles.bridgeUnlock, key: 'paidBridge', icon: 'bruecke', badge: 'kakao', text: 'Bau die Brücke zur Kakao-Insel!',
+        price: () => CFG.bridgePrice,
+        visible: () => S.garden && !S.island,
+        pos: () => L.bridgeUnlock,
+        done() {
+          S.island = true; S.paidBridge = 0; bridgeMesh.visible = true;
+          celebrate(L.bankX - 3, 9.7);
+          for (const b of cocoaTrees) burstParticles(b.x, 1.6, b.z, 8, 0xff9a1f, 2.2, 0.09, 0.8, 6);
+          toast('kakao', 'Die Kakao-Insel ist offen!');
+        }
+      },
+      {
+        tile: tiles.cocoaUnlock, key: 'paidCocoa', icon: 'helfer', badge: 'kakao', text: 'Hol dir einen Kakao-Helfer!',
+        price: () => CFG.cocoaHelperPrice,
+        visible: () => S.island && !S.cocoa && S.chocSold > 0,
+        pos: () => L.cocoaUnlock,
+        done() {
+          S.cocoa = true; S.paidCocoa = 0;
+          spawnCourier(cocoaHelper, L.cocoaUnlock.x, L.cocoaUnlock.z, true);
+          celebrate(L.cocoaUnlock.x, L.cocoaUnlock.z);
+          toast('kakao', 'Neuer Kakao-Helfer!');
+        }
       }
     ];
     const drawUnlock = (u) => paintUnlock(u.tile, imgs[u.icon], u.badge && imgs[u.badge], u.price(), S[u.key]);
@@ -1659,6 +1809,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       cr.pop = Math.min(1, cr.pop + dt * 2.5);
       const pop = cr.pop < 1 ? Math.min(1, cr.pop * 1.4) * (1 + Math.sin(cr.pop * Math.PI) * 0.35) : 1;
       cr.root.scale.setScalar(CAR_S * Math.max(0.001, pop));
+      if (cr.want) { cr.body.rotation.z = Math.sin(time * 7) * 0.1; return; } // macht Pause, will Münzen
       cr.cd -= dt;
       if (cr.state === 'toSrc' && !cr.src) cr.src = cr.o.source();
       if (cr.state === 'toSrc' && !cr.src) { cr.state = 'idle'; }
@@ -1727,14 +1878,26 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       source: () => { let best = null; for (const b of bushes) if (b.n > 0 && (!best || b.n > best.n)) best = b; return best && best.src; },
       target: () => ({ x: tiles.blueInput.x, z: tiles.blueInput.z, stack: B.hopper, pos: () => blueHopperPos })
     });
+    // Kakao-Helfer: von den Kakaobäumen zur Schoko-Maschine
+    cocoaTrees.forEach((b) => {
+      const dx = tiles.chocInput.x - b.x, dz = tiles.chocInput.z - b.z, d = Math.hypot(dx, dz) || 1;
+      b.src = { x: b.x + (dx / d) * 0.9, z: b.z + (dz / d) * 0.9, stack: b, pos: (i, o) => treePodPos(b, i, o) };
+    });
+    const cocoaHelper = makeCourier(cocoaGeo, {
+      max: CFG.carrierMax, item: 'pod',
+      source: () => { let best = null; for (const b of cocoaTrees) if (b.n > 0 && (!best || b.n > best.n)) best = b; return best && best.src; },
+      target: () => ({ x: tiles.chocInput.x, z: tiles.chocInput.z, stack: K.hopper, pos: () => chocHopperPos })
+    });
+    if (S.cocoa) spawnCourier(cocoaHelper, L.cocoaUnlock.x, L.cocoaUnlock.z, false);
     // Eis-Helfer: von der Ausgabe (Erdbeer- oder Blaubeer-Eis) zur Theke mit dem meisten Platz
     const iceSrcs = [
       { x: tiles.output.x - 0.95, z: tiles.output.z + 0.35, stack: C.out, pos: outPos, item: 'cone' },
-      { x: tiles.blueOutput.x - 0.95, z: tiles.blueOutput.z - 0.35, stack: B.out, pos: blueOutPos, item: 'bcone', garden: true }
+      { x: tiles.blueOutput.x - 0.95, z: tiles.blueOutput.z - 0.35, stack: B.out, pos: blueOutPos, item: 'bcone', garden: true },
+      { x: tiles.chocOutput.x + 0.6, z: tiles.chocOutput.z + 0.9, stack: K.out, pos: chocOutPos, item: 'ccone', island: true }
     ];
     const iceOpts = {
       max: CFG.iceHelperMax, item: 'cone',
-      source: () => { let best = null; for (const s of iceSrcs) if ((!s.garden || S.garden) && s.stack.n > 0 && (!best || s.stack.n > best.stack.n)) best = s; return best; },
+      source: () => { let best = null; for (const s of iceSrcs) if ((!s.garden || S.garden) && (!s.island || S.island) && s.stack.n > 0 && (!best || s.stack.n > best.stack.n)) best = s; return best; },
       target: () => {
         const w = bestWindow() || WINDOWS[0];
         return { x: w.drop.x, z: w.drop.z, stack: w.stack, pos: w.pos, onAdd: (t) => w.types.push(t) };
@@ -1805,7 +1968,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       // Eis auf eine Theke (Erdbeer- und Blaubeer-Eis)
       for (const w of WINDOWS) {
         const t = w.drop;
-        if (w.open() && near(t) && (carry.type === 'cone' || carry.type === 'bcone') && carry.n > 0 && w.stack.n + w.stack.inc < w.stack.max && t.cd <= 0) {
+        if (w.open() && near(t) && (carry.type === 'cone' || carry.type === 'bcone' || carry.type === 'ccone') && carry.n > 0 && w.stack.n + w.stack.inc < w.stack.max && t.cd <= 0) {
           t.cd = 0.07;
           const type = carry.type;
           moveItem(type, carry, stackPos, w.stack, w.pos, 0.28, 0.9, () => { w.types.push(type); sfx.drop(w.stack.n); });
@@ -1830,6 +1993,23 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         if (near(bo) && B.out.n > 0 && (carry.type === null || carry.type === 'bcone') && carry.n + carry.inc < carry.max && bo.cd <= 0) {
           bo.cd = 0.065;
           moveItem('bcone', B.out, blueOutPos, carry, stackPos, 0.24, 0.9, () => sfx.pick(carry.n));
+        }
+      }
+      if (S.island) {
+        // Kakaofrüchte pflücken
+        if ((carry.type === null || carry.type === 'pod') && carry.n + carry.inc < carry.max && bushCd <= 0) {
+          const b = cocoaTrees.find((b) => b.n > 0 && near(b));
+          if (b) { bushCd = 0.09; moveItem('pod', b, (i) => treePodPos(b, i), carry, stackPos, 0.24, 0.9, () => sfx.pick(carry.n)); }
+        }
+        const ci = tiles.chocInput;
+        if (near(ci) && carry.type === 'pod' && carry.n > 0 && K.hopper.n + K.hopper.inc < K.hopper.max && ci.cd <= 0) {
+          ci.cd = 0.06;
+          moveItem('pod', carry, stackPos, K.hopper, () => chocHopperPos, 0.3, 1.2, () => sfx.drop(K.hopper.n));
+        }
+        const co = tiles.chocOutput;
+        if (near(co) && K.out.n > 0 && (carry.type === null || carry.type === 'ccone') && carry.n + carry.inc < carry.max && co.cd <= 0) {
+          co.cd = 0.065;
+          moveItem('ccone', K.out, chocOutPos, carry, stackPos, 0.24, 0.9, () => sfx.pick(carry.n));
         }
       }
       // Münzen einsammeln
@@ -1877,9 +2057,63 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const conePeriod = () => CFG.conePeriods[S.machine];
     const machineState = { cd: CFG.conePeriods[0], pulse: 0 };
     const M1 = { hopper: C.hopper, out: C.out, outPos, item: 'cone', period: conePeriod, st: machineState, nozzle: nozzlePos, fill: tankFill, glass: tankGlass };
+    const M3 = { hopper: K.hopper, out: K.out, outPos: chocOutPos, item: 'ccone', period: () => CFG.chocPeriod, st: { cd: CFG.chocPeriod, pulse: 0 }, nozzle: chocNozzlePos, fill: chocTankFill, glass: chocTankGlass };
     const M2 = { hopper: B.hopper, out: B.out, outPos: blueOutPos, item: 'bcone', period: () => CFG.bluePeriod, st: { cd: CFG.bluePeriod, pulse: 0 }, nozzle: blueNozzlePos, fill: blueTankFill, glass: blueTankGlass };
+    M1.at = L.machine; M2.at = L.blueMachine; M3.at = L.chocMachine;
+    M1.name = 'Eismaschine'; M2.name = 'Blaubeer-Maschine'; M3.name = 'Schoko-Maschine';
+    // Störungen: höchstens ein Helfer will Münzen und höchstens eine Maschine ist kaputt
+    const trouble = { pauseT: rand(...CFG.pauseEvery), breakT: rand(...CFG.breakEvery), worker: null, machine: null, fix: 0 };
+    function needBubble(draw) {
+      const cv = document.createElement('canvas'); cv.width = 256; cv.height = 176;
+      const g = cv.getContext('2d');
+      g.fillStyle = '#ffffff'; g.shadowColor = 'rgba(22,50,92,.25)'; g.shadowBlur = 10; g.shadowOffsetY = 4;
+      rr(g, 14, 10, 228, 126, 46); g.fill(); g.beginPath(); g.moveTo(108, 130); g.lineTo(128, 164); g.lineTo(150, 130); g.fill();
+      g.shadowColor = 'transparent'; draw(g);
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex(cv), depthTest: false, transparent: true }));
+      sp.scale.set(1.25, 0.86, 1); sp.renderOrder = 11; sp.visible = false; scene.add(sp); return sp;
+    }
+    const coinBubble = needBubble((g) => {
+      if (imgs.muenze) g.drawImage(imgs.muenze, 30, 18, 110, 110);
+      g.font = '700 58px Fredoka, sans-serif'; g.fillStyle = '#16325c'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(String(CFG.pauseCost), 186, 76);
+    });
+    const fixBubble = needBubble((g) => {
+      g.fillStyle = '#ff4d5e'; g.beginPath(); g.arc(128, 72, 50, 0, TAU); g.fill();
+      g.font = '700 80px Fredoka, sans-serif'; g.fillStyle = '#ffffff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('!', 128, 76);
+    });
+    const workers = () => helpers.filter((h) => h.pop >= 1).concat(couriers.filter((c) => c.on && c.pop >= 1));
+    const machinesOn = () => [M1].concat(S.garden ? [M2] : [], S.island ? [M3] : []);
+    function updateTrouble(dt) {
+      if (playing && S.tutDone) {
+        if (!trouble.worker && (trouble.pauseT -= dt) <= 0) {
+          const ws = workers(); trouble.pauseT = rand(...CFG.pauseEvery);
+          if (ws.length) { trouble.worker = ws[Math.floor(Math.random() * ws.length)]; trouble.worker.want = true; sfx.pop(); } else trouble.pauseT = 2;
+        }
+        if (!trouble.machine && (trouble.breakT -= dt) <= 0) {
+          const ms = machinesOn(); trouble.breakT = rand(...CFG.breakEvery);
+          trouble.machine = ms[Math.floor(Math.random() * ms.length)]; trouble.machine.broken = true; trouble.fix = 0; sfx.burst();
+        }
+        // Kind geht hin: Helfer bekommt Münzen, Maschine wird repariert
+        const w = trouble.worker;
+        if (w && Math.hypot(player.x - w.x, player.z - w.z) < 1.5) {
+          const pay = Math.min(CFG.pauseCost, S.coins); S.coins -= pay; updateCoins();
+          for (let i = 0; i < Math.min(pay, 5); i++) fly('coin', new THREE.Vector3(player.x, 1.2, player.z), () => _v.set(w.x, 1.0, w.z), 0.3, 1.0, () => sfx.coin(), i * 0.05);
+          burstParticles(w.x, 1.2, w.z, 10, 0xffd23f, 2, 0.08, 0.6, 6); sfx.happy();
+          w.want = false; trouble.worker = null;
+        }
+        const m = trouble.machine;
+        if (m && Math.hypot(player.x - m.at.x, player.z - m.at.z) < 2.2) {
+          trouble.fix += dt;
+          if (Math.random() < dt * 12) burstParticles(m.at.x + rand(-0.5, 0.5), 1.2, m.at.z + rand(-0.5, 0.5), 1, 0xffd23f, 1.5, 0.07, 0.4, 6);
+          if (trouble.fix >= CFG.repairTime) { m.broken = false; trouble.machine = null; celebrate(m.at.x, m.at.z); toast('stern', 'Repariert!'); }
+        } else trouble.fix = Math.max(0, trouble.fix - dt);
+      }
+      const t = performance.now() / 1000, w = trouble.worker, m = trouble.machine;
+      coinBubble.visible = !!w; if (w) coinBubble.position.set(w.x, 2.2 + Math.sin(t * 4) * 0.08, w.z);
+      fixBubble.visible = !!m; if (m) fixBubble.position.set(m.at.x, 3.9 + Math.sin(t * 5) * 0.1, m.at.z);
+    }
     function runMachine(m, dt) {
-      if (m.hopper.n > 0 && m.out.n + m.out.inc < m.out.max) {
+      if (m.broken) { if (Math.random() < dt * 6) burstParticles(m.at.x + rand(-0.3, 0.3), 2.2, m.at.z + rand(-0.3, 0.3), 1, 0x8a8f99, 0.6, 0.16, 1.2, -1.5); }
+      else if (m.hopper.n > 0 && m.out.n + m.out.inc < m.out.max) {
         m.st.cd -= dt;
         if (m.st.cd <= 0) {
           m.st.cd += m.period();
@@ -1897,7 +2131,12 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       m.glass.scale.set(s, 1, s);
     }
     function updateMachine(dt) {
-      runMachine(M1, dt); runMachine(M2, dt);
+      runMachine(M1, dt); runMachine(M2, dt); runMachine(M3, dt);
+      updateTrouble(dt);
+      for (const b of cocoaTrees) {
+        if (b.n >= CFG.treeMax) { b.t = 0; continue; }
+        b.t += dt; if (b.t >= CFG.treeGrow) { b.t = 0; b.n++; }
+      }
       // Büsche wachsen nach
       for (const b of bushes) {
         if (b.n >= CFG.bushMax) { b.t = 0; continue; }
@@ -1950,7 +2189,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
           }
           if (h.throwT >= 1) h.throwT = -1;
         }
-        if (h.cd <= 0 && h.throwT < 0 && h.pop >= 1) {
+        if (h.cd <= 0 && h.throwT < 0 && h.pop >= 1 && !h.want) {
           if (pileFull) { h.cd = 0.4; h.rest = Math.min(1, h.rest + 0.4); continue; }
           let best = null, bestD = 1e9;
           for (const b of blocks) {
@@ -2010,7 +2249,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         const ctype = w.types.pop() || 'cone'; // die oberste Eistüte
         fly(ctype, from, () => _v.set(fc.x, 1.15 * fc.scale, fc.z), 0.3, 0.8, () => {
           fc.inc--; fc.got++; sfx.drop(fc.got); S.sold++;
-          fc.pay += ctype === 'bcone' ? CFG.coinPerBlue : CFG.coinPerCone; fc.lastType = ctype;
+          fc.pay += ctype === 'bcone' ? CFG.coinPerBlue : ctype === 'ccone' ? CFG.coinPerChoc : CFG.coinPerCone; fc.lastType = ctype;
+          if (ctype === 'ccone' && ++S.chocSold === 1) placeUnlocks();
           if (ctype === 'bcone' && ++S.blueSold === 1) placeUnlocks();
           if (fc.got >= fc.want) {
             fc.state = 'leave'; fc.happy = 1; fc.leaveStep = 0; fc.exit = w.exit; w.cust = null; sfx.happy();
@@ -2037,7 +2277,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       if (queue.length < CFG.queueMax && (spawnT <= 0 || (queue.length < CFG.queueMin && spawnT < 999))) {
         spawnCustomer(false);
         const boost = (S.counter2 ? 1.6 : 1) * (1 + 0.35 * ((S.iceHelper ? 1 : 0) + (S.iceHelper2 ? 1 : 0)));
-        spawnT = queue.length < CFG.queueMin ? 0.35 : CFG.spawnPeriods[S.machine] * (S.garden ? CFG.blueSpawnFactor : 1) / boost * rand(0.7, 1.3);
+        spawnT = queue.length < CFG.queueMin ? 0.35 : CFG.spawnPeriods[S.machine] * (S.garden ? CFG.blueSpawnFactor : 1) * (S.island ? 0.8 : 1) / boost * rand(0.7, 1.3);
       }
       for (const c of customers) {
         let tx, tz, speed = CFG.customerSpeed;
@@ -2105,9 +2345,21 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     /* Hinweise: wohin als Nächstes? */
     function nextGoal() {
       const carry = C.carry;
+      if (trouble.machine) return { t: trouble.machine.at, icon: 'upgrade', text: (trouble.machine.name || 'Maschine') + ' ist kaputt! Lauf hin!', urgent: true };
+      if (trouble.worker) return { t: trouble.worker, icon: 'muenze', text: 'Ein Helfer macht Pause. Bring ihm Münzen!', urgent: true };
       // Hände voller Erdbeeren, Maschine und Ausgabe voll: nur das Eisloch hilft weiter
       if (carry.type === 'berry' && C.hopper.n + C.hopper.inc >= C.hopper.max && C.out.n + C.out.inc >= C.out.max)
         return { t: tiles.hole, icon: 'erdbeere', text: 'Maschine voll! Wirf sie ins Eisloch!', urgent: true };
+      if (carry.type === 'pod' && K.hopper.n + K.hopper.inc >= K.hopper.max && K.out.n + K.out.inc >= K.out.max)
+        return { t: tiles.hole3, icon: 'kakao', text: 'Maschine voll! Wirf sie ins Eisloch!', urgent: true };
+      if (S.island && S.chocSold === 0 && !['berry', 'cone', 'blue', 'bcone'].includes(carry.type)) {
+        if (carry.type === 'pod') return { t: tiles.chocInput, icon: 'kakao', text: 'Ab in die Schoko-Maschine!', urgent: true };
+        if (carry.type === 'ccone') return { t: (bestWindow() || WINDOWS[0]).drop, icon: 'eistuete-schoko', text: 'Schoko-Eis bringt 15 Münzen!', urgent: true };
+        if (K.out.n > 0) return { t: tiles.chocOutput, icon: 'eistuete-schoko', text: 'Hol das Schoko-Eis!', urgent: true };
+        if (K.hopper.n + K.hopper.inc === 0) { const b = cocoaTrees.find((b) => b.n > 0); if (b) return { t: b, icon: 'kakao', text: 'Pflück Kakao auf der Insel!', urgent: true }; }
+      }
+      if (carry.type === 'pod') return { t: tiles.chocInput, icon: 'kakao', text: 'Ab in die Schoko-Maschine!' };
+      if (carry.type === 'ccone') return { t: (bestWindow() || WINDOWS[0]).drop, icon: 'eistuete-schoko', text: 'Bring das Eis zur Theke!' };
       if (carry.type === 'blue' && B.hopper.n + B.hopper.inc >= B.hopper.max && B.out.n + B.out.inc >= B.out.max)
         return { t: tiles.hole2, icon: 'blaubeere', text: 'Maschine voll! Wirf sie ins Eisloch!', urgent: true };
       // Blaubeer-Garten: zeigen, wie es geht, bis das erste Blaubeer-Eis verkauft ist
@@ -2140,7 +2392,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     /* ---------- Zeichnen der Gegenstände ---------- */
     function drawItems(time) {
-      berryIM.count = coneIM.count = coinIM.count = blueIM.count = bconeIM.count = 0;
+      berryIM.count = coneIM.count = coinIM.count = blueIM.count = bconeIM.count = podIM.count = cconeIM.count = 0;
       shadowIM.count = snowballIM.count = partIM.count = iceIM.count = 0;
       const v = new THREE.Vector3();
       for (let i = 0; i < C.pile.n; i++) { pilePos(i, v); put(berryIM, v.x, v.y, v.z, i * 2.1, 1); }
@@ -2148,11 +2400,13 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       for (let i = 0; i < C.counter.n; i++) { counterPos(i, v); put(ITEM[counterTypes[i]] || coneIM, v.x, v.y, v.z, i * 0.9, 1); }
       for (let i = 0; i < C.counter2.n; i++) { counter2Pos(i, v); put(ITEM[counter2Types[i]] || coneIM, v.x, v.y, v.z, i * 0.9, 1); }
       for (let i = 0; i < B.out.n; i++) { blueOutPos(i, v); put(bconeIM, v.x, v.y, v.z, i * 0.7, 1); }
+      for (let i = 0; i < K.out.n; i++) { chocOutPos(i, v); put(cconeIM, v.x, v.y, v.z, i * 0.7, 1); }
+      for (const b of cocoaTrees) for (let i = 0; i < b.n; i++) { treePodPos(b, i, v); put(podIM, v.x, v.y - 0.2, v.z, i * 1.1, 1); }
       for (const b of bushes) for (let i = 0; i < b.n; i++) { bushBerryPos(b, i, v); put(blueIM, v.x, v.y - 0.12, v.z, i * 1.3, 0.95); }
       const nc = Math.min(C.coinPile.n, 135);
       for (let i = 0; i < nc; i++) { coinPos(i, v); put(coinIM, v.x, v.y, v.z, i * 0.37, 1, 0, (i % 3 - 1) * 0.05); }
       const im = ITEM[C.carry.type];
-      if (im) for (let i = 0; i < C.carry.n; i++) { stackPos(i, v); put(im, v.x, v.y, v.z, player.yaw + (C.carry.type === 'berry' || C.carry.type === 'blue' ? i * 1.7 : 0), 1, -player.leanZ * 0.5); }
+      if (im) for (let i = 0; i < C.carry.n; i++) { stackPos(i, v); put(im, v.x, v.y, v.z, player.yaw + (C.carry.type === 'berry' || C.carry.type === 'blue' || C.carry.type === 'pod' ? i * 1.7 : 0), 1, -player.leanZ * 0.5); }
       for (const cr of couriers) if (cr.on) for (let i = 0; i < cr.load.n; i++) { cr.stackPos(i, v); put(ITEM[cr.loadItem || cr.o.item], v.x, v.y, v.z, cr.yaw + i * 1.9, 0.85); }
       for (const f of flies) if (f.t >= 0) put(ITEM[f.type], f.pos.x, f.pos.y, f.pos.z, f.rot + f.t * 5, 1);
       // Kunden, die mit Eis weggehen
@@ -2180,7 +2434,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       for (const h of helpers) sh(h.x, h.z, 1.0 * h.root.scale.x);
       for (const cr of couriers) if (cr.on) sh(cr.x, cr.z, 1.0 * cr.root.scale.x);
       for (const c of customers) sh(c.root.position.x, c.root.position.z, 1.15 * c.scale);
-      [berryIM, coneIM, coinIM, blueIM, bconeIM, shadowIM, snowballIM, partIM, iceIM].forEach((m) => { m.instanceMatrix.needsUpdate = true; });
+      [berryIM, coneIM, coinIM, blueIM, bconeIM, podIM, cconeIM, shadowIM, snowballIM, partIM, iceIM].forEach((m) => { m.instanceMatrix.needsUpdate = true; });
       if (partIM.instanceColor) partIM.instanceColor.needsUpdate = true;
     }
 
@@ -2214,7 +2468,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     function updateCamera(dt, snap) {
       // Folgt dem Kind nur ein Stück, die ganze Eisdiele bleibt im Bild
       let u = (player.x - player.z) * SQ, v = (player.x + player.z) * SQ;
-      u = clamp(u * 0.7, S.garden ? -6.0 : -2.4, 2.6); v = clamp(v * 0.6 - 0.6, -4.2, 3.4); // im Garten weiter nach links
+      u = S.island && player.x < L.bankX ? clamp(u * 1.0, -20, 2.6) : clamp(u * 0.7, S.garden ? -7.5 : -2.4, 2.6); // auf der Insel enger folgen v = clamp(v * 0.6 - 0.6, -4.2, 3.4); // im Garten weiter nach links
       const tx = (u + v) * SQ, tz = (v - u) * SQ;
       if (snap) camT.set(tx, 0, tz); else { camT.x = damp(camT.x, tx, 3, dt); camT.z = damp(camT.z, tz, 3, dt); }
       camera.position.copy(camT).addScaledVector(CAM_DIR, 60);
@@ -2256,7 +2510,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     if (/[?&]debug\b/.test(location.search)) {
       window.__eis = {
-        S, C, RC, B, bushes, counterTypes, counter2Types, WINDOWS, iceHelper, iceHelper2, couriers, picker, carrier, UNLOCKS, player, tiles, helpers, customers, blocks, L, placeUnlocks,
+        S, C, RC, B, K, trouble, workers, cocoaTrees, cocoaHelper, bushes, counterTypes, counter2Types, WINDOWS, iceHelper, iceHelper2, couriers, picker, carrier, UNLOCKS, player, tiles, helpers, customers, blocks, L, placeUnlocks,
         go(x, z) { player.x = x; player.z = z; },
         begin, save, cam() { updateCamera(0, true); },
         step(sec, fn) { const n = Math.round(sec * 60); for (let i = 0; i < n; i++) { if (fn) fn(); const dt = 1 / 60; time += dt; updatePlayer(dt); updateInteractions(dt); updateMachine(dt); updateBlocks(dt); updateHelpers(dt, time); updateCarrier(dt, time); updateCustomers(dt, time); updateFlies(dt); updateParticles(dt); } }
