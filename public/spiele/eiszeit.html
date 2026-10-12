@@ -114,8 +114,21 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     <div class="panel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
       <h2 id="pauseTitle">Pause</h2>
       <p class="stats"><span><img src="eiszeit/icon-eistuete.webp" alt="">Eis verkauft: <b id="statSold">0</b></span></p>
+      <p class="stats"><span><img src="eiszeit/icon-schloss.webp" alt="">Spielzeit: <b id="statTime">0</b></span></p>
       <button id="resume" class="btn" type="button">Weiter</button>
       <button id="reset" class="btn ghost" type="button">Von vorne</button>
+    </div>
+  </section>
+
+  <section id="fin" hidden>
+    <div class="backdrop"></div>
+    <div class="panel" role="dialog" aria-modal="true" aria-labelledby="finTitle">
+      <img src="eiszeit/icon-schloss.webp" alt="" width="110" height="110" style="justify-self:center">
+      <h2 id="finTitle">Geschafft!</h2>
+      <p class="lead" style="margin:0 auto">Dein Eis-Schloss steht. Alle Tiere feiern mit dir!</p>
+      <p class="stats" style="flex-wrap:wrap"><span>Zeit: <b id="finTime">0</b></span><span>Eis: <b id="finSold">0</b></span><span>Rekord: <b id="finBest">–</b></span></p>
+      <button id="finShare" class="btn" type="button">Teilen</button>
+      <button id="finGo" class="btn ghost" type="button">Weiterspielen</button>
     </div>
   </section>
 
@@ -131,7 +144,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     canvas: $('c'), hud: $('hud'), coins: $('coins'), coinNum: $('coinNum'), sound: $('sound'), soundIcon: $('soundIcon'),
     pauseBtn: $('pauseBtn'), hint: $('hint'), hintIcon: $('hintIcon'), hintText: $('hintText'), toast: $('toast'),
     toastIcon: $('toastIcon'), toastText: $('toastText'), joy: $('joy'), knob: $('knob'), start: $('start'), play: $('play'),
-    pause: $('pause'), resume: $('resume'), reset: $('reset'), statSold: $('statSold'), err: $('err'), errText: $('errText')
+    pause: $('pause'), resume: $('resume'), reset: $('reset'), statSold: $('statSold'), statTime: $('statTime'), fin: $('fin'), finTime: $('finTime'), finSold: $('finSold'), finBest: $('finBest'), finShare: $('finShare'), finGo: $('finGo'), err: $('err'), errText: $('errText')
   };
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
@@ -200,6 +213,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     treeMax: 6, treeGrow: 2.2,
     chocHopperMax: 30, chocOutMax: 24, chocPeriod: 0.5,
     // kleine Störungen: Helfer wollen Münzen, Maschinen gehen kaputt
+    // Zuhause (Ende: das Schloss) und Spielplatz
+    homePrices: [5000, 15000, 40000, 100000], homeNames: ['Iglu-Haus', 'Holzhaus', 'Großes Haus', 'Eis-Schloss'],
+    playPrices: [3000, 6000, 10000, 20000], playNames: ['Rutsche', 'Schaukel', 'Wippe', 'Spielzeugauto'],
+    iceHelper3Price: 5000, courierPrice: 8000,
     pauseEvery: [40, 75], pauseCost: [25, 0.08],   // mindestens 25 oder 8 % vom Ersparten
     breakEvery: [70, 120], repairTime: 1.2, repairCost: [60, 0.15]
   };
@@ -235,6 +252,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     chocOutput: { x: -12.95, z: 8.2 },
     cocoaUnlock: { x: -14.2, z: 6.15 },
     hole3: { x: -12.85, z: 6.2 },
+    home: { x: 1.9, z: -9.4 },
+    homeUnlock: { x: 3.65, z: -6.2 },
+    playUnlock: { x: 3.9, z: -4.3 },
+    play: [[-0.5, -11.7], [-3.4, -11.3], [-2.2, -13.6], [2.2, -13.4]],
     pile: { x: -2.95, z: -1.55 },
     igloo: { x: -2.2, z: -8.7, r: 2.25 },
     machine: { x: -0.75, z: -5.75 },
@@ -316,7 +337,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
   /* ---------- Start ---------- */
   async function boot() {
     if (!window.THREE) { fail('Die 3D-Grafik konnte nicht geladen werden. Lade die Seite bitte neu.'); return; }
-    const names = ['muenze', 'erdbeere', 'eistuete', 'helfer', 'stern', 'korb', 'upgrade', 'blaubeere', 'eistuete-blau', 'kakao', 'eistuete-schoko', 'bruecke'];
+    const names = ['muenze', 'erdbeere', 'eistuete', 'helfer', 'stern', 'korb', 'upgrade', 'blaubeere', 'eistuete-blau', 'kakao', 'eistuete-schoko', 'bruecke', 'haus', 'schloss', 'spielplatz', 'werkzeug'];
     const imgs = {};
     const fontLoad = (document.fonts && document.fonts.load)
       ? Promise.race([Promise.all([document.fonts.load('700 40px Fredoka'), document.fonts.load('600 40px Fredoka')]), sleep(2000)]).catch(() => {})
@@ -810,6 +831,84 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       P(G.cyl, WOOD, M(-0.95, 1.5, -0.7, 0.06, 3.0, 0.06)), P(G.cyl, WOOD, M(0.95, 1.5, -0.7, 0.06, 3.0, 0.06))
     ]), toyMat));
 
+    /* ---------- Zuhause und Spielplatz ---------- */
+    const homeGroup = new THREE.Group(); homeGroup.position.set(L.home.x, 0, L.home.z); homeGroup.rotation.y = Math.PI / 4; scene.add(homeGroup);
+    const LIGHT = '#ffd76a', RED = '#e2483d', BLUE = '#5b9ae8', ICE = '#bfe3fb', CREAM = '#fbf3e4';
+    const win = (p, x, y, z, w, h, ry) => { p.push(P(G.box, LIGHT, M(x, y, z, w, h, 0.06, 0, ry || 0, 0))); p.push(P(G.box, WOOD_D, M(x, y, z + 0.01, w + 0.1, 0.06, 0.07, 0, ry || 0, 0))); };
+    const roof = (p, w, d, y, h, col) => {
+      [-1, 1].forEach((k) => {
+        p.push(P(G.box, col, M(k * w / 4, y + h / 2, 0, w / 2 * 1.16, 0.16, d + 0.3, 0, 0, -k * Math.atan2(h, w / 2))));
+        p.push(P(G.box, SNOW, M(k * w / 4, y + h / 2 + 0.1, 0, w / 2 * 1.1, 0.1, d + 0.2, 0, 0, -k * Math.atan2(h, w / 2))));
+      });
+    };
+    const tower = (p, x, z, r, h, col, top) => {
+      p.push(P(G.cyl, col, M(x, h / 2, z, r, h, r)));
+      p.push(P(G.cone, top, M(x, h + 0.55, z, r * 1.25, 1.1, r * 1.25)));
+      p.push(P(G.cone, SNOW, M(x, h + 0.35, z, r * 1.28, 0.45, r * 1.28)));
+      p.push(P(G.cyl, '#d4a017', M(x, h + 1.35, z, 0.03, 0.5, 0.03)));
+      p.push(P(G.box, RED, M(x + 0.17, h + 1.5, z, 0.32, 0.18, 0.03)));
+    };
+    const HOMES = [
+      (() => { const p = []; // Iglu-Haus
+        p.push(P(G.hemi, '#eef7ff', M(0, 0, 0, 1.6, 1.4, 1.6)));
+        p.push(P(G.cyl, '#e2f1ff', M(0, 0.5, 1.4, 0.6, 1.0, 0.6, Math.PI / 2, 0, 0)));
+        p.push(P(G.box, '#ffb24d', M(0, 0.42, 1.92, 0.7, 0.84, 0.04)));
+        p.push(P(G.s, SNOW, M(0, 1.35, 0, 0.9, 0.2, 0.9))); return bake(p); })(),
+      (() => { const p = []; // Holzhaus
+        p.push(P(G.box, WOOD, M(0, 0.9, 0, 2.6, 1.8, 2.2)));
+        roof(p, 2.6, 2.2, 1.8, 1.2, RED);
+        p.push(P(G.box, '#9e9384', M(0.7, 3.0, -0.3, 0.35, 0.8, 0.35))); p.push(P(G.s, SNOW, M(0.7, 3.45, -0.3, 0.25, 0.1, 0.25)));
+        p.push(P(G.box, WOOD_D, M(0, 0.55, 1.12, 0.6, 1.1, 0.06))); win(p, -0.85, 1.1, 1.12, 0.5, 0.5); win(p, 0.85, 1.1, 1.12, 0.5, 0.5);
+        p.push(P(G.box, WOOD_D, M(0, 0.1, 1.5, 2.8, 0.2, 0.6))); return bake(p); })(),
+      (() => { const p = []; // Großes Haus mit Turm
+        p.push(P(G.box, CREAM, M(-0.4, 1.3, 0, 2.8, 2.6, 2.4)));
+        p.push(P(G.box, WOOD, M(-0.4, 1.3, 1.21, 2.8, 0.12, 0.04)));
+        roof(p, 2.8, 2.4, 2.6, 1.3, BLUE);
+        win(p, -1.2, 0.9, 1.22, 0.5, 0.6); win(p, 0.4, 0.9, 1.22, 0.5, 0.6); win(p, -1.2, 2.0, 1.22, 0.45, 0.5); win(p, 0.4, 2.0, 1.22, 0.45, 0.5);
+        p.push(P(G.box, WOOD_D, M(-0.4, 0.6, 1.22, 0.6, 1.2, 0.06)));
+        tower(p, 1.45, 0.4, 0.7, 3.6, CREAM, BLUE); win(p, 1.45, 2.6, 1.08, 0.35, 0.5); return bake(p); })(),
+      (() => { const p = []; // Eis-Schloss
+        p.push(P(G.box, ICE, M(0, 1.2, 0, 3.2, 2.4, 2.6)));
+        for (let i = -2; i <= 2; i++) p.push(P(G.box, ICE, M(i * 0.7, 2.55, 1.2, 0.4, 0.4, 0.3)));
+        p.push(P(G.box, WOOD_D, M(0, 0.7, 1.31, 0.9, 1.4, 0.06))); p.push(P(G.hemi, WOOD_D, M(0, 1.4, 1.31, 0.45, 0.4, 0.06, Math.PI / 2, 0, 0)));
+        [-0.9, 0.9].forEach((x) => { p.push(P(G.box, RED, M(x, 1.6, 1.32, 0.42, 0.7, 0.04))); p.push(P(G.s, '#ffffff', M(x, 1.62, 1.35, 0.1, 0.1, 0.02))); });
+        tower(p, -1.7, 1.1, 0.65, 3.0, ICE, BLUE); tower(p, 1.7, 1.1, 0.65, 3.0, ICE, BLUE); tower(p, 0, -0.6, 0.8, 4.0, CREAM, BLUE);
+        win(p, 0, 3.2, 0.21, 0.4, 0.55); return bake(p); })()
+    ];
+    const homeMesh = new THREE.Mesh(HOMES[0], toyMat); homeMesh.visible = false; homeGroup.add(homeMesh);
+    // leeres Grundstück mit Schild
+    const plotMesh = new THREE.Mesh(bake([
+      P(G.box, '#e8d4bb', M(0, 0.02, 0, 4.2, 0.04, 3.6)),
+      P(G.cyl, WOOD, M(1.6, 0.6, 1.5, 0.07, 1.2, 0.07)), P(G.box, WOOD, M(1.6, 1.1, 1.5, 0.9, 0.5, 0.08)), P(G.s, SNOW, M(1.6, 1.38, 1.5, 0.45, 0.06, 0.08))
+    ]), toyMat); homeGroup.add(plotMesh);
+    // Spielplatz
+    const PLAY_GEOS = [
+      bake([ // Rutsche
+        P(G.box, WOOD, M(-0.5, 0.75, -0.3, 0.12, 1.5, 0.12)), P(G.box, WOOD, M(-0.5, 0.75, 0.3, 0.12, 1.5, 0.12)),
+        P(G.box, WOOD, M(-0.5, 1.45, 0, 0.5, 0.08, 0.7)), P(G.s, SNOW, M(-0.5, 1.55, 0, 0.3, 0.06, 0.35)),
+        P(G.box, RED, M(0.35, 0.75, 0, 1.9, 0.08, 0.6, 0, 0, -0.65)), P(G.box, '#c7362c', M(0.35, 0.8, 0.3, 1.9, 0.18, 0.06, 0, 0, -0.65)), P(G.box, '#c7362c', M(0.35, 0.8, -0.3, 1.9, 0.18, 0.06, 0, 0, -0.65))
+      ]),
+      bake([ // Schaukel
+        P(G.cyl, WOOD, M(-0.9, 0.8, 0.3, 0.08, 1.7, 0.08, 0.3, 0, 0)), P(G.cyl, WOOD, M(-0.9, 0.8, -0.3, 0.08, 1.7, 0.08, -0.3, 0, 0)),
+        P(G.cyl, WOOD, M(0.9, 0.8, 0.3, 0.08, 1.7, 0.08, 0.3, 0, 0)), P(G.cyl, WOOD, M(0.9, 0.8, -0.3, 0.08, 1.7, 0.08, -0.3, 0, 0)),
+        P(G.cyl, WOOD, M(0, 1.6, 0, 0.08, 2.0, 0.08, 0, 0, Math.PI / 2)), P(G.s, SNOW, M(0, 1.7, 0, 0.9, 0.06, 0.1))
+      ]),
+      bake([ // Wippe
+        P(G.box, WOOD_D, M(0, 0.2, 0, 0.3, 0.4, 0.3)), P(G.box, WOOD, M(0, 0.45, 0, 2.2, 0.1, 0.3)),
+        P(G.box, RED, M(-1.0, 0.55, 0, 0.3, 0.12, 0.34)), P(G.box, RED, M(1.0, 0.55, 0, 0.3, 0.12, 0.34))
+      ]),
+      bake([ // Spielzeugauto
+        P(G.box, RED, M(0, 0.35, 0, 0.8, 0.35, 1.2)), P(G.box, RED, M(0, 0.6, -0.15, 0.7, 0.3, 0.6)), P(G.box, '#ffc93c', M(0, 0.6, -0.1, 0.5, 0.12, 0.4)),
+        P(G.tor, '#ffc93c', M(0, 0.85, 0.2, 0.15, 0.15, 0.15, 1.1, 0, 0)), P(G.s, '#ffd76a', M(-0.25, 0.4, 0.61, 0.08, 0.08, 0.04)), P(G.s, '#ffd76a', M(0.25, 0.4, 0.61, 0.08, 0.08, 0.04)),
+        ...[[-0.42, 0.42], [0.42, 0.42], [-0.42, -0.42], [0.42, -0.42]].map(([x, z]) => P(G.cyl, '#2a2d36', M(x, 0.18, z, 0.18, 0.12, 0.18, 0, 0, Math.PI / 2)))
+      ])
+    ];
+    const playMeshes = PLAY_GEOS.map((g, i) => { const m = new THREE.Mesh(g, toyMat); m.position.set(L.play[i][0], 0, L.play[i][1]); m.rotation.y = Math.PI / 4; m.visible = false; scene.add(m); return m; });
+    const swingSeat = new THREE.Mesh(bake([P(G.box, WOOD, M(0, -1.2, 0, 0.45, 0.06, 0.3)), P(G.cyl, '#c99a5b', M(-0.2, -0.6, 0, 0.015, 1.2, 0.015)), P(G.cyl, '#c99a5b', M(0.2, -0.6, 0, 0.015, 1.2, 0.015))]), toyMat);
+    swingSeat.position.set(0, 1.6, 0); playMeshes[1].add(swingSeat);
+    // Tierkinder zum Spielen (kleine Kunden-Modelle)
+    const kids = [];
+
     /* ---------- Theke ---------- */
     const counterGeo = bake([
       P(G.box, WOOD, M(0, L.counter.h / 2, 0, L.counter.w, L.counter.h, L.counter.len)),
@@ -924,7 +1023,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     // Bude mit Markise und Erdbeerkiste neben dem Iglu (Deko)
     const stripeTex = tex(canvas(128, 32, (g) => { for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#fff4f4' : '#ff5a6e'; g.fillRect(i * 16, 0, 16, 32); } }), true);
-    const stall = new THREE.Group(); stall.position.set(1.3, 0, -8.0); stall.rotation.y = Math.PI / 4; scene.add(stall);
+    const stall = new THREE.Group(); stall.position.set(-4.7, 0, -10.6); stall.rotation.y = Math.PI / 4; scene.add(stall);
     stall.add(new THREE.Mesh(bake([
       P(G.box, WOOD, M(0, 0.4, 0, 1.6, 0.8, 0.8)),
       P(G.box, WOOD_D, M(0, 0.82, 0, 1.7, 0.06, 0.9)),
@@ -948,7 +1047,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     ];
     const treeIM = new THREE.InstancedMesh(treeGeo, toyMatFlat, treeSpots.length + 40); treeIM.count = 0;
     const inBridge = (x, z) => x > L.bridge.x0 - 1 && x < L.bridge.x1 + 1.2 && z > L.bridge.z0 - 1.0 && z < L.bridge.z1 + 1.0;
-    const inGarden = (x, z) => inBridge(x, z) || x > L.garden.x0 - 1.0 && x < L.garden.x1 + 0.4 && z > L.garden.z0 - 0.9 && z < L.garden.z1 + 1.0;
+    const inHome = (x, z) => (x > -3.6 && x < 6.0 && z > -15.0 && z < -6.9) || (x > 3.6 && x < 6.5 && z > -7.0 && z < -4.8);
+    const inGarden = (x, z) => inBridge(x, z) || inHome(x, z) || x > L.garden.x0 - 1.0 && x < L.garden.x1 + 0.4 && z > L.garden.z0 - 0.9 && z < L.garden.z1 + 1.0;
     treeSpots.forEach(([u, v]) => { const w = W(u, v); if (!inGarden(w.x, w.z)) put(treeIM, w.x, 0, w.z, rand(0, TAU), rand(0.85, 1.15)); });
     [[-4.5, 8.0], [-4.6, 11.2], [-3.6, 14.6], [-1.0, 15.3], [3.2, 15.4]].forEach(([x, z]) => put(treeIM, x, 0, z, rand(0, TAU), rand(0.85, 1.1)));
     for (let z = -26; z < 26; z += 2.6) { const zz = z + rand(-0.6, 0.6); if (zz > L.island.z0 - 1 && zz < L.island.z1 + 1) continue; put(treeIM, farX - rand(1.2, 3.6), 0.65, zz, rand(0, TAU), rand(0.8, 1.1)); }
@@ -1192,6 +1292,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     tiles.pickerUnlock = makeUnlockTile();     // Blaubeer-Helfer
     tiles.bridgeUnlock = makeUnlockTile(2.0);  // Brücke zur Kakao-Insel
     tiles.cocoaUnlock = makeUnlockTile();      // Kakao-Helfer
+    tiles.homeUnlock = makeUnlockTile(2.0);    // Zuhause
+    tiles.playUnlock = makeUnlockTile(1.7);    // Spielplatz
+    tiles.ice3Unlock = makeUnlockTile(1.6);    // dritter Eis-Helfer
+    tiles.courierUnlock = makeUnlockTile();    // Schoko-Bote
     tiles.iceUnlock = makeUnlockTile(1.6);     // Eis-Helfer
     tiles.ice2Unlock = makeUnlockTile(1.6);    // zweiter Eis-Helfer (gleicher Platz, eigenes Feld)
     tiles.counter2Unlock = makeUnlockTile();   // zweite Theke
@@ -1301,7 +1405,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const S = { coins: 0, helpers: 1, paid: 0, carrier: false, paidCarrier: 0, machine: 0, paidMachine: 0,
       garden: false, paidGarden: 0, picker: false, paidPicker: 0, blueSold: 0, sold: 0, tut: 0, tutDone: false,
       iceHelper: false, paidIce: 0, counter2: false, paidCounter2: 0, iceHelper2: false, paidIce2: 0,
-      island: false, paidBridge: 0, cocoa: false, paidCocoa: 0, chocSold: 0 };
+      island: false, paidBridge: 0, cocoa: false, paidCocoa: 0, chocSold: 0,
+      home: 0, paidHome: 0, play: 0, paidPlay: 0, iceHelper3: false, paidIce3: 0, courier: false, paidCourier: 0, time: 0, done: false };
     const saved = store.get(KEY_SAVE, null);
     if (saved && saved.v === 1) {
       const n = (v, d, mx) => clamp(Number.isFinite(v) ? Math.floor(v) : d, 0, mx);
@@ -1311,6 +1416,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       S.machine = n(saved.machine, 0, CFG.machinePrices.length); S.paidMachine = n(saved.paidMachine, 0, 1e6);
       C.pile.n = n(saved.pile, CFG.startPile, CFG.pileMax); C.hopper.n = n(saved.hopper, 0, CFG.hopperMax);
       C.out.n = n(saved.out, 0, CFG.outMax); C.counter.n = n(saved.counter, 0, CFG.counterMax); C.coinPile.n = n(saved.coinPile, 0, 1e7);
+      S.home = n(saved.home, 0, 4); S.paidHome = n(saved.paidHome, 0, 1e7); S.play = n(saved.play, 0, 4); S.paidPlay = n(saved.paidPlay, 0, 1e7);
+      S.iceHelper3 = !!saved.iceHelper3; S.paidIce3 = n(saved.paidIce3, 0, 1e7); S.courier = !!saved.courier; S.paidCourier = n(saved.paidCourier, 0, 1e7);
+      S.time = n(saved.time, 0, 1e9); S.done = !!saved.done;
       S.island = !!saved.island; S.paidBridge = n(saved.paidBridge, 0, 1e7); S.cocoa = !!saved.cocoa; S.paidCocoa = n(saved.paidCocoa, 0, 1e7); S.chocSold = n(saved.chocSold, 0, 1e8);
       K.hopper.n = n(saved.chocHopper, 0, CFG.chocHopperMax); K.out.n = Math.min(CFG.chocOutMax, n(saved.chocOut, 0, CFG.chocOutMax) + n(saved.chocOut2, 0, 50));
       if (Array.isArray(saved.trees)) cocoaTrees.forEach((b, i) => { b.n = n(saved.trees[i], CFG.treeMax, CFG.treeMax); });
@@ -1351,6 +1459,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         // was der Eis-Helfer gerade trägt, kommt zurück an die Ausgabe
         out: Math.min(CFG.outMax, C.out.n + C.out.inc + iceLoad('cone')),
         blueOut2: iceLoad('bcone'),
+        home: S.home, paidHome: S.paidHome, play: S.play, paidPlay: S.paidPlay, iceHelper3: S.iceHelper3, paidIce3: S.paidIce3,
+        courier: S.courier, paidCourier: S.paidCourier, time: Math.floor(S.time), done: S.done,
         island: S.island, paidBridge: S.paidBridge, cocoa: S.cocoa, paidCocoa: S.paidCocoa, chocSold: S.chocSold,
         chocHopper: Math.min(CFG.chocHopperMax, K.hopper.n + K.hopper.inc + cocoaHelper.load.n + cocoaHelper.load.inc), chocOut: K.out.n + K.out.inc,
         chocOut2: iceLoad('ccone'), trees: cocoaTrees.map((b) => b.n)
@@ -1572,7 +1682,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       els.hint.hidden = false; els.hint.classList.remove('in'); void els.hint.offsetWidth; els.hint.classList.add('in');
     }
     function setPaused(p) {
-      paused = p; els.pause.hidden = !p; els.statSold.textContent = String(S.sold);
+      paused = p; els.pause.hidden = !p; els.statSold.textContent = String(S.sold); els.statTime.textContent = fmtTime(S.time);
       if (p) { input.active = false; els.joy.hidden = true; save(); resetArm = false; els.reset.textContent = 'Von vorne'; }
     }
     let resetArm = false;
@@ -1599,7 +1709,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const circles = [
       { x: L.igloo.x, z: L.igloo.z, r: L.igloo.r + 0.15 },
       { x: L.machine.x, z: L.machine.z, r: 1.05 },
-      { x: 1.3, z: -8.0, r: 1.0 },
+      { x: -4.7, z: -10.6, r: 1.0 },
       { x: L.hole.x, z: L.hole.z, r: 0.45 },
       { x: L.hole2.x, z: L.hole2.z, r: 0.45 },
       { x: L.blueMachine.x, z: L.blueMachine.z, r: 1.05 },
@@ -1761,9 +1871,71 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
           celebrate(L.cocoaUnlock.x, L.cocoaUnlock.z);
           toast('kakao', 'Neuer Kakao-Helfer!');
         }
+      },
+      {
+        tile: tiles.homeUnlock, key: 'paidHome', icon: 'haus', text: 'Bau dein Zuhause aus!',
+        price: () => CFG.homePrices[S.home],
+        visible: () => S.helpers >= 3 && S.home < 4,
+        pos: () => L.homeUnlock,
+        icon2: () => (S.home >= 3 ? 'schloss' : 'haus'),
+        done() {
+          S.home++; S.paidHome = 0; showHome(); celebrate(L.home.x, L.home.z);
+          burstParticles(L.home.x, 2.5, L.home.z, 24, 0xffd23f, 3.5, 0.1, 1.0, 5);
+          if (S.home >= 4) finale(); else toast(S.home >= 3 ? 'schloss' : 'haus', CFG.homeNames[S.home - 1] + '! Mehr Münzen pro Eis');
+        }
+      },
+      {
+        tile: tiles.playUnlock, key: 'paidPlay', icon: 'spielplatz', text: 'Bau einen Spielplatz!',
+        price: () => CFG.playPrices[S.play],
+        visible: () => S.home >= 1 && S.play < 4,
+        pos: () => L.playUnlock,
+        done() {
+          S.play++; S.paidPlay = 0; showPlay(); const q = L.play[S.play - 1]; celebrate(q[0], q[1]);
+          toast('spielplatz', CFG.playNames[S.play - 1] + '! Mehr Tiere kommen');
+        }
+      },
+      {
+        tile: tiles.ice3Unlock, key: 'paidIce3', icon: 'eistuete', badge: 'helfer', text: 'Hol dir einen dritten Eis-Helfer!',
+        price: () => CFG.iceHelper3Price,
+        visible: () => S.iceHelper2 && !S.iceHelper3,
+        pos: () => L.iceUnlock,
+        done() { S.iceHelper3 = true; S.paidIce3 = 0; spawnCourier(iceHelper3, L.iceUnlock.x, L.iceUnlock.z, true); celebrate(L.iceUnlock.x, L.iceUnlock.z); toast('eistuete', 'Dritter Eis-Helfer!'); }
+      },
+      {
+        tile: tiles.courierUnlock, key: 'paidCourier', icon: 'eistuete-schoko', badge: 'helfer', text: 'Hol dir einen Schoko-Boten!',
+        price: () => CFG.courierPrice,
+        visible: () => S.cocoa && !S.courier,
+        pos: () => ({ x: L.chocOutput.x + 0.3, z: L.chocOutput.z + 2.4 }),
+        done() { S.courier = true; S.paidCourier = 0; spawnCourier(courier, L.chocOutput.x, L.chocOutput.z + 2.4, true); celebrate(L.chocOutput.x, L.chocOutput.z + 2.4); toast('eistuete-schoko', 'Der Schoko-Bote bringt Eis über die Brücke!'); }
       }
     ];
-    const drawUnlock = (u) => paintUnlock(u.tile, imgs[u.icon], u.badge && imgs[u.badge], u.price(), S[u.key]);
+    // Ende: das Schloss ist gebaut. Zeit als Rekord, Teilen-Knopf, danach weiterspielen
+    const KEY_BEST = 'eiszeit.best';
+    function fmtTime(sec) { const m = Math.floor(sec / 60), h = Math.floor(m / 60); return h ? h + ' Std ' + (m % 60) + ' Min' : m + ' Min'; }
+    function finale() {
+      S.done = true; save();
+      const best = store.get(KEY_BEST, 0);
+      if (!best || S.time < best) store.set(KEY_BEST, Math.floor(S.time));
+      els.finTime.textContent = fmtTime(S.time); els.finSold.textContent = String(S.sold);
+      els.finBest.textContent = fmtTime(store.get(KEY_BEST, S.time));
+      sfx.unlock(); setTimeout(() => sfx.happy(), 500);
+      for (let i = 0; i < 4; i++) setTimeout(() => burstParticles(L.home.x, 4, L.home.z, 30, [0xffd23f, 0xff5a6e, 0x5cc8f2, 0x7bd36b][i], 4, 0.1, 1.4, 4), i * 300);
+      paused = true; input.active = false; els.joy.hidden = true; els.fin.hidden = false;
+    }
+    els.finGo.addEventListener('click', () => { els.fin.hidden = true; paused = false; });
+    els.finShare.addEventListener('click', async () => {
+      const text = 'Ich habe mein Eis-Schloss in EISZEIT in ' + fmtTime(S.time) + ' gebaut und ' + S.sold + ' Eis verkauft! Schaffst du es schneller?';
+      const url = 'https://playaz.fun/spiele/eiszeit.html';
+      try { if (navigator.share) { await navigator.share({ title: 'EISZEIT', text, url }); return; } } catch (e) { return; }
+      try { await navigator.clipboard.writeText(text + ' ' + url); els.finShare.textContent = 'Kopiert!'; setTimeout(() => { els.finShare.textContent = 'Teilen'; }, 1800); } catch (e) {}
+    });
+    function showHome() {
+      homeMesh.visible = S.home > 0; plotMesh.visible = S.home === 0;
+      if (S.home > 0) homeMesh.geometry = HOMES[S.home - 1];
+    }
+    function showPlay() { playMeshes.forEach((m, i) => { m.visible = i < S.play; }); }
+    showHome(); showPlay();
+    const drawUnlock = (u) => paintUnlock(u.tile, imgs[u.icon2 ? u.icon2() : u.icon], u.badge && imgs[u.badge], u.price(), S[u.key]);
     function placeUnlocks() {
       for (const u of UNLOCKS) {
         const t = u.tile, vis = u.visible();
@@ -1818,8 +1990,11 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       const goal = cr.state === 'toSrc' || cr.state === 'loading' ? cr.src : cr.dst;
       let moving = false;
       if (goal && (cr.state === 'toSrc' || cr.state === 'toDst') && cr.pop >= 1) {
-        const dx = goal.x - cr.x, dz = goal.z - cr.z, d = Math.hypot(dx, dz);
-        if (d > 0.12) {
+        const wp = viaBridge(cr, goal);
+        const dx = wp.x - cr.x, dz = wp.z - cr.z, d = Math.hypot(dx, dz);
+        if (wp !== goal) { const st = Math.min(d, CFG.carrierSpeed * dt); if (d > 1e-3) { cr.x += (dx / d) * st; cr.z += (dz / d) * st; } moving = true;
+          let dy = Math.atan2(dx, dz) - cr.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); cr.yaw += dy * Math.min(1, dt * 10); }
+        else if (d > 0.12) {
           const st = Math.min(d, CFG.carrierSpeed * dt);
           cr.x += (dx / d) * st; cr.z += (dz / d) * st; moving = true;
           let dy = Math.atan2(dx, dz) - cr.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); cr.yaw += dy * Math.min(1, dt * 10);
@@ -1857,6 +2032,20 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       cr.root.position.set(cr.x, Math.abs(Math.sin(cr.walk)) * 0.07 * cr.move, cr.z);
       cr.root.rotation.y = cr.yaw;
       cr.body.rotation.z = Math.sin(cr.walk) * 0.09 * cr.move + Math.sin(time * 2) * 0.03 * (1 - cr.move);
+    }
+    // Wege zur Insel führen über die Brücke
+    const BR_E = { x: -3.3, z: 9.7 }, BR_W = { x: -12.5, z: 9.7 };
+    function viaBridge(cr, goal) {
+      const onIsland = cr.x < -12.0, goalIsland = goal.x < -12.0;
+      if (onIsland === goalIsland) {
+        // mitten auf der Brücke: zum richtigen Ende weiterlaufen
+        if (cr.x < -3.4 && cr.x > -12.0 && Math.abs(cr.z - 9.7) < 0.7) return goalIsland ? BR_W : BR_E;
+        return goal;
+      }
+      const near = goalIsland ? BR_E : BR_W, far = goalIsland ? BR_W : BR_E;
+      const onBridge = cr.x < -3.4 && Math.abs(cr.z - 9.7) < 0.7;
+      if (onBridge) return far;
+      return Math.hypot(cr.x - near.x, cr.z - near.z) < 0.15 ? far : near;
     }
     function updateCarrier(dt, time) { for (const cr of couriers) updateCourier(cr, dt, time); }
 
@@ -1903,11 +2092,15 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         return { x: w.drop.x, z: w.drop.z, stack: w.stack, pos: w.pos, onAdd: (t) => w.types.push(t) };
       }
     };
-    const iceHelper = makeCourier(iceHelperGeo, iceOpts), iceHelper2 = makeCourier(iceHelperGeo, iceOpts);
+    const iceHelper = makeCourier(iceHelperGeo, iceOpts), iceHelper2 = makeCourier(iceHelperGeo, iceOpts), iceHelper3 = makeCourier(iceHelperGeo, iceOpts);
+    // Schoko-Bote: holt nur Schoko-Eis von der Insel
+    const courier = makeCourier(cocoaGeo, Object.assign({}, iceOpts, { source: () => (K.out.n > 0 ? iceSrcs[2] : null) }));
     // was die Eis-Helfer gerade tragen (kommt beim Speichern zurück an die Ausgabe)
-    const iceLoad = (t) => [iceHelper, iceHelper2].reduce((a, h) => a + (h.loadItem === t ? h.load.n + h.load.inc : 0), 0);
+    const iceLoad = (t) => [iceHelper, iceHelper2, iceHelper3, courier].reduce((a, h) => a + (h.loadItem === t ? h.load.n + h.load.inc : 0), 0);
     if (S.iceHelper) spawnCourier(iceHelper, L.iceUnlock.x, L.iceUnlock.z, false);
     if (S.iceHelper2) spawnCourier(iceHelper2, L.iceUnlock.x + 0.8, L.iceUnlock.z + 0.8, false);
+    if (S.iceHelper3) spawnCourier(iceHelper3, L.iceUnlock.x - 0.8, L.iceUnlock.z + 0.8, false);
+    if (S.courier) spawnCourier(courier, L.chocOutput.x, L.chocOutput.z + 2.4, false);
     if (S.carrier) addCarrier(tiles.pile.x + 0.5, tiles.pile.z - 0.5, false);
     if (S.picker) spawnCourier(picker, L.pickerUnlock.x, L.pickerUnlock.z, false);
     placeUnlocks();
@@ -2257,7 +2450,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         const ctype = w.types.pop() || 'cone'; // die oberste Eistüte
         fly(ctype, from, () => _v.set(fc.x, 1.15 * fc.scale, fc.z), 0.3, 0.8, () => {
           fc.inc--; fc.got++; sfx.drop(fc.got); S.sold++;
-          fc.pay += ctype === 'bcone' ? CFG.coinPerBlue : ctype === 'ccone' ? CFG.coinPerChoc : CFG.coinPerCone; fc.lastType = ctype;
+          fc.pay += (ctype === 'bcone' ? CFG.coinPerBlue : ctype === 'ccone' ? CFG.coinPerChoc : CFG.coinPerCone) + S.home; fc.lastType = ctype;
           if (ctype === 'ccone' && ++S.chocSold === 1) placeUnlocks();
           if (ctype === 'bcone' && ++S.blueSold === 1) placeUnlocks();
           if (fc.got >= fc.want) {
@@ -2284,7 +2477,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       spawnT -= dt;
       if (queue.length < CFG.queueMax && (spawnT <= 0 || (queue.length < CFG.queueMin && spawnT < 999))) {
         spawnCustomer(false);
-        const boost = (S.counter2 ? 1.6 : 1) * (1 + 0.35 * ((S.iceHelper ? 1 : 0) + (S.iceHelper2 ? 1 : 0)));
+        const boost = (S.counter2 ? 1.6 : 1) * (1 + 0.35 * ((S.iceHelper ? 1 : 0) + (S.iceHelper2 ? 1 : 0) + (S.iceHelper3 ? 1 : 0))) * (1 + 0.12 * S.play);
         spawnT = queue.length < CFG.queueMin ? 0.35 : CFG.spawnPeriods[S.machine] * (S.garden ? CFG.blueSpawnFactor : 1) * (S.island ? 0.8 : 1) / boost * rand(0.7, 1.3);
       }
       for (const c of customers) {
@@ -2353,7 +2546,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     /* Hinweise: wohin als Nächstes? */
     function nextGoal() {
       const carry = C.carry;
-      if (trouble.machine) return { t: trouble.machine.at, icon: 'upgrade', text: (trouble.machine.name || 'Maschine') + ' kaputt! Reparatur: ' + trouble.repair, urgent: true };
+      if (trouble.machine) return { t: trouble.machine.at, icon: 'werkzeug', text: (trouble.machine.name || 'Maschine') + ' kaputt! Reparatur: ' + trouble.repair, urgent: true };
       if (trouble.worker) return { t: trouble.worker, icon: 'muenze', text: 'Ein Helfer will ' + trouble.cost + ' Münzen!', urgent: true };
       // Hände voller Erdbeeren, Maschine und Ausgabe voll: nur das Eisloch hilft weiter
       if (carry.type === 'berry' && C.hopper.n + C.hopper.inc >= C.hopper.max && C.out.n + C.out.inc >= C.out.max)
@@ -2476,7 +2669,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     function updateCamera(dt, snap) {
       // Folgt dem Kind nur ein Stück, die ganze Eisdiele bleibt im Bild
       let u = (player.x - player.z) * SQ, v = (player.x + player.z) * SQ;
-      u = S.island && player.x < L.bankX ? clamp(u * 1.0, -20, 2.6) : clamp(u * 0.7, S.garden ? -7.5 : -2.4, 2.6); // auf der Insel enger folgen v = clamp(v * 0.6 - 0.6, -4.2, 3.4); // im Garten weiter nach links
+      // auf der Insel enger folgen, im Garten weiter nach links, am Zuhause weiter nach rechts
+      u = S.island && player.x < L.bankX ? clamp(u * 1.0, -20, 2.6) : clamp(u * 0.7, S.garden ? -7.5 : -2.4, 6.0);
+      v = clamp(v * 0.6 - 0.6, -4.2, 3.4);
       const tx = (u + v) * SQ, tz = (v - u) * SQ;
       if (snap) camT.set(tx, 0, tz); else { camT.x = damp(camT.x, tx, 3, dt); camT.z = damp(camT.z, tz, 3, dt); }
       camera.position.copy(camT).addScaledVector(CAM_DIR, 60);
@@ -2504,6 +2699,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         waterTex.offset.y -= dt * 0.06;
         for (const w of holeWaters) w.rotation.z += dt * 0.35;
         saveT += dt; if (playing && saveT > 4) { saveT = 0; save(); }
+        if (playing && !S.done) S.time += dt;
+        if (S.play >= 2) swingSeat.rotation.x = Math.sin(time * 2.2) * 0.5;
+        if (S.play >= 3) playMeshes[2].rotation.z = Math.sin(time * 1.6) * 0.18;
+        if (S.play >= 4) { const a = time * 0.8; playMeshes[3].position.set(L.play[3][0] + Math.cos(a) * 1.0, 0, L.play[3][1] + Math.sin(a) * 1.0); playMeshes[3].rotation.y = -a; }
       }
       drawItems(time);
       renderer.render(scene, camera);
@@ -2518,7 +2717,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     if (/[?&]debug\b/.test(location.search)) {
       window.__eis = {
-        S, C, RC, B, K, trouble, workers, cocoaTrees, cocoaHelper, bushes, counterTypes, counter2Types, WINDOWS, iceHelper, iceHelper2, couriers, picker, carrier, UNLOCKS, player, tiles, helpers, customers, blocks, L, placeUnlocks,
+        S, C, RC, B, K, trouble, finale, workers, cocoaTrees, cocoaHelper, bushes, counterTypes, counter2Types, WINDOWS, iceHelper, iceHelper2, couriers, picker, carrier, UNLOCKS, player, tiles, helpers, customers, blocks, L, placeUnlocks,
         go(x, z) { player.x = x; player.z = z; },
         begin, save, cam() { updateCamera(0, true); },
         step(sec, fn) { const n = Math.round(sec * 60); for (let i = 0; i < n; i++) { if (fn) fn(); const dt = 1 / 60; time += dt; updatePlayer(dt); updateInteractions(dt); updateMachine(dt); updateBlocks(dt); updateHelpers(dt, time); updateCarrier(dt, time); updateCustomers(dt, time); updateFlies(dt); updateParticles(dt); } }
