@@ -216,7 +216,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     // Zuhause (Ende: das Schloss) und Spielplatz
     homePrices: [5000, 15000, 40000, 100000], homeNames: ['Iglu-Haus', 'Holzhaus', 'Großes Haus', 'Eis-Schloss'],
     playPrices: [3000, 6000, 10000, 20000], playNames: ['Rutsche', 'Schaukel', 'Wippe', 'Spielzeugauto'],
-    iceHelper3Price: 5000, courierPrice: 8000, kioskPrice: 12000,
+    iceHelper3Price: 5000, courierPrice: 8000, kioskPrice: 12000, kioskHelperPrice: 15000,
     pauseEvery: [40, 75], pauseCost: [25, 0.08],   // mindestens 25 oder 8 % vom Ersparten
     breakEvery: [70, 120], repairTime: 1.2, repairCost: [60, 0.15]
   };
@@ -245,6 +245,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     // Kakao-Insel auf der anderen Flussseite, Brücke vom Blaubeer-Garten aus
     island: { x0: -18.7, x1: -12.3, z0: 5.6, z1: 13.0 },
     kiosk: { x: -19.3, z: 8.8, len: 2.4, cx: -20.55, drop: { x: -18.15, z: 8.8 } }, // Schoko-Kiosk mit eigener Schlange
+    coin2: { x: -17.45, z: 11.45 },        // Tresor auf der Insel: hier landen die Kiosk-Münzen
+    kioskHelperUnlock: { x: -17.2, z: 6.45 },
     bridge: { x0: -12.6, x1: -3.2, z0: 9.15, z1: 10.25 },
     bridgeUnlock: { x: -2.75, z: 9.7 },
     trees: [[-16.0, 12.3], [-14.4, 12.6], [-14.6, 10.7], [-12.95, 12.2]],
@@ -582,7 +584,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     }
     const berryIM = makeIM(berryGeo, itemMat, 340);
     const coneIM = makeIM(coneGeo, itemMat, 240);
-    const coinIM = makeIM(coinGeo, itemMat, 320);
+    const coinIM = makeIM(coinGeo, itemMat, 480);
     const blueIM = makeIM(blueberryGeo, blueMat, 240);
     const bconeIM = makeIM(coneGeo, blueMat, 200);
     const podIM = makeIM(podGeo, chocMat, 200);
@@ -926,6 +928,18 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const kioskAwning = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 1.4), new THREE.MeshLambertMaterial({ map: chocStripeTex, side: THREE.DoubleSide }));
     kioskAwning.position.set(L.kiosk.x, 2.5, L.kiosk.z); kioskAwning.rotation.set(-Math.PI / 2 + 0.35, Math.PI / 2, 0, 'YXZ'); kioskGroup.add(kioskAwning);
     kioskGroup.add(new THREE.Mesh(bake([-1, 1].flatMap((k) => [P(G.cyl, WOOD, M(L.kiosk.x + 0.5, 1.3, L.kiosk.z + k * 1.2, 0.07, 2.6, 0.07)), P(G.cyl, WOOD, M(L.kiosk.x - 0.5, 1.2, L.kiosk.z + k * 1.2, 0.07, 2.4, 0.07))])), toyMat));
+    // Tresor (Schatztruhe) neben dem Münzfeld auf der Insel
+    const CHEST = { x: L.coin2.x - 1.2, z: L.coin2.z + 0.85 };
+    kioskGroup.add(new THREE.Mesh(bake([
+      P(G.box, '#a8693a', M(CHEST.x, 0.3, CHEST.z, 1.0, 0.6, 0.7)),
+      P(G.cyl, '#c07a45', M(CHEST.x, 0.62, CHEST.z, 0.35, 1.0, 0.35, 0, 0, Math.PI / 2)),
+      P(G.box, '#ffd23f', M(CHEST.x, 0.3, CHEST.z, 1.04, 0.1, 0.74)),
+      P(G.box, '#ffd23f', M(CHEST.x - 0.38, 0.45, CHEST.z, 0.1, 0.9, 0.74)),
+      P(G.box, '#ffd23f', M(CHEST.x + 0.38, 0.45, CHEST.z, 0.1, 0.9, 0.74)),
+      P(G.box, '#ffe78a', M(CHEST.x, 0.45, CHEST.z + 0.37, 0.18, 0.2, 0.06)),
+      P(G.cyl, '#ffd23f', M(CHEST.x - 0.15, 0.97, CHEST.z + 0.05, 0.16, 0.05, 0.16)),
+      P(G.cyl, '#ffe78a', M(CHEST.x + 0.12, 1.0, CHEST.z - 0.04, 0.16, 0.05, 0.16, 0.3, 0, 0.2))
+    ]), toyMat));
     const counter2Mesh = new THREE.Mesh(counterGeo, toyMat); counter2Mesh.position.set(L.counter2.x, 0, L.counter2.z);
     counter2Mesh.scale.z = L.counter2.len / L.counter.len; counter2Mesh.visible = false; scene.add(counter2Mesh);
 
@@ -1252,6 +1266,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       drop2: { x: L.drop2.x, z: L.drop2.z, r: 0.95, cd: 0 },
       dropK: { x: L.kiosk.drop.x, z: L.kiosk.drop.z, r: 0.95, cd: 0 },
       coin: { x: L.coin.x, z: L.coin.z, r: 1.0, cd: 0 },
+      coin2: { x: L.coin2.x, z: L.coin2.z, r: 1.0, cd: 0 },
       hole: { x: L.hole.x, z: L.hole.z, r: 1.05, cd: 0, hold: 0 },
       hole2: { x: L.hole2.x, z: L.hole2.z, r: 1.05, cd: 0, hold: 0 },
       blueInput: { x: L.blueInput.x, z: L.blueInput.z, r: 0.95, cd: 0 },
@@ -1267,6 +1282,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const dropKMesh = tileMesh(tiles.dropK.x, tiles.dropK.z, TILE, tileCanvas(imgs['eistuete-schoko'], 'drop')); dropKMesh.visible = false;
     const drop2Mesh = tileMesh(tiles.drop2.x, tiles.drop2.z, TILE, tileCanvas(imgs.eistuete, 'drop')); drop2Mesh.visible = false;
     tileMesh(tiles.coin.x, tiles.coin.z, 1.9, tileCanvas(imgs.muenze));
+    const coin2Mesh = tileMesh(tiles.coin2.x, tiles.coin2.z, 1.9, tileCanvas(imgs.muenze)); coin2Mesh.visible = false;
     tileMesh(tiles.blueInput.x, tiles.blueInput.z, TILE, tileCanvas(imgs.blaubeere, 'drop'));
     tileMesh(tiles.blueOutput.x, tiles.blueOutput.z, 1.9, tileCanvas(imgs['eistuete-blau']));
     tileMesh(tiles.chocInput.x, tiles.chocInput.z, TILE, tileCanvas(imgs.kakao, 'drop'));
@@ -1317,6 +1333,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     tiles.ice3Unlock = makeUnlockTile(1.6);    // dritter Eis-Helfer
     tiles.courierUnlock = makeUnlockTile();    // Schoko-Bote
     tiles.kioskUnlock = makeUnlockTile();      // Schoko-Kiosk
+    tiles.kioskHelperUnlock = makeUnlockTile(); // Kiosk-Helfer
     tiles.iceUnlock = makeUnlockTile(1.6);     // Eis-Helfer
     tiles.ice2Unlock = makeUnlockTile(1.6);    // zweiter Eis-Helfer (gleicher Platz, eigenes Feld)
     tiles.counter2Unlock = makeUnlockTile();   // zweite Theke
@@ -1416,6 +1433,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       out: { n: 0, inc: 0, max: CFG.outMax },
       counter: { n: 0, inc: 0, max: CFG.counterMax },
       coinPile: { n: 0, inc: 0, max: 100000 },
+      coinPile2: { n: 0, inc: 0, max: 100000 }, // Tresor auf der Insel
       carry: { n: 0, inc: 0, max: CFG.carryMax, type: null }
     };
     const K = { hopper: { n: 0, inc: 0, max: CFG.chocHopperMax }, out: { n: 0, inc: 0, max: CFG.chocOutMax } }; // Schoko-Maschine
@@ -1429,7 +1447,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       garden: false, paidGarden: 0, picker: false, paidPicker: 0, blueSold: 0, sold: 0, tut: 0, tutDone: false,
       iceHelper: false, paidIce: 0, counter2: false, paidCounter2: 0, iceHelper2: false, paidIce2: 0,
       island: false, paidBridge: 0, cocoa: false, paidCocoa: 0, chocSold: 0,
-      kiosk: false, paidKiosk: 0, home: 0, paidHome: 0, play: 0, paidPlay: 0, iceHelper3: false, paidIce3: 0, courier: false, paidCourier: 0, time: 0, done: false };
+      kiosk: false, paidKiosk: 0, home: 0, paidHome: 0, play: 0, paidPlay: 0, iceHelper3: false, paidIce3: 0, courier: false, paidCourier: 0, kioskHelper: false, paidKioskHelper: 0, time: 0, done: false };
     const saved = store.get(KEY_SAVE, null);
     if (saved && saved.v === 1) {
       const n = (v, d, mx) => clamp(Number.isFinite(v) ? Math.floor(v) : d, 0, mx);
@@ -1444,6 +1462,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       S.time = n(saved.time, 0, 1e9); S.done = !!saved.done;
       S.kiosk = !!saved.kiosk; S.paidKiosk = n(saved.paidKiosk, 0, 1e7); C.kiosk.n = S.kiosk ? n(saved.kioskN, 0, CFG.counterMax) : 0;
       for (let i = 0; i < C.kiosk.n; i++) kioskTypes.push('ccone');
+      C.coinPile2.n = n(saved.coinPile2, 0, 1e7); S.kioskHelper = S.kiosk && !!saved.kioskHelper; S.paidKioskHelper = n(saved.paidKioskHelper, 0, 1e7);
       S.island = !!saved.island; S.paidBridge = n(saved.paidBridge, 0, 1e7); S.cocoa = !!saved.cocoa; S.paidCocoa = n(saved.paidCocoa, 0, 1e7); S.chocSold = n(saved.chocSold, 0, 1e8);
       K.hopper.n = n(saved.chocHopper, 0, CFG.chocHopperMax); K.out.n = Math.min(CFG.chocOutMax, n(saved.chocOut, 0, CFG.chocOutMax) + n(saved.chocOut2, 0, 50));
       if (Array.isArray(saved.trees)) cocoaTrees.forEach((b, i) => { b.n = n(saved.trees[i], CFG.treeMax, CFG.treeMax); });
@@ -1465,7 +1484,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       for (let i = 0; i < C.counter2.n; i++) counter2Types.push(T[ct2[i]] || 'cone');
     }
     counter2Mesh.visible = drop2Mesh.visible = S.counter2;
-    kioskGroup.visible = dropKMesh.visible = S.kiosk;
+    kioskGroup.visible = dropKMesh.visible = coin2Mesh.visible = S.kiosk;
     bridgeMesh.visible = S.island;
     gardenFence.visible = !S.garden;
     for (let i = 0; i < S.helpers; i++) addHelper(i, false);
@@ -1486,7 +1505,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         out: Math.min(CFG.outMax, C.out.n + C.out.inc + iceLoad('cone')),
         blueOut2: iceLoad('bcone'),
         home: S.home, paidHome: S.paidHome, play: S.play, paidPlay: S.paidPlay, iceHelper3: S.iceHelper3, paidIce3: S.paidIce3,
-        courier: S.courier, paidCourier: S.paidCourier, kiosk: S.kiosk, paidKiosk: S.paidKiosk, kioskN: C.kiosk.n + C.kiosk.inc, time: Math.floor(S.time), done: S.done,
+        courier: S.courier, paidCourier: S.paidCourier, kiosk: S.kiosk, paidKiosk: S.paidKiosk, kioskN: C.kiosk.n + C.kiosk.inc, coinPile2: C.coinPile2.n + C.coinPile2.inc, kioskHelper: S.kioskHelper, paidKioskHelper: S.paidKioskHelper, time: Math.floor(S.time), done: S.done,
         island: S.island, paidBridge: S.paidBridge, cocoa: S.cocoa, paidCocoa: S.paidCocoa, chocSold: S.chocSold,
         chocHopper: Math.min(CFG.chocHopperMax, K.hopper.n + K.hopper.inc + cocoaHelper.load.n + cocoaHelper.load.inc), chocOut: K.out.n + K.out.inc,
         chocOut2: iceLoad('ccone'), trees: cocoaTrees.map((b) => b.n)
@@ -1522,6 +1541,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     // Theke mit dem meisten Platz (für Kind und Eis-Helfer)
     const bestWindow = () => { let b = null; for (const w of WINDOWS) if (w.open() && !w.island && w.stack.n + w.stack.inc < w.stack.max && (!b || w.stack.n + w.stack.inc < b.stack.n + b.stack.inc)) b = w; return b; };
     const coinPos = (i, o) => gridPos(tiles.coin.x, tiles.coin.z, i, 3, 3, 0.48, 0.075, 0.04, o || new THREE.Vector3());
+    const coin2Pos = (i, o) => gridPos(tiles.coin2.x, tiles.coin2.z, i, 3, 3, 0.48, 0.075, 0.04, o || new THREE.Vector3());
     const ITEM_GAP = { berry: 0.3, cone: 0.34, blue: 0.26, bcone: 0.34, pod: 0.33, ccone: 0.34 };
     function stackLocal(i, type, out) {
       const k = i * 0.12, f = Math.pow(k, 1.6);
@@ -1753,7 +1773,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const counter2Box = { x0: L.counter2.x - L.counter.w / 2 - 0.3, x1: L.counter2.x + L.counter.w / 2 + 2, z0: L.counter2.z - L.counter2.len / 2 - 0.3, z1: L.counter2.z + L.counter2.len / 2 + 0.3 };
     if (S.counter2) boxes.push(counter2Box);
     const kioskBox = { x0: L.kiosk.x - 2.3, x1: L.kiosk.x + L.counter.w / 2 + 0.3, z0: L.kiosk.z - L.kiosk.len / 2 - 0.3, z1: L.kiosk.z + L.kiosk.len / 2 + 0.3 };
-    if (S.kiosk) boxes.push(kioskBox);
+    const chestCircle = { x: CHEST.x, z: CHEST.z, r: 0.55 };
+    if (S.kiosk) { boxes.push(kioskBox); circles.push(chestCircle); }
     function collide(p) {
       const rects = [L.plaza, L.walkDock]; if (S.garden) rects.push(L.garden); if (S.island) rects.push(L.bridge, L.island);
       if (!rects.some((r) => inRect(p.x, p.z, r, 0))) {
@@ -1940,7 +1961,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         visible: () => S.cocoa && !S.kiosk,
         pos: () => L.kiosk.drop,
         done() {
-          S.kiosk = true; S.paidKiosk = 0; kioskGroup.visible = dropKMesh.visible = true; boxes.push(kioskBox); collide(player);
+          S.kiosk = true; S.paidKiosk = 0; kioskGroup.visible = dropKMesh.visible = coin2Mesh.visible = true; boxes.push(kioskBox); circles.push(chestCircle); collide(player);
           for (let i = 0; i < 3; i++) spawnCustomer(true, 1);
           celebrate(L.kiosk.x, L.kiosk.z); toast('eistuete-schoko', 'Der Schoko-Kiosk ist offen!');
         }
@@ -1951,6 +1972,13 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         visible: () => S.cocoa && !S.courier,
         pos: () => ({ x: L.chocOutput.x + 0.3, z: L.chocOutput.z + 2.4 }),
         done() { S.courier = true; S.paidCourier = 0; spawnCourier(courier, L.chocOutput.x, L.chocOutput.z + 2.4, true); celebrate(L.chocOutput.x, L.chocOutput.z + 2.4); toast('eistuete-schoko', 'Der Schoko-Bote bringt Eis über die Brücke!'); }
+      },
+      {
+        tile: tiles.kioskHelperUnlock, key: 'paidKioskHelper', icon: 'eistuete-schoko', badge: 'helfer', text: 'Hol dir einen Kiosk-Helfer!',
+        price: () => CFG.kioskHelperPrice,
+        visible: () => S.kiosk && !S.kioskHelper,
+        pos: () => L.kioskHelperUnlock,
+        done() { S.kioskHelper = true; S.paidKioskHelper = 0; spawnCourier(kioskHelper, L.kioskHelperUnlock.x, L.kioskHelperUnlock.z, true); celebrate(L.kioskHelperUnlock.x, L.kioskHelperUnlock.z); toast('eistuete-schoko', 'Der Kiosk-Helfer füllt den Schoko-Kiosk!'); }
       }
     ];
     // Ende: das Schloss ist gebaut. Zeit als Rekord, Teilen-Knopf, danach weiterspielen
@@ -2143,12 +2171,17 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         const k = WINDOWS[2], w = S.kiosk && k.stack.n + k.stack.inc < k.stack.max ? k : (bestWindow() || WINDOWS[0]);
         return { x: w.drop.x, z: w.drop.z, stack: w.stack, pos: w.pos, onAdd: (t) => w.types.push(t) };
       } }));
+    // Kiosk-Helfer: bleibt auf der Insel, Schoko-Eis von der Maschine zum Kiosk
+    const kioskHelper = makeCourier(iceHelperGeo, Object.assign({}, iceOpts, {
+      source: () => (K.out.n > 0 && C.kiosk.n + C.kiosk.inc < C.kiosk.max ? iceSrcs[2] : null),
+      target: () => { const k = WINDOWS[2]; return { x: k.drop.x, z: k.drop.z, stack: k.stack, pos: k.pos, onAdd: (t) => k.types.push(t) }; } }));
     // was die Eis-Helfer gerade tragen (kommt beim Speichern zurück an die Ausgabe)
-    const iceLoad = (t) => [iceHelper, iceHelper2, iceHelper3, courier].reduce((a, h) => a + (h.loadItem === t ? h.load.n + h.load.inc : 0), 0);
+    const iceLoad = (t) => [iceHelper, iceHelper2, iceHelper3, courier, kioskHelper].reduce((a, h) => a + (h.loadItem === t ? h.load.n + h.load.inc : 0), 0);
     if (S.iceHelper) spawnCourier(iceHelper, L.iceUnlock.x, L.iceUnlock.z, false);
     if (S.iceHelper2) spawnCourier(iceHelper2, L.iceUnlock.x + 0.8, L.iceUnlock.z + 0.8, false);
     if (S.iceHelper3) spawnCourier(iceHelper3, L.iceUnlock.x - 0.8, L.iceUnlock.z + 0.8, false);
     if (S.courier) spawnCourier(courier, L.chocOutput.x, L.chocOutput.z + 2.4, false);
+    if (S.kioskHelper) spawnCourier(kioskHelper, L.kioskHelperUnlock.x, L.kioskHelperUnlock.z, false);
     if (S.carrier) addCarrier(tiles.pile.x + 0.5, tiles.pile.z - 0.5, false);
     if (S.picker) spawnCourier(picker, L.pickerUnlock.x, L.pickerUnlock.z, false);
     placeUnlocks();
@@ -2254,11 +2287,12 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         }
       }
       // Münzen einsammeln
-      if (near(tiles.coin) && C.coinPile.n > 0 && tiles.coin.cd <= 0) {
-        tiles.coin.cd = 0.03;
-        const v = Math.max(1, Math.floor(C.coinPile.n / 20));
-        const from = coinPos(Math.min(C.coinPile.n - 1, 134));
-        C.coinPile.n -= v;
+      for (const [t, pile, pos] of [[tiles.coin, C.coinPile, coinPos], [tiles.coin2, C.coinPile2, coin2Pos]]) {
+        if (!near(t) || pile.n <= 0 || t.cd > 0) continue;
+        t.cd = 0.03;
+        const v = Math.max(1, Math.floor(pile.n / 20));
+        const from = pos(Math.min(pile.n - 1, 134));
+        pile.n -= v;
         fly('coin', from, () => _v.set(player.x, 1.2, player.z), 0.22, 0.8, () => { S.coins += v; updateCoins(); sfx.coin(); });
         S.tut = Math.max(S.tut, 5);
       }
@@ -2509,8 +2543,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
             fc.state = 'leave'; fc.happy = 1; fc.leaveStep = 0; fc.exit = w.exit; w.cust = null; sfx.happy();
             burstParticles(fc.x, 1.4, fc.z, 6, 0xff8fb0, 1.6, 0.09, 0.7, 2);
             for (let i = 0; i < fc.pay; i++) {
-              const j = C.coinPile.n + C.coinPile.inc; C.coinPile.inc++;
-              fly('coin', new THREE.Vector3(fc.x, 0.9, fc.z), () => coinPos(Math.min(j, 134)), 0.45, 1.4, () => { C.coinPile.inc--; C.coinPile.n++; sfx.coin(); }, i * 0.05);
+              const pile = w.island ? C.coinPile2 : C.coinPile, pos = w.island ? coin2Pos : coinPos; // Kiosk zahlt in den Tresor auf der Insel
+              const j = pile.n + pile.inc; pile.inc++;
+              fly('coin', new THREE.Vector3(fc.x, 0.9, fc.z), () => pos(Math.min(j, 134)), 0.45, 1.4, () => { pile.inc--; pile.n++; sfx.coin(); }, i * 0.05);
             }
           }
         });
@@ -2629,6 +2664,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       if (carry.type === 'bcone') return { t: (bestWindow() || WINDOWS[0]).drop, icon: 'eistuete-blau', text: 'Bring das Eis zur Theke!' };
       if (carry.type === 'berry') return { t: tiles.input, icon: 'erdbeere', text: 'Bring die Erdbeeren zur Eismaschine!' };
       if (carry.type === 'cone') return { t: (bestWindow() || WINDOWS[0]).drop, icon: 'eistuete', text: 'Bring das Eis zur Theke!' };
+      if (C.coinPile2.n > 0 && (player.x < L.bankX || C.coinPile.n === 0)) return { t: tiles.coin2, icon: 'muenze', text: 'Hol die Münzen aus dem Tresor!' };
       if (C.coinPile.n > 0) return { t: tiles.coin, icon: 'muenze', text: 'Sammle die Münzen ein!' };
       for (const u of UNLOCKS) if (u.tile.mesh.visible && S.coins + S[u.key] >= u.price()) return { t: u.tile, icon: u.icon, text: u.text };
       if (C.out.n > 0) return { t: tiles.output, icon: 'eistuete', text: 'Hol das fertige Eis!' };
@@ -2662,6 +2698,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       for (const b of bushes) for (let i = 0; i < b.n; i++) { bushBerryPos(b, i, v); put(blueIM, v.x, v.y - 0.12, v.z, i * 1.3, 0.95); }
       const nc = Math.min(C.coinPile.n, 135);
       for (let i = 0; i < nc; i++) { coinPos(i, v); put(coinIM, v.x, v.y, v.z, i * 0.37, 1, 0, (i % 3 - 1) * 0.05); }
+      const nc2 = Math.min(C.coinPile2.n, 135);
+      for (let i = 0; i < nc2; i++) { coin2Pos(i, v); put(coinIM, v.x, v.y, v.z, i * 0.37, 1, 0, (i % 3 - 1) * 0.05); }
       const im = ITEM[C.carry.type];
       if (im) for (let i = 0; i < C.carry.n; i++) { stackPos(i, v); put(im, v.x, v.y, v.z, player.yaw + (C.carry.type === 'berry' || C.carry.type === 'blue' || C.carry.type === 'pod' ? i * 1.7 : 0), 1, -player.leanZ * 0.5); }
       for (const cr of couriers) if (cr.on) for (let i = 0; i < cr.load.n; i++) { cr.stackPos(i, v); put(ITEM[cr.loadItem || cr.o.item], v.x, v.y, v.z, cr.yaw + i * 1.9, 0.85); }
