@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Rangliste · playaz.fun</title>
+<meta name="description" content="Rangliste für Linke Spur, Schwindelfrei und Hochstapler: Monat, Jahr und Allzeit.">
+<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><meta name="theme-color" content="#10104B">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/seite.css">
+<style>
+.filter{display:grid;gap:10px;margin-bottom:12px}
+.filter .tabs{margin:0;justify-self:start}
+.erkl{margin:4px 0 18px;max-width:62ch;font-size:15px;color:var(--nebel)}
+.tafel{background:var(--automat);border:1px solid var(--linie);border-radius:16px;overflow:hidden}
+.zeile{display:grid;grid-template-columns:56px minmax(0,1fr) auto;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--linie)}
+.zeile:last-child{border-bottom:0}
+.zeile.kopf{padding-block:10px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--nebel);background:rgba(0,0,0,.18)}
+.zeile.ich{background:rgba(255,200,58,.12);box-shadow:inset 0 0 0 1px rgba(255,200,58,.45)}
+.platz{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;font-family:var(--f-display);font-size:15px;font-variant-numeric:tabular-nums;color:var(--nebel)}
+.platz.p1{background:#ffc83a;color:#2a1d00}
+.platz.p2{background:#d5daea;color:#1b1d2c}
+.platz.p3{background:#d98a4e;color:#2a1405}
+.name{font-weight:600;font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.du{display:inline-block;margin-left:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--muenze);color:#1a1405;vertical-align:2px}
+.punkte{font-family:var(--f-display);font-size:18px;font-variant-numeric:tabular-nums;text-align:right}
+.luecke{padding:6px 18px;color:var(--nebel);letter-spacing:.3em;border-bottom:1px solid var(--linie)}
+.leer{padding:34px 22px;text-align:center;color:var(--nebel)}
+.leer b{display:block;font-family:var(--f-display);font-weight:400;font-size:22px;color:var(--kreide);margin-bottom:6px}
+.leer .btn{margin-top:14px}
+.einladung{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-top:16px;padding:16px 18px;border:1px dashed var(--linie);border-radius:14px;color:var(--nebel)}
+.einladung b{color:var(--kreide)}
+.lade .zeile{opacity:.5}
+.lade .balken{height:14px;border-radius:7px;background:rgba(255,255,255,.1)}
+@media (max-width:520px){.zeile{grid-template-columns:44px minmax(0,1fr) auto;padding-inline:12px;gap:10px}.name{font-size:16px}}
+</style>
+</head>
+<body>
+<header class="wrap top">
+  <a class="logo" href="./" aria-label="Zur Startseite"><img src="logo.png" width="720" height="519" alt="playaz.fun"></a>
+  <nav class="menu" aria-label="Hauptmenü"><a href="./">Spiele</a><a href="rangliste.html" aria-current="page">Rangliste</a><a href="konto.html" id="menuKonto">Konto</a></nav>
+</header>
+
+<main class="wrap">
+  <h1>Rang<em>liste.</em></h1>
+  <p class="lead" id="untertitel">Die besten Ergebnisse mit Account.</p>
+
+  <div class="filter">
+    <div class="tabs" role="tablist" aria-label="Spiel" id="tabSpiel">
+      <button type="button" role="tab" data-spiel="alle">Gesamtwertung</button>
+      <button type="button" role="tab" data-spiel="linke-spur">Linke Spur</button>
+      <button type="button" role="tab" data-spiel="schwindelfrei">Schwindelfrei</button>
+      <button type="button" role="tab" data-spiel="hochstapler">Hochstapler</button>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Zeitraum" id="tabZeit">
+      <button type="button" role="tab" data-zeit="monat" id="zMonat">Monat</button>
+      <button type="button" role="tab" data-zeit="jahr" id="zJahr">Jahr</button>
+      <button type="button" role="tab" data-zeit="gesamt">Allzeit</button>
+    </div>
+  </div>
+  <p class="erkl" id="erkl"></p>
+
+  <div class="tafel" id="tafel" aria-live="polite"></div>
+  <div class="einladung" id="einladung" hidden>
+    <span><b>Du willst hier stehen?</b> Mit einem kostenlosen Account zählen deine Ergebnisse.</span>
+    <a class="btn primary" href="konto.html">Account anlegen</a>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>playaz.fun · Browserspiele ohne Anmeldung</span>
+    <nav aria-label="Rechtliches"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></nav>
+  </div>
+</footer>
+
+<script src="assets/playsaal-config.js"></script>
+<script src="assets/playsaal.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const P = window.PlaySaal;
+  const NAMEN = { alle: 'Gesamtwertung', 'linke-spur': 'Linke Spur', schwindelfrei: 'Schwindelfrei', hochstapler: 'Hochstapler' };
+  const jetzt = new Date();
+  const monat = jetzt.toLocaleString('de-DE', { month: 'long' }), jahr = jetzt.getFullYear();
+  $('zMonat').textContent = monat; $('zJahr').textContent = String(jahr);
+  const ZEIT = { monat: 'im ' + monat + ' ' + jahr, jahr: 'im Jahr ' + jahr, gesamt: 'seit dem Start' };
+  const zahl = n => Number(n).toLocaleString('de-DE');
+  let spiel = 'alle', zeit = 'monat';
+  const h = (location.hash || '').slice(1);
+  if (NAMEN[h]) spiel = h;
+
+  function knoepfe() {
+    $('tabSpiel').querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', b.dataset.spiel === spiel));
+    $('tabZeit').querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', b.dataset.zeit === zeit));
+    $('untertitel').textContent = NAMEN[spiel] + ' ' + ZEIT[zeit] + '.';
+    $('erkl').textContent = spiel === 'alle'
+      ? 'Für jedes Spiel gibt es Platzierungspunkte: Platz 1 bringt 25 Punkte, Platz 2 bringt 24 und so weiter bis Platz 25 mit einem Punkt. Die Punkte aus allen Spielen werden addiert.'
+      : 'Gezählt wird dein bestes Ergebnis ' + ZEIT[zeit] + '.';
+  }
+  function zeile(r) {
+    const d = document.createElement('div');
+    d.className = 'zeile' + (r.ich ? ' ich' : '');
+    const p = document.createElement('span'); p.className = 'platz' + (r.platz <= 3 ? ' p' + r.platz : ''); p.textContent = r.platz;
+    const n = document.createElement('span'); n.className = 'name'; n.textContent = r.name;
+    if (r.ich) { const du = document.createElement('span'); du.className = 'du'; du.textContent = 'Du'; n.appendChild(du); }
+    const s = document.createElement('span'); s.className = 'punkte'; s.textContent = zahl(r.score) + (spiel === 'alle' ? ' P' : '');
+    d.append(p, n, s); return d;
+  }
+  function kopf() {
+    const d = document.createElement('div'); d.className = 'zeile kopf';
+    d.innerHTML = '<span>Platz</span><span>Spieler</span><span>' + (spiel === 'alle' ? 'Wertung' : 'Punkte') + '</span>';
+    return d;
+  }
+  function laden() {
+    const t = $('tafel'); t.className = 'tafel lade'; t.innerHTML = '';
+    t.appendChild(kopf());
+    for (let i = 0; i < 5; i++) { const d = document.createElement('div'); d.className = 'zeile'; d.innerHTML = '<span class="platz">' + (i + 1) + '</span><span class="balken" style="width:' + (70 - i * 8) + '%"></span><span></span>'; t.appendChild(d); }
+  }
+  let anfrage = 0;
+  async function zeigen() {
+    knoepfe();
+    try { history.replaceState(null, '', spiel === 'alle' ? location.pathname : '#' + spiel); } catch (e) {}
+    const t = $('tafel');
+    if (!P || !P.online) { t.className = 'tafel'; t.innerHTML = '<div class="leer"><b>Die Rangliste startet bald.</b>Bis dahin kannst du alle Spiele ohne Anmeldung spielen.</div>'; return; }
+    const nr = ++anfrage;
+    laden();
+    try {
+      const rows = await P.rpc('rangliste', { p_game: spiel, p_zeitraum: zeit, p_anzahl: 50 });
+      if (nr !== anfrage) return;
+      t.className = 'tafel'; t.innerHTML = '';
+      if (!rows || !rows.length) {
+        const ziel = spiel === 'alle' ? './' : 'spiele/' + spiel + '.html';
+        t.innerHTML = '<div class="leer"><b>Noch niemand ' + ZEIT[zeit] + '.</b>Spiel eine Runde und hol dir Platz 1.<br><a class="btn primary" href="' + ziel + '">Jetzt spielen</a></div>';
+        return;
+      }
+      t.appendChild(kopf());
+      let letzter = 0;
+      rows.forEach(r => {
+        if (r.platz > letzter + 1 && letzter > 0 && r.ich && r.platz > 50) { const l = document.createElement('div'); l.className = 'luecke'; l.textContent = '…'; t.appendChild(l); }
+        t.appendChild(zeile(r)); letzter = r.platz;
+      });
+    } catch (e) {
+      if (nr !== anfrage) return;
+      t.className = 'tafel'; t.innerHTML = '<div class="leer"><b>Die Rangliste ist gerade nicht erreichbar.</b>Bitte versuch es gleich noch einmal.</div>';
+    }
+  }
+  $('tabSpiel').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { spiel = b.dataset.spiel; zeigen(); } });
+  $('tabZeit').addEventListener('click', e => { const b = e.target.closest('button'); if (b) { zeit = b.dataset.zeit; zeigen(); } });
+  if (P && P.online) {
+    P.profil().then(p => {
+      $('einladung').hidden = !!p;
+      if (p) $('menuKonto').textContent = p.name;
+    });
+  }
+  zeigen();
+})();
+</script>
+</body>
+</html>

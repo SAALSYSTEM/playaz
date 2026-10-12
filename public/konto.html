@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dein Account · playaz.fun</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><meta name="theme-color" content="#10104B">
+<link rel="stylesheet" href="assets/fonts.css">
+<link rel="stylesheet" href="assets/seite.css">
+<style>
+.vorteile{list-style:none;margin:0 0 22px;padding:0;display:grid;gap:8px;max-width:52ch}
+.vorteile li{display:grid;grid-template-columns:22px 1fr;gap:10px;align-items:start;color:var(--kreide)}
+.vorteile svg{width:22px;height:22px;color:var(--muenze);margin-top:1px}
+.formular{max-width:440px}
+.staende{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:8px}
+.staende li{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--linie)}
+.staende li:last-child{border-bottom:0}
+.staende small{color:var(--nebel);font-size:14px}
+.gefahr{margin-top:28px;border:1px solid rgba(255,79,154,.35);border-radius:14px;padding:14px 18px}
+.gefahr summary{cursor:pointer;font-weight:700;color:#ff8a9e}
+.gefahr[open] summary{margin-bottom:10px}
+.gefahr label{display:flex;gap:10px;align-items:center;font-weight:500;margin:12px 0}
+.btn.rot{border-color:#ff4f9a;color:#ffd0de}
+.btn.rot:hover{background:rgba(255,79,154,.15)}
+.laden{color:var(--nebel)}
+</style>
+</head>
+<body>
+<header class="wrap top">
+  <a class="logo" href="./" aria-label="Zur Startseite"><img src="logo.png" width="720" height="519" alt="playaz.fun"></a>
+  <nav class="menu" aria-label="Hauptmenü"><a href="./">Spiele</a><a href="rangliste.html">Rangliste</a><a href="konto.html" aria-current="page">Konto</a></nav>
+</header>
+
+<main class="wrap">
+  <p id="laden" class="laden">Einen Moment …</p>
+
+  <section id="aus" hidden>
+    <h1>Accounts kommen <em>bald.</em></h1>
+    <p class="lead">Rangliste und gesicherter Spielstand starten in Kürze. Bis dahin kannst du alle Spiele ohne Anmeldung spielen.</p>
+    <a class="btn primary" href="./">Zu den Spielen</a>
+  </section>
+
+  <section id="gast" hidden>
+    <h1>Dein <em>Account.</em></h1>
+    <p class="lead">Spielen geht weiter ohne Anmeldung. Ein kostenloser Account bringt dir drei Dinge:</p>
+    <ul class="vorteile">
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Deine Ergebnisse kommen in die Rangliste: Monat, Jahr und Allzeit.</span></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Münzen, Autos, Tuning und Monster sind gesichert, auch wenn der Browser aufräumt.</span></li>
+      <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Du spielst auf Handy und Rechner mit demselben Spielstand weiter.</span></li>
+    </ul>
+
+    <div class="formular">
+      <div class="tabs" role="tablist" aria-label="Account">
+        <button type="button" role="tab" id="tabNeu" aria-selected="true" aria-controls="formNeu">Account anlegen</button>
+        <button type="button" role="tab" id="tabLogin" aria-selected="false" aria-controls="formLogin">Anmelden</button>
+      </div>
+
+      <form id="formNeu" class="karte" novalidate>
+        <label for="neuName">Spielername
+          <input type="text" id="neuName" autocomplete="nickname" maxlength="16" required placeholder="z. B. Raser Max">
+          <span class="feld-info" id="neuNameInfo">3 bis 16 Zeichen. So erscheinst du in der Rangliste.</span>
+        </label>
+        <label for="neuMail">E-Mail
+          <input type="email" id="neuMail" autocomplete="email" required>
+        </label>
+        <label for="neuPw">Passwort
+          <input type="password" id="neuPw" autocomplete="new-password" minlength="8" required>
+          <span class="feld-info">Mindestens 8 Zeichen.</span>
+        </label>
+        <button class="btn primary" type="submit">Account anlegen</button>
+        <p class="klein">Dein bisheriger Spielstand auf diesem Gerät wird übernommen. Es gelten die <a href="datenschutz.html">Datenschutzhinweise</a>.</p>
+      </form>
+
+      <form id="formLogin" class="karte" novalidate hidden>
+        <label for="loginMail">E-Mail
+          <input type="email" id="loginMail" autocomplete="email" required>
+        </label>
+        <label for="loginPw">Passwort
+          <input type="password" id="loginPw" autocomplete="current-password" required>
+        </label>
+        <button class="btn primary" type="submit">Anmelden</button>
+        <button class="link" type="button" id="btnVergessen">Passwort vergessen?</button>
+      </form>
+
+      <form id="formReset" class="karte" novalidate hidden>
+        <label for="resetMail">E-Mail deines Accounts
+          <input type="email" id="resetMail" autocomplete="email" required>
+        </label>
+        <button class="btn primary" type="submit">Link zum Zurücksetzen senden</button>
+        <button class="link" type="button" id="btnZurueck">Zurück zur Anmeldung</button>
+      </form>
+    </div>
+  </section>
+
+  <section id="nameWahl" hidden>
+    <h1>Fast <em>fertig.</em></h1>
+    <p class="lead">Wähle noch deinen Spielernamen. So erscheinst du in der Rangliste.</p>
+    <form id="formName" class="karte formular" novalidate>
+      <label for="nameNeu">Spielername
+        <input type="text" id="nameNeu" autocomplete="nickname" maxlength="16" required>
+        <span class="feld-info" id="nameNeuInfo">3 bis 16 Zeichen: Buchstaben, Zahlen, Leerzeichen, _ . -</span>
+      </label>
+      <button class="btn primary" type="submit">Namen speichern</button>
+    </form>
+  </section>
+
+  <section id="drin" hidden>
+    <h1>Hallo, <em id="dName"></em></h1>
+    <p class="lead">Angemeldet mit <span id="dMail"></span>.</p>
+    <div class="raster">
+      <div class="karte">
+        <h2>Gesicherter Spielstand</h2>
+        <ul class="staende" id="dStaende"></ul>
+        <button class="btn" type="button" id="btnAbgleich">Jetzt abgleichen</button>
+      </div>
+      <form class="karte" id="formUmbenennen" novalidate>
+        <h2>Spielername ändern</h2>
+        <label for="nameAendern">Neuer Name
+          <input type="text" id="nameAendern" autocomplete="nickname" maxlength="16" required>
+          <span class="feld-info" id="nameAendernInfo"></span>
+        </label>
+        <button class="btn" type="submit">Ändern</button>
+      </form>
+    </div>
+    <div class="aktionen">
+      <a class="btn primary" href="rangliste.html">Zur Rangliste</a>
+      <a class="btn" href="./">Weiterspielen</a>
+      <button class="btn" type="button" id="btnAbmelden">Abmelden</button>
+    </div>
+    <details class="gefahr">
+      <summary>Account löschen</summary>
+      <p class="klein">Löscht deinen Account, deine Ranglisten-Einträge und den Spielstand in der Cloud. Der Spielstand auf diesem Gerät bleibt erhalten.</p>
+      <label for="loeschenOk"><input type="checkbox" id="loeschenOk"> Ja, ich will meinen Account endgültig löschen.</label>
+      <button class="btn rot" type="button" id="btnLoeschen" disabled>Account löschen</button>
+    </details>
+  </section>
+
+  <section id="neuesPw" hidden>
+    <h1>Neues <em>Passwort.</em></h1>
+    <form id="formPw" class="karte formular" novalidate>
+      <label for="pwNeu">Neues Passwort
+        <input type="password" id="pwNeu" autocomplete="new-password" minlength="8" required>
+        <span class="feld-info">Mindestens 8 Zeichen.</span>
+      </label>
+      <button class="btn primary" type="submit">Passwort speichern</button>
+    </form>
+  </section>
+
+  <p id="meldung" class="meldung" role="status" hidden></p>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>playaz.fun · Browserspiele ohne Anmeldung</span>
+    <nav aria-label="Rechtliches"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></nav>
+  </div>
+</footer>
+
+<script src="assets/playsaal-config.js"></script>
+<script src="assets/playsaal.js"></script>
+<script>
+(function () {
+  const $ = id => document.getElementById(id);
+  const P = window.PlaySaal;
+  const SPIELE = { 'linke-spur': 'Linke Spur', schwindelfrei: 'Schwindelfrei', hochstapler: 'Hochstapler', richtfest: 'Richtfest' };
+  const BEREICHE = ['aus', 'gast', 'nameWahl', 'drin', 'neuesPw'];
+  const zeige = id => { BEREICHE.forEach(b => { $(b).hidden = b !== id; }); $('laden').hidden = true; };
+  const melde = (text, fehler) => { const m = $('meldung'); m.textContent = text; m.className = 'meldung' + (fehler ? ' fehler' : ''); m.hidden = !text; };
+  const NAMEN = {
+    ok: 'Der Name ist frei.', vergeben: 'Der Name ist schon vergeben.', gesperrt: 'Dieser Name ist nicht erlaubt.',
+    ungueltig: '3 bis 16 Zeichen: Buchstaben, Zahlen, Leerzeichen, _ . -'
+  };
+  function fehlerText(e) {
+    const t = String((e && (e.message || e.msg)) || e || '');
+    if (/invalid login credentials/i.test(t)) return 'E-Mail oder Passwort stimmt nicht.';
+    if (/already (been )?registered|already exists/i.test(t)) return 'Für diese E-Mail gibt es schon einen Account. Melde dich an.';
+    if (/password should|weak|at least/i.test(t)) return 'Das Passwort ist zu kurz oder zu einfach. Nimm mindestens 8 Zeichen.';
+    if (/not confirmed/i.test(t)) return 'Bitte bestätige zuerst den Link in deiner E-Mail.';
+    if (/rate limit|too many|security purposes/i.test(t)) return 'Zu viele Versuche. Bitte warte ein paar Minuten.';
+    if (/not authorized|sending|smtp/i.test(t)) return 'E-Mails können gerade noch nicht verschickt werden. Bitte versuch es später noch einmal.';
+    if (/valid.*email|email.*invalid|unable to validate/i.test(t)) return 'Die E-Mail-Adresse sieht nicht gültig aus.';
+    if (/failed to fetch|networkerror|load failed/i.test(t)) return 'Keine Verbindung. Prüf dein Internet und versuch es noch einmal.';
+    return 'Das hat nicht geklappt. Bitte versuch es noch einmal.';
+  }
+  const besetzt = (form, an) => form.querySelectorAll('button,input').forEach(el => { el.disabled = an; });
+
+  if (!P || !P.online) { zeige('aus'); return; }
+
+  // Live-Prüfung des Spielernamens
+  function namensPruefung(input, info) {
+    let t = 0;
+    input.addEventListener('input', () => {
+      clearTimeout(t);
+      const n = input.value.trim();
+      info.className = 'feld-info';
+      if (n.length < 3) { info.textContent = '3 bis 16 Zeichen. So erscheinst du in der Rangliste.'; return; }
+      t = setTimeout(() => P.rpc('name_pruefen', { p_name: n }).then(s => {
+        if (input.value.trim() !== n) return;
+        info.textContent = NAMEN[s] || ''; info.className = 'feld-info ' + (s === 'ok' ? 'gut' : 'schlecht');
+      }).catch(() => {}), 400);
+    });
+  }
+  namensPruefung($('neuName'), $('neuNameInfo'));
+  namensPruefung($('nameNeu'), $('nameNeuInfo'));
+  namensPruefung($('nameAendern'), $('nameAendernInfo'));
+
+  const tab = welche => {
+    const neu = welche === 'neu';
+    $('tabNeu').setAttribute('aria-selected', neu); $('tabLogin').setAttribute('aria-selected', !neu);
+    $('formNeu').hidden = !neu; $('formLogin').hidden = neu; $('formReset').hidden = true; melde('');
+  };
+  $('tabNeu').onclick = () => tab('neu');
+  $('tabLogin').onclick = () => tab('login');
+  $('btnVergessen').onclick = () => { $('formLogin').hidden = true; $('formReset').hidden = false; $('resetMail').value = $('loginMail').value; melde(''); };
+  $('btnZurueck').onclick = () => tab('login');
+  if (/[?&]login\b/.test(location.search)) tab('login');
+
+  let c = null, wiederherstellen = false;
+
+  async function zeichnen() {
+    const { data } = await c.auth.getSession();
+    const s = data.session;
+    if (wiederherstellen && s) return zeige('neuesPw');
+    if (!s) return zeige('gast');
+    const p = await P.profil(true);
+    if (!p) {
+      const wunsch = localStorage.getItem('playsaal.wunschname');
+      if (wunsch && !$('nameNeu').value) $('nameNeu').value = wunsch;
+      return zeige('nameWahl');
+    }
+    $('dName').textContent = p.name;
+    $('dMail').textContent = s.user.email || '';
+    $('nameAendern').value = '';
+    zeige('drin');
+    const { data: rows } = await c.from('saves').select('game,updated_at').order('game');
+    const ul = $('dStaende'); ul.innerHTML = '';
+    if (!rows || !rows.length) {
+      const li = document.createElement('li'); li.textContent = 'Noch nichts gesichert. Spiel eine Runde, dann landet dein Spielstand hier.'; ul.appendChild(li);
+    } else rows.forEach(r => {
+      const li = document.createElement('li');
+      const a = document.createElement('span'); a.textContent = SPIELE[r.game] || r.game;
+      const b = document.createElement('small'); b.textContent = 'gesichert ' + new Date(r.updated_at).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+      li.append(a, b); ul.appendChild(li);
+    });
+  }
+
+  async function nachAnmeldung() {
+    // Wunschname aus der Registrierung nur übernehmen, wenn der Account noch keinen Namen hat
+    const wunsch = localStorage.getItem('playsaal.wunschname');
+    const vorhanden = await P.profil(true);
+    if (vorhanden) localStorage.removeItem('playsaal.wunschname');
+    else if (wunsch) {
+      const s = await P.rpc('name_setzen', { p_name: wunsch }).catch(() => null);
+      if (s === 'ok') localStorage.removeItem('playsaal.wunschname');
+    }
+    await P.abgleichen().catch(() => {});
+    await zeichnen();
+  }
+
+  $('formNeu').addEventListener('submit', async e => {
+    e.preventDefault(); melde('');
+    const name = $('neuName').value.trim(), mail = $('neuMail').value.trim(), pw = $('neuPw').value;
+    if (!mail || !/^\S+@\S+\.\S+$/.test(mail)) return melde('Bitte gib eine gültige E-Mail-Adresse ein.', true);
+    if (pw.length < 8) return melde('Das Passwort braucht mindestens 8 Zeichen.', true);
+    besetzt(e.target, true);
+    try {
+      const st = await P.rpc('name_pruefen', { p_name: name });
+      if (st !== 'ok') { besetzt(e.target, false); return melde(NAMEN[st] || NAMEN.ungueltig, true); }
+      localStorage.setItem('playsaal.wunschname', name);
+      const { data, error } = await c.auth.signUp({ email: mail, password: pw, options: { data: { name }, emailRedirectTo: location.origin + location.pathname } });
+      if (error) throw error;
+      if (data.session) { await nachAnmeldung(); melde('Willkommen, ' + name + '. Dein Spielstand ist jetzt gesichert.'); }
+      else { zeige('gast'); melde('Fast geschafft: Bitte bestätige den Link in der E-Mail, die wir dir geschickt haben.'); }
+    } catch (err) { localStorage.removeItem('playsaal.wunschname'); melde(fehlerText(err), true); }
+    besetzt(e.target, false);
+  });
+
+  $('formLogin').addEventListener('submit', async e => {
+    e.preventDefault(); melde('');
+    besetzt(e.target, true);
+    try {
+      const { error } = await c.auth.signInWithPassword({ email: $('loginMail').value.trim(), password: $('loginPw').value });
+      if (error) throw error;
+      await nachAnmeldung();
+      melde('Angemeldet. Dein Spielstand ist abgeglichen.');
+    } catch (err) { melde(fehlerText(err), true); }
+    besetzt(e.target, false);
+  });
+
+  $('formReset').addEventListener('submit', async e => {
+    e.preventDefault(); melde('');
+    besetzt(e.target, true);
+    try {
+      const { error } = await c.auth.resetPasswordForEmail($('resetMail').value.trim(), { redirectTo: location.origin + location.pathname });
+      if (error) throw error;
+      melde('Wenn es zu dieser Adresse einen Account gibt, kommt gleich eine E-Mail mit einem Link.');
+    } catch (err) { melde(fehlerText(err), true); }
+    besetzt(e.target, false);
+  });
+
+  $('formPw').addEventListener('submit', async e => {
+    e.preventDefault(); melde('');
+    if ($('pwNeu').value.length < 8) return melde('Das Passwort braucht mindestens 8 Zeichen.', true);
+    besetzt(e.target, true);
+    try {
+      const { error } = await c.auth.updateUser({ password: $('pwNeu').value });
+      if (error) throw error;
+      wiederherstellen = false; await zeichnen(); melde('Dein neues Passwort ist gespeichert.');
+    } catch (err) { melde(fehlerText(err), true); }
+    besetzt(e.target, false);
+  });
+
+  async function nameSpeichern(e, input) {
+    e.preventDefault(); melde('');
+    besetzt(e.target, true);
+    try {
+      const s = await P.rpc('name_setzen', { p_name: input.value.trim() });
+      if (s !== 'ok') melde(NAMEN[s] || NAMEN.ungueltig, true);
+      else { localStorage.removeItem('playsaal.wunschname'); await P.abgleichen().catch(() => {}); await zeichnen(); melde('Gespeichert. Du heißt jetzt ' + input.value.trim() + '.'); }
+    } catch (err) { melde(fehlerText(err), true); }
+    besetzt(e.target, false);
+  }
+  $('formName').addEventListener('submit', e => nameSpeichern(e, $('nameNeu')));
+  $('formUmbenennen').addEventListener('submit', e => nameSpeichern(e, $('nameAendern')));
+
+  $('btnAbgleich').onclick = async () => {
+    melde('');
+    try { await P.abgleichen(); await zeichnen(); melde('Spielstand abgeglichen.'); } catch (err) { melde(fehlerText(err), true); }
+  };
+  $('btnAbmelden').onclick = async () => {
+    await c.auth.signOut().catch(() => {});
+    zeige('gast'); tab('login'); melde('Abgemeldet. Dein Spielstand bleibt auf diesem Gerät.');
+  };
+  $('loeschenOk').onchange = e => { $('btnLoeschen').disabled = !e.target.checked; };
+  $('btnLoeschen').onclick = async () => {
+    melde('');
+    try {
+      await P.rpc('konto_loeschen');
+      await c.auth.signOut({ scope: 'local' }).catch(() => {});
+      $('loeschenOk').checked = false; $('btnLoeschen').disabled = true;
+      zeige('gast'); melde('Dein Account ist gelöscht. Der Spielstand auf diesem Gerät bleibt.');
+    } catch (err) { melde(fehlerText(err), true); }
+  };
+
+  P.client().then(async client => {
+    c = client;
+    c.auth.onAuthStateChange(ev => { if (ev === 'PASSWORD_RECOVERY') { wiederherstellen = true; zeige('neuesPw'); } });
+    await P.bereit;
+    await zeichnen();
+  }).catch(() => { zeige('gast'); melde('Die Anmeldung ist gerade nicht erreichbar. Bitte versuch es später.', true); });
+})();
+</script>
+</body>
+</html>

@@ -300,7 +300,7 @@ function loadSave() {
   return base;
 }
 let save = loadSave();
-function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
+function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} if (window.PlaySaal) PlaySaal.dirty('linke-spur'); }
 const carDef = id => CARS.find(c => c.id === id) || CARS[0];
 const paintOf = id => save.paint[id] || carDef(id).paint;
 
@@ -2249,6 +2249,7 @@ function openGarage() {
 }
 function startRun() {
   initAudio();
+  if (window.PlaySaal) PlaySaal.runStart('linke-spur');
   buildPlayer();
   clearTraffic(); clearZones(); clearWild();
   const p = player;
@@ -2285,6 +2286,10 @@ function endRun() {
   hint.hidden = !nxt;
   if (nxt) hint.textContent = save.coins >= nxt.cost ? `In der Garage wartet ${nxt.name} Stufe ${nxt.lvl} für ${fmt(nxt.cost)} Münzen.` : `Nächstes Tuning: ${nxt.name} Stufe ${nxt.lvl} für ${fmt(nxt.cost)} Münzen. Dir fehlen noch ${fmt(nxt.cost - save.coins)}.`;
   renderMissions($('overMissions'), true);
+  const schild = document.querySelector('#over .sign'), altErg = schild.querySelector('.ps-ergebnis');
+  if (altErg) altErg.remove();
+  if (window.PlaySaal) PlaySaal.runEnd('linke-spur', run.score, { km: Math.round(run.km * 100) / 100, nm: run.nearMiss, combo: run.bestCombo, auto: save.car })
+    .then(r => { if (state === 'over') PlaySaal.showResult(r, schild, schild.querySelector('.actions')); });
   show('over'); $('hud').hidden = true; $('touch').hidden = true;
   setTimeout(() => { overReady = true; $('btnAgain').focus({ preventScroll: true }); }, 500);
 }
@@ -2366,4 +2371,4 @@ async function init() {
 }
 init();
 </script>
-<style>*{touch-action:pan-x pan-y}html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%}</style><script>(function(){var stop=function(e){e.preventDefault()};['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,stop,{passive:false})});document.addEventListener('touchmove',function(e){if(e.touches.length>1||(e.scale&&e.scale!==1))e.preventDefault()},{passive:false});var last=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-last<350&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label')))e.preventDefault();last=now},{passive:false});document.addEventListener('dblclick',stop,{passive:false});var vv=window.visualViewport,m=document.querySelector('meta[name=viewport]');if(vv&&m){var base=m.getAttribute('content'),t=0;vv.addEventListener('resize',function(){if(vv.scale<1.02)return;clearTimeout(t);t=setTimeout(function(){m.setAttribute('content',base.replace('maximum-scale=1','maximum-scale=1.0'));setTimeout(function(){m.setAttribute('content',base)},60)},120)})}})();</script></body></html>
+<style>*{touch-action:pan-x pan-y}html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%}</style><script>(function(){var stop=function(e){e.preventDefault()};['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,stop,{passive:false})});document.addEventListener('touchmove',function(e){if(e.touches.length>1||(e.scale&&e.scale!==1))e.preventDefault()},{passive:false});var last=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-last<350&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label')))e.preventDefault();last=now},{passive:false});document.addEventListener('dblclick',stop,{passive:false});var vv=window.visualViewport,m=document.querySelector('meta[name=viewport]');if(vv&&m){var base=m.getAttribute('content'),t=0;vv.addEventListener('resize',function(){if(vv.scale<1.02)return;clearTimeout(t);t=setTimeout(function(){m.setAttribute('content',base.replace('maximum-scale=1','maximum-scale=1.0'));setTimeout(function(){m.setAttribute('content',base)},60)},120)})}})();</script><script src="../assets/playsaal-config.js"></script><script src="../assets/playsaal.js" data-game="linke-spur"></script></body></html>

@@ -1,9 +1,21 @@
 {
-  // Cloudflare Worker "playaz": liefert nur statische Dateien aus ./public aus
+  // Cloudflare Worker "playaz": liefert ./public aus und pingt Supabase täglich (Wach-Cronjob)
   "name": "playaz",
+  "main": "src/worker.js",
   "compatibility_date": "2026-10-09",
   "assets": {
     "directory": "./public",
+    "binding": "ASSETS",
     "not_found_handling": "404-page"
-  }
+  },
+  "triggers": {
+    // täglich 05:17 UTC; Supabase pausiert kostenlose Projekte erst nach 7 Tagen ohne Zugriff
+    "crons": ["17 5 * * *"]
+  },
+  "vars": {
+    // öffentliche Werte, dieselben wie in public/assets/playsaal-config.js
+    "SUPABASE_URL": "",
+    "SUPABASE_KEY": ""
+  },
+  "observability": { "enabled": true }
 }

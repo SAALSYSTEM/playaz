@@ -24,7 +24,12 @@ a{color:inherit}
 :focus-visible{outline:3px solid var(--muenze);outline-offset:3px}
 
 /* Kopf */
-header{padding-block:28px 8px}
+header{padding-block:28px 8px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px}
+.menu{display:flex;flex-wrap:wrap;gap:6px}
+.menu a{font-weight:600;font-size:15px;text-decoration:none;padding:7px 14px;border-radius:999px;border:1px solid var(--linie);color:var(--nebel)}
+.menu a:hover{color:var(--kreide);border-color:rgba(246,242,255,.3)}
+.menu a.konto{background:var(--muenze);border-color:var(--muenze);color:#1a1405}
+[hidden]{display:none!important}
 .logo{display:inline-block;text-decoration:none}
 .logo img{display:block;height:104px;width:auto;max-width:100%}
 .hero{padding-block:34px 30px;display:grid;gap:14px}
@@ -60,6 +65,19 @@ header{padding-block:28px 8px}
 .game.feat h2{font-size:clamp(34px,4.6vw,52px)}
 .game.feat p{font-size:18px}
 
+/* Monatswertung */
+.spitze{margin-bottom:22px;padding:18px 20px;border-radius:16px;background:var(--automat);border:1px solid var(--linie);display:grid;gap:12px}
+.spitze-kopf{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 16px}
+.spitze h2{font-family:var(--f-display);font-weight:400;font-size:24px;margin:0}
+.spitze-kopf a{font-weight:700;font-size:15px}
+.spitze ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px}
+.spitze li{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.04);min-width:0}
+.spitze .pl{flex:none;display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;font-family:var(--f-display);font-size:13px;background:rgba(255,255,255,.1)}
+.spitze li:nth-child(1) .pl{background:#ffc83a;color:#2a1d00}.spitze li:nth-child(2) .pl{background:#d5daea;color:#1b1d2c}.spitze li:nth-child(3) .pl{background:#d98a4e;color:#2a1405}
+.spitze .nm{flex:1;min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spitze .pk{font-variant-numeric:tabular-nums;color:var(--nebel);font-size:14px;white-space:nowrap}
+.note .btn-mini{display:inline-block;margin-top:8px;font-family:var(--f-display);font-size:14px;padding:7px 14px;border-radius:999px;background:var(--muenze);color:#1a1405;text-decoration:none}
+
 /* Hinweise und Fuß */
 .note{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;margin-bottom:40px;padding:16px 18px;border:1px dashed var(--linie);border-radius:14px;color:var(--nebel);font-size:15px}
 .note svg{width:22px;height:22px;color:var(--muenze)}
@@ -85,16 +103,21 @@ footer nav{display:flex;gap:18px}
   <a class="logo" href="./" aria-label="playaz.fun Startseite">
     <img src="logo.png" width="720" height="519" alt="playaz.fun">
   </a>
+  <nav class="menu" aria-label="Hauptmenü" data-online hidden><a href="rangliste.html">Rangliste</a><a href="konto.html" class="konto" id="menuKonto">Anmelden</a></nav>
 </header>
 
 <main>
   <section class="hero wrap">
     <h1>Einwerfen musst du <em>nichts.</em></h1>
-    <p>Vier Spiele direkt im Browser, am Handy wie am Rechner. Ohne Anmeldung, ohne Download, ohne Werbung. Dein Spielstand bleibt auf deinem Gerät.</p>
-    <ul class="facts"><li>Kein Login</li><li>Handy und PC</li><li>Rekorde lokal gespeichert</li></ul>
+    <p>Vier Spiele direkt im Browser, am Handy wie am Rechner. Ohne Anmeldung, ohne Download, ohne Werbung.<span data-online hidden> Mit einem kostenlosen Account kommst du in die Rangliste und dein Spielstand ist gesichert.</span></p>
+    <ul class="facts"><li>Ohne Anmeldung spielbar</li><li>Handy und PC</li><li data-online hidden>Rangliste mit Account</li></ul>
   </section>
 
   <section class="wrap" aria-label="Spiele">
+    <div class="spitze" id="spitze" hidden>
+      <div class="spitze-kopf"><h2 id="spitzeTitel">Vorne im Monat</h2><a href="rangliste.html">Ganze Rangliste</a></div>
+      <ol id="spitzeListe"></ol>
+    </div>
     <div class="games">
       <a class="game feat" href="spiele/linke-spur.html" style="--accent:#5b8ff0">
         <div class="shot"><img src="bilder/linke-spur.jpg" width="960" height="600" alt="Nächtliche Autobahn aus der Verfolgerkamera, vorne ein dunkler Kombi im Abendrot"><span class="badge">Neu</span></div>
@@ -139,7 +162,7 @@ footer nav{display:flex;gap:18px}
 
     <div class="note">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3.5v6c0 5-3.4 8.9-8 10.5-4.6-1.6-8-5.5-8-10.5v-6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 12l2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <div><b>Deine Rekorde gehören dir.</b> Sie liegen nur im Speicher dieses Browsers. Es gibt kein Konto und keine Tracker. Wer die Browserdaten löscht, fängt wieder bei null an.</div>
+      <div id="hinweis"><b>Deine Rekorde gehören dir.</b> Sie liegen nur im Speicher dieses Browsers. Wer die Browserdaten löscht, fängt wieder bei null an.</div>
     </div>
   </section>
 </main>
@@ -151,6 +174,42 @@ footer nav{display:flex;gap:18px}
   </div>
 </footer>
 
+<script src="assets/playsaal-config.js"></script>
+<script src="assets/playsaal.js" data-game="start"></script>
+<script>
+(function () {
+  const P = window.PlaySaal;
+  if (!P || !P.online) return;
+  document.querySelectorAll('[data-online]').forEach(el => { el.hidden = false; });
+  const hinweis = document.getElementById('hinweis');
+  P.profil().then(p => {
+    if (p) {
+      document.getElementById('menuKonto').textContent = p.name;
+      document.getElementById('menuKonto').classList.remove('konto');
+      hinweis.innerHTML = '<b>Dein Spielstand ist gesichert.</b> Angemeldet als <span id="hinweisName"></span>. Münzen, Autos, Tuning und Rekorde liegen in deinem Account.';
+      document.getElementById('hinweisName').textContent = p.name;
+    } else {
+      hinweis.innerHTML = '<b>Spielstand sichern.</b> Ohne Account liegen Rekorde, Münzen und Autos nur in diesem Browser. Räumt der Browser auf, sind sie weg. Mit einem kostenlosen Account sind sie gesichert, und du kommst in die Rangliste.<br><a class="btn-mini" href="konto.html">Account anlegen</a>';
+    }
+  });
+  // Spielstand kam von einem anderen Gerät: Rekorde neu anzeigen
+  P.bereit.then(g => { if (Object.keys(g).length) location.reload(); });
+  document.getElementById('spitzeTitel').textContent = 'Vorne im ' + P.monat();
+  P.rpc('rangliste', { p_game: 'alle', p_zeitraum: 'monat', p_anzahl: 5 }).then(rows => {
+    const top = (rows || []).filter(r => r.platz <= 5).slice(0, 5);
+    if (!top.length) return;
+    const ol = document.getElementById('spitzeListe');
+    top.forEach(r => {
+      const li = document.createElement('li');
+      const a = document.createElement('span'); a.className = 'pl'; a.textContent = r.platz;
+      const b = document.createElement('span'); b.className = 'nm'; b.textContent = r.name;
+      const c = document.createElement('span'); c.className = 'pk'; c.textContent = r.score + ' P';
+      li.append(a, b, c); ol.appendChild(li);
+    });
+    document.getElementById('spitze').hidden = false;
+  }).catch(() => {});
+})();
+</script>
 <script>
 (function () {
   const read = k => { try { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v); } catch (e) { return null; } };

@@ -1,0 +1,67 @@
+/* Gemeinsamer Rahmen für Konto und Rangliste. Ein dunkler Look wie die Startseite, alle Farben fest gesetzt. */
+:root{
+  --halle:#11103b;
+  --automat:#1b1a50;
+  --automat-hell:#25236a;
+  --kreide:#f5f4ff;
+  --nebel:#b7b5dd;
+  --muenze:#ffc83a;
+  --koralle:#ff4f9a;
+  --gruen:#5ee0a0;
+  --linie:rgba(246,242,255,.13);
+  --f-display:"Dela Gothic One","Arial Black",Impact,sans-serif;
+  --f-body:"Barlow","Segoe UI",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{background:var(--halle)}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;background:var(--halle);background-image:radial-gradient(rgba(246,242,255,.05) 1px,transparent 1.2px);background-size:22px 22px;color:var(--kreide);font-family:var(--f-body);font-size:16px;line-height:1.5}
+main{flex:1}
+a{color:inherit}
+.wrap{max-width:860px;margin:0 auto;padding-inline:16px}
+:focus-visible{outline:3px solid var(--muenze);outline-offset:3px}
+[hidden]{display:none!important}
+
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 20px;padding-block:20px 6px}
+.top .logo img{display:block;height:64px;width:auto}
+.menu{display:flex;flex-wrap:wrap;gap:6px}
+.menu a{font-weight:600;font-size:15px;text-decoration:none;padding:7px 14px;border-radius:999px;border:1px solid var(--linie);color:var(--nebel)}
+.menu a:hover{color:var(--kreide);border-color:rgba(246,242,255,.3)}
+.menu a[aria-current="page"]{background:var(--kreide);color:var(--halle);border-color:var(--kreide)}
+
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(34px,6.4vw,56px);line-height:1.02;letter-spacing:-.02em;margin:26px 0 10px;text-wrap:balance}
+h1 em{font-style:normal;color:var(--muenze)}
+h2{font-family:var(--f-display);font-weight:400;font-size:20px;line-height:1.15;margin:0 0 10px}
+.lead{margin:0 0 22px;max-width:56ch;font-size:18px;color:var(--nebel)}
+
+.karte{background:var(--automat);border:1px solid var(--linie);border-radius:16px;padding:20px;min-width:0}
+.raster{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-bottom:20px}
+
+form{display:grid;gap:14px}
+label{display:grid;gap:6px;font-weight:600;font-size:15px}
+input[type=text],input[type=email],input[type=password]{width:100%;font:inherit;font-size:17px;color:var(--kreide);background:#0e0d31;border:1px solid rgba(246,242,255,.22);border-radius:10px;padding:11px 13px}
+input:focus{outline:none;border-color:var(--muenze);box-shadow:0 0 0 3px rgba(255,200,58,.25)}
+.feld-info{font-weight:500;font-size:14px;color:var(--nebel);min-height:1.4em}
+.feld-info.gut{color:var(--gruen)}
+.feld-info.schlecht{color:#ff8a9e}
+.klein{font-size:14px;color:var(--nebel);margin:0}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--f-display);font-size:16px;padding:11px 20px;border-radius:999px;border:1px solid rgba(246,242,255,.3);background:transparent;color:var(--kreide);text-decoration:none;cursor:pointer}
+.btn:hover{border-color:var(--kreide)}
+.btn.primary{background:var(--muenze);border-color:var(--muenze);color:#1a1405}
+.btn.primary:hover{background:#ffd566}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.link{background:none;border:0;padding:0;font:inherit;font-size:15px;color:var(--nebel);text-decoration:underline;text-underline-offset:3px;cursor:pointer;justify-self:start}
+.aktionen{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+
+.tabs{display:inline-flex;gap:4px;padding:4px;border-radius:999px;background:#0e0d31;border:1px solid var(--linie);margin-bottom:18px;max-width:100%;overflow-x:auto}
+.tabs button{font:inherit;font-weight:700;font-size:15px;padding:8px 16px;border-radius:999px;border:0;background:transparent;color:var(--nebel);cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--kreide);color:var(--halle)}
+
+.meldung{margin:0;padding:12px 14px;border-radius:10px;font-weight:600;background:rgba(94,224,160,.12);border:1px solid rgba(94,224,160,.4)}
+.meldung.fehler{background:rgba(255,79,154,.12);border-color:rgba(255,79,154,.45)}
+
+footer{border-top:1px solid var(--linie);padding-block:22px 34px;color:var(--nebel);font-size:14px;margin-top:48px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:space-between}
+footer nav{display:flex;gap:18px}
+@media (max-width:600px){.top .logo img{height:52px}}
