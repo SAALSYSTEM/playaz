@@ -173,6 +173,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     customerSpeed: 3.6,
     iceHelperPrice: 150,   // Eis-Helfer: Maschine -> Theke
     iceHelperMax: 8,
+    iceHelper2Price: 400,  // zweiter Eis-Helfer
     counter2Price: 250,    // zweite Theke
     carrierPrice: 120,     // Erdbeer-Träger
     carrierMax: 6,
@@ -1083,6 +1084,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     tiles.gardenUnlock = makeUnlockTile(2.0);  // Blaubeer-Garten
     tiles.pickerUnlock = makeUnlockTile();     // Blaubeer-Helfer
     tiles.iceUnlock = makeUnlockTile(1.6);     // Eis-Helfer
+    tiles.ice2Unlock = makeUnlockTile(1.6);    // zweiter Eis-Helfer (gleicher Platz, eigenes Feld)
     tiles.counter2Unlock = makeUnlockTile();   // zweite Theke
     function paintUnlock(t, icon, badge, price, paid) {
       const key = price + '/' + paid; if (key === t.drawn) return; t.drawn = key;
@@ -1188,7 +1190,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const counter2Types = [];
     const S = { coins: 0, helpers: 1, paid: 0, carrier: false, paidCarrier: 0, machine: 0, paidMachine: 0,
       garden: false, paidGarden: 0, picker: false, paidPicker: 0, blueSold: 0, sold: 0, tut: 0, tutDone: false,
-      iceHelper: false, paidIce: 0, counter2: false, paidCounter2: 0 };
+      iceHelper: false, paidIce: 0, counter2: false, paidCounter2: 0, iceHelper2: false, paidIce2: 0 };
     const saved = store.get(KEY_SAVE, null);
     if (saved && saved.v === 1) {
       const n = (v, d, mx) => clamp(Number.isFinite(v) ? Math.floor(v) : d, 0, mx);
@@ -1204,6 +1206,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       B.hopper.n = n(saved.blueHopper, 0, CFG.blueHopperMax); B.out.n = Math.min(CFG.blueOutMax, n(saved.blueOut, 0, CFG.blueOutMax) + n(saved.blueOut2, 0, 50));
       if (Array.isArray(saved.bushes)) bushes.forEach((b, i) => { b.n = n(saved.bushes[i], CFG.bushMax, CFG.bushMax); });
       S.iceHelper = !!saved.iceHelper; S.paidIce = n(saved.paidIce, 0, 1e6);
+      S.iceHelper2 = !!saved.iceHelper2; S.paidIce2 = n(saved.paidIce2, 0, 1e6);
       S.counter2 = !!saved.counter2; S.paidCounter2 = n(saved.paidCounter2, 0, 1e6);
       C.counter2.n = S.counter2 ? n(saved.counter2N, 0, CFG.counterMax) : 0;
     }
@@ -1226,11 +1229,11 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         garden: S.garden, paidGarden: S.paidGarden, picker: S.picker, paidPicker: S.paidPicker, blueSold: S.blueSold,
         blueHopper: Math.min(CFG.blueHopperMax, B.hopper.n + B.hopper.inc + picker.load.n + picker.load.inc), blueOut: B.out.n + B.out.inc,
         bushes: bushes.map((b) => b.n), counterTypes: counterTypes.map((t) => (t === 'bcone' ? 'b' : 'c')).join(''),
-        iceHelper: S.iceHelper, paidIce: S.paidIce, counter2: S.counter2, paidCounter2: S.paidCounter2,
+        iceHelper: S.iceHelper, paidIce: S.paidIce, iceHelper2: S.iceHelper2, paidIce2: S.paidIce2, counter2: S.counter2, paidCounter2: S.paidCounter2,
         counter2N: C.counter2.n + C.counter2.inc, counter2Types: counter2Types.map((t) => (t === 'bcone' ? 'b' : 'c')).join(''),
         // was der Eis-Helfer gerade trägt, kommt zurück an die Ausgabe
-        out: Math.min(CFG.outMax, C.out.n + C.out.inc + (iceHelper.loadItem === 'cone' ? iceHelper.load.n + iceHelper.load.inc : 0)),
-        blueOut2: iceHelper.loadItem === 'bcone' ? iceHelper.load.n + iceHelper.load.inc : 0
+        out: Math.min(CFG.outMax, C.out.n + C.out.inc + iceLoad('cone')),
+        blueOut2: iceLoad('bcone')
       });
     }
 
@@ -1561,6 +1564,18 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         }
       },
       {
+        tile: tiles.ice2Unlock, key: 'paidIce2', icon: 'eistuete', badge: 'helfer', text: 'Hol dir einen zweiten Eis-Helfer!',
+        price: () => CFG.iceHelper2Price,
+        visible: () => S.iceHelper && !S.iceHelper2 && S.counter2,
+        pos: () => L.iceUnlock,
+        done() {
+          S.iceHelper2 = true; S.paidIce2 = 0;
+          spawnCourier(iceHelper2, L.iceUnlock.x, L.iceUnlock.z, true);
+          celebrate(L.iceUnlock.x, L.iceUnlock.z);
+          toast('eistuete', 'Zweiter Eis-Helfer!');
+        }
+      },
+      {
         tile: tiles.counter2Unlock, key: 'paidCounter2', icon: 'eistuete', badge: 'upgrade', text: 'Bau eine zweite Theke!',
         price: () => CFG.counter2Price,
         visible: () => !S.counter2 && S.helpers >= 3,
@@ -1716,15 +1731,19 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       { x: tiles.output.x - 0.95, z: tiles.output.z + 0.35, stack: C.out, pos: outPos, item: 'cone' },
       { x: tiles.blueOutput.x - 0.95, z: tiles.blueOutput.z - 0.35, stack: B.out, pos: blueOutPos, item: 'bcone', garden: true }
     ];
-    const iceHelper = makeCourier(iceHelperGeo, {
+    const iceOpts = {
       max: CFG.iceHelperMax, item: 'cone',
       source: () => { let best = null; for (const s of iceSrcs) if ((!s.garden || S.garden) && s.stack.n > 0 && (!best || s.stack.n > best.stack.n)) best = s; return best; },
       target: () => {
         const w = bestWindow() || WINDOWS[0];
         return { x: w.drop.x, z: w.drop.z, stack: w.stack, pos: w.pos, onAdd: (t) => w.types.push(t) };
       }
-    });
+    };
+    const iceHelper = makeCourier(iceHelperGeo, iceOpts), iceHelper2 = makeCourier(iceHelperGeo, iceOpts);
+    // was die Eis-Helfer gerade tragen (kommt beim Speichern zurück an die Ausgabe)
+    const iceLoad = (t) => [iceHelper, iceHelper2].reduce((a, h) => a + (h.loadItem === t ? h.load.n + h.load.inc : 0), 0);
     if (S.iceHelper) spawnCourier(iceHelper, L.iceUnlock.x, L.iceUnlock.z, false);
+    if (S.iceHelper2) spawnCourier(iceHelper2, L.iceUnlock.x + 0.8, L.iceUnlock.z + 0.8, false);
     if (S.carrier) addCarrier(tiles.pile.x + 0.5, tiles.pile.z - 0.5, false);
     if (S.picker) spawnCourier(picker, L.pickerUnlock.x, L.pickerUnlock.z, false);
     placeUnlocks();
@@ -2235,7 +2254,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     if (/[?&]debug\b/.test(location.search)) {
       window.__eis = {
-        S, C, RC, B, bushes, counterTypes, counter2Types, WINDOWS, iceHelper, couriers, picker, carrier, UNLOCKS, player, tiles, helpers, customers, blocks, L, placeUnlocks,
+        S, C, RC, B, bushes, counterTypes, counter2Types, WINDOWS, iceHelper, iceHelper2, couriers, picker, carrier, UNLOCKS, player, tiles, helpers, customers, blocks, L, placeUnlocks,
         go(x, z) { player.x = x; player.z = z; },
         begin, save, cam() { updateCamera(0, true); },
         step(sec, fn) { const n = Math.round(sec * 60); for (let i = 0; i < n; i++) { if (fn) fn(); const dt = 1 / 60; time += dt; updatePlayer(dt); updateInteractions(dt); updateMachine(dt); updateBlocks(dt); updateHelpers(dt, time); updateCarrier(dt, time); updateCustomers(dt, time); updateFlies(dt); updateParticles(dt); } }
