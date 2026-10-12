@@ -882,7 +882,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     // leeres Grundstück mit Schild
     const plotMesh = new THREE.Mesh(bake([
       P(G.box, '#e8d4bb', M(0, 0.02, 0, 4.2, 0.04, 3.6)),
-      P(G.cyl, WOOD, M(1.6, 0.6, 1.5, 0.07, 1.2, 0.07)), P(G.box, WOOD, M(1.6, 1.1, 1.5, 0.9, 0.5, 0.08)), P(G.s, SNOW, M(1.6, 1.38, 1.5, 0.45, 0.06, 0.08))
+      // Holzrahmen mit Eckpfosten, damit man den Bauplatz erkennt
+      P(G.box, WOOD, M(0, 0.1, 1.8, 4.3, 0.16, 0.12)), P(G.box, WOOD, M(0, 0.1, -1.8, 4.3, 0.16, 0.12)),
+      P(G.box, WOOD, M(2.1, 0.1, 0, 0.12, 0.16, 3.7)), P(G.box, WOOD, M(-2.1, 0.1, 0, 0.12, 0.16, 3.7)),
+      ...[[-1, -1], [-1, 1], [1, -1], [1, 1]].flatMap(([i, k]) => [P(G.box, WOOD_D, M(i * 2.1, 0.3, k * 1.8, 0.2, 0.6, 0.2)), P(G.s, SNOW, M(i * 2.1, 0.62, k * 1.8, 0.14, 0.06, 0.14))])
     ]), toyMat); homeGroup.add(plotMesh);
     // Spielplatz
     const PLAY_GEOS = [
@@ -1085,7 +1088,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     [[-4.5, 8.0], [-4.6, 11.2], [-3.6, 14.6], [-1.0, 15.3], [3.2, 15.4]].forEach(([x, z]) => put(treeIM, x, 0, z, rand(0, TAU), rand(0.85, 1.1)));
     for (let z = -26; z < 26; z += 2.6) { const zz = z + rand(-0.6, 0.6); if (zz > L.island.z0 - 1 && zz < L.island.z1 + 1) continue; put(treeIM, farX - rand(1.2, 3.6), 0.65, zz, rand(0, TAU), rand(0.8, 1.1)); }
     treeIM.instanceMatrix.needsUpdate = true; scene.add(treeIM);
-    const moundSpots = [[-6.0, 9.6], [-1.6, 11.0], [1.8, 11.8], [6.2, 8.4], [6.5, -1.9], [5.2, -11.6], [-0.4, -12.4], [7.6, 1.1], [-3.8, 7.6]];
+    const moundSpots = [[-6.0, 9.6], [-1.6, 11.0], [1.8, 11.8], [6.2, 8.4], [5.2, -11.6], [-0.4, -12.4], [7.6, 1.1], [-3.8, 7.6]];
     moundSpots.forEach(([u, v]) => { const w = W(u, v); if (!inGarden(w.x, w.z)) decoParts.push(P(G.sl, SNOW, M(w.x, 0, w.z, rand(0.6, 1.0), rand(0.35, 0.55), rand(0.6, 1.0)))); });
 
     const deco = new THREE.Mesh(bake(decoParts), toyMatFlat); scene.add(deco);
