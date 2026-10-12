@@ -168,8 +168,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     throwPeriod: 0.95,    // Pinguin: Sekunden pro Schneeball
     blockHp: 2,           // Schneebälle pro Eisblock
     helperPrices: [30, 80, 180, 350],
-    queueMax: 7,
-    queueMin: 4,           // so viele Tiere sollen mindestens warten (sonst kommt sofort Nachschub)
+    queueMax: 9,
+    queueMin: 5,           // so viele Tiere sollen mindestens warten (sonst kommt sofort Nachschub)
     customerSpeed: 3.6,
     iceHelperPrice: 150,   // Eis-Helfer: Maschine -> Theke
     iceHelperMax: 8,
@@ -184,8 +184,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     blocksMaxPerHelper: 4, // höchstens so viele Blöcke gleichzeitig im Fluss (+4), damit es nicht zu voll wird
     startPile: 8,
     // Blaubeer-Garten (neuer Bereich, wenn alles andere freigeschaltet ist)
-    gardenPrice: 500,
-    pickerPrice: 300,      // Blaubeer-Helfer
+    gardenPrice: 2500,
+    pickerPrice: 900,      // Blaubeer-Helfer
     coinPerBlue: 9,        // Blaubeer-Eis ist mehr wert
     bushMax: 6,            // Beeren pro Busch
     bushGrow: 1.8,         // Sekunden, bis eine Beere nachwächst
@@ -1367,10 +1367,11 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       const type = Math.floor(Math.random() * customerGeos.length);
       const root = new THREE.Group(); const body = mesh(customerGeos[type]); root.add(body); scene.add(root);
       const q = customers.filter((c) => c.state === 'queue').length;
-      const p = atSlot ? qPos(q) : { x: L.laneX, z: 12.8 };
+      const p = atSlot ? qPos(q) : { x: L.laneX, z: 11 };
+      const big = S.counter2 ? 1 : 0; // mit zwei Theken bestellen die Tiere mehr
       const roll = Math.random();
       const c = {
-        id: customerSerial++, type, root, body, x: p.x, z: p.z, yaw: Math.PI, state: 'queue', want: roll < 0.45 ? 1 : roll < 0.85 ? 2 : 3, got: 0, inc: 0,
+        id: customerSerial++, type, root, body, x: p.x, z: p.z, yaw: Math.PI, state: 'queue', want: (roll < 0.45 ? 1 : roll < 0.85 ? 2 : 3) + big, got: 0, inc: 0,
         hop: rand(0, TAU), happy: 0, leaveStep: 0, serveCd: 0.2, scale: type === 3 ? 1.22 : 1.12, pay: 0, lastType: 'cone'
       };
       root.scale.setScalar(c.scale);
@@ -2035,7 +2036,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       spawnT -= dt;
       if (queue.length < CFG.queueMax && (spawnT <= 0 || (queue.length < CFG.queueMin && spawnT < 999))) {
         spawnCustomer(false);
-        spawnT = queue.length < CFG.queueMin ? 0.45 : CFG.spawnPeriods[S.machine] * (S.garden ? CFG.blueSpawnFactor : 1) * rand(0.7, 1.3);
+        const boost = (S.counter2 ? 1.6 : 1) * (1 + 0.35 * ((S.iceHelper ? 1 : 0) + (S.iceHelper2 ? 1 : 0)));
+        spawnT = queue.length < CFG.queueMin ? 0.35 : CFG.spawnPeriods[S.machine] * (S.garden ? CFG.blueSpawnFactor : 1) / boost * rand(0.7, 1.3);
       }
       for (const c of customers) {
         let tx, tz, speed = CFG.customerSpeed;
