@@ -164,11 +164,16 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     machinePrices: [100, 220, 400],
     conePeriods: [0.6, 0.45, 0.34, 0.25],   // Sekunden pro Eistüte
     spawnPeriods: [2.6, 1.9, 1.4, 1.05],    // Sekunden bis zum nächsten Kunden
-    servePeriods: [0.4, 0.33, 0.28, 0.24],  // Sekunden pro Eistüte an der Theke
+    servePeriods: [0.3, 0.26, 0.22, 0.19],  // Sekunden pro Eistüte an der Theke
     throwPeriod: 0.95,    // Pinguin: Sekunden pro Schneeball
     blockHp: 2,           // Schneebälle pro Eisblock
     helperPrices: [30, 80, 180, 350],
     queueMax: 7,
+    queueMin: 4,           // so viele Tiere sollen mindestens warten (sonst kommt sofort Nachschub)
+    customerSpeed: 3.6,
+    iceHelperPrice: 150,   // Eis-Helfer: Maschine -> Theke
+    iceHelperMax: 8,
+    counter2Price: 250,    // zweite Theke
     carrierPrice: 120,     // Erdbeer-Träger
     carrierMax: 6,
     carrierSpeed: 2.4,
@@ -217,7 +222,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     output: { x: 1.95, z: -4.95 },
     counter: { x: 4.1, z: -0.99, len: 3.0, w: 1.1, h: 0.92 },
     drop: { x: 2.95, z: -0.99 },
-    coin: { x: 2.25, z: 2.55 },
+    counter2: { x: 4.1, z: 2.75, len: 2.3 },
+    drop2: { x: 2.95, z: 2.75 },
+    iceUnlock: { x: 1.5, z: -2.85 },
+    coin: { x: 0.7, z: 3.2 },
     laneX: 5.6,
     q0z: -0.99,
     qGap: 1.22
@@ -756,6 +764,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       P(G.sl, SNOW, M(0.55, 0.1, -L.counter.len / 2, 0.3, 0.16, 0.25))
     ]);
     const counterMesh = new THREE.Mesh(counterGeo, toyMat); counterMesh.position.set(L.counter.x, 0, L.counter.z); scene.add(counterMesh);
+    const counter2Mesh = new THREE.Mesh(counterGeo, toyMat); counter2Mesh.position.set(L.counter2.x, 0, L.counter2.z);
+    counter2Mesh.scale.z = L.counter2.len / L.counter.len; counter2Mesh.visible = false; scene.add(counter2Mesh);
 
     // Zaun an der Schlange
     function fenceLine(x, z0, z1) {
@@ -771,7 +781,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       }
     }
     fenceLine(L.laneX - 0.88, 0.95, 12);
-    fenceLine(L.laneX + 0.95, -3.1, 12);
+    fenceLine(L.laneX + 0.95, -3.1, 1.9);   // Lücke neben der zweiten Theke: dort gehen die Kunden raus
+    fenceLine(L.laneX + 0.95, 3.6, 12);
 
     // Zaun vor dem Blaubeer-Garten (verschwindet beim Freischalten)
     const gardenFenceParts = [];
@@ -926,6 +937,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     };
     const carrierGeo = penguinGeo(true, basket);
     const pickerGeo = penguinGeo(true, basket, { main: '#5b7cf0', brim: '#3a56c8' }); // Blaubeer-Helfer mit blauer Mütze
+    const iceHelperGeo = penguinGeo(true, basket, { main: '#ff7aa8', brim: '#e2558a' }); // Eis-Helfer mit rosa Mütze
 
     // Kunden
     const customerGeos = [
@@ -1016,6 +1028,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       input: { x: L.input.x, z: L.input.z, r: 0.95, cd: 0 },
       output: { x: L.output.x, z: L.output.z, r: 1.0, cd: 0 },
       drop: { x: L.drop.x, z: L.drop.z, r: 0.95, cd: 0 },
+      drop2: { x: L.drop2.x, z: L.drop2.z, r: 0.95, cd: 0 },
       coin: { x: L.coin.x, z: L.coin.z, r: 1.0, cd: 0 },
       hole: { x: L.hole.x, z: L.hole.z, r: 1.05, cd: 0, hold: 0 },
       hole2: { x: L.hole2.x, z: L.hole2.z, r: 1.05, cd: 0, hold: 0 },
@@ -1026,6 +1039,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     tileMesh(tiles.input.x, tiles.input.z, TILE, tileCanvas(imgs.erdbeere, 'drop'));
     tileMesh(tiles.output.x, tiles.output.z, 1.9, tileCanvas(imgs.eistuete));
     tileMesh(tiles.drop.x, tiles.drop.z, TILE, tileCanvas(imgs.eistuete, 'drop'));
+    const drop2Mesh = tileMesh(tiles.drop2.x, tiles.drop2.z, TILE, tileCanvas(imgs.eistuete, 'drop')); drop2Mesh.visible = false;
     tileMesh(tiles.coin.x, tiles.coin.z, 1.9, tileCanvas(imgs.muenze));
     tileMesh(tiles.blueInput.x, tiles.blueInput.z, TILE, tileCanvas(imgs.blaubeere, 'drop'));
     tileMesh(tiles.blueOutput.x, tiles.blueOutput.z, 1.9, tileCanvas(imgs['eistuete-blau']));
@@ -1068,6 +1082,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     tiles.machineUnlock = makeUnlockTile(1.6); // schnellere Eismaschine
     tiles.gardenUnlock = makeUnlockTile(2.0);  // Blaubeer-Garten
     tiles.pickerUnlock = makeUnlockTile();     // Blaubeer-Helfer
+    tiles.iceUnlock = makeUnlockTile(1.6);     // Eis-Helfer
+    tiles.counter2Unlock = makeUnlockTile();   // zweite Theke
     function paintUnlock(t, icon, badge, price, paid) {
       const key = price + '/' + paid; if (key === t.drawn) return; t.drawn = key;
       const g = t.canvas.getContext('2d');
@@ -1168,8 +1184,11 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     };
     const B = { hopper: { n: 0, inc: 0, max: CFG.blueHopperMax }, out: { n: 0, inc: 0, max: CFG.blueOutMax } }; // Blaubeer-Maschine
     const counterTypes = []; // Sorte jeder Eistüte auf der Theke ('cone' oder 'bcone'), unten zuerst
+    C.counter2 = { n: 0, inc: 0, max: CFG.counterMax };
+    const counter2Types = [];
     const S = { coins: 0, helpers: 1, paid: 0, carrier: false, paidCarrier: 0, machine: 0, paidMachine: 0,
-      garden: false, paidGarden: 0, picker: false, paidPicker: 0, blueSold: 0, sold: 0, tut: 0, tutDone: false };
+      garden: false, paidGarden: 0, picker: false, paidPicker: 0, blueSold: 0, sold: 0, tut: 0, tutDone: false,
+      iceHelper: false, paidIce: 0, counter2: false, paidCounter2: 0 };
     const saved = store.get(KEY_SAVE, null);
     if (saved && saved.v === 1) {
       const n = (v, d, mx) => clamp(Number.isFinite(v) ? Math.floor(v) : d, 0, mx);
@@ -1182,13 +1201,19 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       if (['berry', 'cone', 'blue', 'bcone'].includes(saved.carryType)) { C.carry.type = saved.carryType; C.carry.n = n(saved.carry, 0, CFG.carryMax); if (!C.carry.n) C.carry.type = null; }
       S.garden = !!saved.garden; S.paidGarden = n(saved.paidGarden, 0, 1e6);
       S.picker = !!saved.picker; S.paidPicker = n(saved.paidPicker, 0, 1e6); S.blueSold = n(saved.blueSold, 0, 1e8);
-      B.hopper.n = n(saved.blueHopper, 0, CFG.blueHopperMax); B.out.n = n(saved.blueOut, 0, CFG.blueOutMax);
+      B.hopper.n = n(saved.blueHopper, 0, CFG.blueHopperMax); B.out.n = Math.min(CFG.blueOutMax, n(saved.blueOut, 0, CFG.blueOutMax) + n(saved.blueOut2, 0, 50));
       if (Array.isArray(saved.bushes)) bushes.forEach((b, i) => { b.n = n(saved.bushes[i], CFG.bushMax, CFG.bushMax); });
+      S.iceHelper = !!saved.iceHelper; S.paidIce = n(saved.paidIce, 0, 1e6);
+      S.counter2 = !!saved.counter2; S.paidCounter2 = n(saved.paidCounter2, 0, 1e6);
+      C.counter2.n = S.counter2 ? n(saved.counter2N, 0, CFG.counterMax) : 0;
     }
     {
       const ct = typeof (saved && saved.counterTypes) === 'string' ? saved.counterTypes : '';
       for (let i = 0; i < C.counter.n; i++) counterTypes.push(ct[i] === 'b' ? 'bcone' : 'cone');
+      const ct2 = typeof (saved && saved.counter2Types) === 'string' ? saved.counter2Types : '';
+      for (let i = 0; i < C.counter2.n; i++) counter2Types.push(ct2[i] === 'b' ? 'bcone' : 'cone');
     }
+    counter2Mesh.visible = drop2Mesh.visible = S.counter2;
     gardenFence.visible = !S.garden;
     for (let i = 0; i < S.helpers; i++) addHelper(i, false);
     const hasProgress = !!(saved && saved.v === 1);
@@ -1200,7 +1225,12 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         coinPile: C.coinPile.n + C.coinPile.inc, carryType: C.carry.type, carry: C.carry.n + C.carry.inc,
         garden: S.garden, paidGarden: S.paidGarden, picker: S.picker, paidPicker: S.paidPicker, blueSold: S.blueSold,
         blueHopper: Math.min(CFG.blueHopperMax, B.hopper.n + B.hopper.inc + picker.load.n + picker.load.inc), blueOut: B.out.n + B.out.inc,
-        bushes: bushes.map((b) => b.n), counterTypes: counterTypes.map((t) => (t === 'bcone' ? 'b' : 'c')).join('')
+        bushes: bushes.map((b) => b.n), counterTypes: counterTypes.map((t) => (t === 'bcone' ? 'b' : 'c')).join(''),
+        iceHelper: S.iceHelper, paidIce: S.paidIce, counter2: S.counter2, paidCounter2: S.paidCounter2,
+        counter2N: C.counter2.n + C.counter2.inc, counter2Types: counter2Types.map((t) => (t === 'bcone' ? 'b' : 'c')).join(''),
+        // was der Eis-Helfer gerade trägt, kommt zurück an die Ausgabe
+        out: Math.min(CFG.outMax, C.out.n + C.out.inc + (iceHelper.loadItem === 'cone' ? iceHelper.load.n + iceHelper.load.inc : 0)),
+        blueOut2: iceHelper.loadItem === 'bcone' ? iceHelper.load.n + iceHelper.load.inc : 0
       });
     }
 
@@ -1216,6 +1246,17 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const pilePos = (i, o) => gridPos(tiles.pile.x, tiles.pile.z, i, 3, 3, 0.42, 0.3, 0.05, o || new THREE.Vector3());
     const outPos = (i, o) => gridPos(tiles.output.x, tiles.output.z, i, 3, 2, 0.46, 0.36, 0.03, o || new THREE.Vector3());
     const counterPos = (i, o) => gridPos(L.counter.x, L.counter.z, i, 2, 6, 0.42, 0.36, L.counter.h + 0.09, o || new THREE.Vector3());
+    const counter2Pos = (i, o) => gridPos(L.counter2.x, L.counter2.z, i, 2, 4, 0.42, 0.36, L.counter.h + 0.09, o || new THREE.Vector3());
+    // Theken: an jeder steht ein Kunde, der von ihrem Stapel bedient wird
+    const WINDOWS = [
+      { stack: C.counter, types: counterTypes, pos: counterPos, drop: tiles.drop, z: L.counter.z, open: () => true,
+        exit: [{ x: L.laneX, z: -4.2 }, { x: 10, z: -10 }] },
+      { stack: C.counter2, types: counter2Types, pos: counter2Pos, drop: tiles.drop2, z: L.counter2.z, open: () => S.counter2,
+        exit: [{ x: L.laneX + 1.7, z: L.counter2.z }, { x: 9.5, z: -5 }, { x: 11, z: -11 }] }
+    ];
+    WINDOWS.forEach((w) => { w.cust = null; });
+    // Theke mit dem meisten Platz (für Kind und Eis-Helfer)
+    const bestWindow = () => { let b = null; for (const w of WINDOWS) if (w.open() && w.stack.n + w.stack.inc < w.stack.max && (!b || w.stack.n + w.stack.inc < b.stack.n + b.stack.inc)) b = w; return b; };
     const coinPos = (i, o) => gridPos(tiles.coin.x, tiles.coin.z, i, 3, 3, 0.48, 0.075, 0.04, o || new THREE.Vector3());
     const ITEM_GAP = { berry: 0.3, cone: 0.34, blue: 0.26, bcone: 0.34 };
     function stackLocal(i, type, out) {
@@ -1297,16 +1338,18 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     /* ---------- Kunden ---------- */
     const customers = [];
-    const qPos = (k) => ({ x: L.laneX, z: L.q0z + k * L.qGap });
+    const qPos = (k) => ({ x: L.laneX, z: L.q0z + (k + 1) * L.qGap });
     let spawnT = 0.5;
-    const bubbleCanvas = document.createElement('canvas'); bubbleCanvas.width = 256; bubbleCanvas.height = 176;
-    const bubbleTex = tex(bubbleCanvas);
-    const bubble = new THREE.Sprite(new THREE.SpriteMaterial({ map: bubbleTex, depthTest: false, transparent: true }));
-    bubble.scale.set(1.25, 0.86, 1); bubble.renderOrder = 10; bubble.visible = false; scene.add(bubble);
-    let bubbleDrawn = -1;
-    function drawBubble(n) {
-      if (n === bubbleDrawn) return; bubbleDrawn = n;
-      const g = bubbleCanvas.getContext('2d'); g.clearRect(0, 0, 256, 176);
+    function makeBubble() {
+      const cv = document.createElement('canvas'); cv.width = 256; cv.height = 176;
+      const t = tex(cv);
+      const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: t, depthTest: false, transparent: true }));
+      sp.scale.set(1.25, 0.86, 1); sp.renderOrder = 10; sp.visible = false; scene.add(sp);
+      return { cv, t, sp, drawn: -1 };
+    }
+    function drawBubble(b, n) {
+      if (n === b.drawn) return; b.drawn = n;
+      const g = b.cv.getContext('2d'); g.clearRect(0, 0, 256, 176);
       g.fillStyle = '#ffffff'; g.shadowColor = 'rgba(22,50,92,.25)'; g.shadowBlur = 10; g.shadowOffsetY = 4;
       rr(g, 14, 10, 228, 126, 46); g.fill();
       g.beginPath(); g.moveTo(108, 130); g.lineTo(128, 164); g.lineTo(150, 130); g.fill();
@@ -1314,14 +1357,14 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       if (imgs.eistuete) g.drawImage(imgs.eistuete, 34, 18, 110, 110);
       g.font = '700 64px Fredoka, sans-serif'; g.fillStyle = '#16325c'; g.textAlign = 'center'; g.textBaseline = 'middle';
       g.fillText(String(n), 186, 76);
-      bubbleTex.needsUpdate = true;
+      b.t.needsUpdate = true;
     }
     let customerSerial = 0;
     function spawnCustomer(atSlot) {
       const type = Math.floor(Math.random() * customerGeos.length);
       const root = new THREE.Group(); const body = mesh(customerGeos[type]); root.add(body); scene.add(root);
       const q = customers.filter((c) => c.state === 'queue').length;
-      const p = atSlot ? qPos(q) : { x: L.laneX, z: 14 };
+      const p = atSlot ? qPos(q) : { x: L.laneX, z: 12.8 };
       const roll = Math.random();
       const c = {
         id: customerSerial++, type, root, body, x: p.x, z: p.z, yaw: Math.PI, state: 'queue', want: roll < 0.45 ? 1 : roll < 0.85 ? 2 : 3, got: 0, inc: 0,
@@ -1330,7 +1373,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       root.scale.setScalar(c.scale);
       customers.push(c);
     }
-    for (let i = 0; i < 4; i++) spawnCustomer(true);
+    const bubbles = [makeBubble(), makeBubble()];
+    for (let i = 0; i < 5; i++) spawnCustomer(true);
 
     /* ---------- Hilfe-Pfeil ---------- */
     const arrowShape = new THREE.Shape();
@@ -1435,6 +1479,8 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
     const boxes = [
       { x0: L.counter.x - L.counter.w / 2 - 0.3, x1: L.counter.x + L.counter.w / 2 + 2, z0: L.counter.z - L.counter.len / 2 - 0.3, z1: L.counter.z + L.counter.len / 2 + 0.3 }
     ];
+    const counter2Box = { x0: L.counter2.x - L.counter.w / 2 - 0.3, x1: L.counter2.x + L.counter.w / 2 + 2, z0: L.counter2.z - L.counter2.len / 2 - 0.3, z1: L.counter2.z + L.counter2.len / 2 + 0.3 };
+    if (S.counter2) boxes.push(counter2Box);
     function collide(p) {
       const rects = S.garden ? [L.plaza, L.walkDock, L.garden] : [L.plaza, L.walkDock];
       if (!rects.some((r) => inRect(p.x, p.z, r, 0))) {
@@ -1500,6 +1546,30 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
           burstParticles(L.machine.x, 2.4, L.machine.z, 14, 0xffa9c3, 2.4, 0.09, 0.8, 5);
           machineState.pulse = 1; drawMachineStars();
           toast('eistuete', S.machine >= CFG.machinePrices.length ? 'Super-Eismaschine!' : 'Eismaschine schneller!');
+        }
+      },
+      {
+        tile: tiles.iceUnlock, key: 'paidIce', icon: 'eistuete', badge: 'helfer', text: 'Hol dir einen Eis-Helfer!',
+        price: () => CFG.iceHelperPrice,
+        visible: () => !S.iceHelper && S.helpers >= 2,
+        pos: () => L.iceUnlock,
+        done() {
+          S.iceHelper = true; S.paidIce = 0;
+          spawnCourier(iceHelper, L.iceUnlock.x, L.iceUnlock.z, true);
+          celebrate(L.iceUnlock.x, L.iceUnlock.z);
+          toast('eistuete', 'Neuer Eis-Helfer!');
+        }
+      },
+      {
+        tile: tiles.counter2Unlock, key: 'paidCounter2', icon: 'eistuete', badge: 'upgrade', text: 'Bau eine zweite Theke!',
+        price: () => CFG.counter2Price,
+        visible: () => !S.counter2 && S.helpers >= 3,
+        pos: () => L.drop2,
+        done() {
+          S.counter2 = true; S.paidCounter2 = 0;
+          counter2Mesh.visible = drop2Mesh.visible = true; boxes.push(counter2Box); collide(player);
+          celebrate(L.counter2.x, L.counter2.z);
+          toast('eistuete', 'Zweite Theke ist offen!');
         }
       },
       {
@@ -1575,7 +1645,10 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       cr.root.scale.setScalar(CAR_S * Math.max(0.001, pop));
       cr.cd -= dt;
       if (cr.state === 'toSrc' && !cr.src) cr.src = cr.o.source();
-      const goal = cr.state === 'toSrc' || cr.state === 'loading' ? cr.src : cr.o.target();
+      if (cr.state === 'toSrc' && !cr.src) { cr.state = 'idle'; }
+      if (cr.state === 'idle') { cr.wait += dt; if (cr.wait > 0.5) { cr.wait = 0; cr.src = cr.o.source(); if (cr.src) cr.state = 'toSrc'; } }
+      if (cr.state === 'toDst' && !cr.dst) cr.dst = cr.o.target();
+      const goal = cr.state === 'toSrc' || cr.state === 'loading' ? cr.src : cr.dst;
       let moving = false;
       if (goal && (cr.state === 'toSrc' || cr.state === 'toDst') && cr.pop >= 1) {
         const dx = goal.x - cr.x, dz = goal.z - cr.z, d = Math.hypot(dx, dz);
@@ -1587,21 +1660,27 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       }
       const L2 = cr.load, load = L2.n + L2.inc, src = cr.src;
       if (cr.state === 'loading') {
-        if (load < L2.max && src.stack.n > 0) {
+        const item = src.item || cr.o.item;
+        if (load === 0) cr.loadItem = item;
+        if (load < L2.max && src.stack.n > 0 && cr.loadItem === item) {
           cr.wait = 0;
-          if (cr.cd <= 0) { cr.cd = 0.14; moveItem(cr.o.item, src.stack, src.pos, L2, cr.stackPos, 0.22, 0.7, () => sfx.pick(L2.n)); }
-        } else if (load >= L2.max) cr.state = 'toDst';
+          if (cr.cd <= 0) { cr.cd = 0.14; moveItem(item, src.stack, src.pos, L2, cr.stackPos, 0.22, 0.7, () => sfx.pick(L2.n)); }
+        } else if (load >= L2.max) { cr.state = 'toDst'; cr.dst = null; }
         else {
           cr.wait += dt;
           const next = cr.o.source();
-          if (next && next.stack !== src.stack) { cr.src = next; cr.state = 'toSrc'; } // nächster Busch
-          else if (load > 0 && cr.wait > 1.0) cr.state = 'toDst';
+          if (next && next.stack !== src.stack && (load === 0 || (next.item || cr.o.item) === cr.loadItem)) { cr.src = next; cr.state = 'toSrc'; } // nächster Busch
+          else if (load > 0 && cr.wait > 1.0) { cr.state = 'toDst'; cr.dst = null; }
         }
       } else if (cr.state === 'unloading') {
-        const dst = cr.o.target();
+        const dst = cr.dst || cr.o.target();
         if (L2.n > 0 && dst.stack.n + dst.stack.inc < dst.stack.max) {
-          if (cr.cd <= 0) { cr.cd = 0.12; moveItem(cr.o.item, L2, cr.stackPos, dst.stack, dst.pos, 0.3, 1.1, () => sfx.drop(dst.stack.n)); }
-        } else if (load === 0) { cr.state = 'toSrc'; cr.src = null; }
+          if (cr.cd <= 0) {
+            cr.cd = 0.12; const item = cr.loadItem || cr.o.item;
+            moveItem(item, L2, cr.stackPos, dst.stack, dst.pos, 0.3, 1.1, () => { if (dst.onAdd) dst.onAdd(item); sfx.drop(dst.stack.n); });
+          }
+        } else if (load === 0) { cr.state = 'toSrc'; cr.src = null; cr.dst = null; }
+        else { const alt = cr.o.target(); if (alt && alt.stack !== dst.stack && alt.stack.n + alt.stack.inc < alt.stack.max) { cr.dst = alt; cr.state = 'toDst'; } }
       }
       if (!moving) { // im Stehen langsam zur Kamera drehen
         let dy = Math.PI / 4 - cr.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); cr.yaw += dy * Math.min(1, dt * 3);
@@ -1632,6 +1711,20 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       source: () => { let best = null; for (const b of bushes) if (b.n > 0 && (!best || b.n > best.n)) best = b; return best && best.src; },
       target: () => ({ x: tiles.blueInput.x, z: tiles.blueInput.z, stack: B.hopper, pos: () => blueHopperPos })
     });
+    // Eis-Helfer: von der Ausgabe (Erdbeer- oder Blaubeer-Eis) zur Theke mit dem meisten Platz
+    const iceSrcs = [
+      { x: tiles.output.x - 0.95, z: tiles.output.z + 0.35, stack: C.out, pos: outPos, item: 'cone' },
+      { x: tiles.blueOutput.x - 0.95, z: tiles.blueOutput.z - 0.35, stack: B.out, pos: blueOutPos, item: 'bcone', garden: true }
+    ];
+    const iceHelper = makeCourier(iceHelperGeo, {
+      max: CFG.iceHelperMax, item: 'cone',
+      source: () => { let best = null; for (const s of iceSrcs) if ((!s.garden || S.garden) && s.stack.n > 0 && (!best || s.stack.n > best.stack.n)) best = s; return best; },
+      target: () => {
+        const w = bestWindow() || WINDOWS[0];
+        return { x: w.drop.x, z: w.drop.z, stack: w.stack, pos: w.pos, onAdd: (t) => w.types.push(t) };
+      }
+    });
+    if (S.iceHelper) spawnCourier(iceHelper, L.iceUnlock.x, L.iceUnlock.z, false);
     if (S.carrier) addCarrier(tiles.pile.x + 0.5, tiles.pile.z - 0.5, false);
     if (S.picker) spawnCourier(picker, L.pickerUnlock.x, L.pickerUnlock.z, false);
     placeUnlocks();
@@ -1689,12 +1782,15 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         moveItem('cone', C.out, outPos, carry, stackPos, 0.24, 0.9, () => sfx.pick(carry.n));
         S.tut = Math.max(S.tut, 3);
       }
-      // Eis auf die Theke (Erdbeer- und Blaubeer-Eis)
-      if (near(tiles.drop) && (carry.type === 'cone' || carry.type === 'bcone') && carry.n > 0 && C.counter.n + C.counter.inc < C.counter.max && tiles.drop.cd <= 0) {
-        tiles.drop.cd = 0.07;
-        const type = carry.type;
-        moveItem(type, carry, stackPos, C.counter, counterPos, 0.28, 0.9, () => { counterTypes.push(type); sfx.drop(C.counter.n); });
-        S.tut = Math.max(S.tut, 4);
+      // Eis auf eine Theke (Erdbeer- und Blaubeer-Eis)
+      for (const w of WINDOWS) {
+        const t = w.drop;
+        if (w.open() && near(t) && (carry.type === 'cone' || carry.type === 'bcone') && carry.n > 0 && w.stack.n + w.stack.inc < w.stack.max && t.cd <= 0) {
+          t.cd = 0.07;
+          const type = carry.type;
+          moveItem(type, carry, stackPos, w.stack, w.pos, 0.28, 0.9, () => { w.types.push(type); sfx.drop(w.stack.n); });
+          S.tut = Math.max(S.tut, 4);
+        }
       }
       if (S.garden) {
         // Blaubeeren pflücken
@@ -1883,19 +1979,52 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       }
     }
 
+    // Wartende stehen hinter der letzten offenen Theke
+    const waitPos = (k) => ({ x: L.laneX, z: (S.counter2 ? L.counter2.z : L.counter.z) + (k + 1) * L.qGap });
+    function serve(w, fc, dt) {
+      fc.serveCd -= dt;
+      if (fc.got + fc.inc < fc.want && w.stack.n > 0 && fc.serveCd <= 0) {
+        fc.serveCd = CFG.servePeriods[S.machine];
+        fc.inc++;
+        const from = w.pos(w.stack.n - 1); w.stack.n--;
+        const ctype = w.types.pop() || 'cone'; // die oberste Eistüte
+        fly(ctype, from, () => _v.set(fc.x, 1.15 * fc.scale, fc.z), 0.3, 0.8, () => {
+          fc.inc--; fc.got++; sfx.drop(fc.got); S.sold++;
+          fc.pay += ctype === 'bcone' ? CFG.coinPerBlue : CFG.coinPerCone; fc.lastType = ctype;
+          if (ctype === 'bcone' && ++S.blueSold === 1) placeUnlocks();
+          if (fc.got >= fc.want) {
+            fc.state = 'leave'; fc.happy = 1; fc.leaveStep = 0; fc.exit = w.exit; w.cust = null; sfx.happy();
+            burstParticles(fc.x, 1.4, fc.z, 6, 0xff8fb0, 1.6, 0.09, 0.7, 2);
+            for (let i = 0; i < fc.pay; i++) {
+              const j = C.coinPile.n + C.coinPile.inc; C.coinPile.inc++;
+              fly('coin', new THREE.Vector3(fc.x, 0.9, fc.z), () => coinPos(Math.min(j, 134)), 0.45, 1.4, () => { C.coinPile.inc--; C.coinPile.n++; sfx.coin(); }, i * 0.05);
+            }
+          }
+        });
+      }
+    }
     function updateCustomers(dt, time) {
-      spawnT -= dt;
+      // freie Theke? -> nächstes Tier aus der Schlange
+      for (const w of WINDOWS) {
+        if (!w.open() || w.cust) continue;
+        const next = customers.find((c) => c.state === 'queue');
+        if (next) { next.state = 'atWindow'; next.win = w; next.serveCd = 0.15; w.cust = next; }
+      }
       const queue = customers.filter((c) => c.state === 'queue');
-      if (spawnT <= 0 && queue.length < CFG.queueMax) { spawnCustomer(false); spawnT = CFG.spawnPeriods[S.machine] * (S.garden ? CFG.blueSpawnFactor : 1) * rand(0.7, 1.3); }
       queue.forEach((c, k) => { c.slot = k; });
-      let front = null;
+      // Nachschub: nie weniger als queueMin Tiere in der Schlange
+      spawnT -= dt;
+      if (queue.length < CFG.queueMax && (spawnT <= 0 || (queue.length < CFG.queueMin && spawnT < 999))) {
+        spawnCustomer(false);
+        spawnT = queue.length < CFG.queueMin ? 0.45 : CFG.spawnPeriods[S.machine] * (S.garden ? CFG.blueSpawnFactor : 1) * rand(0.7, 1.3);
+      }
       for (const c of customers) {
-        let tx, tz, speed = 2.6;
-        if (c.state === 'queue') {
-          const q = qPos(c.slot); tx = q.x; tz = q.z;
-        } else {
-          const path = [{ x: L.laneX, z: -4.2 }, { x: 10, z: -10 }];
-          const q = path[Math.min(c.leaveStep, path.length - 1)]; tx = q.x; tz = q.z; speed = 2.9;
+        let tx, tz, speed = CFG.customerSpeed;
+        if (c.state === 'queue') { const q = waitPos(c.slot); tx = q.x; tz = q.z; }
+        else if (c.state === 'atWindow') { tx = L.laneX; tz = c.win.z; speed = CFG.customerSpeed * 1.15; }
+        else {
+          const path = c.exit || WINDOWS[0].exit;
+          const q = path[Math.min(c.leaveStep, path.length - 1)]; tx = q.x; tz = q.z; speed = CFG.customerSpeed * 1.1;
         }
         const dx = tx - c.x, dz = tz - c.z, d = Math.hypot(dx, dz);
         const moving = d > 0.05;
@@ -1905,14 +2034,13 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
           c.hop += dt * 11;
         } else if (c.state === 'leave') {
           c.leaveStep++;
-          if (c.leaveStep >= 2) c.remove = true;
+          if (c.leaveStep >= (c.exit || WINDOWS[0].exit).length) c.remove = true;
         }
-        if (c.state === 'queue' && !moving) {
-          // Wartende schauen zur Kamera, der vordere Kunde halb zur Theke
-          const front0 = c.slot === 0;
-          if (front0) front = c;
-          let dy = (front0 ? -Math.PI / 4 : Math.PI / 4) - c.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); c.yaw += dy * Math.min(1, dt * 7);
+        if (!moving && c.state !== 'leave') {
+          // Wartende schauen zur Kamera, wer an der Theke steht, halb zur Theke
+          let dy = (c.state === 'atWindow' ? -Math.PI / 4 : Math.PI / 4) - c.yaw; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); c.yaw += dy * Math.min(1, dt * 7);
         }
+        if (c.state === 'atWindow' && d < 0.3) serve(c.win, c, dt);
         c.happy = Math.max(0, c.happy - dt * 1.6);
         const bob = moving ? Math.abs(Math.sin(c.hop)) * 0.09 : 0;
         const jump = c.happy > 0 ? Math.sin((1 - c.happy) * Math.PI * 2) * 0.35 : 0;
@@ -1920,36 +2048,15 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         c.root.rotation.y = c.yaw;
         c.body.rotation.z = moving ? Math.sin(c.hop) * 0.07 : Math.sin(time * 2 + c.id) * 0.03;
       }
-      // Bedienen
-      if (front) {
-        front.serveCd -= dt;
-        if (front.got + front.inc < front.want && C.counter.n > 0 && front.serveCd <= 0) {
-          front.serveCd = CFG.servePeriods[S.machine];
-          const fc = front;
-          fc.inc++;
-          const from = counterPos(C.counter.n - 1); C.counter.n--;
-          const ctype = counterTypes.pop() || 'cone'; // die oberste Eistüte
-          fly(ctype, from, () => _v.set(fc.x, 1.15 * fc.scale, fc.z), 0.3, 0.8, () => {
-            fc.inc--; fc.got++; sfx.drop(fc.got); S.sold++;
-            fc.pay += ctype === 'bcone' ? CFG.coinPerBlue : CFG.coinPerCone; fc.lastType = ctype;
-            if (ctype === 'bcone' && ++S.blueSold === 1) placeUnlocks();
-            if (fc.got >= fc.want) {
-              fc.state = 'leave'; fc.happy = 1; fc.leaveStep = 0; sfx.happy();
-              burstParticles(fc.x, 1.4, fc.z, 6, 0xff8fb0, 1.6, 0.09, 0.7, 2);
-              const n = fc.pay;
-              for (let i = 0; i < n; i++) {
-                const j = C.coinPile.n + C.coinPile.inc; C.coinPile.inc++;
-                fly('coin', new THREE.Vector3(fc.x, 0.9, fc.z), () => coinPos(Math.min(j, 134)), 0.45, 1.4, () => { C.coinPile.inc--; C.coinPile.n++; sfx.coin(); }, i * 0.05);
-              }
-            }
-          });
-        }
-        const left = front.want - front.got - front.inc;
-        if (left > 0) {
-          drawBubble(left); bubble.visible = true;
-          bubble.position.set(front.x, 2.2 * front.scale + Math.sin(time * 3) * 0.05, front.z);
-        } else bubble.visible = false;
-      } else bubble.visible = false;
+      // Sprechblasen: wie viele Eis will das Tier an der Theke noch?
+      WINDOWS.forEach((w, i) => {
+        const b = bubbles[i], c = w.cust;
+        const left = c ? c.want - c.got - c.inc : 0;
+        if (c && left > 0 && Math.abs(c.z - w.z) < 0.5) {
+          drawBubble(b, left); b.sp.visible = true;
+          b.sp.position.set(c.x, 2.2 * c.scale + Math.sin(time * 3 + i) * 0.05, c.z);
+        } else b.sp.visible = false;
+      });
       for (let i = customers.length - 1; i >= 0; i--) {
         if (customers[i].remove) { scene.remove(customers[i].root); customers.splice(i, 1); }
       }
@@ -1990,9 +2097,9 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
         if (B.hopper.n + B.hopper.inc === 0) { const b = bushes.find((b) => b.n > 0); if (b) return { t: b, icon: 'blaubeere', text: 'Pflück Blaubeeren am Busch!', urgent: true }; }
       }
       if (carry.type === 'blue') return { t: tiles.blueInput, icon: 'blaubeere', text: 'Ab in die Blaubeer-Maschine!' };
-      if (carry.type === 'bcone') return { t: tiles.drop, icon: 'eistuete-blau', text: 'Bring das Eis zur Theke!' };
+      if (carry.type === 'bcone') return { t: (bestWindow() || WINDOWS[0]).drop, icon: 'eistuete-blau', text: 'Bring das Eis zur Theke!' };
       if (carry.type === 'berry') return { t: tiles.input, icon: 'erdbeere', text: 'Bring die Erdbeeren zur Eismaschine!' };
-      if (carry.type === 'cone') return { t: tiles.drop, icon: 'eistuete', text: 'Bring das Eis zur Theke!' };
+      if (carry.type === 'cone') return { t: (bestWindow() || WINDOWS[0]).drop, icon: 'eistuete', text: 'Bring das Eis zur Theke!' };
       if (C.coinPile.n > 0) return { t: tiles.coin, icon: 'muenze', text: 'Sammle die Münzen ein!' };
       for (const u of UNLOCKS) if (u.tile.mesh.visible && S.coins + S[u.key] >= u.price()) return { t: u.tile, icon: u.icon, text: u.text };
       if (C.out.n > 0) return { t: tiles.output, icon: 'eistuete', text: 'Hol das fertige Eis!' };
@@ -2018,13 +2125,14 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
       for (let i = 0; i < C.pile.n; i++) { pilePos(i, v); put(berryIM, v.x, v.y, v.z, i * 2.1, 1); }
       for (let i = 0; i < C.out.n; i++) { outPos(i, v); put(coneIM, v.x, v.y, v.z, i * 0.7, 1); }
       for (let i = 0; i < C.counter.n; i++) { counterPos(i, v); put(ITEM[counterTypes[i]] || coneIM, v.x, v.y, v.z, i * 0.9, 1); }
+      for (let i = 0; i < C.counter2.n; i++) { counter2Pos(i, v); put(ITEM[counter2Types[i]] || coneIM, v.x, v.y, v.z, i * 0.9, 1); }
       for (let i = 0; i < B.out.n; i++) { blueOutPos(i, v); put(bconeIM, v.x, v.y, v.z, i * 0.7, 1); }
       for (const b of bushes) for (let i = 0; i < b.n; i++) { bushBerryPos(b, i, v); put(blueIM, v.x, v.y - 0.12, v.z, i * 1.3, 0.95); }
       const nc = Math.min(C.coinPile.n, 135);
       for (let i = 0; i < nc; i++) { coinPos(i, v); put(coinIM, v.x, v.y, v.z, i * 0.37, 1, 0, (i % 3 - 1) * 0.05); }
       const im = ITEM[C.carry.type];
       if (im) for (let i = 0; i < C.carry.n; i++) { stackPos(i, v); put(im, v.x, v.y, v.z, player.yaw + (C.carry.type === 'berry' || C.carry.type === 'blue' ? i * 1.7 : 0), 1, -player.leanZ * 0.5); }
-      for (const cr of couriers) if (cr.on) for (let i = 0; i < cr.load.n; i++) { cr.stackPos(i, v); put(ITEM[cr.o.item], v.x, v.y, v.z, cr.yaw + i * 1.9, 0.85); }
+      for (const cr of couriers) if (cr.on) for (let i = 0; i < cr.load.n; i++) { cr.stackPos(i, v); put(ITEM[cr.loadItem || cr.o.item], v.x, v.y, v.z, cr.yaw + i * 1.9, 0.85); }
       for (const f of flies) if (f.t >= 0) put(ITEM[f.type], f.pos.x, f.pos.y, f.pos.z, f.rot + f.t * 5, 1);
       // Kunden, die mit Eis weggehen
       for (const c of customers) if (c.state === 'leave') {
@@ -2127,7 +2235,7 @@ body{background:#e6f3fd;color:var(--navy);font-family:var(--font);overflow:hidde
 
     if (/[?&]debug\b/.test(location.search)) {
       window.__eis = {
-        S, C, RC, B, bushes, counterTypes, couriers, picker, carrier, UNLOCKS, player, tiles, helpers, customers, blocks, L, placeUnlocks,
+        S, C, RC, B, bushes, counterTypes, counter2Types, WINDOWS, iceHelper, couriers, picker, carrier, UNLOCKS, player, tiles, helpers, customers, blocks, L, placeUnlocks,
         go(x, z) { player.x = x; player.z = z; },
         begin, save, cam() { updateCamera(0, true); },
         step(sec, fn) { const n = Math.round(sec * 60); for (let i = 0; i < n; i++) { if (fn) fn(); const dt = 1 / 60; time += dt; updatePlayer(dt); updateInteractions(dt); updateMachine(dt); updateBlocks(dt); updateHelpers(dt, time); updateCarrier(dt, time); updateCustomers(dt, time); updateFlies(dt); updateParticles(dt); } }
