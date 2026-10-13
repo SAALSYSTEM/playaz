@@ -1,6 +1,6 @@
 # playaz.fun
 
-Browserspiele ohne Anmeldung: **Eiszeit**, **Linke Spur**, **Schwindelfrei**, **Hochstapler** und **Richtfest**.
+Browserspiele ohne Anmeldung: **Stellwerk**, **Eiszeit**, **Linke Spur**, **Schwindelfrei**, **Hochstapler** und **Richtfest**.
 
 - `public/` – die komplette Website (statisch, keine Build-Schritte)
 - `public/spiele/` – die Spiele, je eine HTML-Datei (EISZEIT lädt zusätzlich seine Bilder aus `public/spiele/eiszeit/`)
@@ -16,7 +16,7 @@ Pushes auf andere Branches erzeugen eine Vorschau (`npx wrangler preview`, brauc
 
 ## Spielstände
 
-Alle Rekorde liegen nur im `localStorage` des Browsers (Schlüssel `eiszeit.v1`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Kein Backend, keine Cookies, kein Tracking.
+Alle Rekorde liegen nur im `localStorage` des Browsers (Schlüssel `stellwerk.v1`, `eiszeit.v1`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Kein Backend, keine Cookies, kein Tracking.
 
 ## Vor dem Livegang
 

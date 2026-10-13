@@ -1,0 +1,873 @@
+<!doctype html><html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>STELLWERK · playaz.fun</title>
+<link rel="canonical" href="https://playaz.fun/spiele/stellwerk.html">
+<meta name="description" content="Du bist Fahrdienstleiter: Weichen stellen, Signale ziehen, Züge pünktlich und ohne Zusammenstoß ans Ziel bringen. Fünf Stellwerke, ohne Anmeldung.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="playaz.fun"><meta property="og:title" content="STELLWERK · playaz.fun"><meta property="og:description" content="Weichen stellen, Signale ziehen, Züge pünktlich und ohne Zusammenstoß ans Ziel bringen. Fünf Stellwerke, ohne Anmeldung."><meta property="og:url" content="https://playaz.fun/spiele/stellwerk.html"><meta property="og:image" content="https://playaz.fun/bilder/stellwerk.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="600"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playaz.fun/bilder/stellwerk.jpg">
+<meta name="theme-color" content="#151b19">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="stylesheet" href="../assets/fonts.css">
+<style>
+/* STELLWERK: Gleisbild-Stellpult. Graugrünes Pult aus quadratischen Kacheln, ausgeleuchtete Fahrstraßen,
+   rote Besetztmeldung, Signallampen. Schrift Barlow Semi Condensed wie Beschriftungen auf Stellpulten.
+   Alle Farben fest gesetzt: das Spiel hat einen Look. */
+:root{
+  --room:#121816;
+  --pult:#25302c;
+  --pult-2:#2d3a35;
+  --rim:#3c4a44;
+  --ink:#0b0f0d;
+  --text:#e9efe8;
+  --muted:#9aaba2;
+  --line:rgba(225,240,230,.13);
+  --amber:#ffb627;
+  --red:#ff3b30;
+  --green:#3be27e;
+  --white:#f3f6ef;
+  --f-ui:"Barlow Semi Condensed","Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-head:"Barlow Condensed","Arial Narrow",sans-serif;
+  --safe-t:env(safe-area-inset-top,0px);
+  --safe-b:env(safe-area-inset-bottom,0px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--room);color:var(--text);font-family:var(--f-ui);overflow:hidden;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#game{position:fixed;inset:0;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#c{display:block;width:100%;height:100%;touch-action:none}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+
+/* HUD */
+.hud{position:absolute;left:0;right:0;top:calc(var(--safe-t) + 12px);display:flex;align-items:flex-start;gap:8px;padding:0 12px;pointer-events:none}
+.hud>*{pointer-events:auto}
+.ibtn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(23,18,42,.66);border:1px solid rgba(246,242,255,.25);padding:0;flex:none}
+.ibtn svg{width:15px;height:15px}
+.stats{margin-left:46px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 10px;border-radius:9px;background:rgba(18,24,22,.88);border:1px solid var(--line);font-weight:700;font-size:16px;letter-spacing:.02em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chip small{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.lamps{display:inline-flex;gap:5px}
+.lamps i{width:11px;height:11px;border-radius:50%;background:#3a2422;box-shadow:inset 0 0 0 1px rgba(0,0,0,.5)}
+.lamps i.on{background:var(--red);box-shadow:0 0 8px var(--red)}
+.right{margin-left:auto;display:flex;gap:6px}
+.speed{min-width:44px;justify-content:center;cursor:pointer}
+.speed.fast{background:var(--amber);color:#2a1a00;border-color:transparent}
+.toast{position:absolute;left:50%;top:calc(var(--safe-t) + 58px);transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;width:min(92vw,420px)}
+.toast div{background:rgba(18,24,22,.94);border:1px solid var(--line);padding:7px 13px;border-radius:9px;font-weight:600;font-size:15px;text-align:center;animation:tin .2s ease-out both}
+.toast div.bad{border-color:rgba(255,59,48,.7);color:#ffd2ce}
+.toast div.good{border-color:rgba(59,226,126,.6)}
+@keyframes tin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
+.coach{position:absolute;left:50%;bottom:calc(var(--safe-b) + 14px);transform:translateX(-50%);width:min(92vw,400px);background:var(--white);color:var(--ink);border-radius:12px;padding:10px 14px 12px;font-size:16px;line-height:1.35;box-shadow:0 10px 30px rgba(0,0,0,.45);pointer-events:none}
+.coach b{display:block;font-family:var(--f-head);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#a0331f;margin-bottom:2px}
+
+/* Bildschirme */
+.screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;padding:calc(var(--safe-t) + 64px) 16px calc(var(--safe-b) + 20px);overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+#menu{background:radial-gradient(120% 80% at 50% 0%,#24302b,var(--room) 70%)}
+.title{font-family:var(--f-head);font-weight:800;font-size:clamp(52px,15vw,92px);line-height:.9;letter-spacing:.06em;margin:0;text-align:center}
+.title span{color:var(--amber)}
+.tag{margin:8px 0 18px;font-weight:600;font-size:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);text-align:center}
+.levels{display:grid;gap:10px;width:min(100%,520px)}
+.lvl{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;text-align:left;padding:10px;border-radius:14px;background:var(--pult);border:1px solid var(--rim);box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.lvl canvas{width:96px;height:96px;border-radius:9px;background:#1a221f;display:block}
+.lvl h2{margin:0;font-family:var(--f-head);font-weight:800;font-size:25px;letter-spacing:.03em;line-height:1}
+.lvl .sub{font-size:14px;color:var(--muted);margin-top:3px}
+.lvl .meta{display:flex;align-items:center;gap:10px;margin-top:8px;font-weight:600;font-size:15px}
+.stars{color:#4c5a54;letter-spacing:2px;font-size:17px}
+.stars b{color:var(--amber);font-weight:400}
+.lvl.lock{opacity:.5}
+.lvl .lk{font-size:13px;color:var(--amber);font-weight:600}
+.help{width:min(100%,520px);margin-top:14px;font-size:14px;line-height:1.45;color:var(--muted);border:1px dashed var(--line);border-radius:12px;padding:10px 12px}
+.help b{color:var(--text)}
+#pause,#over{background:rgba(10,14,12,.86);justify-content:center}
+.box{width:min(100%,380px);background:var(--pult);border:1px solid var(--rim);border-radius:16px;padding:18px;text-align:center}
+.box h2{margin:0 0 4px;font-family:var(--f-head);font-weight:800;font-size:40px;letter-spacing:.03em;line-height:1}
+.box h2.bad{color:var(--red)}
+.box .why{color:var(--muted);font-size:15px;margin-bottom:12px}
+.res{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0 14px}
+.res div{background:var(--ink);border-radius:10px;padding:8px 4px}
+.res b{display:block;font-family:var(--f-head);font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+.res span{font-size:12px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.new{display:inline-block;background:var(--amber);color:#2a1a00;font-weight:800;font-size:13px;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:6px;margin-bottom:8px}
+.btns{display:grid;gap:8px}
+.btn{height:50px;border-radius:12px;border:1px solid var(--rim);background:var(--pult-2);font-family:var(--f-head);font-weight:800;font-size:20px;letter-spacing:.05em}
+.btn.hot{background:var(--amber);color:#2a1a00;border-color:transparent}
+.opt{display:flex;justify-content:space-between;align-items:center;padding:0 14px;font-size:18px}
+.opt b{color:var(--amber)}
+@media (prefers-reduced-motion:reduce){.toast div{animation:none}}
+</style>
+</head>
+<body>
+<div id="game">
+  <canvas id="c" aria-label="Gleisbild-Stellpult"></canvas>
+  <div class="hud" id="hud" hidden>
+    <button class="ibtn" id="btnPause" aria-label="Pause" title="Pause (P)"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="3.4" height="12" rx="1" fill="currentColor"/><rect x="9.6" y="2" width="3.4" height="12" rx="1" fill="currentColor"/></svg></button>
+    <div class="stats">
+      <span class="chip" id="cTrains"><small>Züge</small><b>0</b></span>
+      <span class="chip" id="cScore"><small>Pkt</small><b>0</b></span>
+      <span class="chip" title="Störungen: bei drei ist Dienstschluss"><span class="lamps" id="lamps"><i></i><i></i><i></i></span></span>
+    </div>
+    <div class="right"><button class="chip speed" id="btnSpeed" aria-label="Zeitraffer umschalten" title="Zeitraffer (T)">1×</button></div>
+  </div>
+  <div class="toast" id="toast" aria-live="polite"></div>
+  <div class="coach" id="coach" hidden></div>
+
+  <section class="screen" id="menu" hidden>
+    <h1 class="title">STELL<span>WERK</span></h1>
+    <p class="tag">Fahrdienstleiter gesucht</p>
+    <div class="levels" id="levels"></div>
+    <div class="help"><b>So geht's:</b> Züge warten vor dem roten Einfahrsignal. Stell die Weichen so, dass die Linie in der Zugfarbe am passenden Ziel endet, dann tipp aufs Signal. Nach jedem Zug fällt das Signal wieder auf Halt. Fährt ein Zug gegen eine falsch gestellte Weiche, wird sie aufgefahren. Drei Störungen beenden die Schicht, ein Zusammenstoß sofort.<br><b>Am PC:</b> Klicken, <kbd>T</kbd> Zeitraffer, <kbd>P</kbd> Pause.</div>
+  </section>
+
+  <section class="screen" id="pause" hidden><div class="box">
+    <h2>Pause</h2><div class="why" id="pauseInfo"></div>
+    <div class="btns">
+      <button class="btn hot" id="pResume">Weiter</button>
+      <button class="btn opt" id="pSound">Ton <b id="pSoundV">an</b></button>
+      <button class="btn" id="pRestart">Neu starten</button>
+      <button class="btn" id="pMenu">Stellwerke</button>
+    </div>
+  </div></section>
+
+  <section class="screen" id="over" hidden><div class="box" id="overBox"></div></section>
+</div>
+<script>
+(function () {
+'use strict';
+/* =====================================================================
+   STELLWERK – Fahrdienstleiter-Spiel für playaz.fun
+   Canvas 2D, kein Backend. Spielstand in localStorage ("stellwerk.v1").
+   Gleisnetz als Graph: Knoten (Weiche, Signal, Kreuzung, Ein-/Ausfahrt, Prellbock)
+   und gerade Kanten. Züge fahren entlang der Kanten, Weichen entscheiden den Weg.
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const fmtInt = n => Math.round(n).toLocaleString('de-DE');
+
+// ---------------------------------------------------------------------
+// Daten
+// ---------------------------------------------------------------------
+const DEST_COL = ['#ffd23f', '#4dd0e1', '#ff6b9a', '#9be15d', '#ff9f43', '#c3a6ff'];
+const TYPES = {
+  RB:  { v: 1.45, len: 1.35, pts: 10, cls: 'P', n: [3000, 3999] },
+  RE:  { v: 1.9,  len: 1.75, pts: 15, cls: 'P', n: [4000, 4999] },
+  ICE: { v: 2.55, len: 2.3,  pts: 25, cls: 'P', n: [500, 999] },
+  GZ:  { v: 1.15, len: 2.7,  pts: 15, cls: 'G', n: [44000, 49999] },
+};
+// Koordinaten: x 0…10, y 0…16 (y nach unten). Ein-/Ausfahrten liegen knapp außerhalb.
+const LEVELS = [
+  { id: 'moorbach', name: 'Moorbach', sub: 'Abzweig · 1 Einfahrt · 3 Ziele', stars: [10, 25, 50], spawn: [14, 6], speed: [1, 1.3], mix: { RB: .6, RE: .4 },
+    n: {
+      E1: { x: 5, y: 17.4, t: 'entry', label: 'aus Süden' },
+      S1: { x: 5, y: 14.6, t: 'esig', from: 'E1' },
+      W1: { x: 5, y: 11, t: 'sw', stem: 'S1', b: ['W2', 'A1'] },
+      A1: { x: 7, y: 9 },
+      X2: { x: 7, y: -1.4, t: 'exit', code: 'MB', name: 'Moorbach' },
+      W2: { x: 5, y: 7, t: 'sw', stem: 'W1', b: ['X1', 'B1'] },
+      X1: { x: 5, y: -1.4, t: 'exit', code: 'KH', name: 'Kreuzheim' },
+      B1: { x: 3, y: 5 },
+      X3: { x: 3, y: -1.4, t: 'exit', code: 'HD', name: 'Heide' },
+    },
+    e: [['E1', 'S1'], ['S1', 'W1'], ['W1', 'W2'], ['W1', 'A1'], ['A1', 'X2'], ['W2', 'X1'], ['W2', 'B1'], ['B1', 'X3']] },
+  { id: 'kreuzheim', name: 'Kreuzheim', sub: 'Zusammenführung · 2 Einfahrten', stars: [12, 30, 55], spawn: [13, 5], speed: [1, 1.35], mix: { RB: .45, RE: .4, ICE: .15 },
+    n: {
+      E1: { x: 2, y: 17.4, t: 'entry', label: 'aus Brück' },
+      S1: { x: 2, y: 14.6, t: 'esig', from: 'E1' },
+      P1: { x: 2, y: 13 },
+      E2: { x: 8, y: 17.4, t: 'entry', label: 'aus Saal' },
+      S2: { x: 8, y: 14.6, t: 'esig', from: 'E2' },
+      P2: { x: 8, y: 13 },
+      WM: { x: 5, y: 10, t: 'sw', stem: 'M1', b: ['P1', 'P2'] },
+      M1: { x: 5, y: 9 },
+      W2: { x: 5, y: 7, t: 'sw', stem: 'M1', b: ['W3', 'C1'] },
+      C1: { x: 7, y: 5 },
+      X2: { x: 7, y: -1.4, t: 'exit', code: 'OH', name: 'Ostheim' },
+      W3: { x: 5, y: 5, t: 'sw', stem: 'W2', b: ['X1', 'D1'] },
+      X1: { x: 5, y: -1.4, t: 'exit', code: 'SB', name: 'Saalbrück' },
+      D1: { x: 3, y: 3 },
+      X3: { x: 3, y: -1.4, t: 'exit', code: 'WE', name: 'Westend' },
+    },
+    e: [['E1', 'S1'], ['S1', 'P1'], ['P1', 'WM'], ['E2', 'S2'], ['S2', 'P2'], ['P2', 'WM'], ['WM', 'M1'], ['M1', 'W2'], ['W2', 'W3'], ['W2', 'C1'], ['C1', 'X2'], ['W3', 'X1'], ['W3', 'D1'], ['D1', 'X3']] },
+  { id: 'saalbrueck', name: 'Saalbrück Hbf', sub: 'Kopfbahnhof · Güter fahren durch', stars: [10, 25, 45], spawn: [13, 6], speed: [1, 1.3], mix: { RB: .35, RE: .3, ICE: .1, GZ: .25 },
+    n: {
+      E1: { x: 4, y: 17.4, t: 'entry', label: 'aus Süden' },
+      S1: { x: 4, y: 14.6, t: 'esig', from: 'E1' },
+      W1: { x: 4, y: 13, t: 'sw', stem: 'S1', b: ['WM', 'G1'] },
+      G1: { x: 6, y: 11 },
+      G2: { x: 8, y: 9 },
+      XG: { x: 11.4, y: 9, t: 'exit', code: 'GB', name: 'Güterbf', accept: 'G' },
+      E2: { x: -1.4, y: 13, t: 'entry', label: 'aus Westen' },
+      S2: { x: .6, y: 13, t: 'esig', from: 'E2' },
+      P2: { x: 2, y: 13 },
+      WM: { x: 4, y: 11, t: 'sw', stem: 'M1', b: ['W1', 'P2'] },
+      M1: { x: 4, y: 10 },
+      W2: { x: 4, y: 9, t: 'sw', stem: 'M1', b: ['W3', 'H1'] },
+      H1: { x: 2, y: 7 },
+      B1: { x: 2, y: 1.4, t: 'buffer', code: '1', name: 'Gleis 1', accept: 'P' },
+      W3: { x: 4, y: 7, t: 'sw', stem: 'W2', b: ['B2', 'K1'] },
+      B2: { x: 4, y: 1.4, t: 'buffer', code: '2', name: 'Gleis 2', accept: 'P' },
+      K1: { x: 6, y: 5 },
+      B3: { x: 6, y: 1.4, t: 'buffer', code: '3', name: 'Gleis 3', accept: 'P' },
+    },
+    e: [['E1', 'S1'], ['S1', 'W1'], ['W1', 'WM'], ['W1', 'G1'], ['G1', 'G2'], ['G2', 'XG'], ['E2', 'S2'], ['S2', 'P2'], ['P2', 'WM'], ['WM', 'M1'], ['M1', 'W2'], ['W2', 'W3'], ['W2', 'H1'], ['H1', 'B1'], ['W3', 'B2'], ['W3', 'K1'], ['K1', 'B3']] },
+  { id: 'knoten', name: 'Knoten Nord', sub: 'Kreuzung · Zwischensignal', stars: [12, 30, 55], spawn: [12, 4.8], speed: [1, 1.35], mix: { RB: .4, RE: .35, ICE: .15, GZ: .1 },
+    n: {
+      E1: { x: -1.4, y: 11, t: 'entry', label: 'aus Westen' },
+      S1: { x: .6, y: 11, t: 'esig', from: 'E1' },
+      W1: { x: 2, y: 11, t: 'sw', stem: 'S1', b: ['C', 'Q1'] },
+      C: { x: 5, y: 11, t: 'cross', pairs: [['W1', 'R1'], ['Z1', 'WM']] },
+      R1: { x: 8, y: 11 },
+      X1: { x: 11.4, y: 11, t: 'exit', code: 'OH', name: 'Ostheim' },
+      E2: { x: 5, y: 17.4, t: 'entry', label: 'aus Süden' },
+      S2: { x: 5, y: 14.6, t: 'esig', from: 'E2' },
+      Z1: { x: 5, y: 12.4, t: 'sig', from: 'S2' },
+      Q1: { x: 4, y: 9 },
+      WM: { x: 5, y: 8, t: 'sw', stem: 'M3', b: ['C', 'Q1'] },
+      M3: { x: 5, y: 7 },
+      W2: { x: 5, y: 6, t: 'sw', stem: 'M3', b: ['W3', 'D1'] },
+      D1: { x: 3, y: 4 },
+      X3: { x: 3, y: -1.4, t: 'exit', code: 'WE', name: 'Westend' },
+      W3: { x: 5, y: 4, t: 'sw', stem: 'W2', b: ['X2', 'F1'] },
+      X2: { x: 5, y: -1.4, t: 'exit', code: 'NS', name: 'Nordstadt' },
+      F1: { x: 7, y: 2 },
+      X4: { x: 7, y: -1.4, t: 'exit', code: 'HF', name: 'Hafen' },
+    },
+    e: [['E1', 'S1'], ['S1', 'W1'], ['W1', 'C'], ['W1', 'Q1'], ['C', 'R1'], ['R1', 'X1'], ['E2', 'S2'], ['S2', 'Z1'], ['Z1', 'C'], ['C', 'WM'], ['Q1', 'WM'], ['WM', 'M3'], ['M3', 'W2'], ['W2', 'W3'], ['W2', 'D1'], ['D1', 'X3'], ['W3', 'X2'], ['W3', 'F1'], ['F1', 'X4']] },
+  { id: 'grossknoten', name: 'Großknoten Saal', sub: '3 Einfahrten · Bahnsteige · Güter', stars: [12, 30, 50], spawn: [12, 5.2], speed: [1, 1.35], mix: { RB: .35, RE: .3, ICE: .15, GZ: .2 },
+    n: {
+      E1: { x: 2, y: 17.4, t: 'entry', label: 'aus Brück' },
+      S1: { x: 2, y: 14.6, t: 'esig', from: 'E1' },
+      P1: { x: 2, y: 13 },
+      E2: { x: 8, y: 17.4, t: 'entry', label: 'aus Saal' },
+      S2: { x: 8, y: 14.6, t: 'esig', from: 'E2' },
+      P2: { x: 8, y: 13 },
+      WA: { x: 5, y: 10, t: 'sw', stem: 'T1', b: ['P1', 'P2'] },
+      T1: { x: 5, y: 9 },
+      WW: { x: 5, y: 8, t: 'sw', stem: 'T1', b: ['Z1', 'Y1'] },
+      Y1: { x: 3, y: 6 },
+      XW: { x: -1.4, y: 6, t: 'exit', code: 'WE', name: 'Westend' },
+      Z1: { x: 5, y: 7, t: 'sig', from: 'WW' },
+      E3: { x: 11.4, y: 9, t: 'entry', label: 'aus Osten' },
+      S3: { x: 9.4, y: 9, t: 'esig', from: 'E3' },
+      Q2: { x: 8, y: 9 },
+      WB: { x: 5, y: 6, t: 'sw', stem: 'T2', b: ['Z1', 'Q2'] },
+      T2: { x: 5, y: 5 },
+      WD: { x: 5, y: 4, t: 'sw', stem: 'T2', b: ['WF', 'R1'] },
+      R1: { x: 3, y: 2 },
+      B1: { x: 3, y: .8, t: 'buffer', code: '1', name: 'Gleis 1', accept: 'P' },
+      WF: { x: 5, y: 3, t: 'sw', stem: 'WD', b: ['B2', 'R2'] },
+      B2: { x: 5, y: .8, t: 'buffer', code: '2', name: 'Gleis 2', accept: 'P' },
+      R2: { x: 7, y: 1 },
+      XN: { x: 7, y: -1.4, t: 'exit', code: 'NH', name: 'Nordhafen' },
+    },
+    e: [['E1', 'S1'], ['S1', 'P1'], ['P1', 'WA'], ['E2', 'S2'], ['S2', 'P2'], ['P2', 'WA'], ['WA', 'T1'], ['T1', 'WW'], ['WW', 'Z1'], ['WW', 'Y1'], ['Y1', 'XW'], ['Z1', 'WB'], ['E3', 'S3'], ['S3', 'Q2'], ['Q2', 'WB'], ['WB', 'T2'], ['T2', 'WD'], ['WD', 'WF'], ['WD', 'R1'], ['R1', 'B1'], ['WF', 'B2'], ['WF', 'R2'], ['R2', 'XN']] },
+];
+
+// ---------------------------------------------------------------------
+// Speicher
+// ---------------------------------------------------------------------
+const SAVE_KEY = 'stellwerk.v1';
+let SV = { best: {}, stars: {}, tut: 0, sound: 1 };
+try { const d = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); if (d) SV = Object.assign(SV, d); } catch (e) { /* privat */ }
+function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(SV)); } catch (e) { /* voll */ } }
+function unlocked(i) { return i === 0 || (SV.stars[LEVELS[i - 1].id] || 0) >= 1; }
+
+// ---------------------------------------------------------------------
+// Ton
+// ---------------------------------------------------------------------
+const AU = (() => {
+  let ctx = null, master = null, nb = null;
+  function init() {
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+    ctx = new AC(); master = ctx.createGain(); master.gain.value = SV.sound ? .8 : 0; master.connect(ctx.destination);
+    nb = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate); const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  function env(g, t, a, d, p) { g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(p, t + a); g.gain.exponentialRampToValueAtTime(.0001, t + a + d); }
+  function tone(f, dur, type, p, f2, dl = 0) { if (!ctx || !SV.sound) return; const t = ctx.currentTime + dl, o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur); env(g, t, .006, dur, p); o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + .05); }
+  function noise(dur, f, p, type = 'lowpass', dl = 0) { if (!ctx || !SV.sound) return; const t = ctx.currentTime + dl, s = ctx.createBufferSource(), fl = ctx.createBiquadFilter(), g = ctx.createGain(); s.buffer = nb; fl.type = type; fl.frequency.value = f; env(g, t, .003, dur, p); s.connect(fl); fl.connect(g); g.connect(master); s.start(t, Math.random() * .5); s.stop(t + dur + .05); }
+  return {
+    init, setOn(v) { if (master) master.gain.value = v ? .8 : 0; },
+    klack() { noise(.05, 2600, .35, 'bandpass'); tone(110, .07, 'triangle', .25, 70); noise(.04, 1800, .2, 'bandpass', .07); },
+    signal(green) { noise(.03, 3000, .25, 'bandpass'); tone(green ? 1250 : 820, .09, 'sine', .12, null, .03); },
+    horn(kind) { const f = kind === 'ICE' ? 660 : kind === 'GZ' ? 220 : 392; tone(f, .45, 'triangle', .08, f * .985); tone(f * 1.26, .45, 'triangle', .06, f * 1.24); },
+    arrive() { [784, 659, 523].forEach((f, i) => tone(f, .35, 'sine', .1, null, i * .16)); },
+    error() { tone(180, .35, 'square', .1, 150); tone(186, .35, 'square', .08, 154); },
+    crash() { noise(1.4, 900, .7); tone(60, 1, 'sine', .5, 30); noise(.5, 4000, .3, 'highpass', .05); },
+    tick() { noise(.015, 4500, .05, 'bandpass'); },
+  };
+})();
+
+// ---------------------------------------------------------------------
+// Netz aufbauen
+// ---------------------------------------------------------------------
+let LV = null, LVI = 0, N = {}, SW = [], SIG = [], DEST = [], ENT = [];
+const elenCache = {};
+function elen(a, b) { const k = a < b ? a + '|' + b : b + '|' + a; let v = elenCache[k]; if (v === undefined) { v = Math.hypot(N[a].x - N[b].x, N[a].y - N[b].y); elenCache[k] = v; } return v; }
+function build(i) {
+  LVI = i; LV = LEVELS[i]; N = {}; SW = []; SIG = []; DEST = []; ENT = [];
+  for (const k in elenCache) delete elenCache[k];
+  for (const id in LV.n) N[id] = Object.assign({ id, t: 'pt', nb: [] }, LV.n[id]);
+  for (const [a, b] of LV.e) { N[a].nb.push(b); N[b].nb.push(a); }
+  let sw = 0, sg = 0, zs = 0, di = 0;
+  for (const id in N) {
+    const n = N[id];
+    if (n.t === 'sw') { n.state = 0; n.label = 'W' + (++sw); n.flash = 0; SW.push(n); }
+    if (n.t === 'esig') { n.state = 'red'; n.label = 'S' + (++sg); n.fall = -1; SIG.push(n); }
+    if (n.t === 'sig') { n.state = 'green'; n.label = 'Z' + (++zs); SIG.push(n); }
+    if (n.t === 'exit' || n.t === 'buffer') { n.col = DEST_COL[di++ % DEST_COL.length]; n.accept = n.accept || (n.t === 'buffer' ? 'P' : 'A'); DEST.push(n); }
+    if (n.t === 'entry') { n.queue = []; n.sig = n.nb[0]; ENT.push(n); }
+  }
+  for (const e of ENT) e.reach = reachable(e.id);
+}
+function nextNode(id, prev) {
+  const n = N[id];
+  switch (n.t) {
+    case 'sw': return prev === n.stem ? n.b[n.state] : n.stem;
+    case 'cross': for (const p of n.pairs) { if (p[0] === prev) return p[1]; if (p[1] === prev) return p[0]; } return null;
+    case 'exit': case 'buffer': return null;
+    default: return n.nb[0] === prev ? n.nb[1] : n.nb[0];
+  }
+}
+function reachable(entryId) {
+  const out = new Set(), seen = new Set(), st = [[entryId, N[entryId].nb[0]]];
+  while (st.length) {
+    const [p, c] = st.pop(), k = p + '>' + c; if (seen.has(k)) continue; seen.add(k);
+    const n = N[c];
+    if (n.t === 'exit' || n.t === 'buffer') { out.add(c); continue; }
+    if (n.t === 'sw') { if (p === n.stem) { st.push([c, n.b[0]], [c, n.b[1]]); } else st.push([c, n.stem]); continue; }
+    const nx = nextNode(c, p); if (nx) st.push([c, nx]);
+  }
+  return [...out];
+}
+// Weg nach aktueller Weichenlage verfolgen
+function trace(prev, cur, max = 40) {
+  const nodes = [prev, cur], bad = [];
+  for (let i = 0; i < max; i++) {
+    const n = N[cur];
+    if (n.t === 'exit' || n.t === 'buffer') return { nodes, end: cur, bad };
+    if (n.t === 'sw' && prev !== n.stem && n.b[n.state] !== prev) bad.push(cur);
+    const nx = nextNode(cur, prev); if (!nx) return { nodes, end: null, bad };
+    nodes.push(nx); prev = cur; cur = nx;
+  }
+  return { nodes, end: null, bad };
+}
+// Benötigte Weichenlagen, um von (prev,cur) nach dest zu kommen (für Testspieler und Hilfen)
+function routeTo(prev, cur, dest) {
+  const st = [[prev, cur, {}]], seen = new Set();
+  while (st.length) {
+    const [p, c, need] = st.pop(), k = p + '>' + c; if (seen.has(k)) continue; seen.add(k);
+    const n = N[c];
+    if (c === dest) return need;
+    if (n.t === 'exit' || n.t === 'buffer') continue;
+    if (n.t === 'sw') {
+      if (p === n.stem) { for (let s = 0; s < 2; s++) st.push([c, n.b[s], Object.assign({}, need, { [c]: s })]); }
+      else st.push([c, n.stem, Object.assign({}, need, { [c]: n.b.indexOf(p) })]);
+      continue;
+    }
+    const nx = nextNode(c, p); if (nx) st.push([c, nx, need]);
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------
+// Spielzustand
+// ---------------------------------------------------------------------
+const G = { state: 'menu', t: 0, speed: 1, trains: [], delivered: 0, score: 0, strikes: 0, combo: 0, punctual: 0, spawnT: 2, seq: 0, fx: [], floats: [], over: null, tut: -1, flash: 0, shake: 0 };
+const ACC = 1.05, BRAKE = 1.6, GRACE = 20, CANCEL = 120;
+function startLevel(i) {
+  build(i);
+  Object.assign(G, { state: 'play', t: 0, trains: [], delivered: 0, score: 0, strikes: 0, combo: 0, punctual: 0, spawnT: 1.2, seq: 0, fx: [], floats: [], over: null, flash: 0, shake: 0 });
+  G.tut = (i === 0 && !SV.tut) ? 0 : -1; coach(null); $('coach').dataset.s0 = '';
+  if (G.tut === 0) { const e = ENT[0]; e.queue.push(makeTrain(e, 'RE', 'X2')); G.spawnT = 1e9; }
+  $('menu').hidden = true; $('over').hidden = true; $('pause').hidden = true; $('hud').hidden = false;
+  layout(); hud(); AU.init();
+}
+function pickType() { const m = LV.mix; let r = Math.random(), last = 'RB'; for (const k in m) { last = k; r -= m[k]; if (r <= 0) return k; } return last; }
+function makeTrain(entry, type, dest) {
+  const T = TYPES[type];
+  return { id: ++G.seq, type, dest, entry: entry.id, num: Math.floor(rnd(T.n[0], T.n[1])), vmax: T.v, len: T.len, v: 0, delay: 0, a: null, b: null, s: 0, path: [], passed: false, sinceSig: 0, state: 'queue', dwell: 0, exitS: 0, fade: 1, gone: false };
+}
+function scheduleTrain() {
+  // Einfahrt wählen: bevorzugt die mit kürzester Warteschlange
+  const ents = ENT.slice().sort((a, b) => a.queue.length - b.queue.length + (Math.random() - .5) * 1.5);
+  for (const e of ents) {
+    if (e.queue.length >= 3) continue;
+    for (let k = 0; k < 6; k++) {
+      const type = pickType(), cls = TYPES[type].cls;
+      const ok = e.reach.filter(d => N[d].accept === 'A' || N[d].accept === cls);
+      if (!ok.length) continue;
+      e.queue.push(makeTrain(e, type, ok[(Math.random() * ok.length) | 0])); return;
+    }
+  }
+}
+function spawnInterval() { const k = clamp(G.delivered / 45, 0, 1); return lerp(LV.spawn[0], LV.spawn[1], k * (2 - k)) * rnd(.75, 1.25); }
+function speedMul() { return lerp(LV.speed[0], LV.speed[1], clamp(G.delivered / 60, 0, 1)); }
+function approachFree(e) { return !G.trains.some(t => t.entry === e.id && !t.gone && (!t.passed || t.sinceSig < t.len + .4)); }
+function place(tr) {
+  const e = N[tr.entry], nx = e.nb[0], dx = N[nx].x - e.x, dy = N[nx].y - e.y, l = Math.hypot(dx, dy);
+  tr.a = e.id; tr.b = nx; tr.s = 0; tr.state = 'run'; tr.v = tr.vmax * .55 * speedMul();
+  tr.path = [{ x: e.x - dx / l * (tr.len + 1.5), y: e.y - dy / l * (tr.len + 1.5) }, { x: e.x, y: e.y }];
+  G.trains.push(tr);
+  if (tr.type !== 'RB') AU.horn(tr.type);
+}
+function headPos(tr) {
+  if (tr.state === 'exit') { const n = N[tr.b]; return { x: n.x + tr.ex * tr.exitS, y: n.y + tr.ey * tr.exitS }; }
+  const A = N[tr.a], B = N[tr.b], k = tr.s / elen(tr.a, tr.b);
+  return { x: lerp(A.x, B.x, k), y: lerp(A.y, B.y, k) };
+}
+function bodyPts(tr) {
+  const h = headPos(tr), pts = [h]; let need = tr.len, x = h.x, y = h.y;
+  for (let i = tr.path.length - 1; i >= 0 && need > 0; i--) {
+    const p = tr.path[i], d = Math.hypot(p.x - x, p.y - y);
+    if (d >= need) { const k = need / d; pts.push({ x: x + (p.x - x) * k, y: y + (p.y - y) * k }); need = 0; break; }
+    if (d > 1e-6) pts.push(p); need -= d; x = p.x; y = p.y;
+  }
+  return pts;
+}
+function trimPath(tr) {
+  let L = 0;
+  for (let i = tr.path.length - 1; i > 0; i--) { L += Math.hypot(tr.path[i].x - tr.path[i - 1].x, tr.path[i].y - tr.path[i - 1].y); if (L > tr.len + 3) { tr.path.splice(0, i - 1); return; } }
+}
+function stopDist(tr) {
+  if (tr.state !== 'run') return Infinity;
+  let acc = elen(tr.a, tr.b) - tr.s, prev = tr.a, cur = tr.b;
+  for (let i = 0; i < 40 && acc < 14; i++) {
+    const n = N[cur];
+    if ((n.t === 'esig' || n.t === 'sig') && n.from === prev && n.state === 'red') return acc - .34;
+    if (n.t === 'buffer') return acc - .32;
+    if (n.t === 'exit') return Infinity;
+    const nx = nextNode(cur, prev); if (!nx) return acc;
+    acc += elen(cur, nx); prev = cur; cur = nx;
+  }
+  return Infinity;
+}
+function moveTrain(tr, ds) {
+  if (tr.state === 'exit') { tr.exitS += ds; if (tr.exitS > tr.len + 1.6) tr.gone = true; return; }
+  tr.s += ds; if (tr.passed) tr.sinceSig += ds;
+  let guard = 0;
+  while (guard++ < 8) {
+    const L = elen(tr.a, tr.b);
+    if (tr.s < L) break;
+    const id = tr.b, n = N[id];
+    tr.path.push({ x: n.x, y: n.y }); trimPath(tr);
+    if (n.t === 'exit') {
+      const A = N[tr.a], dx = n.x - A.x, dy = n.y - A.y, l = Math.hypot(dx, dy);
+      tr.ex = dx / l; tr.ey = dy / l; tr.exitS = tr.s - L; tr.state = 'exit'; arrive(tr, id); return;
+    }
+    if (n.t === 'buffer') { tr.s = L; return; }
+    if (n.t === 'esig' && n.from === tr.a) { tr.passed = true; tr.sinceSig = tr.s - L; n.fall = .25; }
+    if (n.t === 'sw' && tr.a !== n.stem && n.b[n.state] !== tr.a) { // aufgefahren
+      n.state = n.b.indexOf(tr.a); n.flash = 1.2; strike('Weiche ' + n.label + ' aufgefahren!', n.x, n.y);
+    }
+    const nx = nextNode(id, tr.a);
+    if (!nx) { tr.s = L; return; }
+    tr.s -= L; tr.a = id; tr.b = nx;
+  }
+}
+function arrive(tr, destId) {
+  const d = N[destId];
+  if (destId === tr.dest) {
+    const T = TYPES[tr.type], f = clamp(1 - (tr.delay - GRACE) / 60, .3, 1);
+    G.combo++; const mult = 1 + Math.min(2, Math.floor(G.combo / 5) * .5);
+    const pts = Math.round(T.pts * f * mult);
+    G.score += pts; G.delivered++; if (tr.delay < GRACE) G.punctual++;
+    G.floats.push({ x: d.x, y: clamp(d.y, .2, 16), txt: '+' + pts + (mult > 1 ? ' ×' + mult : ''), col: d.col, t: 1.6 });
+    AU.arrive();
+    if (G.combo > 0 && G.combo % 5 === 0) toast('Serie ' + G.combo + ': Punkte ×' + mult, 'good');
+    if (G.tut === 2) { G.tut = 3; coach('Geschafft! Gleich kommen mehr Züge, auch mehrere auf einmal. Lass nie zwei Züge zusammenstoßen.', 'Gut gemacht'); setTimeout(() => { if (G.tut === 3) { coach(null); G.tut = -1; SV.tut = 1; save(); G.spawnT = 2; } }, 5200); }
+    const stars = starsFor(G.delivered);
+    if (stars > (SV.stars[LV.id] || 0)) { SV.stars[LV.id] = stars; save(); toast('★'.repeat(stars) + ' erreicht' + (stars === 1 && LVI < LEVELS.length - 1 ? ': ' + LEVELS[LVI + 1].name + ' ist frei' : ''), 'good'); }
+  } else {
+    G.combo = 0; strike('Fehlleitung: ' + tr.type + ' sollte nach ' + N[tr.dest].name + '.', d.x, clamp(d.y, .2, 16));
+  }
+  hud();
+}
+function starsFor(n) { const s = LV.stars; return n >= s[2] ? 3 : n >= s[1] ? 2 : n >= s[0] ? 1 : 0; }
+function strike(msg, x, y) {
+  G.strikes++; G.combo = 0; G.flash = .6; AU.error(); toast(msg, 'bad'); vib([60, 40, 60]);
+  if (x !== undefined) G.fx.push({ kind: 'ring', x, y, t: 1, col: '#ff3b30' });
+  hud();
+  if (G.strikes >= 3) gameOver('Dienstschluss', 'Drei Störungen in einer Schicht.');
+}
+function crash(t1, t2, p) {
+  AU.crash(); vib([200, 80, 200]); G.shake = 1; G.flash = 1;
+  for (let i = 0; i < 40; i++) { const a = rnd(0, TAU), v = rnd(1, 5); G.fx.push({ kind: 'spark', x: p.x, y: p.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: rnd(.5, 1.2) }); }
+  G.fx.push({ kind: 'ring', x: p.x, y: p.y, t: 1.4, col: '#ffb627', big: 1 });
+  gameOver('Zusammenstoß!', t1.type + ' ' + t1.num + ' und ' + t2.type + ' ' + t2.num + ' sind kollidiert.', true);
+}
+function gameOver(title, why, hard) {
+  if (G.state !== 'play') return;
+  G.state = 'ending'; G.over = { title, why, hard };
+  const b = SV.best[LV.id] || { n: 0, pts: 0 }; const rec = G.delivered > b.n || (G.delivered === b.n && G.score > b.pts);
+  if (rec) SV.best[LV.id] = { n: G.delivered, pts: G.score };
+  save(); G.over.rec = rec && G.delivered > 0;
+  setTimeout(showOver, hard ? 1500 : 900);
+}
+function vib(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) { /* egal */ } }
+
+// ---------------------------------------------------------------------
+// Simulation
+// ---------------------------------------------------------------------
+function update(dt) {
+  G.t += dt;
+  // Signale fallen nach Zugdurchfahrt auf Halt
+  for (const s of SIG) if (s.fall > 0) { s.fall -= dt; if (s.fall <= 0) { s.state = 'red'; s.fall = -1; } }
+  for (const w of SW) w.flash = Math.max(0, w.flash - dt);
+  // Fahrplan
+  if (G.tut < 0) { G.spawnT -= dt; if (G.spawnT <= 0) { scheduleTrain(); G.spawnT = spawnInterval(); } }
+  for (const e of ENT) {
+    for (const q of e.queue) q.delay += dt;
+    if (e.queue.length && approachFree(e)) place(e.queue.shift());
+    // Zugausfall in der Warteschlange
+    if (e.queue.length && e.queue[0].delay > CANCEL) { e.queue.shift(); strike('Zugausfall: Der Zug ' + e.label + ' hat zu lange gewartet.', e.x, clamp(e.y, .2, 16)); }
+  }
+  const sm = speedMul();
+  for (const tr of G.trains) {
+    if (tr.gone) continue;
+    if (tr.state === 'dwell') { tr.dwell -= dt; if (tr.dwell <= 0) { tr.gone = true; arrive(tr, tr.b); } continue; }
+    const d = stopDist(tr), vmax = tr.vmax * sm;
+    const target = Math.min(vmax, Math.sqrt(Math.max(0, 2 * BRAKE * d)));
+    if (tr.v < target) tr.v = Math.min(target, tr.v + ACC * dt); else tr.v = Math.max(target, tr.v - BRAKE * 1.6 * dt);
+    if (d < .03) tr.v = 0;
+    moveTrain(tr, tr.v * dt);
+    if (tr.state === 'run' && tr.v < .04) {
+      if (G.tut < 0) tr.delay += dt;
+      if (N[tr.b].t === 'buffer' && elen(tr.a, tr.b) - tr.s < .45) { tr.state = 'dwell'; tr.dwell = 2.2; }
+      if (!tr.passed && tr.delay > CANCEL && !tr.cancel) { tr.cancel = true; tr.gone = true; strike('Zugausfall: ' + tr.type + ' ' + tr.num + ' hat zu lange vor dem Signal gewartet.', N[tr.b].x, N[tr.b].y); }
+    }
+    if (G.state !== 'play') return;
+  }
+  G.trains = G.trains.filter(t => !t.gone);
+  // Zusammenstöße: Abstand der Zugkörper (nur auf dem Pult)
+  const bodies = G.trains.map(tr => ({ tr, pts: sample(bodyPts(tr)) }));
+  for (let i = 0; i < bodies.length; i++) for (let j = i + 1; j < bodies.length; j++) {
+    const A = bodies[i].pts, B = bodies[j].pts;
+    for (const p of A) { if (p.x < -.4 || p.x > 10.4 || p.y < -.4 || p.y > 16.4) continue; for (const q of B) { if ((p.x - q.x) ** 2 + (p.y - q.y) ** 2 < .09) { crash(bodies[i].tr, bodies[j].tr, p); return; } } }
+  }
+  // Tutorial
+  if (G.tut >= 0 && G.tut <= 2) tutStep();
+}
+function sample(pts) {
+  const out = [];
+  for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1], d = Math.hypot(b.x - a.x, b.y - a.y), n = Math.max(1, Math.ceil(d / .22)); for (let k = 0; k < n; k++) out.push({ x: lerp(a.x, b.x, k / n), y: lerp(a.y, b.y, k / n) }); }
+  out.push(pts[pts.length - 1]); return out;
+}
+function tutStep() {
+  const tr = G.trains[0];
+  if (G.tut === 0) {
+    if (!tr) return;
+    const s = N[ENT[0].sig], r = trace(s.id, nextNode(s.id, ENT[0].id));
+    if (r.end === tr.dest) { G.tut = 1; coach('Richtig gestellt, die Linie endet bei MB. Jetzt tipp auf das rote Signal S1.', 'Signal ziehen'); }
+    else if (!$('coach').dataset.s0) { $('coach').dataset.s0 = 1; coach('Der Zug vor Signal S1 will nach Moorbach (MB, gelb). Tipp auf die Weiche W1, bis die gelbe Linie bei MB endet.', 'Erster Zug'); }
+  } else if (G.tut === 1) {
+    const s = N[ENT[0].sig], r = trace(s.id, nextNode(s.id, ENT[0].id));
+    if (tr && r.end !== tr.dest) { G.tut = 0; $('coach').dataset.s0 = ''; return; }
+    if (tr && tr.passed) { G.tut = 2; coach('Er fährt. Hinter ihm fällt das Signal wieder auf Rot: Jeder Zug braucht deine Freigabe.', 'Läuft'); }
+  }
+}
+
+// ---------------------------------------------------------------------
+// Eingabe
+// ---------------------------------------------------------------------
+function tapAt(px, py) {
+  if (G.state !== 'play') return;
+  AU.init();
+  const x = (px - VIEW.ox) / VIEW.u, y = (py - VIEW.oy) / VIEW.u;
+  let best = null, bd = .9;
+  for (const w of SW) { const d = Math.hypot(w.x - x, w.y - y); if (d < bd) { bd = d; best = w; } }
+  for (const s of SIG) { const lp = sigLamp(s), d = Math.min(Math.hypot(lp.x - x, lp.y - y), Math.hypot(s.x - x, s.y - y)); if (d < bd) { bd = d; best = s; } }
+  if (!best) return;
+  if (best.t === 'sw') {
+    if (switchBusy(best)) { toast('Weiche ' + best.label + ' ist besetzt und verschlossen.', 'bad'); best.flash = .5; AU.error(); return; }
+    best.state = 1 - best.state; best.flash = .25; AU.klack(); vib(8);
+  } else {
+    best.state = best.state === 'red' ? 'green' : 'red'; best.fall = -1; AU.signal(best.state === 'green'); vib(8);
+  }
+}
+function switchBusy(w) { for (const tr of G.trains) { if (tr.state === 'exit') continue; for (const p of sample(bodyPts(tr))) if (Math.hypot(p.x - w.x, p.y - w.y) < .5) return true; } return false; }
+const cvs = $('c'), ctx = cvs.getContext('2d');
+cvs.addEventListener('pointerdown', e => { e.preventDefault(); tapAt(e.clientX, e.clientY); });
+window.addEventListener('keydown', e => {
+  if (e.code === 'KeyP' || e.code === 'Escape') { if (G.state === 'play' || G.state === 'pause') pause(G.state === 'play'); }
+  if (e.code === 'KeyT') toggleSpeed();
+});
+$('btnPause').onclick = () => pause(true);
+$('btnSpeed').onclick = toggleSpeed;
+function toggleSpeed() { G.speed = G.speed === 1 ? 2 : 1; $('btnSpeed').textContent = G.speed + '×'; $('btnSpeed').classList.toggle('fast', G.speed === 2); AU.tick(); }
+function pause(on) {
+  if (on && G.state !== 'play') return;
+  G.state = on ? 'pause' : 'play'; $('pause').hidden = !on;
+  if (on) { $('pauseInfo').textContent = LV.name + ' · ' + G.delivered + ' Züge · ' + fmtInt(G.score) + ' Punkte'; $('pSoundV').textContent = SV.sound ? 'an' : 'aus'; }
+}
+$('pResume').onclick = () => pause(false);
+$('pSound').onclick = () => { SV.sound = SV.sound ? 0 : 1; AU.setOn(SV.sound); save(); $('pSoundV').textContent = SV.sound ? 'an' : 'aus'; };
+$('pRestart').onclick = () => startLevel(LVI);
+$('pMenu').onclick = () => showMenu();
+document.addEventListener('visibilitychange', () => { if (document.hidden && G.state === 'play') pause(true); });
+
+// ---------------------------------------------------------------------
+// Oberfläche
+// ---------------------------------------------------------------------
+function toast(msg, cls) {
+  const box = $('toast'), d = document.createElement('div'); d.textContent = msg; if (cls) d.className = cls; box.appendChild(d);
+  while (box.children.length > 3) box.removeChild(box.firstChild);
+  setTimeout(() => { d.style.transition = 'opacity .4s'; d.style.opacity = '0'; setTimeout(() => d.remove(), 450); }, 2400 + msg.length * 30);
+}
+function coach(text, head) { const c = $('coach'); if (!text) { c.hidden = true; return; } c.innerHTML = '<b>' + head + '</b>' + text; c.hidden = false; placeCoach(); }
+function hud() {
+  $('cTrains').lastElementChild.textContent = G.delivered;
+  $('cScore').lastElementChild.textContent = fmtInt(G.score);
+  [...$('lamps').children].forEach((l, i) => l.classList.toggle('on', i < G.strikes));
+}
+function showOver() {
+  G.state = 'over';
+  const o = G.over, st = starsFor(G.delivered), pun = G.delivered ? Math.round(G.punctual / G.delivered * 100) : 100, best = SV.best[LV.id] || { n: 0 };
+  const box = $('overBox');
+  box.innerHTML = (o.rec ? '<div class="new">Neuer Rekord</div>' : '') + '<h2 class="' + (o.hard ? 'bad' : '') + '">' + o.title + '</h2><div class="why">' + o.why + '</div>' +
+    '<div class="res"><div><b>' + G.delivered + '</b><span>Züge</span></div><div><b>' + fmtInt(G.score) + '</b><span>Punkte</span></div><div><b>' + pun + ' %</b><span>Pünktlich</span></div></div>' +
+    '<div class="stars" style="font-size:28px;margin-bottom:6px">' + '<b>★</b>'.repeat(st) + '★'.repeat(3 - st) + '</div>' +
+    '<div class="why">Rekord hier: ' + best.n + (best.n === 1 ? ' Zug' : ' Züge') + (st < 3 ? ' · nächster Stern bei ' + LV.stars[st] + ' Zügen' : '') + '</div>' +
+    '<div class="btns"><button class="btn hot" id="oAgain">Nochmal</button>' + (navigator.share ? '<button class="btn" id="oShare">Teilen</button>' : '') + '<button class="btn" id="oMenu">Stellwerke</button></div>';
+  $('over').hidden = false;
+  $('oAgain').onclick = () => startLevel(LVI);
+  $('oMenu').onclick = showMenu;
+  if ($('oShare')) $('oShare').onclick = () => { navigator.share({ title: 'STELLWERK', text: 'Ich habe im Stellwerk ' + LV.name + ' ' + G.delivered + ' Züge sicher durchgebracht. Schaffst du mehr?', url: 'https://playaz.fun/spiele/stellwerk.html' }).catch(() => {}); };
+}
+function showMenu() {
+  G.state = 'menu'; $('hud').hidden = true; $('over').hidden = true; $('pause').hidden = true; coach(null);
+  const L = $('levels'); L.innerHTML = '';
+  LEVELS.forEach((lv, i) => {
+    const un = unlocked(i), b = SV.best[lv.id], st = SV.stars[lv.id] || 0;
+    const el = document.createElement('button'); el.className = 'lvl' + (un ? '' : ' lock'); el.disabled = !un;
+    el.innerHTML = '<canvas width="192" height="192"></canvas><div><h2>' + lv.name + '</h2><div class="sub">' + lv.sub + '</div><div class="meta"><span class="stars">' + '<b>★</b>'.repeat(st) + '★'.repeat(3 - st) + '</span>' + (un ? (b ? '<span>Rekord ' + b.n + ' Züge</span>' : '<span style="color:var(--muted)">Noch nicht gespielt</span>') : '<span class="lk">Erst ★ in ' + LEVELS[i - 1].name + '</span>') + '</div></div>';
+    el.onclick = () => startLevel(i);
+    L.appendChild(el); drawPreview(lv, el.querySelector('canvas'));
+  });
+  $('menu').hidden = false;
+}
+
+// ---------------------------------------------------------------------
+// Zeichnen
+// ---------------------------------------------------------------------
+const VIEW = { u: 30, ox: 0, oy: 0, dpr: 1, W: 0, H: 0 };
+let panelCache = null;
+function layout() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2), W = window.innerWidth, H = window.innerHeight;
+  cvs.width = Math.round(W * dpr); cvs.height = Math.round(H * dpr);
+  const cs = getComputedStyle(document.documentElement);
+  const st = parseFloat(cs.getPropertyValue('--safe-t')) || 0, sb = parseFloat(cs.getPropertyValue('--safe-b')) || 0;
+  const top = st + 56, bottom = sb + 8, aw = W - 12, ah = H - top - bottom;
+  const u = Math.min(aw / 11.2, ah / 17.6);
+  Object.assign(VIEW, { u, dpr, W, H, ox: (W - 11 * u) / 2 + .5 * u, oy: top + .8 * u });
+  VIEW.panelBottom = VIEW.oy + 16.7 * u;
+  panelCache = null; placeCoach();
+}
+function placeCoach() {
+  const c = $('coach'), spaceBelow = VIEW.H - VIEW.panelBottom, rightX = VIEW.ox + 10.7 * VIEW.u;
+  if (spaceBelow > 110) { c.style.left = '50%'; c.style.transform = 'translateX(-50%)'; c.style.top = (VIEW.panelBottom + 10) + 'px'; c.style.bottom = 'auto'; c.style.width = ''; }
+  else if (VIEW.W - rightX > 260) { c.style.left = (rightX + 18) + 'px'; c.style.transform = 'none'; c.style.top = (VIEW.oy + 2 * VIEW.u) + 'px'; c.style.bottom = 'auto'; c.style.width = Math.min(360, VIEW.W - rightX - 36) + 'px'; }
+  else { c.style.left = '50%'; c.style.transform = 'translateX(-50%)'; c.style.top = 'auto'; c.style.bottom = 'calc(var(--safe-b) + 14px)'; c.style.width = ''; }
+}
+window.addEventListener('resize', layout);
+const X = x => VIEW.ox + x * VIEW.u, Y = y => VIEW.oy + y * VIEW.u;
+function rr(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function inPanel(x, y) { return { x: clamp(x, -.2, 10.2), y: clamp(y, -.25, 16.25) }; }
+function sigLamp(s) { // Signallampe rechts neben dem Gleis, in Fahrtrichtung gesehen
+  const f = N[s.from], dx = s.x - f.x, dy = s.y - f.y, l = Math.hypot(dx, dy) || 1;
+  return { x: s.x - dy / l * .62 - dx / l * .1, y: s.y + dx / l * .62 - dy / l * .1 };
+}
+function drawPanel(c) {
+  const u = VIEW.u;
+  // Pultfläche aus Kacheln
+  c.fillStyle = '#121816'; c.fillRect(0, 0, VIEW.W, VIEW.H);
+  rr(c, X(-.75), Y(-.75), 11.5 * u, 17.5 * u, u * .35); c.fillStyle = '#3a4741'; c.fill();
+  rr(c, X(-.55), Y(-.55), 11.1 * u, 17.1 * u, u * .25); c.fillStyle = '#25302c'; c.fill();
+  c.save(); rr(c, X(-.55), Y(-.55), 11.1 * u, 17.1 * u, u * .25); c.clip();
+  for (let gx = -1; gx <= 11; gx++) for (let gy = -1; gy <= 17; gy++) {
+    const x0 = X(gx - .5), y0 = Y(gy - .5);
+    c.fillStyle = (gx + gy) % 2 ? 'rgba(255,255,255,.012)' : 'rgba(0,0,0,.035)'; c.fillRect(x0, y0, u, u);
+    c.strokeStyle = 'rgba(0,0,0,.32)'; c.lineWidth = 1; c.strokeRect(x0 + .5, y0 + .5, u - 1, u - 1);
+    c.strokeStyle = 'rgba(255,255,255,.04)'; c.beginPath(); c.moveTo(x0 + 1.5, y0 + u - 1.5); c.lineTo(x0 + 1.5, y0 + 1.5); c.lineTo(x0 + u - 1.5, y0 + 1.5); c.stroke();
+  }
+  // Gleisrinnen
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  for (const [a, b] of LV.e) { c.strokeStyle = '#111715'; c.lineWidth = u * .3; c.beginPath(); c.moveTo(X(N[a].x), Y(N[a].y)); c.lineTo(X(N[b].x), Y(N[b].y)); c.stroke(); }
+  for (const [a, b] of LV.e) { c.strokeStyle = '#4f5c56'; c.lineWidth = u * .1; c.beginPath(); c.moveTo(X(N[a].x), Y(N[a].y)); c.lineTo(X(N[b].x), Y(N[b].y)); c.stroke(); }
+  c.restore();
+  // Beschriftung der Ziele
+  for (const d of DEST) {
+    if (d.t === 'buffer') {
+      const nb = N[d.nb[0]], dx = d.x - nb.x, dy = d.y - nb.y, l = Math.hypot(dx, dy);
+      c.strokeStyle = '#c9d3cc'; c.lineWidth = u * .12; c.beginPath(); c.moveTo(X(d.x + dy / l * .32), Y(d.y - dx / l * .32)); c.lineTo(X(d.x - dy / l * .32), Y(d.y + dx / l * .32)); c.stroke();
+    }
+  }
+}
+function lineAlong(c, nodes, col, w, alpha) {
+  c.globalAlpha = alpha; c.strokeStyle = col; c.lineWidth = w; c.beginPath();
+  nodes.forEach((id, i) => { const n = N[id]; const p = n.t === 'exit' ? inPanel(n.x, n.y) : n; if (i === 0) c.moveTo(X(p.x), Y(p.y)); else c.lineTo(X(p.x), Y(p.y)); });
+  c.stroke(); c.globalAlpha = 1;
+}
+function mark(c, x, y, ok) {
+  const u = VIEW.u, r = u * .3; c.fillStyle = ok ? '#3be27e' : '#ff3b30'; c.beginPath(); c.arc(X(x), Y(y), r, 0, TAU); c.fill();
+  c.strokeStyle = '#0b0f0d'; c.lineWidth = u * .08; c.beginPath();
+  if (ok) { c.moveTo(X(x) - r * .5, Y(y)); c.lineTo(X(x) - r * .1, Y(y) + r * .4); c.lineTo(X(x) + r * .55, Y(y) - r * .4); } else { c.moveTo(X(x) - r * .45, Y(y) - r * .45); c.lineTo(X(x) + r * .45, Y(y) + r * .45); c.moveTo(X(x) + r * .45, Y(y) - r * .45); c.lineTo(X(x) - r * .45, Y(y) + r * .45); }
+  c.stroke();
+}
+function draw() {
+  const c = ctx, u = VIEW.u;
+  c.setTransform(VIEW.dpr, 0, 0, VIEW.dpr, 0, 0);
+  if (G.state === 'menu' || !LV) { c.fillStyle = '#121816'; c.fillRect(0, 0, VIEW.W, VIEW.H); return; }
+  if (!panelCache) {
+    panelCache = document.createElement('canvas'); panelCache.width = cvs.width; panelCache.height = cvs.height;
+    const pc = panelCache.getContext('2d'); pc.setTransform(VIEW.dpr, 0, 0, VIEW.dpr, 0, 0); drawPanel(pc);
+  }
+  const sh = G.shake > 0 ? G.shake * u * .2 : 0;
+  c.setTransform(1, 0, 0, 1, rnd(-sh, sh) * VIEW.dpr, rnd(-sh, sh) * VIEW.dpr);
+  c.drawImage(panelCache, 0, 0);
+  c.setTransform(VIEW.dpr, 0, 0, VIEW.dpr, rnd(-sh, sh) * VIEW.dpr, rnd(-sh, sh) * VIEW.dpr);
+  c.save(); rr(c, X(-.55), Y(-.55), 11.1 * u, 17.1 * u, u * .25); c.clip();
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  // Fahrstraßen-Vorschau: wartende Züge (kräftig), fahrende (blass)
+  const marks = [];
+  for (const e of ENT) {
+    const waiting = G.trains.find(t => t.entry === e.id && !t.passed) || e.queue[0];
+    if (!waiting) continue;
+    const s = N[e.sig], r = trace(e.sig, nextNode(e.sig, e.id)), col = N[waiting.dest].col;
+    lineAlong(c, r.nodes, col, u * .14, .95);
+    if (r.end) { const en = N[r.end]; let mx = en.x, my = en.y; if (en.t === 'buffer') my = en.y + .55; else if (en.y < 0) { my = 1.05; } else if (en.x > 10) mx = 9.45; else if (en.x < 0) mx = .55; marks.push([mx, my, r.end === waiting.dest && (en.accept === 'A' || en.accept === TYPES[waiting.type].cls)]); }
+    for (const b of r.bad) marks.push([N[b].x + .45, N[b].y, false]);
+    void s;
+  }
+  for (const tr of G.trains) {
+    if (!tr.passed || tr.state !== 'run') continue;
+    const r = trace(tr.a, tr.b); lineAlong(c, r.nodes.slice(1), N[tr.dest].col, u * .1, .35);
+  }
+  // Weichenlage: aktiver Strang hell, abliegender mit Lücke
+  for (const w of SW) {
+    for (let k = 0; k < 2; k++) {
+      const o = N[w.b[k]], dx = o.x - w.x, dy = o.y - w.y, l = Math.hypot(dx, dy), ux = dx / l, uy = dy / l;
+      if (k === w.state) { c.strokeStyle = w.flash > 0 && Math.sin(G.t * 30) > 0 ? '#ff3b30' : '#f3f6ef'; c.lineWidth = u * .12; c.beginPath(); c.moveTo(X(w.x + ux * .12), Y(w.y + uy * .12)); c.lineTo(X(w.x + ux * .78), Y(w.y + uy * .78)); c.stroke(); }
+      else { c.strokeStyle = '#111715'; c.lineWidth = u * .2; c.beginPath(); c.moveTo(X(w.x + ux * .18), Y(w.y + uy * .18)); c.lineTo(X(w.x + ux * .55), Y(w.y + uy * .55)); c.stroke(); }
+    }
+  }
+  // Züge: rote Besetztmeldung, darauf der Zug in Zielfarbe
+  for (const tr of G.trains) {
+    const pts = bodyPts(tr); if (pts.length < 2) continue;
+    const a = tr.state === 'dwell' ? Math.min(1, tr.dwell * 2 + .2) : 1;
+    c.globalAlpha = a;
+    c.strokeStyle = '#ff3b30'; c.lineWidth = u * .16; c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(X(p.x), Y(p.y)) : c.moveTo(X(p.x), Y(p.y))); c.stroke();
+    c.strokeStyle = 'rgba(0,0,0,.55)'; c.lineWidth = u * .5; c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(X(p.x), Y(p.y)) : c.moveTo(X(p.x), Y(p.y))); c.stroke();
+    c.strokeStyle = N[tr.dest].col; c.lineWidth = u * .38; c.beginPath(); pts.forEach((p, i) => i ? c.lineTo(X(p.x), Y(p.y)) : c.moveTo(X(p.x), Y(p.y))); c.stroke();
+    // Spitzenlicht
+    const h = pts[0], h2 = pts[1], dx = h.x - h2.x, dy = h.y - h2.y, l = Math.hypot(dx, dy) || 1;
+    c.fillStyle = '#ffffff'; c.beginPath(); c.arc(X(h.x - dx / l * .08), Y(h.y - dy / l * .08), u * .08, 0, TAU); c.fill();
+    // Beschriftung
+    let L = 0, mid = pts[0]; const tot = tr.len / 2;
+    for (let i = 0; i < pts.length - 1; i++) { const d = Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y); if (L + d >= tot) { const k = (tot - L) / d; mid = { x: lerp(pts[i].x, pts[i + 1].x, k), y: lerp(pts[i].y, pts[i + 1].y, k) }; break; } L += d; }
+    c.font = '700 ' + Math.round(u * .3) + 'px "Barlow Semi Condensed","Barlow Condensed",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    const lbl = tr.type + ' ' + (N[tr.dest].t === 'buffer' ? 'Gl.' : '') + N[tr.dest].code, tw = c.measureText(lbl).width + u * .2;
+    c.fillStyle = 'rgba(11,15,13,.82)'; rr(c, X(mid.x) - tw / 2, Y(mid.y) - u * .2, tw, u * .4, u * .12); c.fill();
+    c.fillStyle = N[tr.dest].col; c.fillText(lbl, X(mid.x), Y(mid.y) + 1);
+    if (tr.delay > GRACE && tr.state === 'run') { c.fillStyle = '#ffb627'; c.font = '700 ' + Math.round(u * .26) + 'px "Barlow Semi Condensed",sans-serif'; c.fillText('+' + Math.round(tr.delay) + ' s', X(mid.x), Y(mid.y) - u * .42); }
+    c.globalAlpha = 1;
+  }
+  // Weichen-Schilder
+  for (const w of SW) {
+    let side = 0; for (const id of w.nb) { const dx = N[id].x - w.x; side += Math.sign(dx); }
+    const tx = X(w.x) + (side > 0 ? -u * .66 : side < 0 ? u * .66 : (w.x <= 5 ? -u * .66 : u * .66)), ty = Y(w.y);
+    c.fillStyle = w.flash > 0 ? '#ff3b30' : '#d9e2db'; rr(c, tx - u * .32, ty - u * .2, u * .64, u * .4, u * .1); c.fill();
+    c.fillStyle = '#101513'; c.font = '700 ' + Math.round(u * .26) + 'px "Barlow Semi Condensed",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(w.label, tx, ty + 1);
+    c.strokeStyle = 'rgba(243,246,239,.5)'; c.lineWidth = 1.5; c.beginPath(); c.arc(X(w.x), Y(w.y), u * .3, 0, TAU); c.stroke();
+  }
+  // Signale
+  for (const s of SIG) {
+    const lp = sigLamp(s);
+    c.strokeStyle = '#9aa69f'; c.lineWidth = u * .07; c.beginPath(); c.moveTo(X(s.x), Y(s.y)); c.lineTo(X(lp.x), Y(lp.y)); c.stroke();
+    c.fillStyle = '#0b0f0d'; c.beginPath(); c.arc(X(lp.x), Y(lp.y), u * .3, 0, TAU); c.fill();
+    const on = s.state === 'green', col = on ? '#3be27e' : '#ff3b30';
+    c.fillStyle = col; c.globalAlpha = .28; c.beginPath(); c.arc(X(lp.x), Y(lp.y), u * .42, 0, TAU); c.fill(); c.globalAlpha = 1;
+    c.beginPath(); c.arc(X(lp.x), Y(lp.y), u * .21, 0, TAU); c.fill();
+    c.fillStyle = '#d9e2db'; c.font = '700 ' + Math.round(u * .24) + 'px "Barlow Semi Condensed",sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText(s.label, X(lp.x + (lp.x - s.x) * .9), Y(lp.y + (lp.y - s.y) * .9));
+  }
+  c.restore();
+  // Ziel-Schilder am Rand
+  c.textBaseline = 'middle'; c.textAlign = 'center';
+  for (const d of DEST) {
+    let p = inPanel(d.x, d.y); if (d.t === 'buffer') p = { x: d.x, y: d.y - .55 };
+    else if (d.y < 0) p.y = -.15; else if (d.x > 10) p.x = 10.05; else if (d.x < 0) p.x = -.05;
+    const txt = d.t === 'buffer' ? 'Gl. ' + d.code : d.code, w = u * (d.t === 'buffer' ? .95 : .78);
+    c.fillStyle = d.col; rr(c, X(p.x) - w / 2, Y(p.y) - u * .24, w, u * .48, u * .12); c.fill();
+    c.fillStyle = '#0b0f0d'; c.font = '700 ' + Math.round(u * .3) + 'px "Barlow Semi Condensed",sans-serif'; c.fillText(txt, X(p.x), Y(p.y) + 1);
+    if (d.t === 'exit') { c.fillStyle = 'rgba(233,239,232,.75)'; c.font = '600 ' + Math.round(u * .22) + 'px "Barlow Semi Condensed",sans-serif'; const nyo = d.y < 0 ? .45 : d.x > 10 ? -.42 : -.42; c.fillText(d.name + (d.accept === 'G' ? ' (nur Güter)' : ''), X(p.x + (d.x > 10 ? -.4 : d.x < 0 ? .4 : 0)), Y(p.y + nyo)); }
+  }
+  // Einfahrten mit Warteschlange
+  for (const e of ENT) {
+    const q = e.queue, bottom = e.y > 16, left = e.x < 0;
+    const p = bottom ? { x: e.x, y: 16.15 } : { x: left ? -.1 : 10.1, y: e.y };
+    c.font = '600 ' + Math.round(u * .22) + 'px "Barlow Semi Condensed",sans-serif'; c.fillStyle = 'rgba(233,239,232,.72)'; c.textBaseline = 'middle';
+    if (bottom) { c.textAlign = 'right'; c.fillText(e.label, X(p.x - .5), Y(p.y)); }
+    else { c.textAlign = left ? 'left' : 'right'; c.fillText(e.label, X(p.x + (left ? .15 : -.15)), Y(p.y + (left ? -.55 : 1.15))); }
+    c.textAlign = 'center';
+    q.forEach((t, i) => {
+      const bx = bottom ? p.x + .55 + i * .45 : p.x + (left ? .35 + i * .45 : -.35 - i * .45), by = bottom ? p.y : p.y + .6;
+      c.fillStyle = N[t.dest].col; c.beginPath(); c.arc(X(bx), Y(by), u * .17, 0, TAU); c.fill();
+      if (t.delay > GRACE) { c.strokeStyle = '#ff3b30'; c.lineWidth = 2; c.beginPath(); c.arc(X(bx), Y(by), u * .25, -Math.PI / 2, -Math.PI / 2 + TAU * clamp(t.delay / CANCEL, 0, 1)); c.stroke(); }
+    });
+  }
+  for (const m of marks) mark(c, m[0], m[1], m[2]);
+  // Effekte
+  for (const f of G.fx) {
+    if (f.kind === 'ring') { c.strokeStyle = f.col; c.globalAlpha = clamp(f.t, 0, 1); c.lineWidth = u * .12; c.beginPath(); c.arc(X(f.x), Y(f.y), u * (f.big ? 2.6 : 1.3) * (1.4 - f.t), 0, TAU); c.stroke(); }
+    else { c.fillStyle = '#ffd27a'; c.globalAlpha = clamp(f.t * 1.5, 0, 1); c.fillRect(X(f.x) - 2, Y(f.y) - 2, 4, 4); }
+  }
+  c.globalAlpha = 1;
+  for (const f of G.floats) { c.globalAlpha = clamp(f.t, 0, 1); c.fillStyle = f.col; c.font = '800 ' + Math.round(u * .5) + 'px "Barlow Condensed",sans-serif'; c.textAlign = 'center'; c.fillText(f.txt, X(clamp(f.x, .6, 9.4)), Y(f.y + .9 - (1.6 - f.t) * .8)); }
+  c.globalAlpha = 1;
+  if (G.flash > 0) { c.setTransform(1, 0, 0, 1, 0, 0); c.fillStyle = 'rgba(255,59,48,' + (G.flash * .25) + ')'; c.fillRect(0, 0, cvs.width, cvs.height); }
+}
+function drawPreview(lv, cv) {
+  const c = cv.getContext('2d'), s = cv.width / 12.4;
+  c.fillStyle = '#25302c'; c.fillRect(0, 0, cv.width, cv.height);
+  const px = x => (x + 1.2 + .6) * s * .92 + 6, py = y => (y + 1.6) * s * .64 + 6;
+  c.lineCap = 'round';
+  c.strokeStyle = '#4f5c56'; c.lineWidth = s * .28; for (const [a, b] of lv.e) { c.beginPath(); c.moveTo(px(lv.n[a].x), py(lv.n[a].y)); c.lineTo(px(lv.n[b].x), py(lv.n[b].y)); c.stroke(); }
+  let di = 0;
+  for (const id in lv.n) { const n = lv.n[id]; if (n.t === 'exit' || n.t === 'buffer') { c.fillStyle = DEST_COL[di++ % 6]; c.beginPath(); c.arc(px(clamp(n.x, -.2, 10.2)), py(clamp(n.y, -.2, 16.2)), s * .5, 0, TAU); c.fill(); } if (n.t === 'esig' || n.t === 'sig') { c.fillStyle = n.t === 'esig' ? '#ff3b30' : '#3be27e'; c.beginPath(); c.arc(px(n.x), py(n.y), s * .32, 0, TAU); c.fill(); } }
+}
+
+// ---------------------------------------------------------------------
+// Schleife
+// ---------------------------------------------------------------------
+let last = performance.now();
+function frame(now) {
+  requestAnimationFrame(frame);
+  let dt = Math.min(.05, (now - last) / 1000); last = now;
+  if (G.state === 'play' || G.state === 'ending') {
+    const steps = Math.ceil(dt * G.speed / (1 / 60));
+    for (let i = 0; i < steps && G.state === 'play'; i++) update(dt * G.speed / steps);
+  }
+  for (const f of G.fx) { f.t -= dt; if (f.kind === 'spark') { f.x += f.vx * dt; f.y += f.vy * dt; f.vx *= .96; f.vy *= .96; } }
+  G.fx = G.fx.filter(f => f.t > 0);
+  for (const f of G.floats) f.t -= dt; G.floats = G.floats.filter(f => f.t > 0);
+  G.flash = Math.max(0, G.flash - dt * 1.2); G.shake = Math.max(0, G.shake - dt * 1.5);
+  draw();
+}
+layout(); showMenu(); requestAnimationFrame(frame);
+// Testzugang
+window.__stw = {
+  G, LEVELS, get N() { return N; }, get ENT() { return ENT; }, get SW() { return SW; }, get SIG() { return SIG; }, start: startLevel, update, trace, routeTo, nextNode, bodyPts, headPos, SV, showMenu, draw,
+  toScreen(id, lamp) { const n = N[id], p = lamp ? sigLamp(n) : n; return [X(p.x), Y(p.y)]; },
+  step(sec) { const n = Math.round(sec * 60); for (let i = 0; i < n && G.state === 'play'; i++) update(1 / 60); },
+};
+})();
+</script>
+<a class="pz-home" href="../" aria-label="Alle Spiele auf playaz.fun" title="Alle Spiele" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#ffcc3d"/></svg></a><style>.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 12px);left:58px;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(23,18,42,.66);color:#f6f2ff;border:1px solid rgba(246,242,255,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}.pz-home:focus-visible{outline:3px solid #ffcc3d;outline-offset:2px}</style><style>*{touch-action:pan-x pan-y}html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%}</style><script>(function(){var stop=function(e){e.preventDefault()};['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,stop,{passive:false})});document.addEventListener('touchmove',function(e){if(e.touches.length>1||(e.scale&&e.scale!==1))e.preventDefault()},{passive:false});var last=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-last<350&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label')))e.preventDefault();last=now},{passive:false});document.addEventListener('dblclick',stop,{passive:false});var vv=window.visualViewport,m=document.querySelector('meta[name=viewport]');if(vv&&m){var base=m.getAttribute('content'),t=0;vv.addEventListener('resize',function(){if(vv.scale<1.02)return;clearTimeout(t);t=setTimeout(function(){m.setAttribute('content',base.replace('maximum-scale=1','maximum-scale=1.0'));setTimeout(function(){m.setAttribute('content',base)},60)},120)})}})();</script></body></html>
