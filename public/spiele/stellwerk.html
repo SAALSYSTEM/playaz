@@ -62,7 +62,7 @@ button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:tra
 .toast div.bad{border-color:rgba(255,59,48,.7);color:#ffd2ce}
 .toast div.good{border-color:rgba(59,226,126,.6)}
 @keyframes tin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:none}}
-.coach{position:absolute;left:50%;bottom:calc(var(--safe-b) + 14px);transform:translateX(-50%);width:min(92vw,400px);background:var(--white);color:var(--ink);border-radius:12px;padding:10px 14px 12px;font-size:16px;line-height:1.35;box-shadow:0 10px 30px rgba(0,0,0,.45);pointer-events:none}
+.coach{position:absolute;left:50%;bottom:calc(var(--safe-b) + 14px);transform:translateX(-50%);width:min(94vw,400px);background:var(--white);color:var(--ink);border-radius:12px;padding:8px 12px 10px;font-size:15px;line-height:1.3;box-shadow:0 10px 30px rgba(0,0,0,.45);pointer-events:none}
 .coach b{display:block;font-family:var(--f-head);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#a0331f;margin-bottom:2px}
 
 /* Bildschirme */
@@ -485,6 +485,10 @@ function arrive(tr, destId) {
     if (G.tut === 2) { G.tut = 3; coach('Geschafft! Gleich kommen mehr Züge, auch mehrere auf einmal. Lass nie zwei Züge zusammenstoßen.', 'Gut gemacht'); setTimeout(() => { if (G.tut === 3) { coach(null); G.tut = -1; SV.tut = 1; save(); G.spawnT = 2; } }, 5200); }
     const stars = starsFor(G.delivered);
     if (stars > (SV.stars[LV.id] || 0)) { SV.stars[LV.id] = stars; save(); toast('★'.repeat(stars) + ' erreicht' + (stars === 1 && LVI < LEVELS.length - 1 ? ': ' + LEVELS[LVI + 1].name + ' ist frei' : ''), 'good'); }
+  } else if (G.tut >= 0) {
+    G.tut = 0; $('coach').dataset.s0 = 1; AU.error();
+    coach('Der Zug ist nach ' + d.name + ' gefahren. Erst die Weiche W1 so stellen, dass die gelbe Linie bei MB endet, dann das Signal ziehen. Der nächste Zug wartet schon.', 'Falsch abgebogen');
+    ENT[0].queue.push(makeTrain(ENT[0], 'RE', 'X2'));
   } else {
     G.combo = 0; strike('Fehlleitung: ' + tr.type + ' sollte nach ' + N[tr.dest].name + '.', d.x, clamp(d.y, .2, 16));
   }
@@ -589,6 +593,7 @@ function tapAt(px, py) {
     if (switchBusy(best)) { toast('Weiche ' + best.label + ' ist besetzt und verschlossen.', 'bad'); best.flash = .5; AU.error(); return; }
     best.state = 1 - best.state; best.flash = .25; AU.klack(); vib(8);
   } else {
+    if (G.tut === 0 && best.state === 'red') { toast('Erst die Weiche W1 stellen: Die gelbe Linie muss bei MB enden.', 'bad'); AU.error(); return; }
     best.state = best.state === 'red' ? 'green' : 'red'; best.fall = -1; AU.signal(best.state === 'green'); vib(8);
   }
 }
@@ -621,7 +626,14 @@ function toast(msg, cls) {
   while (box.children.length > 3) box.removeChild(box.firstChild);
   setTimeout(() => { d.style.transition = 'opacity .4s'; d.style.opacity = '0'; setTimeout(() => d.remove(), 450); }, 2400 + msg.length * 30);
 }
-function coach(text, head) { const c = $('coach'); if (!text) { c.hidden = true; return; } c.innerHTML = '<b>' + head + '</b>' + text; c.hidden = false; placeCoach(); }
+function coach(text, head) { const c = $('coach'); if (!text) { c.hidden = true; placeToast(); return; } c.innerHTML = '<b>' + head + '</b>' + text; c.hidden = false; placeCoach(); placeToast(); }
+// Meldungen im Hochformat unter dem Pult, damit sie keine Ziele verdecken
+function placeToast() {
+  const t = $('toast'), below = VIEW.H - VIEW.panelBottom > 96;
+  if (below && $('coach').hidden) { t.style.top = (VIEW.panelBottom + 8) + 'px'; }
+  else if (below) { t.style.top = Y(7.5) + 'px'; }
+  else t.style.top = '';
+}
 function hud() {
   $('cTrains').lastElementChild.textContent = G.delivered;
   $('cScore').lastElementChild.textContent = fmtInt(G.score);
@@ -664,15 +676,15 @@ function layout() {
   cvs.width = Math.round(W * dpr); cvs.height = Math.round(H * dpr);
   const cs = getComputedStyle(document.documentElement);
   const st = parseFloat(cs.getPropertyValue('--safe-t')) || 0, sb = parseFloat(cs.getPropertyValue('--safe-b')) || 0;
-  const top = st + 56, bottom = sb + 8, aw = W - 12, ah = H - top - bottom;
-  const u = Math.min(aw / 11.2, ah / 17.6);
+  const top = st + 56, bottom = sb + 8, aw = W - 12, ah = H - top - bottom, reserve = W / H < .8 ? 112 : 0;
+  const u = Math.min(aw / 11.2, (ah - reserve) / 17.6);
   Object.assign(VIEW, { u, dpr, W, H, ox: (W - 11 * u) / 2 + .5 * u, oy: top + .8 * u });
   VIEW.panelBottom = VIEW.oy + 16.7 * u;
-  panelCache = null; placeCoach();
+  panelCache = null; placeCoach(); placeToast();
 }
 function placeCoach() {
   const c = $('coach'), spaceBelow = VIEW.H - VIEW.panelBottom, rightX = VIEW.ox + 10.7 * VIEW.u;
-  if (spaceBelow > 110) { c.style.left = '50%'; c.style.transform = 'translateX(-50%)'; c.style.top = (VIEW.panelBottom + 10) + 'px'; c.style.bottom = 'auto'; c.style.width = ''; }
+  if (spaceBelow > 96) { c.style.left = '50%'; c.style.transform = 'translateX(-50%)'; c.style.top = (VIEW.panelBottom + 10) + 'px'; c.style.bottom = 'auto'; c.style.width = ''; }
   else if (VIEW.W - rightX > 260) { c.style.left = (rightX + 18) + 'px'; c.style.transform = 'none'; c.style.top = (VIEW.oy + 2 * VIEW.u) + 'px'; c.style.bottom = 'auto'; c.style.width = Math.min(360, VIEW.W - rightX - 36) + 'px'; }
   else { c.style.left = '50%'; c.style.transform = 'translateX(-50%)'; c.style.top = 'auto'; c.style.bottom = 'calc(var(--safe-b) + 14px)'; c.style.width = ''; }
 }
