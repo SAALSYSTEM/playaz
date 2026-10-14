@@ -24,6 +24,8 @@
   const SPIELE = [
     { id: 'sondengaenger', name: 'Sondengänger', prefix: 'sondengaenger.', haupt: ['sondengaenger.v1'],
       info: (g) => { const d = J(g['sondengaenger.v1']) || {}; const st = d.stats || {}; const serie = (d.daily && d.daily.streak) || 0; return { text: zahl(st.finds) + ' Funde · Stufe ' + zahl(d.lvl || 1) + (serie > 1 ? ' · Serie ' + zahl(serie) : ''), wert: (d.xp || 0) + (st.finds || 0) * 10 }; } },
+    { id: 'stammvoelker', name: 'Stammvölker', prefix: 'stammvoelker.', haupt: ['stammvoelker.v1'],
+      info: (g) => { const d = J(g['stammvoelker.v1']) || {}; const h = Array.isArray(d.b) ? d.b.length : 0; return { text: zahl(d.pop || 12) + ' Einwohner · ' + h + (h === 1 ? ' Hütte' : ' Hütten'), wert: (d.pop || 0) * 10 + h * 20 + (d.wood || 0) / 100 }; } },
     { id: 'anbiss', name: 'Anbiss', prefix: 'anbiss.', haupt: ['anbiss.v1'],
       info: (g) => { const d = J(g['anbiss.v1']) || {}; const st = d.stats || {}; return { text: zahl(st.caught) + ' Fische · Level ' + zahl(d.lvl || 1) + ' · ' + zahl(d.money) + ' €', wert: (d.xp || 0) + (st.caught || 0) }; } },
     { id: 'stellwerk', name: 'Stellwerk', prefix: 'stellwerk.', haupt: ['stellwerk.v1'],
