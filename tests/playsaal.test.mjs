@@ -152,7 +152,7 @@ test('Kopfzeile + Menü auf allen Portalseiten, Menü öffnet/schließt, Filter 
   const page = await ctx.newPage(); await page.goto(ALT + '/');
   assert.equal(await page.locator('.games .game').count(), SPIELE.length);
   await page.click('.menu-btn'); await page.click('#menu a[href="/#neu"]');
-  await page.waitForFunction(() => document.querySelectorAll('.games .game:not([hidden])').length === 4);
+  await page.waitForFunction(() => document.querySelectorAll('.games .game:not([hidden])').length === document.querySelectorAll('.games .game[data-neu]').length);
   assert.equal(await page.textContent('#spiele-titel'), 'Neue Spiele');
   await page.click('[data-filter="alle"]');
   assert.equal(await page.locator('.games .game:not([hidden])').count(), SPIELE.length);
@@ -389,4 +389,44 @@ test('Startseite: Umzug-Hinweis auf alter Adresse nur wenn aktiv', async () => {
   const ctx2 = await browser.newContext(); const p2 = await ctx2.newPage(); await p2.goto(ALT + '/');
   assert.ok(await p2.isHidden('#umzugHinweis'));
   await ctx2.close();
+});
+
+test('Stammvölker: Bauauswahl, Rohstoffe, Bäume wachsen nach, Jahreszeit nach Uhr, Speicherstand', async () => {
+  const ctx = await kontext({ viewport: { width: 390, height: 844 } });
+  const p = await ctx.newPage(); const fehler = [];
+  p.on('pageerror', (e) => fehler.push(e.message));
+  // Jahreszeit nach Uhrzeit: jede volle Stunde die nächste, ohne Knopf
+  await p.goto(ALT + '/spiele/stammvoelker?test&direkt');
+  await p.waitForFunction(() => window.__sv && __sv.trees.length > 0);
+  const erwartet = Math.floor(Date.now() / 3600000) % 4;
+  assert.equal(await p.evaluate(() => __sv.seasonNow()), erwartet);
+  assert.equal(await p.locator('#season').count(), 0, 'kein Knopf zum Umstellen der Jahreszeit');
+  await p.waitForFunction(() => /Min\./.test(document.getElementById('seasonLeft').textContent), null, { timeout: 15000 });
+  assert.equal(await p.textContent('#seasonName'), ['Frühling', 'Sommer', 'Herbst', 'Winter'][erwartet]);
+  // Anzeige und Auswahl
+  const hud = await p.evaluate(() => ['vWood', 'vStone', 'vFood', 'vPop'].map((i) => document.getElementById(i).textContent));
+  assert.deepEqual(hud.slice(0, 3), ['6', '0', '18']);
+  await p.click('#build');
+  const karten = await p.evaluate(() => [...document.querySelectorAll('.card')].map((c) => [c.dataset.k, c.classList.contains('poor')]));
+  assert.deepEqual(karten.map((k) => k[0]), ['tent', 'holz', 'foerster', 'stein', 'sammler']);
+  assert.deepEqual(karten.map((k) => k[1]), [false, true, true, true, true], 'nur das Zelt ist mit 6 Holz bezahlbar');
+  // Förster pflanzt Setzlinge, Steinbruch liefert Stein
+  await p.goto(ALT + '/spiele/stammvoelker?test&direkt&jahreszeit=0&neu');
+  await p.waitForFunction(() => window.__sv && __sv.trees.length > 0);
+  await p.evaluate(() => { __sv.state.wood = 40; __sv.state.stone = 5; __sv.buildNow('foerster', 5, 6); __sv.buildNow('stein', 8, 3); });
+  await p.waitForFunction(() => __sv.trees.some((t) => t.g < 1), null, { timeout: 120000 });
+  await p.waitForFunction(() => __sv.state.stone > 5, null, { timeout: 120000 });
+  // Speicherstand bleibt über ein Neuladen erhalten
+  const vorher = await p.evaluate(() => { __sv.save(); return { wood: __sv.state.wood, stone: __sv.state.stone, trees: __sv.trees.filter((t) => !t.fell).length, built: __sv.built.length }; });
+  await p.goto(ALT + '/spiele/stammvoelker?test&direkt&jahreszeit=0');
+  await p.waitForFunction(() => window.__sv && __sv.trees.length > 0);
+  const nachher = await p.evaluate(() => ({ wood: __sv.state.wood, stone: __sv.state.stone, trees: __sv.trees.length, built: __sv.built.length }));
+  assert.equal(nachher.built, 2); assert.equal(nachher.wood, vorher.wood); assert.equal(nachher.stone, vorher.stone); assert.equal(nachher.trees, vorher.trees);
+  // kaputter Speicherstand: Spiel startet trotzdem
+  await ctx.addInitScript(() => { if (location.search.includes('korrupt')) localStorage.setItem('stammvoelker.v1', '{"v":1,"wood":"x","t":[[1]],"b":[["constructor",5,5],5]}'); });
+  await p.goto(ALT + '/spiele/stammvoelker?test&direkt&jahreszeit=0&korrupt');
+  await p.waitForFunction(() => window.__sv && __sv.state);
+  assert.equal(await p.evaluate(() => __sv.built.length), 0);
+  assert.deepEqual(fehler, []);
+  await ctx.close();
 });

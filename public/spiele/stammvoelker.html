@@ -1,0 +1,1363 @@
+<!doctype html><html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>STAMMVÖLKER · PlaySaal</title>
+<link rel="canonical" href="https://playsaal.com/spiele/stammvoelker">
+<meta name="description" content="Aufbauspiel im Flusstal: Bäume fällen und nachpflanzen, Hütten bauen, Holz, Stein und Nahrung verwalten und aus zwölf Überlebenden ein Volk machen. 3D, ohne Anmeldung.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="STAMMVÖLKER · PlaySaal"><meta property="og:description" content="Aufbauspiel im Flusstal: Bäume fällen und nachpflanzen, Hütten bauen, Holz, Stein und Nahrung verwalten. 3D, ohne Anmeldung."><meta property="og:url" content="https://playsaal.com/spiele/stammvoelker"><meta property="og:image" content="https://playsaal.com/bilder/stammvoelker.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="600"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playsaal.com/bilder/stammvoelker.jpg">
+<meta name="theme-color" content="#9fd2f0">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="preload" href="stammvoelker/cover.webp" as="image">
+<style>
+/* STAMMVÖLKER: warme Low-Poly-Welt. Farben aus der Palette (Papier, Tinte, Terrakotta, Türkis). */
+:root{
+  --paper:#FFF6E6;
+  --paper-2:#F1E2C6;
+  --ink:#3A2E25;
+  --ink-2:#6B5544;
+  --terra:#E07A3A;
+  --terra-d:#B85A22;
+  --teal:#2F9C95;
+  --green:#4CAF6A;
+  --font:"Fredoka","Arial Rounded MT Bold",system-ui,sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:linear-gradient(180deg,#8ccaf0 0%,#c8e6f5 38%,#e9f2f2 62%,#f6efe1 100%);color:var(--ink);font-family:var(--font);overflow:hidden;-webkit-text-size-adjust:100%}
+[hidden]{display:none!important}
+#game{position:fixed;inset:0;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#c{display:block;width:100%;height:100%;touch-action:none}
+
+/* Ressourcenleiste */
+.hud{position:absolute;left:0;right:0;top:0;display:flex;justify-content:center;gap:5px;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px 0 58px;pointer-events:none}
+.pill{display:flex;align-items:center;gap:4px;height:32px;padding:0 9px 0 5px;background:var(--paper);border-radius:999px;box-shadow:0 3px 0 rgba(58,46,37,.18),0 8px 18px rgba(58,46,37,.12);font:700 16px/1 var(--font);font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
+.pill svg{width:22px;height:22px;flex:none}
+.pill small{font-weight:500;font-size:14px;color:var(--ink-2)}
+.bump{animation:bump .3s ease-out}
+@keyframes bump{0%{transform:scale(1.18)}100%{transform:scale(1)}}
+
+.tag{position:absolute;right:12px;top:calc(env(safe-area-inset-top,0px) + 58px);height:28px;padding:0 12px;border:0;border-radius:999px;background:rgba(58,46,37,.74);color:var(--paper);font:600 13px/1 var(--font);letter-spacing:.04em;cursor:pointer}
+.season-badge{position:absolute;left:12px;top:calc(env(safe-area-inset-top,0px) + 58px);display:flex;align-items:center;gap:6px;padding:4px 12px 4px 6px;border-radius:999px;background:rgba(255,246,230,.88);font:600 14px/1 var(--font);color:var(--ink);pointer-events:none;box-shadow:0 2px 0 rgba(58,46,37,.12)}
+.season-badge i{width:18px;height:18px;border-radius:50%;background:var(--green)}
+.season-badge small{font:500 13px/1 var(--font);color:var(--ink-2)}
+
+/* Untere Leiste */
+.bar{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;align-items:center;justify-content:center;padding:0 10px calc(env(safe-area-inset-bottom,0px) + 14px)}
+.b{height:52px;min-width:52px;padding:0 14px;border:0;border-radius:16px;background:var(--paper);color:var(--ink);font:700 17px/1.05 var(--font);box-shadow:0 5px 0 #d8c39c,0 10px 20px rgba(58,46,37,.16);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .08s ease}
+.b:active{transform:translateY(3px);box-shadow:0 2px 0 #d8c39c,0 6px 12px rgba(58,46,37,.14)}
+.b svg{width:24px;height:24px;flex:none}
+.b.main{flex:1;max-width:220px;background:var(--terra);color:#fff;box-shadow:0 5px 0 var(--terra-d),0 12px 24px rgba(184,90,34,.32)}
+.b.main:active{box-shadow:0 2px 0 var(--terra-d),0 6px 12px rgba(184,90,34,.3)}
+.b.main span{display:block;font:500 13px/1 var(--font);opacity:.92;margin-top:3px}
+.b.main.on{background:var(--teal);box-shadow:0 5px 0 #1f6f6a,0 12px 24px rgba(47,156,149,.32)}
+.b.main.poor{filter:saturate(.55) brightness(.97)}
+.b.season{flex:1;max-width:150px}
+.b:focus-visible{outline:4px solid var(--teal);outline-offset:3px}
+.shake{animation:shake .38s ease-in-out}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+
+/* Bauauswahl */
+.sheet{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom,0px) + 78px);scroll-padding:0 12px;display:flex;gap:8px;overflow-x:auto;padding:8px 12px 12px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.sheet::-webkit-scrollbar{display:none}
+.sheet::before,.sheet::after{content:"";margin:auto}
+.card{flex:none;width:120px;padding:9px 10px 10px;border:0;border-radius:16px;background:var(--paper);color:var(--ink);text-align:left;font-family:var(--font);box-shadow:0 5px 0 #d8c39c,0 10px 20px rgba(58,46,37,.18);cursor:pointer;scroll-snap-align:start}
+.card:active{transform:translateY(3px);box-shadow:0 2px 0 #d8c39c,0 6px 12px rgba(58,46,37,.14)}
+.card b{display:block;font:700 16px/1.1 var(--font)}
+.card small{display:block;margin-top:3px;min-height:30px;font:500 12px/1.25 var(--font);color:var(--ink-2)}
+.card .hi{display:block;width:44px;height:30px;margin-bottom:4px}
+.card .cost{display:flex;flex-wrap:wrap;gap:2px 8px;margin-top:5px;font:700 14px/1 var(--font)}
+.card .cost span{display:flex;align-items:center;gap:2px}
+.card .cost svg{width:16px;height:16px;flex:none}
+.card .cost .lack{color:#c23a1e}
+.card.poor{filter:saturate(.55)}
+.card:focus-visible{outline:4px solid var(--teal);outline-offset:2px}
+
+/* Hinweise */
+.chip{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 82px);transform:translateX(-50%);max-width:calc(100% - 24px);padding:9px 16px;background:var(--paper);border-radius:16px;box-shadow:0 4px 0 rgba(58,46,37,.16),0 12px 26px rgba(58,46,37,.16);font:500 16px/1.25 var(--font);color:var(--ink);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.chip b{font-weight:700}
+.chip.in{animation:chipIn .25s ease-out}
+@keyframes chipIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
+.toast{position:absolute;left:50%;top:30%;padding:12px 22px;background:var(--paper);border-radius:20px;box-shadow:0 6px 0 rgba(58,46,37,.16),0 18px 40px rgba(58,46,37,.2);font:700 22px/1.15 var(--font);color:var(--ink);text-align:center;white-space:nowrap;pointer-events:none;opacity:0;transform:translate(-50%,-50%)}
+.toast small{display:block;font:500 15px/1.3 var(--font);color:var(--ink-2)}
+.toast.show{animation:toast 2.4s ease-out forwards}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.06)}20%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-62%) scale(1)}}
+.floats{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.float{position:absolute;left:0;top:0;padding:3px 9px;border-radius:999px;background:rgba(255,246,230,.95);font:700 15px/1 var(--font);color:var(--ink);white-space:nowrap;box-shadow:0 2px 0 rgba(58,46,37,.18);will-change:transform,opacity}
+.float.wood{color:#8C5A31}
+.float.stone{color:#5c6470}
+.float.food{color:#b8452a}
+.hint{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 96px);transform:translateX(-50%);padding:7px 14px;border-radius:999px;background:rgba(58,46,37,.78);color:var(--paper);font:500 14px/1.2 var(--font);white-space:nowrap;pointer-events:none;transition:opacity .6s}
+.hint.out{opacity:0}
+
+/* Vorlage zum Vergleich */
+.cmp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(58,46,37,.55)}
+.cmp figure{margin:0;max-width:min(92vw,560px);background:var(--paper);border-radius:22px;padding:10px 10px 14px;box-shadow:0 18px 50px rgba(0,0,0,.35);text-align:center}
+.cmp img{display:block;width:100%;height:auto;border-radius:14px}
+.cmp figcaption{margin-top:10px;font:500 15px/1.3 var(--font);color:var(--ink-2)}
+
+/* Startbild */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.4vh,20px);padding:calc(env(safe-area-inset-top,0px) + 18px) 20px calc(env(safe-area-inset-bottom,0px) + 22px);background:radial-gradient(120% 80% at 50% 0%,#fffaf1 0%,#fbefd9 55%,#f1dcb8 100%);overflow:auto;transition:opacity .5s ease,visibility .5s}
+.screen.out{opacity:0;visibility:hidden}
+.title{margin:0;font:700 clamp(40px,11vw,64px)/.95 var(--font);letter-spacing:.02em;color:var(--terra);text-shadow:0 3px 0 var(--terra-d),0 8px 18px rgba(184,90,34,.25);text-align:center}
+.sub{margin:-4px 0 0;font:600 clamp(15px,4vw,18px)/1 var(--font);letter-spacing:.14em;text-transform:uppercase;color:var(--teal)}
+.poster{width:min(88vw,520px);aspect-ratio:16/9;flex:none;border-radius:22px;overflow:hidden;border:5px solid #fff;background:#d7ecf6;box-shadow:0 10px 0 rgba(58,46,37,.08),0 20px 40px rgba(58,46,37,.22);transform:rotate(-1.2deg)}
+.poster img{display:block;width:100%;height:100%;object-fit:cover}
+.lead{margin:0;max-width:32ch;text-align:center;font:500 clamp(16px,4.3vw,19px)/1.35 var(--font);color:var(--ink-2);text-wrap:balance}
+.go{min-width:min(78vw,320px);height:62px;padding:0 24px;border:0;border-radius:20px;background:var(--terra);color:#fff;font:700 26px/1 var(--font);box-shadow:0 7px 0 var(--terra-d),0 16px 28px rgba(184,90,34,.32);cursor:pointer}
+.go:active{transform:translateY(4px);box-shadow:0 3px 0 var(--terra-d),0 8px 16px rgba(184,90,34,.28)}
+.small{margin:0;font:500 13px/1.35 var(--font);color:#8a7562;text-align:center}
+</style>
+</head><body>
+<div id="game">
+  <canvas id="c" aria-label="Das Flusstal der Turi"></canvas>
+  <div class="floats" id="floats"></div>
+
+  <div class="hud" aria-live="polite">
+    <div class="pill" id="pWood" title="Holz"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="15" width="22" height="9" rx="4.5" fill="#B07A45"/><circle cx="24.5" cy="19.5" r="4.5" fill="#E6CC9E" stroke="#8C5A31" stroke-width="1.6"/><rect x="6" y="6" width="20" height="9" rx="4.5" fill="#8C5A31"/><circle cx="25.5" cy="10.5" r="4.5" fill="#E6CC9E" stroke="#65401F" stroke-width="1.6"/></svg><span id="vWood">0</span></div>
+    <div class="pill" id="pStone" title="Stein"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 23l5-12 9-4 8 7 3 9-4 4H8z" fill="#968E82"/><path d="M9 11l9-4 8 7-9 3z" fill="#B9B2A6"/><path d="M17 17l9-3 3 9-4 4h-8z" fill="#7C766C"/></svg><span id="vStone">0</span></div>
+    <div class="pill" id="pFood" title="Nahrung"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 17c0-6 5-9 11-9s11 3 11 9c0 5-4 8-11 8S5 22 5 17Z" fill="#D4AF4F"/><path d="M9 14c3-2 11-2 14 0" stroke="#B08E36" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="11" cy="22" r="4" fill="#D2553F"/><circle cx="17" cy="23.5" r="4" fill="#E06A50"/><path d="M14 18l2-4" stroke="#46803F" stroke-width="2" stroke-linecap="round"/></svg><span id="vFood">0</span></div>
+    <div class="pill" id="pPop" title="Einwohner / Wohnplätze"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="9" r="5" fill="#E6CC9E" stroke="#8C5A31" stroke-width="1.5"/><path d="M7 27c0-6 4-10 9-10s9 4 9 10Z" fill="#E07A3A"/><path d="M11 21h10" stroke="#2F9C95" stroke-width="2.4" stroke-linecap="round"/></svg><span id="vPop">0</span><small id="vCap">/0</small></div>
+  </div>
+  <div class="season-badge" id="seasonBadge"><i id="seasonDot"></i><span id="seasonName">Sommer</span><small id="seasonLeft"></small></div>
+  <button class="tag" id="cmpBtn" aria-label="Vorlage zum Vergleich zeigen">Vorlage</button>
+  <div class="hint" id="hint">Ziehen: bewegen · Zwei Finger: zoomen · Antippen: Info</div>
+  <div class="chip" id="chip" hidden></div>
+  <div class="toast" id="toast"></div>
+
+  <div class="sheet" id="sheet" role="menu" aria-label="Was möchtest du bauen?" hidden></div>
+
+  <div class="bar">
+    <button class="b" id="rotL" aria-label="Ansicht nach links drehen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5 4 9l4 4" fill="none" stroke="#3A2E25" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.5 9H14a6 6 0 0 1 0 12h-3" fill="none" stroke="#3A2E25" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+    <button class="b main" id="build" aria-expanded="false" aria-controls="sheet"><div>Bauen<span>Auswahl</span></div></button>
+    <button class="b" id="rotR" aria-label="Ansicht nach rechts drehen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5l4 4-4 4" fill="none" stroke="#3A2E25" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 9H10a6 6 0 0 0 0 12h3" fill="none" stroke="#3A2E25" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+  </div>
+
+  <div class="cmp" id="cmp" hidden>
+    <figure><img src="stammvoelker/stufe1.webp" alt="Vorlage: Zeltlager der Turi" loading="lazy"><figcaption>Vorlage (ChatGPT) · Antippen zum Schließen</figcaption></figure>
+  </div>
+
+  <div class="screen" id="start">
+    <h1 class="title">STAMMVÖLKER</h1>
+    <p class="sub">Aufstieg der Turi</p>
+    <div class="poster"><img src="stammvoelker/cover.webp" alt="Vom Zeltlager zur Stadt am Fluss"></div>
+    <p class="lead">Zwölf Überlebende, ein Flusstal. Fälle Bäume, pflanze nach, baue Hütten und lass dein Volk wachsen.</p>
+    <button class="go" id="goBtn">Ins Flusstal</button>
+    <p class="small">Frühe Version · dein Spielstand bleibt in diesem Browser</p>
+  </div>
+</div>
+
+<script src="../assets/three.min.js"></script>
+<script>
+(() => {
+'use strict';
+const T = THREE;
+const $ = s => document.querySelector(s);
+const C = h => new T.Color(h).convertSRGBToLinear();
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+// ---------- Zufall mit festem Startwert: die Welt sieht bei jedem Laden gleich aus ----------
+let seed = 20261014;
+const rnd = () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+const R = (a, b) => a + (b - a) * rnd();
+const pick = arr => arr[Math.floor(rnd() * arr.length)];
+
+// ---------- Renderer ----------
+const canvas = $('#c');
+let renderer;
+try {
+  renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
+} catch (e) {
+  document.body.innerHTML = '<p style="font:500 18px/1.4 Fredoka,sans-serif;padding:24px;text-align:center">Dein Browser kann leider kein WebGL anzeigen.</p>';
+  return;
+}
+let pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+renderer.setPixelRatio(pixelRatio);
+renderer.outputEncoding = T.sRGBEncoding;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = T.PCFSoftShadowMap;
+renderer.setClearColor(0x000000, 0);
+
+const scene = new T.Scene();
+const FOG = '#e3eef2';
+scene.fog = new T.Fog(C(FOG), 44, 72);
+
+const cam = new T.OrthographicCamera(-10, 10, 10, -10, 0.1, 200);
+const startZoom = innerWidth < innerHeight ? 2.0 : 1.15;
+const camS = { az: Math.PI / 4, azT: Math.PI / 4, el: 0.58, zoom: startZoom, zoomT: startZoom, target: new T.Vector3(0.6, 0, -1.2) };
+
+// ---------- Licht: Sonne von links oben ----------
+const hemi = new T.HemisphereLight(C('#dfefff'), C('#a88b6a'), 0.78);
+scene.add(hemi);
+const sun = new T.DirectionalLight(C('#fff1dc'), 1.1);
+sun.position.set(-11, 16, 3);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left: -11, right: 11, top: 11, bottom: -11, near: 1, far: 45 });
+sun.shadow.bias = -0.0006;
+sun.shadow.normalBias = 0.025;
+scene.add(sun, sun.target);
+
+// ---------- Material-Helfer ----------
+const matCache = {};
+const M = (hex, o) => {
+  const k = hex + (o ? JSON.stringify(o) : '');
+  return matCache[k] || (matCache[k] = new T.MeshStandardMaterial(Object.assign({ color: C(hex), flatShading: true, roughness: 0.92, metalness: 0 }, o || {})));
+};
+const dummy = new T.Object3D();
+
+// Teile zu einer Geometrie zusammenfügen (mit Farben je Teil), damit viele Objekte nur einen Zeichenaufruf brauchen
+function merge(parts) {
+  const pos = [], col = [];
+  for (const [g, m, hex] of parts) {
+    const gg = g.index ? g.toNonIndexed() : g.clone();
+    if (m) gg.applyMatrix4(m);
+    const a = gg.attributes.position.array;
+    const c = C(hex || '#ffffff');
+    for (let i = 0; i < a.length; i += 3) { pos.push(a[i], a[i + 1], a[i + 2]); col.push(c.r, c.g, c.b); }
+  }
+  const out = new T.BufferGeometry();
+  out.setAttribute('position', new T.Float32BufferAttribute(pos, 3));
+  out.setAttribute('color', new T.Float32BufferAttribute(col, 3));
+  out.computeVertexNormals();
+  return out;
+}
+const mtx = (x, y, z, rx, ry, rz, sx, sy, sz) => {
+  dummy.position.set(x || 0, y || 0, z || 0);
+  dummy.rotation.set(rx || 0, ry || 0, rz || 0);
+  dummy.scale.set(sx || 1, sy === undefined ? (sx || 1) : sy, sz === undefined ? (sx || 1) : sz);
+  dummy.updateMatrix();
+  return dummy.matrix.clone();
+};
+
+// Viele gleiche Objekte als ein InstancedMesh
+function instanced(geo, mat, items, { cast = true, receive = true } = {}) {
+  // eigenes Material je InstancedMesh (Shader mit Instanz-Farben darf nicht mit normalen Meshes geteilt werden)
+  if (Object.values(matCache).includes(mat)) mat = mat.clone();
+  const mesh = new T.InstancedMesh(geo, mat, Math.max(1, items.length));
+  mesh.count = items.length;
+  mesh.instanceColor = new T.InstancedBufferAttribute(new Float32Array(Math.max(1, items.length) * 3), 3);
+  const col = new T.Color();
+  items.forEach((it, i) => {
+    dummy.position.copy(it.p);
+    dummy.rotation.set(it.rx || 0, it.ry || 0, it.rz || 0);
+    if (typeof it.s === 'number') dummy.scale.setScalar(it.s); else dummy.scale.copy(it.s || new T.Vector3(1, 1, 1));
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+    const f = it.tint === undefined ? 1 : it.tint;
+    if (it.color) col.copy(C(it.color)); else col.setRGB(f, f, f);
+    mesh.setColorAt(i, col);
+  });
+  mesh.instanceMatrix.needsUpdate = true;
+  mesh.castShadow = cast; mesh.receiveShadow = receive;
+  mesh.frustumCulled = false;
+  scene.add(mesh);
+  return mesh;
+}
+const V = (x, y, z) => new T.Vector3(x, y, z);
+
+// ---------- Karte: 12 × 12 Felder ----------
+// . leer  g Ebene  f Wald  h Hügel  k Bergwald  r Felsen  w Fluss
+const MAP = [
+  '..fkkkhrrk..',
+  '.ffkkhhhrrk.',
+  'wwwfggghhrk.',
+  'ffwggggggghk',
+  'ffwggggggggg',
+  'ffwggggggggg',
+  'ffwggggggggg',
+  'ffwwwwwwgggg',
+  'fffggggwgggg',
+  '.ffgggfwgggg',
+  '.ffrggfwgfg.',
+  '..fggggwgg..'
+];
+const N = 12;
+const TYPES = {
+  g: { name: 'Ebene', res: 'Bauplatz, Beeren, Wild', lvl: 0 },
+  f: { name: 'Wald', res: 'Holz, Wild, Kräuter', lvl: 0 },
+  h: { name: 'Hügel', res: 'Stein, Lehm', lvl: 1 },
+  k: { name: 'Bergwald', res: 'Holz', lvl: 1 },
+  r: { name: 'Felsen', res: 'Stein, Eisenerz', lvl: 1 },
+  w: { name: 'Fluss', res: 'Wasser, Fisch', lvl: -1 }
+};
+const WATER_Y = -0.2;
+const grid = [];
+const tiles = [];
+for (let z = 0; z < N; z++) {
+  grid[z] = [];
+  for (let x = 0; x < N; x++) {
+    const ch = MAP[z][x];
+    if (ch === '.') { grid[z][x] = null; continue; }
+    const t = { x, z, ch, type: TYPES[ch], top: ch === 'w' ? WATER_Y : (TYPES[ch].lvl === 1 ? 0.5 : 0), occ: null, wx: x - 5.5, wz: z - 5.5 };
+    grid[z][x] = t; tiles.push(t);
+  }
+}
+const tileAt = (x, z) => (x < 0 || z < 0 || x >= N || z >= N) ? null : grid[z][x];
+const tileAtWorld = (wx, wz) => tileAt(Math.round(wx + 5.5), Math.round(wz + 5.5));
+const groundY = (wx, wz) => { const t = tileAtWorld(wx, wz); return t ? t.top : 0; };
+const nb4 = t => [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dz]) => tileAt(t.x + dx, t.z + dz));
+
+// Abstand zum Rand → Insel wird nach unten schmaler
+tiles.forEach(t => { t.d = nb4(t).some(n => !n) ? 0 : 9; });
+for (let k = 0; k < 4; k++) tiles.forEach(t => { if (t.d) t.d = Math.min(t.d, 1 + Math.min(...nb4(t).map(n => n.d))); });
+
+// ---------- Inselblöcke ----------
+const grassItems = [], grassTiles = [], soilA = [], soilB = [], waterItems = [], waterTiles = [];
+tiles.forEach(t => {
+  const isW = t.ch === 'w';
+  const top = isW ? -0.5 : t.top;
+  if (!isW) { grassItems.push({ p: V(t.wx, top - 0.07, t.wz), tint: R(0.9, 1.06) }); grassTiles.push(t); }
+  const aTop = isW ? top : top - 0.14;
+  soilA.push({ p: V(t.wx, aTop - 0.28, t.wz), s: V(1, 1, 1), tint: R(0.92, 1.06) });
+  const bTop = aTop - 0.56;
+  const bottom = -1.25 - Math.min(t.d, 4) * 0.5 - R(0, 0.45);
+  const h = Math.max(0.2, bTop - bottom);
+  soilB.push({ p: V(t.wx, bTop - h / 2, t.wz), s: V(1, h, 1), tint: R(0.86, 1.05) });
+  if (isW) { waterItems.push({ p: V(t.wx, -0.35, t.wz) }); waterTiles.push(t); }
+});
+const grassMat = new T.MeshStandardMaterial({ color: C('#9CC56B'), flatShading: true, roughness: 0.95 });
+const grassMesh = instanced(new T.BoxGeometry(1, 0.14, 1), grassMat, grassItems, { cast: true });
+instanced(new T.BoxGeometry(1, 0.56, 1), M('#9A6A40'), soilA);
+instanced(new T.BoxGeometry(1, 1, 1), M('#6E4A2C'), soilB, { cast: false });
+const waterMat = new T.MeshStandardMaterial({ color: C('#3D93BD'), flatShading: true, roughness: 0.18, metalness: 0.08, transparent: true, opacity: 0.86 });
+const waterMesh = instanced(new T.BoxGeometry(1, 0.3, 1), waterMat, waterItems, { cast: false });
+
+// ---------- Fluss: Schaumstreifen, die mit der Strömung treiben ----------
+const riverPath = [[-0.7, 2], [2, 2], [2, 7], [7, 7], [7, 11.55]].map(([x, z]) => V(x - 5.5, WATER_Y + 0.012, z - 5.5));
+const segLen = []; let riverLen = 0;
+for (let i = 1; i < riverPath.length; i++) { const l = riverPath[i].distanceTo(riverPath[i - 1]); segLen.push(l); riverLen += l; }
+function riverAt(s, out, dir) {
+  for (let i = 0; i < segLen.length; i++) {
+    if (s <= segLen[i] || i === segLen.length - 1) {
+      const a = riverPath[i], b = riverPath[i + 1], k = clamp(s / segLen[i], 0, 1);
+      out.lerpVectors(a, b, k); dir.subVectors(b, a).normalize(); return;
+    }
+    s -= segLen[i];
+  }
+}
+const foamCount = 34;
+const foam = new T.InstancedMesh(new T.BoxGeometry(0.16, 0.012, 0.035), new T.MeshBasicMaterial({ color: C('#eaf8fc'), transparent: true, opacity: 0.75 }), foamCount);
+foam.frustumCulled = false;
+const foamData = Array.from({ length: foamCount }, () => ({ s: R(0, riverLen), off: R(-0.32, 0.32), sp: R(0.32, 0.5), len: R(0.6, 1.4) }));
+scene.add(foam);
+const tmpP = V(0, 0, 0), tmpD = V(0, 0, 0);
+function updateFoam(dt) {
+  foamData.forEach((f, i) => {
+    f.s += f.sp * dt; if (f.s > riverLen) f.s -= riverLen;
+    riverAt(f.s, tmpP, tmpD);
+    dummy.position.set(tmpP.x - tmpD.z * f.off, tmpP.y, tmpP.z + tmpD.x * f.off);
+    dummy.rotation.set(0, Math.atan2(tmpD.x, tmpD.z) + Math.PI / 2, 0);
+    dummy.scale.set(f.len, 1, 1);
+    dummy.updateMatrix(); foam.setMatrixAt(i, dummy.matrix);
+  });
+  foam.instanceMatrix.needsUpdate = true;
+}
+
+// ---------- Wasserfall über die Inselkante ----------
+function stripeTexture() {
+  const cv = document.createElement('canvas'); cv.width = 64; cv.height = 256;
+  const g = cv.getContext('2d');
+  for (let i = 0; i < 26; i++) {
+    const x = Math.random() * 64, w = 2 + Math.random() * 6, y = Math.random() * 256, h = 40 + Math.random() * 120;
+    g.fillStyle = Math.random() < 0.45 ? 'rgba(255,255,255,0.85)' : 'rgba(150,212,238,0.9)';
+    g.fillRect(x, y, w, h); g.fillRect(x, y - 256, w, h);
+  }
+  const tex = new T.CanvasTexture(cv); tex.wrapS = tex.wrapT = T.RepeatWrapping; tex.encoding = T.sRGBEncoding; tex.repeat.set(1, 1.6);
+  return tex;
+}
+const fallTex = stripeTexture();
+const fallBack = new T.Mesh(new T.PlaneGeometry(0.92, 3.4), new T.MeshBasicMaterial({ color: C('#5fb6dc'), transparent: true, opacity: 0.8, depthWrite: false }));
+fallBack.position.set(7 - 5.5, WATER_Y - 1.7, 11 - 5.5 + 0.505);
+const fall = new T.Mesh(new T.PlaneGeometry(0.92, 3.4), new T.MeshBasicMaterial({ map: fallTex, transparent: true, depthWrite: false, fog: true }));
+fall.position.copy(fallBack.position); fall.position.z += 0.01;
+scene.add(fallBack, fall);
+const lip = new T.Mesh(new T.BoxGeometry(0.94, 0.07, 0.12), new T.MeshBasicMaterial({ color: C('#f2fbff') }));
+lip.position.set(7 - 5.5, WATER_Y - 0.01, 11 - 5.5 + 0.47); scene.add(lip);
+
+// ---------- Bäume, Felsen, Büsche, Blumen ----------
+const coniferGeo = merge([
+  [new T.ConeGeometry(0.34, 0.46, 6), mtx(0, 0.42, 0)],
+  [new T.ConeGeometry(0.27, 0.4, 6), mtx(0, 0.68, 0, 0, 0.5)],
+  [new T.ConeGeometry(0.19, 0.34, 6), mtx(0, 0.92, 0, 0, 0.2)]
+]);
+const leafGeo = merge([
+  [new T.IcosahedronGeometry(0.3, 0), mtx(0, 0.7, 0)],
+  [new T.IcosahedronGeometry(0.23, 0), mtx(0.2, 0.6, 0.06, 0.3, 0.5)],
+  [new T.IcosahedronGeometry(0.22, 0), mtx(-0.14, 0.62, -0.14, 0.6, 1)],
+  [new T.IcosahedronGeometry(0.2, 0), mtx(0.02, 0.92, -0.04, 1, 0.3)]
+]);
+const trunkGeo = new T.CylinderGeometry(0.045, 0.065, 0.5, 5); trunkGeo.translate(0, 0.25, 0);
+// Bäume wachsen, werden gefällt und gepflanzt: jeder Baum ist ein Eintrag, die Meshes werden daraus neu geschrieben
+const MAXT = 260;
+const trees = [];
+let treesDirty = true;
+function addTree(t, ox, oz, kind, o) {
+  o = o || {};
+  const sc = o.s !== undefined ? o.s : R(0.82, 1.2), ry = o.ry !== undefined ? o.ry : R(0, 6.28);
+  const tint = o.tint !== undefined ? o.tint : (kind === 'c' ? R(0.86, 1.08) : R(0.86, 1.1));
+  const tr = { p: V(t.wx + ox, t.top, t.wz + oz), tile: t, ox, oz, kind, s: sc, ry, tint, g: o.g === undefined ? 1 : o.g, fell: 0, claimed: false };
+  trees.push(tr); treesDirty = true; return tr;
+}
+const VILLAGE = { fire: [6, 4], tents: [[5, 3], [7, 3], [5, 5]], flag: [4, 3], logs: [8, 5], store: [7, 5], pier: [3, 5], bushes: [[10, 4], [9, 6], [4, 6], [10, 6], [9, 9], [4, 9]] };
+tiles.forEach(t => {
+  if (t.ch === 'f') { const n = 2 + (rnd() < 0.5 ? 1 : 0); for (let i = 0; i < n; i++) addTree(t, R(-0.3, 0.3), R(-0.3, 0.3), rnd() < 0.55 ? 'c' : 'l'); }
+  if (t.ch === 'k') { addTree(t, R(-0.25, -0.05), R(-0.3, 0.3), 'c'); addTree(t, R(0.1, 0.3), R(-0.3, 0.3), 'c'); }
+});
+// einzelne Bäume als Rahmen ums Lager
+[[11, 4, 'l'], [11, 6, 'c'], [8, 9, 'l'], [11, 8, 'c'], [3, 8, 'l'], [5, 11, 'c'], [8, 11, 'l']].forEach(([x, z, k]) => { const t = tileAt(x, z); if (t) addTree(t, R(-0.2, 0.2), R(-0.2, 0.2), k); });
+const conMat = new T.MeshStandardMaterial({ color: C('#3B6B4F'), flatShading: true, roughness: 0.95 });
+const leafMat = new T.MeshStandardMaterial({ color: C('#5A9A4E'), flatShading: true, roughness: 0.95 });
+const treeSlots = Array.from({ length: MAXT }, () => ({ p: V(0, -50, 0), s: 0.001 }));
+const conMesh = instanced(coniferGeo, conMat, treeSlots), leafMesh = instanced(leafGeo, leafMat, treeSlots), trunkMesh = instanced(trunkGeo, M('#7A4E2A'), treeSlots);
+const tcol = new T.Color();
+function rebuildTrees() {
+  let nc = 0, nl = 0, nt = 0;
+  for (const tr of trees) {
+    const k = tr.fell > 0 ? Math.max(0.001, 1 - tr.fell) : 1;
+    const sc = tr.s * (0.25 + 0.75 * Math.min(1, tr.g)) * k;
+    dummy.position.copy(tr.p); dummy.rotation.set(0, tr.ry, 0); dummy.scale.setScalar(sc); dummy.updateMatrix();
+    const mesh = tr.kind === 'c' ? conMesh : leafMesh, i = tr.kind === 'c' ? nc++ : nl++;
+    mesh.setMatrixAt(i, dummy.matrix); tcol.setRGB(tr.tint, tr.tint, tr.tint); mesh.setColorAt(i, tcol);
+    if (tr.kind === 'c') dummy.scale.set(sc * 0.9, sc * 0.55, sc * 0.9); else dummy.scale.set(sc, sc * 1.15, sc);
+    dummy.updateMatrix(); trunkMesh.setMatrixAt(nt++, dummy.matrix);
+  }
+  conMesh.count = nc; leafMesh.count = nl; trunkMesh.count = nt;
+  for (const m of [conMesh, leafMesh, trunkMesh]) { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
+  treesDirty = false;
+}
+const TREE_GROW = 1 / 120; // Sekunden bis ausgewachsen bei Wachstum 1 (Sommer)
+let treeTimer = 0;
+function updateTrees(dt) {
+  const mult = SEASONS[seasonI].grow;
+  for (let i = trees.length - 1; i >= 0; i--) {
+    const tr = trees[i];
+    if (tr.fell > 0) { tr.fell += dt / 0.45; treesDirty = true; if (tr.fell >= 1) trees.splice(i, 1); continue; }
+    if (tr.g < 1 && mult > 0) { tr.g = Math.min(1, tr.g + dt * TREE_GROW * mult); treesDirty = true; }
+  }
+  treeTimer += dt;
+  if (treesDirty && treeTimer > 0.12) { treeTimer = 0; rebuildTrees(); }
+}
+const treesOn = t => trees.reduce((n, tr) => n + (tr.tile === t && !tr.fell ? 1 : 0), 0);
+const reach = t => t.ch !== 'w' && (t.x >= 3 || t.z <= 1) && t.z <= 6; // Seite des Lagers, ohne Flussufer gegenüber
+
+// Felsen
+const rockGeo = new T.DodecahedronGeometry(0.22, 0);
+const rockItems = [];
+tiles.forEach(t => {
+  if (t.ch === 'r') for (let i = 0; i < 3; i++) rockItems.push({ p: V(t.wx + R(-0.28, 0.28), t.top + 0.08, t.wz + R(-0.28, 0.28)), s: V(R(0.8, 1.6), R(0.7, 1.4), R(0.8, 1.5)), ry: R(0, 6), tint: R(0.88, 1.1) });
+  if (t.ch !== 'w' && t.ch !== 'r' && nb4(t).some(n => n && n.ch === 'w') && rnd() < 0.35 && !(t.x === 3 && t.z === 5)) rockItems.push({ p: V(t.wx + R(-0.35, 0.35), t.top + 0.05, t.wz + R(-0.35, 0.35)), s: R(0.5, 0.9), ry: R(0, 6), tint: R(0.9, 1.1) });
+});
+// Erzfelsen mit dunklen Adern (Eisen) auf dem Felshügel
+instanced(rockGeo, M('#968E82'), rockItems);
+const oreItems = rockItems.filter((_, i) => i < 9 && i % 3 === 0).map(r => ({ p: r.p.clone().add(V(0.05, 0.12, 0.08)), s: 0.32, ry: r.ry }));
+instanced(new T.OctahedronGeometry(0.16, 0), M('#444B55', { roughness: 0.5, metalness: 0.3 }), oreItems);
+
+// Büsche mit Beeren
+const bushGeo = merge([[new T.IcosahedronGeometry(0.2, 0), mtx(0, 0.16, 0)], [new T.IcosahedronGeometry(0.16, 0), mtx(0.16, 0.12, 0.05, 0.4)], [new T.IcosahedronGeometry(0.15, 0), mtx(-0.12, 0.12, 0.1, 0.8)]]);
+const bushMat = new T.MeshStandardMaterial({ color: C('#4E8B45'), flatShading: true, roughness: 0.95 });
+const bushes = [], bushItems = [], berryItems = [];
+VILLAGE.bushes.forEach(([x, z]) => {
+  const t = tileAt(x, z); if (!t) return;
+  const p = V(t.wx + R(-0.15, 0.15), t.top, t.wz + R(-0.15, 0.15));
+  bushItems.push({ p, s: R(0.95, 1.2), ry: R(0, 6) });
+  for (let i = 0; i < 6; i++) berryItems.push({ p: p.clone().add(V(R(-0.22, 0.24), R(0.12, 0.3), R(-0.12, 0.24))), s: 1, color: rnd() < 0.5 ? '#D2553F' : '#B83A4A' });
+  bushes.push({ p, tile: t }); t.occ = 'bush';
+});
+instanced(bushGeo, bushMat, bushItems);
+const berries = instanced(new T.IcosahedronGeometry(0.035, 0), M('#ffffff'), berryItems, { cast: false });
+
+// Grasbüschel und Blumen
+const tuftGeo = merge([[new T.ConeGeometry(0.028, 0.15, 3), mtx(0, 0.07, 0, 0.15, 0, 0.1)], [new T.ConeGeometry(0.024, 0.12, 3), mtx(0.04, 0.06, 0.01, 0, 0, -0.35)], [new T.ConeGeometry(0.024, 0.11, 3), mtx(-0.035, 0.055, 0.02, 0.2, 0, 0.4)]]);
+const tuftMat = new T.MeshStandardMaterial({ color: C('#6E9E48'), flatShading: true, roughness: 1 });
+const tuftItems = [], flowerItems = [];
+const isVillageCore = t => t.x >= 4 && t.x <= 8 && t.z >= 3 && t.z <= 5;
+tiles.forEach(t => {
+  if (t.ch === 'w') return;
+  const n = t.ch === 'g' ? 3 : 2;
+  for (let i = 0; i < n; i++) {
+    let ox = R(-0.44, 0.44), oz = R(-0.44, 0.44);
+    if (isVillageCore(t) && Math.abs(ox) < 0.3 && Math.abs(oz) < 0.3) ox = ox < 0 ? -0.4 : 0.4;
+    tuftItems.push({ p: V(t.wx + ox, t.top, t.wz + oz), s: R(0.8, 1.3), ry: R(0, 6), tint: R(0.85, 1.15) });
+  }
+  if ((t.ch === 'g' || t.ch === 'h') && !isVillageCore(t) && rnd() < 0.55) for (let i = 0; i < 3; i++) flowerItems.push({ p: V(t.wx + R(-0.42, 0.42), t.top + 0.06, t.wz + R(-0.42, 0.42)), s: R(0.8, 1.2), color: pick(['#ffffff', '#FFF1A8', '#F2A7C3', '#ffffff', '#F6CF5E']) });
+});
+instanced(tuftGeo, tuftMat, tuftItems, { cast: false });
+const flowers = instanced(new T.IcosahedronGeometry(0.03, 0), M('#ffffff', { roughness: 0.7 }), flowerItems, { cast: false });
+
+// Schilf und Seerosen am Fluss
+const reedGeo = merge([[new T.CylinderGeometry(0.008, 0.01, 0.34, 4), mtx(0, 0.17, 0), '#7a9a4a'], [new T.CylinderGeometry(0.022, 0.022, 0.08, 5), mtx(0, 0.32, 0), '#7a4a2a'], [new T.CylinderGeometry(0.008, 0.01, 0.28, 4), mtx(0.05, 0.14, 0.03, 0, 0, -0.2), '#86a855'], [new T.CylinderGeometry(0.007, 0.009, 0.24, 4), mtx(-0.04, 0.12, 0.02, 0.15, 0, 0.25), '#86a855']]);
+const reedItems = [], padItems = [];
+waterTiles.forEach(t => {
+  if (rnd() < 0.55) {
+    const side = pick(nb4(t).filter(n => n && n.ch !== 'w') || []);
+    if (side) reedItems.push({ p: V(t.wx + (side.wx - t.wx) * 0.4 + R(-0.25, 0.25) * Math.abs(side.wz - t.wz), WATER_Y - 0.02, t.wz + (side.wz - t.wz) * 0.4 + R(-0.25, 0.25) * Math.abs(side.wx - t.wx)), s: R(0.85, 1.25), ry: R(0, 6) });
+  }
+  if (rnd() < 0.35) padItems.push({ p: V(t.wx + R(-0.3, 0.3), WATER_Y + 0.008, t.wz + R(-0.3, 0.3)), s: R(0.8, 1.2), ry: R(0, 6), color: rnd() < 0.8 ? '#5E9A44' : '#77B254' });
+});
+instanced(reedGeo, new T.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 1 }), reedItems, { receive: false });
+instanced(new T.CylinderGeometry(0.075, 0.075, 0.012, 7), M('#ffffff'), padItems, { cast: false });
+
+// ---------- Wolkenmeer rund um die Insel ----------
+const cloudItems = [];
+for (let i = 0; i < 46; i++) { const a = R(0, 6.283), r = R(8.2, 14); cloudItems.push({ p: V(Math.cos(a) * r, R(-3.4, -1.2), Math.sin(a) * r), s: V(R(1.3, 2.8), R(0.8, 1.4), R(1.3, 2.6)), ry: R(0, 6), tint: R(0.94, 1.04) }); }
+for (let i = 0; i < 16; i++) { const a = R(0, 6.283), r = R(0, 6.5); cloudItems.push({ p: V(Math.cos(a) * r, R(-5.6, -4), Math.sin(a) * r), s: V(R(1.6, 2.8), R(0.8, 1.2), R(1.6, 2.8)), ry: R(0, 6), tint: R(0.92, 1.02) }); }
+for (let i = 0; i < 26; i++) { const a = R(0, 6.283), r = R(15, 23); cloudItems.push({ p: V(Math.cos(a) * r, R(-2.4, 0.6), Math.sin(a) * r), s: V(R(2.4, 4.2), R(1.1, 1.9), R(2.4, 4)), ry: R(0, 6), tint: R(0.95, 1.03) }); }
+const cloudMat = new T.MeshStandardMaterial({ color: C('#ffffff'), emissive: C('#b4c3cf'), emissiveIntensity: 0.55, flatShading: true, roughness: 1 });
+const clouds = instanced(new T.IcosahedronGeometry(1, 1), cloudMat, cloudItems, { cast: false, receive: false });
+const cloudGroup = new T.Group(); scene.remove(clouds); cloudGroup.add(clouds); scene.add(cloudGroup);
+// Gischt-Wolken am Wasserfall
+const mist = instanced(new T.IcosahedronGeometry(0.5, 1), new T.MeshStandardMaterial({ color: C('#ffffff'), emissive: C('#c8d6e0'), emissiveIntensity: 0.6, flatShading: true, transparent: true, opacity: 0.85 }), [0, 1, 2, 3].map(i => ({ p: V(1.5 + R(-0.4, 0.4), -2.9 + i * 0.05, 6.3 + R(-0.2, 0.4)), s: R(0.8, 1.3) })), { cast: false, receive: false });
+
+// ---------- Bauten des Lagers ----------
+const W = (x, z) => V(x - 5.5, tileAt(x, z).top, z - 5.5);
+function stick(a, b, r, mat) {
+  const len = a.distanceTo(b);
+  const m = new T.Mesh(new T.CylinderGeometry(r, r, len, 5), mat);
+  m.position.lerpVectors(a, b, 0.5);
+  m.quaternion.setFromUnitVectors(V(0, 1, 0), b.clone().sub(a).normalize());
+  m.castShadow = true; return m;
+}
+function prismGeo(Wd, H, L) {
+  const A = [-Wd, 0, L / 2], B = [Wd, 0, L / 2], F = [0, H, L / 2], D = [-Wd, 0, -L / 2], E = [Wd, 0, -L / 2], G = [0, H, -L / 2];
+  const v = [];
+  const tri = (a, b, c) => v.push(...a, ...b, ...c);
+  tri(A, F, G); tri(A, G, D); tri(B, E, G); tri(B, G, F); tri(A, B, F); tri(E, D, G);
+  const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(v, 3)); g.computeVertexNormals(); return g;
+}
+function makeTent(scale = 1) {
+  const g = new T.Group();
+  const Wd = 0.3, H = 0.44, L = 0.66;
+  const canvasMat = M('#E6CC9E'), wood = M('#8C5A31'), dark = M('#4A3020');
+  const body = new T.Mesh(prismGeo(Wd, H, L), canvasMat); body.castShadow = true; body.receiveShadow = true; g.add(body);
+  // Eingang
+  const door = new T.Mesh(prismGeo(Wd * 0.42, H * 0.6, 0.01), dark); door.position.z = L / 2 + 0.006; g.add(door);
+  // gekreuzte Stangen an beiden Enden und Firststange
+  for (const z of [L / 2 + 0.02, -L / 2 - 0.02]) {
+    g.add(stick(V(-Wd * 0.95, 0, z), V(Wd * 0.28, H + 0.14, z), 0.018, wood));
+    g.add(stick(V(Wd * 0.95, 0, z), V(-Wd * 0.28, H + 0.14, z), 0.018, wood));
+  }
+  g.add(stick(V(0, H + 0.01, -L / 2 - 0.05), V(0, H + 0.01, L / 2 + 0.05), 0.016, wood));
+  // Saum und Pflöcke
+  const hem = new T.Mesh(new T.BoxGeometry(Wd * 2.04, 0.03, L * 1.01), M('#C9A876')); hem.position.y = 0.015; g.add(hem);
+  for (const [x, z] of [[-Wd - 0.08, L / 3], [Wd + 0.08, L / 3], [-Wd - 0.08, -L / 3], [Wd + 0.08, -L / 3]]) {
+    g.add(stick(V(x, 0, z), V(x * 0.55, H * 0.55, z), 0.004, M('#C9A876')));
+    const peg = new T.Mesh(new T.BoxGeometry(0.02, 0.05, 0.02), wood); peg.position.set(x, 0.025, z); g.add(peg);
+  }
+  const crate = new T.Mesh(new T.BoxGeometry(0.12, 0.1, 0.12), M('#B07A45')); crate.position.set(Wd + 0.12, 0.05, L / 2 - 0.05); crate.rotation.y = 0.4; crate.castShadow = true; g.add(crate);
+  g.scale.setScalar(scale);
+  return g;
+}
+const facing = (from, to) => Math.atan2(to.x - from.x, to.z - from.z);
+const firePos = W(...VILLAGE.fire);
+const tents = [];
+function placeTent(x, z, pop) {
+  const t = tileAt(x, z), p = W(x, z);
+  const tent = makeTent(1.18); tent.position.copy(p); tent.rotation.y = Math.round(facing(p, firePos) / (Math.PI / 2)) * (Math.PI / 2) + R(-0.12, 0.12);
+  scene.add(tent); t.occ = 'tent'; tents.push(tent);
+  if (pop) { tent.scale.setScalar(0.001); popIns.push({ obj: tent, t: 0 }); }
+  return tent;
+}
+VILLAGE.tents.forEach(([x, z]) => placeTent(x, z));
+
+// Feuerstelle mit Flammen, Glut, Rauch und warmem Licht
+const fire = new T.Group(); fire.position.copy(firePos); scene.add(fire); tileAt(...VILLAGE.fire).occ = 'fire';
+for (let i = 0; i < 8; i++) { const a = i / 8 * 6.283; const s = new T.Mesh(new T.DodecahedronGeometry(0.05, 0), M('#968E82')); s.position.set(Math.cos(a) * 0.17, 0.03, Math.sin(a) * 0.17); s.scale.set(1.2, 0.8, 1); s.castShadow = true; fire.add(s); }
+fire.add(stick(V(-0.12, 0.03, -0.05), V(0.12, 0.06, 0.06), 0.025, M('#65401F')), stick(V(-0.08, 0.04, 0.12), V(0.09, 0.05, -0.1), 0.025, M('#65401F')));
+const flameMats = [new T.MeshBasicMaterial({ color: C('#FF8A3D') }), new T.MeshBasicMaterial({ color: C('#FFD36B') })];
+const flames = [[0, 0.11, 0, 0.09, 0.26, 0], [0.03, 0.1, 0.02, 0.055, 0.17, 1], [-0.04, 0.09, -0.01, 0.05, 0.15, 1]].map(([x, y, z, r, h, k]) => { const m = new T.Mesh(new T.ConeGeometry(r, h, 5), flameMats[k]); m.position.set(x, y + h / 2 - 0.04, z); m.userData.h = h; fire.add(m); return m; });
+const ember = new T.Mesh(new T.CylinderGeometry(0.11, 0.12, 0.02, 7), new T.MeshBasicMaterial({ color: C('#D9502A') })); ember.position.y = 0.02; fire.add(ember);
+const fireLight = new T.PointLight(C('#ffae63'), 1.1, 3.4, 2); fireLight.position.set(0, 0.35, 0); fire.add(fireLight);
+const smoke = Array.from({ length: 7 }, (_, i) => { const m = new T.Mesh(new T.IcosahedronGeometry(0.07, 0), new T.MeshStandardMaterial({ color: C('#e8e4de'), flatShading: true, transparent: true, opacity: 0.5, depthWrite: false })); m.userData.t = i / 7; fire.add(m); return m; });
+// Sitzstämme um das Feuer
+[[0.36, 0.2, 0.9], [-0.3, 0.3, -0.7], [0.05, -0.38, 0.1]].forEach(([x, z, r]) => { const l = new T.Mesh(new T.CylinderGeometry(0.045, 0.045, 0.3, 6), M('#8C5A31')); l.rotation.set(0, r, Math.PI / 2); l.position.set(x, 0.045, z); l.castShadow = true; fire.add(l); });
+
+// Banner der Turi
+function flagTexture() {
+  const cv = document.createElement('canvas'); cv.width = 128; cv.height = 84;
+  const g = cv.getContext('2d');
+  g.fillStyle = '#E07A3A'; g.fillRect(0, 0, 128, 84);
+  g.fillStyle = '#F6CF5E'; g.beginPath(); g.arc(64, 46, 20, Math.PI, 0); g.fill();
+  g.strokeStyle = '#F6CF5E'; g.lineWidth = 4; g.lineCap = 'round';
+  for (let i = 0; i < 7; i++) { const a = Math.PI + (i + 0.5) / 7 * Math.PI; g.beginPath(); g.moveTo(64 + Math.cos(a) * 25, 46 + Math.sin(a) * 25); g.lineTo(64 + Math.cos(a) * 33, 46 + Math.sin(a) * 33); g.stroke(); }
+  g.strokeStyle = '#2F9C95'; g.lineWidth = 6;
+  for (const y of [55, 67]) { g.beginPath(); for (let x = 18; x <= 110; x += 2) g.lineTo(x, y + Math.sin(x / 9) * 3.5); g.stroke(); }
+  g.fillStyle = '#B85A22'; g.fillRect(0, 0, 128, 5); g.fillRect(0, 79, 128, 5);
+  const tex = new T.CanvasTexture(cv); tex.encoding = T.sRGBEncoding; return tex;
+}
+const flagPos = W(...VILLAGE.flag); tileAt(...VILLAGE.flag).occ = 'flag';
+const pole = new T.Mesh(new T.CylinderGeometry(0.02, 0.026, 1.25, 6), M('#8C5A31')); pole.position.set(flagPos.x, 0.625, flagPos.z); pole.castShadow = true; scene.add(pole);
+const knob = new T.Mesh(new T.OctahedronGeometry(0.04, 0), M('#E0A834', { metalness: 0.3, roughness: 0.5 })); knob.position.set(flagPos.x, 1.27, flagPos.z); scene.add(knob);
+const flagGeo = new T.PlaneGeometry(0.56, 0.36, 12, 4); flagGeo.translate(0.28, 0, 0);
+const flagBase = flagGeo.attributes.position.array.slice();
+const flag = new T.Mesh(flagGeo, new T.MeshStandardMaterial({ map: flagTexture(), side: T.DoubleSide, roughness: 0.9 }));
+flag.position.set(flagPos.x + 0.02, 1.02, flagPos.z); flag.rotation.y = Math.PI / 4 - 0.3; flag.castShadow = true; scene.add(flag);
+const stoneBase = new T.Mesh(new T.DodecahedronGeometry(0.1, 0), M('#968E82')); stoneBase.position.set(flagPos.x, 0.04, flagPos.z); stoneBase.scale.set(1.3, 0.6, 1.3); scene.add(stoneBase);
+
+// Holzlager: zeigt den Holzvorrat als Stapel
+const logPos = W(...VILLAGE.logs); tileAt(...VILLAGE.logs).occ = 'logs';
+const logSlots = [];
+for (let row = 0, n = 4; row < 4; row++, n--) for (let i = 0; i < n; i++) logSlots.push(V(logPos.x, 0.06 + row * 0.1, logPos.z - (n - 1) * 0.055 + i * 0.11));
+const logGeo = new T.CylinderGeometry(0.05, 0.05, 0.42, 7); logGeo.rotateZ(Math.PI / 2);
+const logMesh = new T.InstancedMesh(logGeo, new T.MeshStandardMaterial({ color: C('#9A6A40'), flatShading: true, roughness: 0.92 }), logSlots.length); logMesh.castShadow = true; logMesh.receiveShadow = true; logMesh.frustumCulled = false;
+logSlots.forEach((p, i) => { dummy.position.copy(p); dummy.rotation.set(R(-0.1, 0.1), 0, 0); dummy.scale.setScalar(1); dummy.updateMatrix(); logMesh.setMatrixAt(i, dummy.matrix); });
+scene.add(logMesh);
+const chopBlock = new T.Mesh(new T.CylinderGeometry(0.08, 0.09, 0.12, 7), M('#B07A45')); chopBlock.position.set(logPos.x + 0.32, 0.06, logPos.z + 0.25); chopBlock.castShadow = true; scene.add(chopBlock);
+
+// Steinlager neben dem Holz
+const stonePos = V(logPos.x + 0.14, 0, logPos.z - 0.46);
+const stoneSlots = [];
+for (let layer = 0; layer < 3; layer++) { const n = 4 - layer; for (let i = 0; i < n; i++) stoneSlots.push({ p: V(stonePos.x - (n - 1) * 0.055 + i * 0.11, 0.05 + layer * 0.085, stonePos.z + R(-0.04, 0.04)), ry: R(0, 6) }); }
+const stoneMesh = new T.InstancedMesh(new T.DodecahedronGeometry(0.075, 0), new T.MeshStandardMaterial({ color: C('#968E82'), flatShading: true, roughness: 0.95 }), stoneSlots.length);
+stoneMesh.castShadow = true; stoneMesh.receiveShadow = true; stoneMesh.frustumCulled = false;
+stoneSlots.forEach((sl, i) => { dummy.position.copy(sl.p); dummy.rotation.set(0, sl.ry, 0); dummy.scale.set(1, 0.8, 1); dummy.updateMatrix(); stoneMesh.setMatrixAt(i, dummy.matrix); });
+stoneMesh.count = 0; scene.add(stoneMesh);
+
+// Vorräte
+const storePos = W(...VILLAGE.store); tileAt(...VILLAGE.store).occ = 'store';
+[[-0.15, 0.1, 0.2, 0.16, 0.14, '#B07A45'], [0.12, -0.12, -0.3, 0.14, 0.12, '#C9A876'], [0.18, 0.18, 0.5, 0.12, 0.1, '#B07A45']].forEach(([x, z, r, s, h, c]) => { const b = new T.Mesh(new T.BoxGeometry(s, h, s), M(c)); b.position.set(storePos.x + x, h / 2, storePos.z + z); b.rotation.y = r; b.castShadow = true; scene.add(b); });
+const sack = new T.Mesh(new T.IcosahedronGeometry(0.08, 0), M('#E6CC9E')); sack.scale.set(1, 1.3, 1); sack.position.set(storePos.x - 0.12, 0.1, storePos.z - 0.18); sack.castShadow = true; scene.add(sack);
+const basketG = new T.Mesh(new T.CylinderGeometry(0.1, 0.08, 0.1, 8), M('#C9A876')); basketG.position.set(storePos.x + 0.05, 0.05, storePos.z + 0.05); basketG.castShadow = true; scene.add(basketG);
+const foodTop = new T.Group(); foodTop.position.set(basketG.position.x, 0.1, basketG.position.z); scene.add(foodTop);
+for (let i = 0; i < 6; i++) { const b = new T.Mesh(new T.IcosahedronGeometry(0.035, 0), M(i % 2 ? '#D2553F' : '#B83A4A')); b.position.set(R(-0.05, 0.05), 0, R(-0.05, 0.05)); foodTop.add(b); }
+
+// Steg am Fluss
+const pierT = tileAt(...VILLAGE.pier); pierT.occ = 'pier';
+const pierG = new T.Group(); pierG.position.set(pierT.wx - 0.5, 0, pierT.wz); scene.add(pierG);
+for (let i = 0; i < 5; i++) { const b = new T.Mesh(new T.BoxGeometry(0.11, 0.035, 0.42), M(i % 2 ? '#B07A45' : '#A06C3C')); b.position.set(0.12 - i * 0.12, -0.03, R(-0.01, 0.01)); b.castShadow = true; b.receiveShadow = true; pierG.add(b); }
+for (const [x, z] of [[-0.42, -0.18], [-0.42, 0.18], [-0.05, -0.18], [-0.05, 0.18]]) { const p = new T.Mesh(new T.CylinderGeometry(0.025, 0.025, 0.55, 5), M('#7A4E2A')); p.position.set(x, -0.25, z); p.castShadow = true; pierG.add(p); }
+const fishBasket = new T.Mesh(new T.CylinderGeometry(0.06, 0.05, 0.07, 7), M('#C9A876')); fishBasket.position.set(0.15, 0.035, 0.12); pierG.add(fishBasket);
+
+// ---------- Bewohner ----------
+const SKIN = ['#F1C9A5', '#D9A066', '#A86B3C', '#7A4A2A', '#E8B98F', '#C68A5A'];
+const HAIR = ['#3A2E25', '#6B4529', '#C0612B', '#2B2622', '#D9C185', '#8C5A31'];
+const handGeo = new T.IcosahedronGeometry(0.022, 0);
+const at = (m, x, y, z) => { m.position.set(x, y, z); return m; };
+function makePerson(o) {
+  const g = new T.Group(), all = new T.Group(), up = new T.Group(); g.add(all);
+  const skin = M(o.skin), shirt = M(o.shirt), pants = M(o.pants || '#6B4529'), hair = M(o.hair);
+  const u = { all, up };
+  const legG = new T.BoxGeometry(0.045, 0.13, 0.05);
+  for (const s of [-1, 1]) { const p = new T.Group(); p.position.set(s * 0.033, 0.13, 0); const m = new T.Mesh(legG, pants); m.position.y = -0.065; p.add(m); const f = new T.Mesh(new T.BoxGeometry(0.05, 0.03, 0.07), M('#4A3020')); f.position.set(0, -0.125, 0.01); p.add(f); all.add(p); u[s < 0 ? 'lR' : 'lL'] = p; }
+  up.position.y = 0.13; all.add(up);
+  const body = new T.Mesh(new T.CylinderGeometry(0.068, 0.088, 0.17, 6), shirt); body.position.y = 0.085; up.add(body);
+  if (o.sash) { const b = new T.Mesh(new T.CylinderGeometry(0.09, 0.09, 0.028, 6), M(o.sash)); b.position.y = 0.03; up.add(b); }
+  const armG = new T.BoxGeometry(0.034, 0.13, 0.04);
+  for (const s of [-1, 1]) { const p = new T.Group(); p.position.set(s * 0.092, 0.155, 0); const m = new T.Mesh(armG, shirt); m.position.y = -0.06; p.add(m); const h = new T.Mesh(handGeo, skin); h.position.y = -0.13; p.add(h); up.add(p); u[s < 0 ? 'aR' : 'aL'] = p; }
+  const head = new T.Mesh(new T.IcosahedronGeometry(0.066, 0), skin); head.position.y = 0.23; up.add(head);
+  const hr = new T.Mesh(new T.IcosahedronGeometry(0.071, 0), hair); hr.scale.set(1.03, 0.62, 1.03); hr.position.set(0, 0.262, -0.014); up.add(hr);
+  if (o.hat) { const h = new T.Mesh(new T.CylinderGeometry(0.05, 0.075, 0.05, 6), M(o.hat)); h.position.y = 0.3; up.add(h); }
+  if (o.cloak) { const c = new T.Mesh(new T.BoxGeometry(0.17, 0.2, 0.025), M(o.cloak)); c.position.set(0, 0.07, -0.085); c.rotation.x = 0.12; up.add(c); }
+  if (o.scarf) { const c = new T.Mesh(new T.CylinderGeometry(0.06, 0.075, 0.035, 6), M(o.scarf)); c.position.y = 0.17; up.add(c); }
+  const hand = u.aR, handL = u.aL;
+  const tool = new T.Group(); tool.position.y = -0.13; hand.add(tool); u.tool = tool;
+  if (o.tool === 'axe') { tool.rotation.x = Math.PI / 2; tool.add(at(new T.Mesh(new T.CylinderGeometry(0.011, 0.011, 0.26, 5), M('#8C5A31')), 0, 0.08, 0)); const hd = new T.Mesh(new T.BoxGeometry(0.014, 0.06, 0.075), M('#9aa2ab', { metalness: 0.4, roughness: 0.5 })); hd.position.set(0, 0.19, 0.03); tool.add(hd); }
+  if (o.tool === 'hammer') { tool.rotation.x = Math.PI / 2; tool.add(at(new T.Mesh(new T.CylinderGeometry(0.01, 0.01, 0.17, 5), M('#8C5A31')), 0, 0.06, 0)); const hd = new T.Mesh(new T.BoxGeometry(0.035, 0.035, 0.075), M('#7C8592', { metalness: 0.4, roughness: 0.5 })); hd.position.set(0, 0.14, 0.01); tool.add(hd); }
+  if (o.tool === 'staff') { const st = new T.Mesh(new T.CylinderGeometry(0.012, 0.014, 0.5, 5), M('#8C5A31')); st.position.set(0, 0.1, 0.02); tool.add(st); const tip = new T.Mesh(new T.OctahedronGeometry(0.02, 0), M('#2F9C95')); tip.position.set(0, 0.36, 0.02); tool.add(tip); }
+  if (o.tool === 'basket') { const b = new T.Mesh(new T.CylinderGeometry(0.055, 0.045, 0.06, 7), M('#C9A876')); b.position.set(0, -0.02, 0.03); handL.add(b); u.basket = b; const fill = new T.Group(); fill.position.y = 0.03; for (let i = 0; i < 4; i++) { const be = new T.Mesh(new T.IcosahedronGeometry(0.022, 0), M('#D2553F')); be.position.set(R(-0.025, 0.025), 0, R(-0.025, 0.025)); fill.add(be); } fill.visible = false; b.add(fill); u.fill = fill; }
+  if (o.tool === 'toy') { const b = new T.Mesh(new T.BoxGeometry(0.05, 0.04, 0.08), M('#B07A45')); b.position.set(0, -0.03, 0.02); handL.add(b); }
+  // getragener Stamm auf der Schulter
+  const carry = new T.Mesh(new T.CylinderGeometry(0.028, 0.028, 0.24, 6), M('#9A6A40')); carry.rotation.z = Math.PI / 2; carry.rotation.y = 0.4; carry.position.set(-0.04, 0.2, -0.03); carry.visible = false; up.add(carry); u.carry = carry;
+  const carryS = new T.Mesh(new T.DodecahedronGeometry(0.065, 0), M('#968E82')); carryS.position.set(-0.04, 0.215, -0.03); carryS.visible = false; up.add(carryS); u.carryS = carryS;
+  g.traverse(m => { if (m.isMesh) m.castShadow = true; });
+  g.scale.setScalar((o.scale || 1) * 1.35);
+  g.userData = u;
+  scene.add(g);
+  return g;
+}
+function animPerson(u, anim, ph) {
+  let lw = 0, ar = 0, al = 0, bob = 0, lean = 0, sit = 0;
+  if (anim === 'walk' || anim === 'carry') { const s = Math.sin(ph * 9); lw = s * 0.62; ar = anim === 'carry' ? -2.6 : -s * 0.55; al = s * 0.55; bob = Math.abs(Math.cos(ph * 9)) * 0.016; }
+  else if (anim === 'run') { const s = Math.sin(ph * 14); lw = s * 0.8; ar = -s * 0.8; al = s * 0.8; bob = Math.abs(Math.cos(ph * 14)) * 0.025; }
+  else if (anim === 'chop') { const c = (ph * 1.4) % 1; ar = c < 0.65 ? -2.6 + c / 0.65 * 0.4 : -2.2 + (c - 0.65) / 0.35 * 1.8; al = -0.6; lean = c < 0.65 ? -0.08 : 0.15; }
+  else if (anim === 'hammer') { ar = -1.1 + Math.sin(ph * 13) * 0.55; al = -0.5; lean = 0.22; }
+  else if (anim === 'gather') { lean = 0.5; ar = -0.9 + Math.sin(ph * 5) * 0.35; al = -0.75; }
+  else if (anim === 'sit' || anim === 'fish') { sit = 1; ar = anim === 'fish' ? -0.95 : Math.sin(ph * 1.5) * 0.05 - 0.2; al = anim === 'fish' ? -0.9 : -0.2; }
+  else { ar = Math.sin(ph * 2) * 0.04; al = -ar; bob = Math.sin(ph * 2) * 0.003; }
+  u.lL.rotation.x = sit ? -1.45 : lw; u.lR.rotation.x = sit ? -1.45 : -lw;
+  u.aR.rotation.x = ar; u.aL.rotation.x = al;
+  u.up.rotation.x = lean;
+  u.all.position.y = bob - sit * 0.11;
+}
+
+// Hirsche
+function makeDeer(antlers) {
+  const g = new T.Group(), all = new T.Group(); g.add(all);
+  const fur = M('#B07A45'), dark = M('#8C5A31'), light = M('#EBD9B4');
+  const u = { all, legs: [] };
+  const body = new T.Mesh(new T.BoxGeometry(0.14, 0.14, 0.34), fur); body.position.y = 0.29; all.add(body);
+  const belly = new T.Mesh(new T.BoxGeometry(0.12, 0.04, 0.26), light); belly.position.y = 0.22; all.add(belly);
+  const rump = new T.Mesh(new T.BoxGeometry(0.1, 0.08, 0.02), light); rump.position.set(0, 0.31, -0.175); all.add(rump);
+  for (const [x, z] of [[-0.045, 0.12], [0.045, 0.12], [-0.045, -0.12], [0.045, -0.12]]) { const p = new T.Group(); p.position.set(x, 0.23, z); const m = new T.Mesh(new T.BoxGeometry(0.03, 0.23, 0.03), dark); m.position.y = -0.115; p.add(m); all.add(p); u.legs.push(p); }
+  const neck = new T.Group(); neck.position.set(0, 0.32, 0.14); all.add(neck); u.neck = neck;
+  const nm = new T.Mesh(new T.BoxGeometry(0.06, 0.17, 0.07), fur); nm.position.set(0, 0.07, 0.03); nm.rotation.x = 0.45; neck.add(nm);
+  const head = new T.Group(); head.position.set(0, 0.16, 0.08); neck.add(head);
+  const hm = new T.Mesh(new T.BoxGeometry(0.07, 0.07, 0.12), fur); hm.position.z = 0.03; head.add(hm);
+  const snout = new T.Mesh(new T.BoxGeometry(0.05, 0.045, 0.04), M('#3A2E25')); snout.position.set(0, -0.01, 0.1); head.add(snout);
+  for (const s of [-1, 1]) {
+    const ear = new T.Mesh(new T.BoxGeometry(0.05, 0.02, 0.03), fur); ear.position.set(s * 0.05, 0.035, -0.02); ear.rotation.z = s * 0.4; head.add(ear);
+    if (antlers) {
+      const a = M('#E6CC9E');
+      head.add(stick(V(s * 0.02, 0.03, 0), V(s * 0.09, 0.16, -0.02), 0.007, a));
+      head.add(stick(V(s * 0.06, 0.1, -0.01), V(s * 0.03, 0.17, 0.04), 0.006, a));
+      head.add(stick(V(s * 0.08, 0.14, -0.02), V(s * 0.14, 0.2, -0.04), 0.006, a));
+    }
+  }
+  g.traverse(m => { if (m.isMesh) m.castShadow = true; });
+  g.scale.setScalar(1.25);
+  g.userData = u; scene.add(g); return g;
+}
+function animDeer(u, anim, ph) {
+  const s = anim === 'walk' ? Math.sin(ph * 8) * 0.5 : 0;
+  u.legs.forEach((l, i) => { l.rotation.x = (i === 0 || i === 3) ? s : -s; });
+  const graze = anim === 'graze' ? (Math.sin(ph * 0.9) > -0.2 ? 1 : 0) : 0;
+  u.neck.rotation.x += ((graze ? 1.25 : 0) - u.neck.rotation.x) * 0.06;
+  u.all.position.y = anim === 'walk' ? Math.abs(Math.cos(ph * 8)) * 0.01 : 0;
+}
+
+// ---------- Aufgaben-Logik: gehen, arbeiten, abliefern ----------
+const agents = [];
+const tmpV = V(0, 0, 0);
+class Agent {
+  constructor(obj, plan, o = {}) { this.o = obj; this.plan = plan; this.q = []; this.cur = null; this.speed = o.speed || 0.75; this.ph = R(0, 10); this.anim = 'idle'; this.animFn = o.animFn || animPerson; this.kind = o.kind || 'person'; this.name = o.name || ''; agents.push(this); }
+  reset() { this.q = []; this.cur = null; }
+  update(dt) {
+    if (!this.cur) { if (!this.q.length) this.q = this.plan(this) || [{ t: 'wait', d: 1 }]; this.cur = this.q.shift(); this.tm = 0; }
+    const c = this.cur, o = this.o;
+    let done = false, anim = 'idle';
+    if (c.t === 'walk') {
+      tmpV.set(c.to.x - o.position.x, 0, c.to.z - o.position.z);
+      const d = tmpV.length(), sp = (c.speed || this.speed) * dt;
+      if (d < 0.02 || d < sp) { o.position.x = c.to.x; o.position.z = c.to.z; done = true; }
+      else { tmpV.multiplyScalar(sp / d); o.position.x += tmpV.x; o.position.z += tmpV.z; turnTo(o, Math.atan2(tmpV.x, tmpV.z), dt); }
+      anim = c.anim || 'walk';
+    } else if (c.t === 'work' || c.t === 'wait') {
+      this.tm += dt; anim = c.anim || 'idle';
+      if (c.face) turnTo(o, facing(o.position, c.face), dt);
+      if (c.until ? c.until(this, dt) : this.tm >= c.d) done = true;
+    } else if (c.t === 'do') { c.fn(this); done = true; }
+    if (c.t !== 'do' && !c.keepY) { const gy = groundY(o.position.x, o.position.z); o.position.y += (gy - o.position.y) * Math.min(1, dt * 12); }
+    this.anim = anim; this.ph += dt;
+    this.animFn(o.userData, anim, this.ph);
+    if (done) this.cur = null;
+  }
+}
+function turnTo(o, ang, dt) { let d = ang - o.rotation.y; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; o.rotation.y += d * Math.min(1, dt * 9); }
+const near = (p, q, dist) => { const v = V(p.x - q.x, 0, p.z - q.z); const l = v.length() || 1; return V(q.x + v.x / l * dist, 0, q.z + v.z / l * dist); };
+const villageCenter = V(firePos.x, 0, firePos.z);
+
+// Holzfäller: Baum fällen, Stamm zum Lager tragen. Ohne ausgewachsene Bäume pflanzt er selbst nach (langsam).
+function woodcutterPlan(a) {
+  const ready = trees.filter(tr => tr.g >= 1 && !tr.fell && !tr.claimed && reach(tr.tile));
+  if (!ready.length) {
+    hintOnce('nowood', 'Keine ausgewachsenen Bäume mehr. Ein <b>Förster</b> pflanzt schneller nach', 50000);
+    return plantPlan(a);
+  }
+  const tree = pick(ready); tree.claimed = true;
+  const spot = near(villageCenter, tree.p, 0.3);
+  const drop = V(logPos.x - 0.34, 0, logPos.z + R(-0.15, 0.15));
+  return [
+    { t: 'walk', to: spot },
+    { t: 'work', d: R(2.6, 3.6), anim: 'chop', face: tree.p },
+    { t: 'do', fn: () => { tree.fell = 0.001; treesDirty = true; dust(tree.p, 6, '#d8e6bf'); a.o.userData.carry.visible = true; } },
+    { t: 'walk', to: drop, anim: 'carry', speed: 0.6 },
+    { t: 'do', fn: () => { a.o.userData.carry.visible = false; addRes('wood', 1, a.o.position); } },
+    { t: 'wait', d: R(0.4, 1.2) }
+  ];
+}
+// Förster: pflanzt Setzlinge in den Wald und auf die Hügel
+const PLANT_MAX = 4;
+function plantPlan() {
+  if (trees.length >= MAXT - 6) return [{ t: 'wait', d: 4 }];
+  const cand = tiles.filter(t => (t.ch === 'f' || t.ch === 'k' || t.ch === 'h') && reach(t) && !t.occ && treesOn(t) < PLANT_MAX);
+  if (!cand.length) return [{ t: 'wait', d: 4 }];
+  const t = pick(cand);
+  const ox = R(-0.3, 0.3), oz = R(-0.3, 0.3), p = V(t.wx + ox, t.top, t.wz + oz);
+  const kind = t.ch === 'k' ? 'c' : (rnd() < 0.55 ? 'c' : 'l');
+  return [
+    { t: 'walk', to: near(villageCenter, p, 0.28) },
+    { t: 'work', d: R(2, 2.8), anim: 'gather', face: p },
+    { t: 'do', fn: () => { if (trees.length < MAXT - 4) { addTree(t, ox, oz, kind, { g: 0.04 }); dust(p, 5, '#cdbd96'); sound('plant'); } } },
+    { t: 'wait', d: R(2, 5) }
+  ];
+}
+// Steinmetz: am Felsen klopfen, Stein zum Lager tragen
+const rocks = tiles.filter(t => t.ch === 'r').map(t => V(t.wx, t.top, t.wz));
+function stonePlan(a) {
+  const r = pick(rocks);
+  const drop = V(stonePos.x - 0.34, 0, stonePos.z + R(-0.08, 0.08));
+  return [
+    { t: 'walk', to: near(villageCenter, r, 0.4) },
+    { t: 'work', d: R(3, 4), anim: 'hammer', face: r },
+    { t: 'do', fn: () => { a.o.userData.carryS.visible = true; dust(r, 4, '#bdb6aa'); } },
+    { t: 'walk', to: drop, anim: 'carry', speed: 0.6 },
+    { t: 'do', fn: () => { a.o.userData.carryS.visible = false; addRes('stone', 1, a.o.position); } },
+    { t: 'wait', d: R(0.4, 1.2) }
+  ];
+}
+// Sammlerin: Beeren pflücken, zum Vorrat bringen
+function gathererPlan(a) {
+  if (!SEASONS[seasonI].food) return [{ t: 'walk', to: V(firePos.x + R(-0.8, 0.8), 0, firePos.z + R(0.35, 0.9)) }, { t: 'wait', d: R(3, 6) }];
+  const b = pick(bushes.filter(b => b.tile.x >= 3 && b.tile.z <= 6));
+  const spot = near(villageCenter, b.p, 0.28);
+  return [
+    { t: 'walk', to: spot },
+    { t: 'work', d: R(2.2, 3.2), anim: 'gather', face: b.p },
+    { t: 'do', fn: () => { if (a.o.userData.fill) a.o.userData.fill.visible = true; } },
+    { t: 'walk', to: V(storePos.x + R(-0.3, -0.2), 0, storePos.z + R(0.2, 0.32)) },
+    { t: 'do', fn: () => { if (a.o.userData.fill) a.o.userData.fill.visible = false; addRes('food', SEASONS[seasonI].food, a.o.position); } },
+    { t: 'wait', d: R(0.5, 1.5) }
+  ];
+}
+// Fischer am Steg
+const floatPos = V(pierT.wx - 1.22, WATER_Y + 0.01, pierT.wz + 0.26);
+function fisherPlan(a) {
+  return [{ t: 'work', d: R(5, 9), anim: 'fish', keepY: true }, { t: 'do', fn: () => { jumpFish(); setTimeout(() => addRes('food', 1, a.o.position), 650); } }];
+}
+// Baumeister: geht zur Baustelle, sonst schaut er sich im Lager um
+const sites = [];
+function builderPlan(a) {
+  const s = sites.find(s => !s.done);
+  if (s) return [
+    { t: 'walk', to: V(s.p.x - 0.36, 0, s.p.z + 0.22), speed: 1.05, anim: 'run' },
+    { t: 'work', anim: 'hammer', face: s.p, until: (ag, dt) => { s.progress = Math.min(1, s.progress + dt / 3.6); updateSite(s); if (s.progress >= 1) { finishSite(s); return true; } return false; } }
+  ];
+  const spots = [V(firePos.x + 0.9, 0, firePos.z + 0.5), V(firePos.x - 0.2, 0, firePos.z + 0.9), V(logPos.x + 0.3, 0, logPos.z - 0.5)];
+  return [{ t: 'walk', to: pick(spots) }, { t: 'wait', d: R(2, 4) }];
+}
+// Späher: läuft die Grenzen ab
+const patrol = [[4, 2.4], [8.4, 2.3], [10.6, 3.8], [10.4, 6.4], [6.5, 6.5], [3.4, 6.2], [3.3, 3.5]].map(([x, z]) => V(x - 5.5, 0, z - 5.5));
+let patrolI = 0;
+function scoutPlan() { patrolI = (patrolI + 1) % patrol.length; return [{ t: 'walk', to: patrol[patrolI] }, ...(patrolI % 3 === 0 ? [{ t: 'wait', d: 1.6 }] : [])]; }
+// Kind: rennt ums Feuer
+let childA = 0;
+function childPlan() { childA += R(0.8, 1.6); const r = R(0.55, 0.8); return [{ t: 'walk', to: V(firePos.x + Math.cos(childA) * r, 0, firePos.z + Math.sin(childA) * r), speed: 1.2, anim: 'run' }, ...(rnd() < 0.2 ? [{ t: 'wait', d: R(0.8, 2) }] : [])]; }
+
+function person(o, plan, x, z, ext = {}) { const p = makePerson(o); p.position.set(x, groundY(x, z), z); return new Agent(p, plan, ext); }
+const look = () => ({ skin: pick(SKIN), hair: pick(HAIR) });
+person({ ...look(), shirt: '#E6CC9E', sash: '#E07A3A', scarf: '#E07A3A', tool: 'axe' }, woodcutterPlan, logPos.x - 0.4, logPos.z, { name: 'Holzfäller' });
+person({ ...look(), shirt: '#C9A876', sash: '#2F9C95', tool: 'axe', pants: '#5E4632' }, woodcutterPlan, logPos.x - 0.6, logPos.z - 0.3, { name: 'Holzfällerin' });
+person({ ...look(), shirt: '#E6CC9E', sash: '#E07A3A', tool: 'basket', pants: '#8C5A31' }, gathererPlan, storePos.x - 0.3, storePos.z + 0.3, { name: 'Sammlerin' });
+const fisher = person({ ...look(), shirt: '#2F9C95', sash: '#E6CC9E', hat: '#C9A876' }, fisherPlan, pierT.wx - 0.92 + 0.38, pierT.wz, { name: 'Fischer' });
+fisher.o.position.set(pierT.wx - 0.86, 0.02, pierT.wz - 0.02); fisher.o.rotation.y = -Math.PI / 2;
+const builder = person({ ...look(), shirt: '#B07A45', sash: '#2F9C95', tool: 'hammer' }, builderPlan, firePos.x + 0.9, firePos.z + 0.5, { name: 'Baumeister' });
+person({ ...look(), shirt: '#E6CC9E', cloak: '#E07A3A', tool: 'staff', scarf: '#2F9C95' }, scoutPlan, patrol[0].x, patrol[0].z, { name: 'Späher', speed: 0.62 });
+person({ skin: pick(SKIN), hair: pick(HAIR), shirt: '#F6CF5E', sash: '#2F9C95', tool: 'toy', scale: 0.72 }, childPlan, firePos.x + 0.6, firePos.z, { name: 'Kind' });
+const elder = person({ skin: '#D9A066', hair: '#cfc6bb', shirt: '#E07A3A', scarf: '#E6CC9E', sash: '#2F9C95' }, () => [{ t: 'wait', d: 6, anim: 'sit', keepY: true }], firePos.x - 0.32, firePos.z - 0.36, { name: 'Älteste' });
+elder.o.position.set(firePos.x - 0.3, 0.07, firePos.z - 0.48); elder.o.rotation.y = 0.55;
+
+// Angel
+const rodBase = V(fisher.o.position.x - 0.08, 0.16, fisher.o.position.z + 0.04), rodTip = V(floatPos.x + 0.1, 0.62, floatPos.z - 0.05);
+scene.add(stick(rodBase, rodTip, 0.008, M('#8C5A31')));
+const lineMesh = stick(rodTip, floatPos, 0.002, new T.MeshBasicMaterial({ color: C('#f4efe6') })); lineMesh.castShadow = false; scene.add(lineMesh);
+const bob = new T.Mesh(new T.IcosahedronGeometry(0.025, 0), M('#D2553F')); bob.position.copy(floatPos); scene.add(bob);
+const fishMesh = new T.Mesh(new T.OctahedronGeometry(0.06, 0), M('#7d9fb6', { metalness: 0.3, roughness: 0.4 })); fishMesh.scale.set(0.6, 0.8, 1.6); fishMesh.visible = false; scene.add(fishMesh);
+const fishJump = { t: -1 };
+function jumpFish() { fishJump.t = 0; fishMesh.visible = true; ripple(floatPos); }
+
+// Hirsche auf der anderen Flussseite
+function deerRegion(x0, x1, z0, z1) { const ts = tiles.filter(t => t.x >= x0 && t.x <= x1 && t.z >= z0 && t.z <= z1 && t.ch === 'g' && !t.occ); return () => { const t = pick(ts); return V(t.wx + R(-0.3, 0.3), 0, t.wz + R(-0.3, 0.3)); }; }
+[[true, deerRegion(8, 11, 8, 10)], [false, deerRegion(8, 11, 8, 10)], [true, deerRegion(3, 6, 8, 11)]].forEach(([ant, region]) => {
+  const d = makeDeer(ant); const p = region(); d.position.set(p.x, 0, p.z); d.rotation.y = R(0, 6);
+  if (!ant) d.scale.setScalar(1.1);
+  new Agent(d, () => [{ t: 'work', d: R(3.5, 8), anim: 'graze' }, { t: 'walk', to: region(), speed: 0.35 }], { animFn: animDeer, kind: 'deer', name: 'Rothirsch' });
+});
+
+// ---------- Effekte: Kringel, Staub, Pop ----------
+const effects = [];
+const ringGeo = new T.RingGeometry(0.06, 0.085, 16); ringGeo.rotateX(-Math.PI / 2);
+function ripple(p) { const m = new T.Mesh(ringGeo, new T.MeshBasicMaterial({ color: C('#ffffff'), transparent: true, opacity: 0.85, depthWrite: false })); m.position.copy(p); m.position.y = WATER_Y + 0.015; scene.add(m); effects.push({ m, t: 0, d: 1.2, f: (e, k) => { e.m.scale.setScalar(1 + k * 3); e.m.material.opacity = 0.85 * (1 - k); } }); }
+const dustGeo = new T.IcosahedronGeometry(0.07, 0);
+function dust(p, n = 10, color = '#e9dcc2') {
+  for (let i = 0; i < n; i++) {
+    const m = new T.Mesh(dustGeo, new T.MeshStandardMaterial({ color: C(color), flatShading: true, transparent: true, opacity: 0.9, depthWrite: false }));
+    const a = i / n * 6.283 + R(0, 0.4), v = V(Math.cos(a) * R(0.5, 0.9), R(0.3, 0.7), Math.sin(a) * R(0.5, 0.9));
+    m.position.copy(p).add(V(0, 0.08, 0)); scene.add(m);
+    effects.push({ m, t: 0, d: R(0.6, 0.9), v, f: (e, k, dt) => { e.m.position.addScaledVector(e.v, dt); e.v.multiplyScalar(0.9); e.m.scale.setScalar(1 + k * 1.6); e.m.material.opacity = 0.9 * (1 - k); } });
+  }
+}
+const popIns = [];
+const easeOutBack = k => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+
+// ---------- Gebäude: Auswahl, Kosten, Baustellen ----------
+const BUILD = {
+  tent: { name: 'Zelt', info: '4 Wohnplätze', cost: { wood: 6 } },
+  holz: { name: 'Holzfäller', info: 'fällt Bäume', cost: { wood: 8 } },
+  foerster: { name: 'Förster', info: 'pflanzt Bäume nach', cost: { wood: 10, stone: 2 } },
+  stein: { name: 'Steinbruch', info: 'bricht Stein', cost: { wood: 12 } },
+  sammler: { name: 'Sammler', info: 'Beeren und Kräuter', cost: { wood: 8 } }
+};
+const KINDS = Object.keys(BUILD);
+const RES = { wood: 'Holz', stone: 'Stein', food: 'Nahrung' };
+const lacking = cost => Object.entries(cost).filter(([r, n]) => state[r] < n).map(([r, n]) => (n - state[r]) + ' ' + RES[r]).join(', ');
+const pay = cost => { for (const r in cost) state[r] -= cost[r]; };
+const buildable = t => t.ch === 'g' && !t.occ && t.x >= 3 && t.x <= 11 && t.z >= 2 && t.z <= 6 && !(t.x === 3 && t.z === 2) && treesOn(t) === 0;
+const hlMat = new T.MeshBasicMaterial({ color: C('#c8ffd4'), transparent: true, opacity: 0.6, depthWrite: false });
+const hlGeo = new T.BoxGeometry(0.86, 0.02, 0.86);
+const highlight = new T.InstancedMesh(hlGeo, hlMat, 64); highlight.frustumCulled = false; highlight.count = 0; scene.add(highlight);
+const hlTiles = [];
+function showBuildable(on) {
+  hlTiles.length = 0;
+  if (on) tiles.filter(buildable).forEach(t => { dummy.position.set(t.wx, t.top + 0.012, t.wz); dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(1); dummy.updateMatrix(); highlight.setMatrixAt(hlTiles.length, dummy.matrix); hlTiles.push(t); });
+  highlight.count = hlTiles.length; highlight.instanceMatrix.needsUpdate = true;
+}
+// Hütten: Wand und Dach je nach Art, dazu ein Erkennungszeichen davor
+const HUT = { holz: ['#C9A876', '#8C5A31'], foerster: ['#C9A876', '#4E8B45'], stein: ['#B9B2A6', '#6F6A62'], sammler: ['#E6CC9E', '#C0612B'] };
+function makeHut(kind) {
+  const g = new T.Group(), [wall, roofC] = HUT[kind];
+  const walls = new T.Mesh(new T.BoxGeometry(0.5, 0.3, 0.44), M(wall)); walls.position.y = 0.15; g.add(walls);
+  const roof = new T.Mesh(new T.ConeGeometry(0.44, 0.26, 4), M(roofC)); roof.rotation.y = Math.PI / 4; roof.position.y = 0.43; roof.scale.set(1, 1, 0.9); g.add(roof);
+  const door = new T.Mesh(new T.BoxGeometry(0.11, 0.17, 0.02), M('#4A3020')); door.position.set(0, 0.085, 0.222); g.add(door);
+  if (kind === 'holz') {
+    for (const [z, y] of [[-0.07, 0.035], [0.07, 0.035], [0, 0.1]]) { const l = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, 0.26, 6), M('#9A6A40')); l.rotation.z = Math.PI / 2; l.position.set(0.37, y, z); g.add(l); }
+  }
+  if (kind === 'foerster') {
+    for (const [x, z] of [[-0.37, 0.12], [-0.37, -0.04], [-0.3, 0.26]]) { const c = new T.Mesh(new T.ConeGeometry(0.06, 0.15, 5), M('#5A9A4E')); c.position.set(x, 0.09, z); g.add(c); const st = new T.Mesh(new T.CylinderGeometry(0.01, 0.01, 0.04, 4), M('#7A4E2A')); st.position.set(x, 0.02, z); g.add(st); }
+  }
+  if (kind === 'stein') {
+    for (const [x, z, r] of [[0.37, 0.05, 0.09], [0.3, -0.1, 0.07], [0.42, -0.06, 0.06]]) { const k = new T.Mesh(new T.DodecahedronGeometry(r, 0), M('#968E82')); k.position.set(x, r * 0.6, z); g.add(k); }
+  }
+  if (kind === 'sammler') {
+    const b = new T.Mesh(new T.CylinderGeometry(0.08, 0.06, 0.09, 8), M('#C9A876')); b.position.set(0.36, 0.045, 0.1); g.add(b);
+    for (const [x, z] of [[-0.03, 0], [0.03, 0.02], [0, -0.03]]) { const be = new T.Mesh(new T.IcosahedronGeometry(0.03, 0), M('#D2553F')); be.position.set(0.36 + x, 0.1, 0.1 + z); g.add(be); }
+  }
+  g.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+  return g;
+}
+const built = [];
+function placeBuilding(kind, x, z, pop) {
+  if (kind === 'tent') return placeTent(x, z, pop);
+  const t = tileAt(x, z), p = W(x, z);
+  const g = makeHut(kind); g.position.copy(p); g.rotation.y = Math.round(facing(p, firePos) / (Math.PI / 2)) * (Math.PI / 2);
+  g.scale.setScalar(1.18); scene.add(g); t.occ = kind;
+  if (pop) { g.scale.setScalar(0.001); popIns.push({ obj: g, t: 0 }); }
+  return g;
+}
+// Arbeiter, die zur Hütte gehören
+const WORKER = {
+  holz: [{ shirt: '#E6CC9E', sash: '#E07A3A', tool: 'axe' }, woodcutterPlan, 'Holzfäller'],
+  foerster: [{ shirt: '#7DBA55', sash: '#2F9C95', tool: 'basket', hat: '#5A9A4E' }, plantPlan, 'Förster'],
+  stein: [{ shirt: '#C9A876', sash: '#7C8592', tool: 'hammer', pants: '#5E4632', hat: '#968E82' }, stonePlan, 'Steinmetz'],
+  sammler: [{ shirt: '#E6CC9E', sash: '#C0612B', tool: 'basket' }, gathererPlan, 'Sammlerin']
+};
+function spawnWorker(kind, x, z) {
+  const w = WORKER[kind]; if (!w) return null;
+  const p = W(x, z);
+  return person({ ...look(), ...w[0] }, w[1], p.x + R(-0.1, 0.1), p.z + 0.42, { name: w[2] });
+}
+function makeSite(t, kind) {
+  const g = new T.Group(); const p = V(t.wx, t.top, t.wz); g.position.copy(p); g.rotation.y = Math.round(facing(p, firePos) / (Math.PI / 2)) * (Math.PI / 2);
+  const wood = M('#A06C3C'); const posts = [];
+  for (const [x, z] of [[-0.3, -0.3], [0.3, -0.3], [-0.3, 0.3], [0.3, 0.3]]) { const m = new T.Mesh(new T.BoxGeometry(0.035, 0.5, 0.035), wood); m.geometry.translate(0, 0.25, 0); m.position.set(x, 0, z); m.castShadow = true; m.scale.y = 0.01; g.add(m); posts.push(m); }
+  const beams = [];
+  for (const z of [-0.3, 0.3]) { const b = new T.Mesh(new T.BoxGeometry(0.66, 0.03, 0.03), wood); b.position.set(0, 0.48, z); b.visible = false; b.castShadow = true; g.add(b); beams.push(b); }
+  const bundle = new T.Mesh(new T.BoxGeometry(0.22, 0.08, 0.16), M('#E6CC9E')); bundle.position.set(0.18, 0.04, 0.38); bundle.castShadow = true; g.add(bundle);
+  const planks = new T.Mesh(new T.BoxGeometry(0.3, 0.05, 0.12), M('#B07A45')); planks.position.set(-0.2, 0.025, 0.4); planks.castShadow = true; g.add(planks);
+  scene.add(g); dust(p, 8);
+  return { g, posts, beams, p, tile: t, kind: kind || 'tent', progress: 0, done: false };
+}
+function updateSite(s) { s.posts.forEach(m => { m.scale.y = Math.max(0.01, Math.min(1, s.progress * 2.2)); }); s.beams.forEach(b => { b.visible = s.progress > 0.45; }); }
+function finishSite(s) {
+  s.done = true; scene.remove(s.g);
+  placeBuilding(s.kind, s.tile.x, s.tile.z, true);
+  built.push({ kind: s.kind, x: s.tile.x, z: s.tile.z });
+  dust(s.p, 14); sound('done');
+  if (s.kind === 'tent') { state.cap += 4; updateHud('pPop'); toast('Neues Zelt', '+4 Wohnplätze'); arrivalT = 8; }
+  else { spawnWorker(s.kind, s.tile.x, s.tile.z); toast(BUILD[s.kind].name + ' fertig', BUILD[s.kind].info); updateHud(); }
+  save();
+}
+// Neue Leute kommen, wenn Platz und Nahrung da sind
+let arriving = 0, arrivalT = 6;
+const FOOD_NEW = 3;
+function newcomer() {
+  arriving++;
+  const start = V(11.4 - 5.5, 0, 4.6 - 5.5 + R(-0.6, 0.6));
+  const a = person({ ...look(), shirt: pick(['#E6CC9E', '#C9A876', '#E07A3A']), sash: pick(['#2F9C95', '#E07A3A']), tool: 'basket' }, gathererPlan, start.x, start.z, { name: 'Neuankömmling' });
+  a.q = [{ t: 'walk', to: V(firePos.x + 0.6, 0, firePos.z + 0.6) }, { t: 'do', fn: () => { arriving--; state.pop += 1; updateHud('pPop'); floatText(a.o.position, '+1 Einwohner', 'pop'); } }];
+  toast('Jemand schließt sich an', '−' + FOOD_NEW + ' Nahrung');
+}
+function checkArrivals(dt) {
+  arrivalT += dt; if (arrivalT < 9) return; arrivalT = 0;
+  if (state.pop + arriving >= state.cap) return;
+  if (state.food < FOOD_NEW) { hintOnce('nofood', 'Neue Leute kommen erst, wenn <b>' + FOOD_NEW + ' Nahrung</b> da ist', 45000); return; }
+  state.food -= FOOD_NEW; updateHud('pFood'); newcomer();
+}
+
+// ---------- Jahreszeiten ----------
+const SEASONS = [
+  { name: 'Frühling', dot: '#A8D46F', grass: '#A8D46F', tuft: '#7DBA55', leaf: '#86C45A', conifer: '#4A7D5A', bush: '#62A64B', water: '#5BB0D8', sun: '#fff4e0', sunI: 1.08, hemi: '#e3f2ff', fx: 'petals', flowers: true, berries: false },
+  { name: 'Sommer', dot: '#F6CF5E', grass: '#9CC56B', tuft: '#6E9E48', leaf: '#5A9A4E', conifer: '#3B6B4F', bush: '#4E8B45', water: '#3D93BD', sun: '#fff1dc', sunI: 1.1, hemi: '#dfefff', fx: null, flowers: true, berries: true },
+  { name: 'Herbst', dot: '#D98C3A', grass: '#BDB466', tuft: '#A69A52', leaf: '#D98C3A', conifer: '#3B6B4F', bush: '#C0612B', water: '#3A86A8', sun: '#ffe0b8', sunI: 1.04, hemi: '#f3e6d6', fx: 'leaves', flowers: false, berries: true },
+  { name: 'Winter', dot: '#cfe3ef', grass: '#EEF3F6', tuft: '#d3dee4', leaf: '#c4d2d0', conifer: '#6f9284', bush: '#b2c3bb', water: '#9CC6DA', sun: '#f2f6ff', sunI: 1.0, hemi: '#e8f0fa', fx: 'snow', flowers: false, berries: false }
+];
+[[1.5, 2, 'Die Bäume wachsen schneller'], [1, 2, 'Die Beeren reifen'], [0.7, 4, 'Erntezeit: doppelt so viele Beeren'], [0, 0, 'Nichts wächst, keine Beeren. Vorräte schonen']].forEach(([grow, food, msg], i) => Object.assign(SEASONS[i], { grow, food, msg }));
+const seasonMats = { grass: grassMat, tuft: tuftMat, leaf: leafMat, conifer: conMat, bush: bushMat, water: waterMat };
+let seasonI = 1, seasonFrom = null, seasonK = 1, year = 1;
+function setSeason(i, instant) {
+  seasonI = i; const s = SEASONS[i];
+  seasonFrom = {}; for (const k in seasonMats) seasonFrom[k] = seasonMats[k].color.clone();
+  seasonFrom.sun = sun.color.clone(); seasonFrom.hemi = hemi.color.clone(); seasonFrom.sunI = sun.intensity;
+  seasonK = instant ? 0.999 : 0;
+  flowers.visible = s.flowers; berries.visible = s.berries; foodTop.visible = true;
+  $('#seasonName').textContent = s.name; $('#seasonDot').style.background = s.dot;
+  setPrecip(s.fx);
+}
+// Die Jahreszeit wechselt jede volle Stunde (Uhrzeit des Geräts), für alle gleich
+const HOUR = 3600000;
+const FIXED_SEASON = /[?&]test\b/.test(location.search) ? (location.search.match(/[?&]jahreszeit=([0-3])/) || [])[1] : undefined;
+const seasonNow = () => FIXED_SEASON !== undefined ? Number(FIXED_SEASON) : Math.floor(Date.now() / HOUR) % 4;
+let seasonClock = 0, leftShown = -1;
+function updateSeasonClock(dt) {
+  seasonClock += dt; if (seasonClock < 1) return; seasonClock = 0;
+  const n = seasonNow();
+  if (n !== seasonI) { setSeason(n); if (started) toast(SEASONS[n].name, SEASONS[n].msg); sound('season'); }
+  const left = FIXED_SEASON !== undefined ? 0 : Math.ceil((HOUR - Date.now() % HOUR) / 60000);
+  if (left !== leftShown) { leftShown = left; $('#seasonLeft').textContent = left ? ' · noch ' + left + ' Min.' : ''; }
+}
+function updateSeason(dt) {
+  if (seasonK >= 1) return;
+  seasonK = Math.min(1, seasonK + dt / 1.6);
+  const k = seasonK * seasonK * (3 - 2 * seasonK), s = SEASONS[seasonI];
+  for (const key in seasonMats) seasonMats[key].color.copy(seasonFrom[key]).lerp(C(s[key]), k);
+  sun.color.copy(seasonFrom.sun).lerp(C(s.sun), k); hemi.color.copy(seasonFrom.hemi).lerp(C(s.hemi), k);
+  sun.intensity = seasonFrom.sunI + (s.sunI - seasonFrom.sunI) * k;
+}
+
+// Niederschlag: Blüten, Blätter, Schnee
+const PN = 520;
+const pGeo = new T.BufferGeometry();
+const pPos = new Float32Array(PN * 3), pVel = new Float32Array(PN);
+for (let i = 0; i < PN; i++) { pPos[i * 3] = R(-9, 9); pPos[i * 3 + 1] = R(-2, 9); pPos[i * 3 + 2] = R(-9, 9); pVel[i] = R(0.6, 1.2); }
+pGeo.setAttribute('position', new T.BufferAttribute(pPos, 3));
+const flakeTex = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 32; const g = cv.getContext('2d'); const gr = g.createRadialGradient(16, 16, 0, 16, 16, 16); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.55, 'rgba(255,255,255,0.9)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 32, 32); const t = new T.CanvasTexture(cv); return t; })();
+const pMat = new T.PointsMaterial({ size: 6, sizeAttenuation: false, map: flakeTex, transparent: true, depthWrite: false, opacity: 0, color: C('#ffffff') });
+const precip = new T.Points(pGeo, pMat); precip.frustumCulled = false; scene.add(precip);
+const FX = { snow: { color: '#ffffff', size: 6, n: 520, fall: 0.9, sway: 0.25 }, leaves: { color: '#D98C3A', size: 7, n: 160, fall: 0.55, sway: 0.6 }, petals: { color: '#F2A7C3', size: 5, n: 110, fall: 0.45, sway: 0.5 } };
+let fxNow = null, fxOpacity = 0;
+function setPrecip(name) { fxNow = name ? FX[name] : null; if (fxNow) { pMat.color.copy(C(fxNow.color)); pMat.size = fxNow.size; pGeo.setDrawRange(0, fxNow.n); } }
+function updatePrecip(dt, time) {
+  const target = fxNow ? 0.95 : 0; fxOpacity += (target - fxOpacity) * Math.min(1, dt * 2); pMat.opacity = fxOpacity;
+  if (fxOpacity < 0.01) return;
+  const f = fxNow || FX.snow;
+  for (let i = 0; i < f.n; i++) {
+    pPos[i * 3 + 1] -= pVel[i] * f.fall * dt;
+    pPos[i * 3] += Math.sin(time * 1.3 + i) * f.sway * dt;
+    if (pPos[i * 3 + 1] < -3) { pPos[i * 3 + 1] = R(7, 9); pPos[i * 3] = R(-9, 9); pPos[i * 3 + 2] = R(-9, 9); }
+  }
+  pGeo.attributes.position.needsUpdate = true;
+}
+
+// ---------- Spielstand ----------
+const state = { wood: 6, stone: 0, food: 18, pop: 12, cap: 12 };
+function updateHud(bumpId) {
+  $('#vWood').textContent = state.wood; $('#vStone').textContent = state.stone; $('#vFood').textContent = state.food;
+  $('#vPop').textContent = state.pop; $('#vCap').textContent = '/' + state.cap;
+  logMesh.count = Math.min(state.wood, logSlots.length);
+  stoneMesh.count = Math.min(state.stone, stoneSlots.length);
+  refreshSheet();
+  if (bumpId) { const el = document.getElementById(bumpId); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+}
+function addRes(kind, n, pos) {
+  state[kind] += n; updateHud({ wood: 'pWood', stone: 'pStone', food: 'pFood' }[kind]);
+  floatText(pos, '+' + n + ' ' + RES[kind], kind);
+  sound(kind);
+}
+
+// ---------- Schwebende Texte ----------
+const floatsEl = $('#floats'), floats = [];
+function floatText(p, txt, cls) { const el = document.createElement('div'); el.className = 'float ' + (cls || ''); el.textContent = txt; floatsEl.appendChild(el); floats.push({ el, p: V(p.x, p.y + 0.55, p.z), t: 0 }); }
+const proj = V(0, 0, 0);
+function updateFloats(dt) {
+  for (let i = floats.length - 1; i >= 0; i--) {
+    const f = floats[i]; f.t += dt;
+    proj.copy(f.p); proj.y += f.t * 0.45; proj.project(cam);
+    const x = (proj.x * 0.5 + 0.5) * innerWidth, y = (-proj.y * 0.5 + 0.5) * innerHeight;
+    f.el.style.transform = `translate(${x}px,${y}px) translate(-50%,-50%) scale(${f.t < 0.15 ? 0.6 + f.t / 0.15 * 0.4 : 1})`;
+    f.el.style.opacity = f.t > 1.1 ? Math.max(0, 1 - (f.t - 1.1) / 0.4) : 1;
+    if (f.t > 1.5) { f.el.remove(); floats.splice(i, 1); }
+  }
+}
+
+// ---------- Kleine Töne (WebAudio, erst nach dem ersten Tippen) ----------
+let actx = null;
+function sound(kind) {
+  if (!actx) return;
+  const now = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
+  const f = { wood: [330, 440], stone: [240, 300], plant: [420, 360], food: [520, 660], done: [440, 880], build: [260, 390], tap: [600, 600], season: [392, 523] }[kind] || [500, 500];
+  o.type = kind === 'wood' ? 'triangle' : 'sine';
+  o.frequency.setValueAtTime(f[0], now); o.frequency.exponentialRampToValueAtTime(f[1], now + 0.12);
+  g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(kind === 'tap' ? 0.03 : 0.07, now + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, now + (kind === 'done' ? 0.45 : 0.22));
+  o.connect(g).connect(actx.destination); o.start(now); o.stop(now + 0.5);
+}
+
+// ---------- Hinweise ----------
+let toastT = 0;
+function toast(title, sub) { const el = $('#toast'); el.innerHTML = ''; el.append(title); if (sub) { const s = document.createElement('small'); s.textContent = sub; el.append(s); } el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); }
+let chipTimer = 0;
+function chip(html) { const el = $('#chip'); el.innerHTML = html; el.hidden = false; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); clearTimeout(chipTimer); chipTimer = setTimeout(() => { el.hidden = true; }, 4200); }
+const hintAt = {};
+function hintOnce(key, html, every) { const n = Date.now(); if (hintAt[key] && n - hintAt[key] < every) return; hintAt[key] = n; if (started) chip(html); }
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// Auswahlrahmen auf einem Feld
+const selGeo = merge([[new T.BoxGeometry(0.96, 0.025, 0.05), mtx(0, 0, 0.455)], [new T.BoxGeometry(0.96, 0.025, 0.05), mtx(0, 0, -0.455)], [new T.BoxGeometry(0.05, 0.025, 0.86), mtx(0.455, 0, 0)], [new T.BoxGeometry(0.05, 0.025, 0.86), mtx(-0.455, 0, 0)]]);
+const sel = new T.Mesh(selGeo, new T.MeshBasicMaterial({ color: C('#FFF6E6') })); sel.visible = false; scene.add(sel);
+let selT = 0;
+
+const OCC = { tent: 'Zelt · 4 Wohnplätze', fire: 'Feuerstelle · Wärme und Licht', flag: 'Banner der Turi', logs: 'Lager · Holz und Stein', store: 'Vorräte · Beeren und Fisch', pier: 'Steg · hier angelt der Fischer', bush: 'Beerenstrauch · Nahrung', site: 'Baustelle', holz: 'Holzfäller-Hütte · fällt Bäume', foerster: 'Förster-Hütte · pflanzt Bäume nach', stein: 'Steinbruch · bricht Stein am Felsen', sammler: 'Sammlerhütte · Beeren und Kräuter' };
+function tileInfo(t) {
+  let txt = `<b>${t.type.name}</b> · ${t.type.res}`;
+  if (t.occ === 'logs') txt = `<b>Lager</b> · ${state.wood} Holz · ${state.stone} Stein`;
+  else if (t.occ) txt = `<b>${esc(OCC[t.occ].split(' · ')[0])}</b>` + (OCC[t.occ].includes(' · ') ? ' · ' + esc(OCC[t.occ].split(' · ')[1]) : '');
+  if (t.ch === 'w') txt += ' · Fischbestand 9/12';
+  const n = treesOn(t);
+  if (n) { const young = trees.filter(tr => tr.tile === t && !tr.fell && tr.g < 1).length; txt += ' · ' + n + (n === 1 ? ' Baum' : ' Bäume') + (young ? ' (' + young + ' jung)' : ''); }
+  return txt;
+}
+
+// ---------- Kamera und Steuerung ----------
+function viewHeight() { const a = innerWidth / innerHeight; return Math.max(12.2, 17.5 / a); }
+function updateCamera(dt) {
+  camS.az += (camS.azT - camS.az) * Math.min(1, dt * 7);
+  camS.zoom += (camS.zoomT - camS.zoom) * Math.min(1, dt * 10);
+  const d = 40, t = camS.target;
+  cam.position.set(t.x + d * Math.cos(camS.el) * Math.sin(camS.az), t.y + d * Math.sin(camS.el), t.z + d * Math.cos(camS.el) * Math.cos(camS.az));
+  cam.lookAt(t);
+  const h = viewHeight(), a = innerWidth / innerHeight;
+  cam.left = -h * a / 2; cam.right = h * a / 2; cam.top = h / 2; cam.bottom = -h / 2;
+  cam.zoom = camS.zoom; cam.updateProjectionMatrix();
+}
+function resize() { renderer.setSize(innerWidth, innerHeight, false); updateCamera(1); }
+addEventListener('resize', resize);
+
+const pointers = new Map();
+let pinch0 = 0, zoom0 = 1, downAt = 0, moved = 0;
+canvas.addEventListener('pointerdown', e => {
+  canvas.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 1) { downAt = performance.now(); moved = 0; }
+  if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch0 = Math.hypot(a.x - b.x, a.y - b.y); zoom0 = camS.zoomT; moved = 99; }
+  hideHint();
+});
+canvas.addEventListener('pointermove', e => {
+  const p = pointers.get(e.pointerId); if (!p) return;
+  const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+  if (pointers.size === 1) {
+    moved += Math.abs(dx) + Math.abs(dy);
+    const u = viewHeight() / camS.zoom / innerHeight;
+    const rx = Math.cos(camS.az), rz = -Math.sin(camS.az), fx = -Math.sin(camS.az), fz = -Math.cos(camS.az);
+    camS.target.x += -rx * dx * u + fx * dy * u / Math.sin(camS.el);
+    camS.target.z += -rz * dx * u + fz * dy * u / Math.sin(camS.el);
+    const l = Math.hypot(camS.target.x, camS.target.z); if (l > 6.5) { camS.target.x *= 6.5 / l; camS.target.z *= 6.5 / l; }
+  } else if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y);
+    if (pinch0 > 0) camS.zoomT = clamp(zoom0 * d / pinch0, 0.75, 3.2);
+  }
+});
+const endPointer = e => {
+  const wasTap = pointers.size === 1 && moved < 10 && performance.now() - downAt < 450;
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) pinch0 = 0;
+  if (wasTap && e.type === 'pointerup') onTap(e.clientX, e.clientY);
+};
+canvas.addEventListener('pointerup', endPointer);
+canvas.addEventListener('pointercancel', endPointer);
+canvas.addEventListener('wheel', e => { e.preventDefault(); camS.zoomT = clamp(camS.zoomT * Math.exp(-e.deltaY * 0.0015), 0.75, 3.2); hideHint(); }, { passive: false });
+addEventListener('keydown', e => {
+  if (e.key === 'q' || e.key === 'Q') rotate(-1);
+  if (e.key === 'e' || e.key === 'E') rotate(1);
+  if (e.key === 'b' || e.key === 'B') $('#build').click();
+  if (e.key === 'Escape') { if (buildMode) exitBuild(); else closeSheet(); }
+});
+function rotate(dir) { camS.azT += dir * Math.PI / 2; sound('tap'); }
+$('#rotL').addEventListener('click', () => rotate(-1));
+$('#rotR').addEventListener('click', () => rotate(1));
+
+const ray = new T.Raycaster(), ndc = new T.Vector2();
+function pickTile(x, y) {
+  ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1);
+  ray.setFromCamera(ndc, cam);
+  const hits = ray.intersectObjects([grassMesh, waterMesh], false);
+  if (!hits.length) return null;
+  const h = hits[0];
+  return h.object === grassMesh ? grassTiles[h.instanceId] : waterTiles[h.instanceId];
+}
+function onTap(x, y) {
+  if (!sheet.hidden) { closeSheet(); return; }
+  const t = pickTile(x, y);
+  if (buildMode) {
+    if (t && buildable(t)) startSite(t);
+    else { toast('Hier geht es nicht', 'Wähle ein grün markiertes Feld'); }
+    return;
+  }
+  if (!t) { sel.visible = false; return; }
+  sel.position.set(t.wx, t.top + 0.015, t.wz); sel.visible = true; selT = 0;
+  chip(tileInfo(t)); sound('tap');
+}
+
+// ---------- Bauen ----------
+let buildMode = false, buildKind = 'tent';
+const sheet = $('#sheet'), buildBtn = $('#build');
+const ICON = { wood: $('#pWood svg').outerHTML, stone: $('#pStone svg').outerHTML, food: $('#pFood svg').outerHTML };
+const HUTC = { holz: '#8C5A31', foerster: '#4E8B45', stein: '#6F6A62', sammler: '#C0612B' };
+const hutIcon = k => k === 'tent'
+  ? '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><path d="M4 27 22 4l18 23z" fill="#E6CC9E" stroke="#8C5A31" stroke-width="2" stroke-linejoin="round"/><path d="M17 27l5-11 5 11z" fill="#4A3020"/></svg>'
+  : '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><rect x="8" y="14" width="28" height="13" rx="2" fill="#E6CC9E"/><path d="M3 15 22 3l19 12z" fill="' + HUTC[k] + '"/><rect x="19" y="18" width="6" height="9" fill="#4A3020"/></svg>';
+const costHtml = k => Object.entries(BUILD[k].cost).map(([r, n]) => '<span class="' + (state[r] < n ? 'lack' : '') + '">' + ICON[r] + n + '</span>').join('');
+KINDS.forEach(k => { const b = document.createElement('button'); b.type = 'button'; b.className = 'card'; b.dataset.k = k; b.setAttribute('role', 'menuitem'); b.innerHTML = hutIcon(k) + '<b>' + BUILD[k].name + '</b><small>' + BUILD[k].info + '</small><div class="cost"></div>'; sheet.append(b); });
+function refreshSheet() {
+  sheet.querySelectorAll('.card').forEach(b => {
+    const k = b.dataset.k, miss = lacking(BUILD[k].cost);
+    b.querySelector('.cost').innerHTML = costHtml(k); b.classList.toggle('poor', !!miss);
+    b.setAttribute('aria-label', BUILD[k].name + ', ' + BUILD[k].info + (miss ? ', es fehlt ' + miss : ''));
+  });
+}
+function openSheet() { refreshSheet(); sheet.hidden = false; buildBtn.setAttribute('aria-expanded', 'true'); $('#chip').hidden = true; sound('tap'); }
+function closeSheet() { sheet.hidden = true; buildBtn.setAttribute('aria-expanded', 'false'); }
+const label = (main, sub) => { buildBtn.firstElementChild.innerHTML = main + '<span>' + sub + '</span>'; };
+function enterBuild(k) { buildMode = true; buildKind = k; showBuildable(true); sel.visible = false; buildBtn.classList.add('on'); label('Abbrechen', 'Feld antippen'); chip('Tippe auf ein <b>grünes Feld</b> für: ' + BUILD[k].name); }
+function exitBuild() { buildMode = false; showBuildable(false); buildBtn.classList.remove('on'); label('Bauen', 'Auswahl'); }
+function startSite(t) {
+  const k = buildKind, cost = BUILD[k].cost;
+  pay(cost); updateHud('pWood');
+  floatText(V(t.wx, t.top, t.wz), '−' + Object.entries(cost).map(([r, n]) => n + ' ' + RES[r]).join(', '), 'wood');
+  t.occ = 'site';
+  sites.push(makeSite(t, k)); exitBuild();
+  if (!builder.cur || builder.cur.t !== 'work' || !builder.cur.until) builder.reset();
+  sound('build');
+  chip('Der <b>Baumeister</b> ist unterwegs'); save();
+}
+function pickKind(k) {
+  const miss = lacking(BUILD[k].cost);
+  if (miss) {
+    const c = sheet.querySelector('[data-k="' + k + '"]'); c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake');
+    toast('Es fehlen ' + miss, 'Die Arbeiter bringen Nachschub');
+    return;
+  }
+  if (!tiles.some(buildable)) { toast('Kein Platz mehr', 'Später wächst das Lager zum Dorf'); return; }
+  closeSheet(); enterBuild(k);
+}
+sheet.addEventListener('click', e => { const c = e.target.closest('.card'); if (c) pickKind(c.dataset.k); });
+buildBtn.addEventListener('click', () => { if (buildMode) { exitBuild(); return; } if (sheet.hidden) openSheet(); else closeSheet(); });
+
+// ---------- Speichern (nur in diesem Browser) ----------
+const KEY = 'stammvoelker.v1';
+function save() {
+  try {
+    const f2 = v => Math.round(v * 100) / 100;
+    localStorage.setItem(KEY, JSON.stringify({
+      v: 1, wood: state.wood, stone: state.stone, food: state.food, pop: state.pop, cap: state.cap,
+      b: built.map(b => [b.kind, b.x, b.z]),
+      s: sites.filter(s => !s.done).map(s => [s.kind, s.tile.x, s.tile.z]),
+      t: trees.filter(tr => !tr.fell).map(tr => [tr.tile.x, tr.tile.z, f2(tr.ox), f2(tr.oz), tr.kind === 'c' ? 0 : 1, f2(tr.s), f2(tr.ry), f2(tr.g), f2(tr.tint)])
+    }));
+  } catch (e) { /* Speicher voll oder gesperrt: Spiel läuft trotzdem */ }
+}
+function load() {
+  if (/[?&]neu\b/.test(location.search)) { try { localStorage.removeItem(KEY); } catch (e) { /* egal */ } return; }
+  let o = null;
+  try { o = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return; }
+  if (!o || o.v !== 1) return;
+  const num = (v, d) => Number.isFinite(v) ? Math.max(0, Math.min(99999, Math.round(v))) : d;
+  state.wood = num(o.wood, state.wood); state.stone = num(o.stone, state.stone); state.food = num(o.food, state.food);
+  state.pop = Math.max(1, num(o.pop, state.pop)); state.cap = Math.max(state.pop, num(o.cap, state.cap));
+  if (Array.isArray(o.t)) {
+    const ok = o.t.filter(r => Array.isArray(r) && r.length >= 9 && r.every(Number.isFinite)).slice(0, MAXT - 6);
+    trees.length = 0;
+    for (const r of ok) { const t = tileAt(r[0], r[1]); if (t && t.ch !== 'w') addTree(t, clamp(r[2], -0.45, 0.45), clamp(r[3], -0.45, 0.45), r[4] ? 'l' : 'c', { s: clamp(r[5], 0.5, 1.6), ry: r[6], g: clamp(r[7], 0, 1), tint: clamp(r[8], 0.7, 1.2) }); }
+  }
+  for (const r of Array.isArray(o.b) ? o.b : []) {
+    if (!Array.isArray(r)) continue;
+    const [k, x, z] = r, t = tileAt(x, z);
+    if (!KINDS.includes(k) || !t || t.ch !== 'g' || t.occ) continue;
+    placeBuilding(k, x, z, false); built.push({ kind: k, x, z }); if (k !== 'tent') spawnWorker(k, x, z);
+  }
+  for (const r of Array.isArray(o.s) ? o.s : []) {
+    if (!Array.isArray(r)) continue;
+    const [k, x, z] = r, t = tileAt(x, z);
+    if (!KINDS.includes(k) || !t || t.ch !== 'g' || t.occ) continue;
+    t.occ = 'site'; sites.push(makeSite(t, k));
+  }
+  for (let i = 0; i < Math.min(10, state.pop - 12); i++) person({ ...look(), shirt: pick(['#E6CC9E', '#C9A876', '#E07A3A']), sash: pick(['#2F9C95', '#E07A3A']), tool: 'basket' }, gathererPlan, firePos.x + R(-0.8, 0.8), firePos.z + R(0.4, 1.0), { name: 'Bewohner' });
+}
+const cmp = $('#cmp');
+$('#cmpBtn').addEventListener('click', () => { cmp.hidden = false; });
+cmp.addEventListener('click', () => { cmp.hidden = true; });
+
+let hintGone = false;
+function hideHint() { if (hintGone) return; hintGone = true; setTimeout(() => $('#hint').classList.add('out'), 2500); }
+
+// ---------- Startbild ----------
+let started = false;
+$('#goBtn').addEventListener('click', () => {
+  started = true; $('#start').classList.add('out');
+  try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; }
+  setTimeout(() => { if (!hintGone) hideHint(); }, 6000);
+  setTimeout(() => chip('Tippe auf <b>Bauen</b>. Holz bringen die Holzfäller'), 900);
+});
+if (/[?&]direkt\b/.test(location.search)) { started = true; $('#start').classList.add('out'); }
+
+// ---------- Hauptschleife ----------
+let saveT = 0;
+let last = performance.now(), time = 0, frames = 0, fpsT = 0, quality = 2;
+const DT_MAX = /[?&]test\b/.test(location.search) ? 0.5 : 0.05;
+const flagArr = flagGeo.attributes.position.array;
+function tick(now) {
+  const dt = Math.min(DT_MAX, (now - last) / 1000); last = now; time += dt;
+  updateCamera(dt);
+  agents.forEach(a => a.update(dt));
+  updateFoam(dt);
+  fallTex.offset.y = (fallTex.offset.y + dt * 1.25) % 1;
+  cloudGroup.rotation.y += dt * 0.008;
+  // Feuer flackert
+  flames.forEach((f, i) => { const k = 0.85 + Math.sin(time * (11 + i * 3) + i) * 0.12 + Math.sin(time * 23 + i * 2) * 0.06; f.scale.set(1, k, 1); f.rotation.y = time * (1 + i); });
+  fireLight.intensity = 1.05 + Math.sin(time * 13) * 0.14 + Math.sin(time * 29) * 0.08;
+  smoke.forEach(s => { s.userData.t = (s.userData.t + dt * 0.22) % 1; const k = s.userData.t; s.position.set(Math.sin(k * 6 + time * 0.5) * 0.06, 0.3 + k * 1.3, Math.cos(k * 5) * 0.05); s.scale.setScalar(0.6 + k * 2.2); s.material.opacity = 0.42 * (1 - k) * Math.min(1, k * 6); });
+  // Fahne weht
+  for (let i = 0; i < flagArr.length; i += 3) { const x = flagBase[i]; flagArr[i + 2] = Math.sin(x * 10 - time * 5) * 0.045 * (x / 0.56) + Math.sin(x * 5 - time * 3) * 0.02 * (x / 0.56); }
+  flagGeo.attributes.position.needsUpdate = true; flagGeo.computeVertexNormals();
+  // Pose und Fischsprung
+  bob.position.y = floatPos.y + Math.sin(time * 3) * 0.008;
+  if (fishJump.t >= 0) {
+    fishJump.t += dt; const k = fishJump.t / 0.65;
+    if (k >= 1) { fishJump.t = -1; fishMesh.visible = false; ripple(V(floatPos.x + 0.25, 0, floatPos.z)); }
+    else { fishMesh.position.set(floatPos.x + k * 0.25, WATER_Y + Math.sin(k * Math.PI) * 0.42, floatPos.z); fishMesh.rotation.set(0, Math.PI / 2, -0.5 + k * 2.2); }
+  }
+  if (Math.random() < dt * 0.25) ripple(V(floatPos.x + R(-0.1, 0.1), 0, floatPos.z + R(-0.1, 0.1)));
+  // Effekte
+  for (let i = effects.length - 1; i >= 0; i--) { const e = effects[i]; e.t += dt; const k = Math.min(1, e.t / e.d); e.f(e, k, dt); if (k >= 1) { scene.remove(e.m); e.m.material.dispose(); effects.splice(i, 1); } }
+  for (let i = popIns.length - 1; i >= 0; i--) { const p = popIns[i]; p.t += dt / 0.55; const k = Math.min(1, p.t); p.obj.scale.setScalar(Math.max(0.001, easeOutBack(k)) * 1.18); if (k >= 1) popIns.splice(i, 1); }
+  if (sel.visible) { selT += dt; sel.scale.setScalar(1 + Math.max(0, 0.12 - selT * 0.6)); }
+  if (buildMode) hlMat.opacity = 0.5 + Math.sin(time * 5) * 0.18;
+  updateSeason(dt); updateSeasonClock(dt);
+  updateTrees(dt);
+  if (started) { checkArrivals(dt); saveT += dt; if (saveT > 8) { saveT = 0; save(); } }
+  updatePrecip(dt, time);
+  updateFloats(dt);
+  renderer.render(scene, cam);
+  // Leistung prüfen: bei ruckeligen Geräten Auflösung und Schatten reduzieren
+  if (started && DT_MAX < 0.1) { frames++; fpsT += dt; if (fpsT > 3) { const fps = frames / fpsT; frames = 0; fpsT = 0; if (fps < 38 && quality > 0) degrade(); } }
+  requestAnimationFrame(tick);
+}
+function degrade() {
+  quality--;
+  if (quality === 1) { pixelRatio = Math.min(pixelRatio, 1.25); renderer.setPixelRatio(pixelRatio); resize(); }
+  if (quality === 0) { renderer.shadowMap.type = T.PCFShadowMap; sun.shadow.mapSize.set(1024, 1024); sun.shadow.map && sun.shadow.map.dispose(); sun.shadow.map = null; pixelRatio = 1; renderer.setPixelRatio(1); resize(); }
+}
+
+if (/[?&]test\b/.test(location.search)) window.__sv = { state, tiles, trees, built, BUILD, setSeason, seasons: SEASONS, seasonNow, save, buildNow: (k, x, z) => { const t = tileAt(x, z); t.occ = 'site'; const st = makeSite(t, k); st.progress = 1; finishSite(st); }, screenOf: (x, z) => { const t = tileAt(x, z); const v = V(t.wx, t.top, t.wz).project(cam); return [(v.x * 0.5 + 0.5) * innerWidth, (-v.y * 0.5 + 0.5) * innerHeight]; }, cam: camS, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length }) };
+load();
+rebuildTrees();
+setSeason(seasonNow(), true);
+updateHud();
+resize();
+addEventListener('pagehide', save);
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+requestAnimationFrame(t => { last = t; tick(t); });
+})();
+</script>
+<a class="pz-home" href="../" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a><style>.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 12px);left:58px;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(23,18,42,.66);color:#f6f2ff;border:1px solid rgba(246,242,255,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}.pz-home:focus-visible{outline:3px solid #ffcc3d;outline-offset:2px}</style><style>*{touch-action:pan-x pan-y}html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%}</style><script>(function(){var stop=function(e){e.preventDefault()};['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,stop,{passive:false})});document.addEventListener('touchmove',function(e){if(e.touches.length>1||(e.scale&&e.scale!==1))e.preventDefault()},{passive:false});var last=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-last<350&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label')))e.preventDefault();last=now},{passive:false});document.addEventListener('dblclick',stop,{passive:false});var vv=window.visualViewport,m=document.querySelector('meta[name=viewport]');if(vv&&m){var base=m.getAttribute('content'),t=0;vv.addEventListener('resize',function(){if(vv.scale<1.02)return;clearTimeout(t);t=setTimeout(function(){m.setAttribute('content',base.replace('maximum-scale=1','maximum-scale=1.0'));setTimeout(function(){m.setAttribute('content',base)},60)},120)})}})();</script></body></html>
