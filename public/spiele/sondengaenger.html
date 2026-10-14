@@ -75,6 +75,10 @@ button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:tra
 .sigbar b{display:block;height:100%;width:0;background:linear-gradient(90deg,#4cae2c,#c4f05a);border-radius:3px}
 #lcd .st{display:flex;gap:6px;margin-top:5px;font-size:13px;font-weight:600;letter-spacing:.5px;color:#7fae60;text-transform:uppercase}
 #lcd .st span.on{color:var(--brass-2)}
+#mapw{position:absolute;left:calc(12px + var(--safe-l));top:calc(var(--safe-t) + 160px);width:104px;height:104px;padding:0;border-radius:12px;overflow:hidden;background:#14100a;border:1px solid rgba(241,233,211,.38);box-shadow:0 2px 12px rgba(0,0,0,.45);pointer-events:auto}
+#mapw.big{width:220px;height:220px}
+#mapw canvas{display:block;width:100%;height:100%}
+body.coachon #mapw{top:calc(var(--safe-t) + 268px)}
 #dailyHint{position:absolute;right:calc(12px + var(--safe-r));top:calc(var(--safe-t) + 52px);max-width:132px;padding:6px 9px;border-radius:10px;background:rgba(27,21,14,.8);border:1px solid rgba(224,169,59,.5);font-size:13px;line-height:1.2;font-weight:600;color:var(--brass-2)}
 #dailyHint small{display:block;color:var(--muted);font-weight:500;font-size:12px}
 #coach{position:absolute;left:50%;transform:translateX(-50%);top:calc(var(--safe-t) + 158px);width:min(420px,calc(100vw - 28px));padding:10px 14px;border-radius:12px;background:rgba(27,21,14,.9);border:1px solid var(--brass);font-size:17px;line-height:1.25;font-weight:600;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.4)}
@@ -198,6 +202,8 @@ h4.sec{margin:14px 2px 6px;font-family:var(--f-head);font-weight:800;font-size:1
 .err a{color:var(--brass-2)}
 @media (max-height:520px) and (orientation:landscape){
   #lcd{top:calc(var(--safe-t) + 48px);width:250px}
+  #mapw,body.coachon #mapw{top:calc(var(--safe-t) + 52px);width:84px;height:84px}
+  #mapw.big{width:176px;height:176px}
   .stick{width:112px;height:112px}
   #btnDig{width:84px;height:84px}
   .acts{width:160px;height:150px}
@@ -224,6 +230,7 @@ h4.sec{margin:14px 2px 6px;font-family:var(--f-head);font-weight:800;font-size:1
       <div class="sigbar"><b id="sigFill"></b></div>
       <div class="st"><span id="stPin">Pinpoint</span><span id="stFil">Eisen aus</span><span id="stRun"></span><span id="chArea" style="margin-left:auto;color:#c4f0a2"></span></div>
     </div>
+    <button id="mapw" aria-label="Karte vergrößern"><canvas id="mapc" width="240" height="240"></canvas></button>
     <div id="dailyHint" hidden></div>
     <div id="ringO"></div>
     <div id="arrowO"><i></i></div>
@@ -236,7 +243,7 @@ h4.sec{margin:14px 2px 6px;font-family:var(--f-head);font-weight:800;font-size:1
       <button class="abtn" id="btnPin" aria-label="Pinpoint">PIN-<br>POINT</button>
       <button class="abtn" id="btnDig" aria-label="Graben">GRA-<br>BEN</button>
     </div>
-    <div class="keyhelp"><b>WASD</b> gehen · <b>Maus ziehen</b> umsehen · <b>Shift</b> rennen · <b>F</b> Pinpoint · <b>G</b> Eisen aus · <b>Leertaste</b> graben · <b>Esc</b> Menü</div>
+    <div class="keyhelp"><b>WASD</b> gehen · <b>Maus ziehen</b> umsehen · <b>Shift</b> rennen · <b>F</b> Pinpoint · <b>G</b> Eisen aus · <b>K</b> Karte · <b>Leertaste</b> graben · <b>Esc</b> Menü</div>
   </div>
 
   <section class="screen" id="hub" hidden>
@@ -1526,7 +1533,7 @@ function dailyTheme() { return AREAS[TAG_THEMES[hashStr('tag|' + dateKey()) % TA
 function enterArea(areaId, daily) {
   const theme = daily ? dailyTheme() : AREAS[areaId];
   AREA = theme; G.daily = daily; G.areaId = daily ? 'tag' : areaId;
-  applyEnv(theme.id); buildTerrain(theme); buildProps(theme); HOLES.clear();
+  applyEnv(theme.id); buildTerrain(theme); buildProps(theme); HOLES.clear(); MAP.reset();
   G.key = G.areaId + '|' + dateKey();
   const tutorial = S.tut === 0 && !daily && areaId === 'acker';
   const fld = genField(theme, G.key, daily, tutorial);
@@ -1583,7 +1590,7 @@ function resolveDig() {
   const d = G.dig; G.dig = null; G.state = 'play';
   $('digBar').hidden = true; SPADE.visible = false; DETM.g.visible = true;
   const SP = gearSpade(), y = hAt(d.x, d.z);
-  HOLES.add(d.x, d.z, SP.r * .85); PART.dirt(d.x, y + .08, d.z, 22);
+  HOLES.add(d.x, d.z, SP.r * .85); MAP.hole(d.x, d.z); PART.dirt(d.x, y + .08, d.z, 22);
   S.stats.digs++; S.fields[G.key].d++;
   if (S.tut < 4) coachStep(4);
   const t = d.tgt;
@@ -1941,7 +1948,7 @@ function tabOpt() {
   const q = S.settings.q; const qn = { auto: 'Auto', hoch: 'Hoch', mittel: 'Mittel', niedrig: 'Niedrig' }[q];
   const st = S.stats;
   return '<button class="opt" data-act="snd">Ton <b>' + (S.settings.sound ? 'an' : 'aus') + '</b></button><button class="opt" data-act="qual">Grafik <b>' + qn + '</b></button><button class="opt" data-act="tut">Anleitung nochmal zeigen <b>↺</b></button>' +
-    '<h4 class="sec">Steuerung</h4><div class="card"><div class="keys"><b>Handy</b><span>Joystick links gehen · rechts wischen umsehen · Joystick ganz außen rennen (dann hört der Detektor nichts)</span><b>PC</b><span>WASD gehen · Maus ziehen umsehen · Shift rennen · F Pinpoint · G Eisen aus · Leertaste graben · Esc Menü</span></div></div>' +
+    '<h4 class="sec">Steuerung</h4><div class="card"><div class="keys"><b>Handy</b><span>Joystick links gehen · rechts wischen umsehen · Karte antippen zum Vergrößern · Joystick ganz außen rennen (dann hört der Detektor nichts)</span><b>PC</b><span>WASD gehen · Maus ziehen umsehen · Shift rennen · F Pinpoint · G Eisen aus · K Karte · Leertaste graben · Esc Menü</span></div></div>' +
     '<h4 class="sec">So geht es</h4><div class="card"><p>Tiefe Töne sind Eisen, mittlere Buntmetall, hohe Silber. Kleine Goldringe klingen oft wie Ringlaschen. Mit <b>Pinpoint</b> fixierst du die Spule und suchst den lautesten Punkt. Je näher du am Fund gräbst, desto weniger beschädigt ihn der Spaten.</p></div>' +
     '<h4 class="sec">Statistik</h4><div class="stat3"><div><b>' + st.digs + '</b>Löcher</div><div><b>' + st.finds + '</b>Funde</div><div><b>' + st.trash + '</b>Müll</div></div><div class="stat3"><div><b>' + fmtInt(st.earned) + '</b>€ verdient</div><div><b>' + Math.round(st.play / 60) + '</b>Minuten</div><div><b>' + (st.best ? esc(FIND[st.best].n.split(',')[0]) : '–') + '</b>bester Fund</div></div>' +
     '<button class="opt" data-act="reset" style="margin-top:10px">Spielstand löschen <b>✕</b></button>';
@@ -1978,7 +1985,7 @@ $('btnMenu').onclick = () => { if (G.state === 'play') showHub(); };
 // Eingabe
 // ---------------------------------------------------------------------
 const keys = {};
-const gameKey = e => ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight', 'KeyF', 'KeyG', 'KeyE', 'Escape', 'KeyM'].indexOf(e.code) >= 0;
+const gameKey = e => ['KeyW', 'KeyA', 'KeyS', 'KeyD', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'ShiftLeft', 'ShiftRight', 'KeyF', 'KeyG', 'KeyE', 'Escape', 'KeyM', 'KeyK'].indexOf(e.code) >= 0;
 window.addEventListener('keydown', e => {
   if (!gameKey(e)) return; if (e.repeat && (e.code === 'Space' || e.code === 'KeyF' || e.code === 'KeyG' || e.code === 'Escape')) { e.preventDefault(); return; }
   keys[e.code] = true; e.preventDefault();
@@ -1986,6 +1993,7 @@ window.addEventListener('keydown', e => {
     if (e.code === 'Space' || e.code === 'KeyE') startDig();
     else if (e.code === 'KeyF') togglePin();
     else if (e.code === 'KeyG') toggleFilter();
+    else if (e.code === 'KeyK') MAP.toggle();
     else if (e.code === 'Escape' || e.code === 'KeyM') showHub();
   } else if ((e.code === 'Escape' || e.code === 'KeyM') && G.state === 'menu') { $('btnResume').click(); }
 });
@@ -2022,6 +2030,73 @@ bindBtn('btnDig', startDig); bindBtn('btnPin', togglePin); bindBtn('btnFilter', 
   const end = e => { if (e.pointerId === pid) pid = null; };
   canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end);
   canvas.addEventListener('contextmenu', e => e.preventDefault());
+})();
+// =====================================================================
+// MINIKARTE – Norden oben (-z), zeigt Standort, Blickrichtung, abgesuchte Fläche, Grabungen
+// =====================================================================
+const MAP = (() => {
+  const N = 240, EXT = 42, SPAN = EXT * 2, K = N / SPAN;
+  const cvs = $('mapc'), ctx = cvs.getContext('2d'), wrap = $('mapw');
+  const base = document.createElement('canvas'), cov = document.createElement('canvas');
+  base.width = base.height = cov.width = cov.height = N;
+  const cctx = cov.getContext('2d');
+  const sx = x => (x + EXT) * K;
+  let holes = [], lx = 1e9, lz = 1e9, dirty = true, acc = 0, big = false, lyaw = 0;
+  function build() {
+    const M = 120, sm = document.createElement('canvas'); sm.width = sm.height = M;
+    const sc = sm.getContext('2d'), im = sc.createImageData(M, M), b = AREA.bounds, fluss = AREA === AREAS.fluss;
+    for (let j = 0; j < M; j++) for (let i = 0; i < M; i++) {
+      const x = -EXT + (i + .5) / M * SPAN, z = -EXT + (j + .5) / M * SPAN, h = AREA.h(x, z), c = AREA.col(x, z, h);
+      let r = c[0], g = c[1], bl = c[2]; const out = x < b[0] || x > b[1] || z < b[2] || z > b[3];
+      if (fluss && h < -.28) { r = .03; g = .1; bl = .16; }
+      else if (!out && AREA.block(x, z)) { r = .38; g = .35; bl = .31; }
+      const f = (out || (fluss && z < -21.5) ? .4 : .88) * 255;
+      const p = (j * M + i) * 4;
+      im.data[p] = Math.pow(clamp(r, 0, 1), .4545) * f; im.data[p + 1] = Math.pow(clamp(g, 0, 1), .4545) * f; im.data[p + 2] = Math.pow(clamp(bl, 0, 1), .4545) * f; im.data[p + 3] = 255;
+    }
+    sc.putImageData(im, 0, 0);
+    const bc = base.getContext('2d'); bc.imageSmoothingEnabled = true; bc.drawImage(sm, 0, 0, N, N);
+    bc.strokeStyle = 'rgba(241,233,211,.14)'; bc.lineWidth = 1; bc.beginPath();
+    for (const v of [-20, 0, 20]) { bc.moveTo(sx(v), 0); bc.lineTo(sx(v), N); bc.moveTo(0, sx(v)); bc.lineTo(N, sx(v)); }
+    bc.stroke();
+    bc.strokeStyle = 'rgba(241,233,211,.45)'; bc.lineWidth = 2; bc.strokeRect(sx(b[0]), sx(b[2]), (b[1] - b[0]) * K, (b[3] - b[2]) * K);
+  }
+  function reset() { holes = []; lx = lz = 1e9; cctx.clearRect(0, 0, N, N); build(); dirty = true; acc = 1; }
+  function draw() {
+    const P = G.P, u = N / Math.max(60, wrap.offsetWidth); // interne Pixel je CSS-Pixel
+    ctx.clearRect(0, 0, N, N); ctx.drawImage(base, 0, 0);
+    ctx.globalAlpha = .4; ctx.drawImage(cov, 0, 0); ctx.globalAlpha = 1;
+    for (const h of holes) { ctx.fillStyle = 'rgba(30,18,8,.85)'; ctx.beginPath(); ctx.arc(sx(h[0]), sx(h[1]), 2.2 * u, 0, TAU); ctx.fill(); }
+    for (const t of G.targets) if (t.found) { ctx.fillStyle = '#f0c24a'; ctx.strokeStyle = 'rgba(20,12,4,.9)'; ctx.lineWidth = u; ctx.beginPath(); ctx.arc(sx(t.x), sx(t.z), 2.8 * u, 0, TAU); ctx.fill(); ctx.stroke(); }
+    const px = sx(P.x), pz = sx(P.z);
+    ctx.save(); ctx.translate(px, pz); ctx.rotate(-P.yaw);
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 24 * u); g.addColorStop(0, 'rgba(255,244,210,.5)'); g.addColorStop(1, 'rgba(255,244,210,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 24 * u, -Math.PI / 2 - .5, -Math.PI / 2 + .5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#e0a93b'; ctx.strokeStyle = '#1b150e'; ctx.lineWidth = 1.4 * u; ctx.beginPath();
+    ctx.moveTo(0, -6.5 * u); ctx.lineTo(4.6 * u, 5 * u); ctx.lineTo(0, 2.4 * u); ctx.lineTo(-4.6 * u, 5 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+    const fs = (big ? 14 : 10) * u, o = fs * .9;
+    ctx.font = '700 ' + fs + 'px "Barlow Semi Condensed",system-ui,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    for (const [ch, x, y, hot] of [['N', N / 2, o, 1], ['S', N / 2, N - o, 0], ['W', o, N / 2, 0], ['O', N - o, N / 2, 0]]) {
+      ctx.fillStyle = 'rgba(20,14,8,.7)'; ctx.beginPath(); ctx.arc(x, y, fs * .72, 0, TAU); ctx.fill();
+      ctx.fillStyle = hot ? '#f0c24a' : '#f1e9d3'; ctx.fillText(ch, x, y + fs * .04);
+    }
+    dirty = false;
+  }
+  function tick(dt, c, raised) {
+    const P = G.P;
+    if (!raised && Math.hypot(c.x - lx, c.z - lz) > .35) {
+      lx = c.x; lz = c.z; cctx.fillStyle = '#8fe05a'; cctx.beginPath(); cctx.arc(sx(c.x), sx(c.z), .9 * K, 0, TAU); cctx.fill(); dirty = true;
+    }
+    if (Math.abs(P.yaw - lyaw) > .02) { lyaw = P.yaw; dirty = true; }
+    if (P.moved !== MAP._pm) { MAP._pm = P.moved; dirty = true; }
+    acc += dt; if (dirty && acc > .066) { acc = 0; draw(); }
+  }
+  function toggle() { big = !big; wrap.classList.toggle('big', big); wrap.setAttribute('aria-label', big ? 'Karte verkleinern' : 'Karte vergrößern'); dirty = true; acc = 1; }
+  if (matchMedia('(hover:hover) and (min-width:900px)').matches) toggle(); // am PC gleich groß
+  wrap.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); toggle(); });
+  wrap.addEventListener('click', e => e.preventDefault());
+  return { reset, tick, toggle, hole(x, z) { holes.push([x, z]); dirty = true; }, redraw() { dirty = true; acc = 1; }, _pm: 0 };
 })();
 
 // =====================================================================
@@ -2083,6 +2158,7 @@ function playStep(dt) {
   G.swingPh += dt * 3.1;
   placeCamera();
   const c = coilPos(); placeDetector(c);
+  MAP.tick(dt, c, run);
   // Signal
   const sn = run ? { sig: 0, vdi: 0, best: null, bs: 0 } : senseAt(c.x, c.z); G.sn = sn;
   let vol = 0, iron = false, isFe = false;
