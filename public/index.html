@@ -1,4 +1,4 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>playaz.fun</title><meta name="description" content="Sieben Browserspiele ohne Anmeldung: Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><link rel="canonical" href="https://playaz.fun/"><meta property="og:type" content="website"><meta property="og:site_name" content="playaz.fun"><meta property="og:title" content="playaz.fun · Browserspiele ohne Anmeldung"><meta property="og:description" content="Sieben Browserspiele ohne Anmeldung: Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><meta property="og:url" content="https://playaz.fun/"><meta property="og:image" content="https://playaz.fun/social-preview-1200x630.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playaz.fun/social-preview-1200x630.png"><link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><meta name="theme-color" content="#10104B"><link rel="stylesheet" href="assets/fonts.css"></head><body>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>playaz.fun</title><meta name="description" content="Acht Browserspiele ohne Anmeldung: Sondengänger, Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><link rel="canonical" href="https://playaz.fun/"><meta property="og:type" content="website"><meta property="og:site_name" content="playaz.fun"><meta property="og:title" content="playaz.fun · Browserspiele ohne Anmeldung"><meta property="og:description" content="Acht Browserspiele ohne Anmeldung: Sondengänger, Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><meta property="og:url" content="https://playaz.fun/"><meta property="og:image" content="https://playaz.fun/social-preview-1200x630.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playaz.fun/social-preview-1200x630.png"><link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><meta name="theme-color" content="#10104B"><link rel="stylesheet" href="assets/fonts.css"></head><body>
 
 <style>
 /* Layout: Spielhalle. Leuchtschrift oben, darunter ein Hauptautomat über die volle Breite und drei Automaten im Raster.
@@ -90,12 +90,22 @@ footer nav{display:flex;gap:18px}
 <main>
   <section class="hero wrap">
     <h1>Einwerfen musst du <em>nichts.</em></h1>
-    <p>Sieben Spiele direkt im Browser, am Handy wie am Rechner. Ohne Anmeldung, ohne Download, ohne Werbung. Dein Spielstand bleibt auf deinem Gerät.</p>
+    <p>Acht Spiele direkt im Browser, am Handy wie am Rechner. Ohne Anmeldung, ohne Download, ohne Werbung. Dein Spielstand bleibt auf deinem Gerät.</p>
     <ul class="facts"><li>Kein Login</li><li>Handy und PC</li><li>Rekorde lokal gespeichert</li></ul>
   </section>
 
   <section class="wrap" aria-label="Spiele">
     <div class="games">
+      <a class="game feat" href="spiele/sondengaenger.html" style="--accent:#e0a93b">
+        <div class="shot"><img src="bilder/sondengaenger.jpg" width="960" height="600" alt="Blick über einen gepflügten Acker, vorne schwingt die orangene Spule eines Metalldetektors, das Display zeigt ein Silbersignal"><span class="badge">Neu</span></div>
+        <div class="info">
+          <div class="tags"><span>3D</span><span>Simulation</span><span>Schatzsuche</span></div>
+          <h2>SONDENGÄNGER</h2>
+          <p>Mit dem Metalldetektor über Acker, Burghang und Römerlager. Töne deuten, Fundstelle orten, sauber graben, Fund säubern. Jeden Tag ein neues Tagesfeld mit Serie, Wochen- und Monatsschatz.</p>
+          <div class="foot"><span class="rec none" data-rec="sondengaenger">Noch nichts gefunden</span><span class="play">Losgehen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a>
+
       <a class="game feat" href="spiele/anbiss.html" style="--accent:#ff6a1c">
         <div class="shot"><img src="bilder/anbiss.jpg" width="960" height="600" alt="Abenddämmerung am Moorsee: Vom Steg aus treibt eine Pose im Wasser, Ringe ziehen über die Oberfläche"><span class="badge">Neu</span></div>
         <div class="info">
@@ -186,6 +196,8 @@ footer nav{display:flex;gap:18px}
   const read = k => { try { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v); } catch (e) { return null; } };
   const n = v => Math.floor(v).toLocaleString('de-DE');
   const show = (key, text) => { const el = document.querySelector('[data-rec="' + key + '"]'); if (el && text) { el.textContent = text; el.classList.remove('none'); } };
+  const sg = read('sondengaenger.v1');
+  if (sg && sg.stats && (sg.stats.finds || sg.stats.trash)) { const d = sg.daily || {}; show('sondengaenger', 'Stufe ' + (sg.lvl || 1) + ' · ' + n(sg.stats.finds || 0) + ' Funde' + (d.streak > 1 ? ' · Serie ' + d.streak : '')); }
   const ab = read('anbiss.v1');
   if (ab && ab.stats && ab.stats.caught) { const arten = Object.keys(ab.book || {}).length; const b = ab.stats.best; show('anbiss', (b ? 'Schwerster ' + (b.kg < 1 ? Math.round(b.kg * 1000) + ' g' : b.kg.toLocaleString('de-DE', { maximumFractionDigits: 1 }) + ' kg') + ' · ' : '') + arten + (arten === 1 ? ' Art' : ' Arten')); }
   const sw = read('stellwerk.v1');
