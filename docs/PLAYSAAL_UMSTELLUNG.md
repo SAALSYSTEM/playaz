@@ -48,6 +48,12 @@ Stand: 14.10.2026 · Branch `playsaal-rebrand` · Phase A umgesetzt, Phase B vor
 - Spielkarten verlinken direkt auf `/spiele/<name>` (spart die 307-Umleitung).
 - In den Spielen kein Portal-Header; dort bleibt der kleine „Alle Spiele“-Knopf.
 
+## 2b. Mobile-Feinschliff und Farbrollen
+
+- Handy (< 640 px, Desktop-Layout unverändert): Überschrift 40–44 px, engere Abstände, Zeile „Rekorde bleiben auf deinem Gerät“ nur noch unten auf der Seite; Kartentitel einheitlich (Versalien, gleiche Größe, einzeilig), Beschreibung max. 2 Zeilen, Rekorde klein und hellgrau, alle Karten gleich hoch → „Spielen“ sitzt überall an derselben Stelle.
+- Geprüft bei 375 × 548, 390 × 664, 430 × 746 (= sichtbare Fläche mit Safari-Leisten): kein Querscrollen, keine Überlappung, Menü vollständig erreichbar, erstes Spiel im ersten Bildschirm – auch mit eingeblendetem Umzug-Hinweis.
+- Farbrollen verbindlich in `design/playsaal/brand-tokens.json` (`roles`, `rules`) und `public/assets/site.css` (`--basis`, `--marke`, `--aktion`, `--logo-rot`): Anthrazit = Bühne, Orange = Marke/Highlights (Neu-Badge, Hinweis-Symbole), Gelb = Aktionen (Spielen, Sofort spielen, aktiver Filter, Links, Fokus), Rot-Orange nur im Logo. Ein Test prüft das.
+
 ## 3. Spielstand-Umzug (alte → neue Adresse)
 
 `localStorage` ist an die Origin gebunden; `playsaal.com` sieht die Daten von `playaz.cf-922.workers.dev` nicht. Umsetzung in `public/umzug.html`, `public/assets/umzug.js`, Adressen zentral in `public/assets/umzug-config.js`.
@@ -70,7 +76,7 @@ Stand: 14.10.2026 · Branch `playsaal-rebrand` · Phase A umgesetzt, Phase B vor
 
 ## 4. Tests & Prüfungen
 
-`node --test --test-concurrency=1 tests/*.test.mjs` → **12/12 bestanden** (inkl. Kopfzeile/Menü/Filter auf 390 px): alle Routen inkl. `/spiele/linke-spur`, `.html`-Redirects, 404; keine alte Marke im sichtbaren Text/Titel/Meta auf allen Seiten; keine JS-Fehler; Canonical = og:url = echter Pfad; Manifest-Icons und alle lokal verlinkten Dateien erreichbar (Linkcheck); Umzug (siehe 3.); Umzug-Hinweis nur bei `aktiv: true`.
+`node --test --test-concurrency=1 tests/*.test.mjs` → **16/16 bestanden** (inkl. Kopfzeile/Menü/Filter, Mobile 375/390/430 px, Farbrollen): alle Routen inkl. `/spiele/linke-spur`, `.html`-Redirects, 404; keine alte Marke im sichtbaren Text/Titel/Meta auf allen Seiten; keine JS-Fehler; Canonical = og:url = echter Pfad; Manifest-Icons und alle lokal verlinkten Dateien erreichbar (Linkcheck); Umzug (siehe 3.); Umzug-Hinweis nur bei `aktiv: true`.
 `node tools/domain.mjs` → konsistent. `wrangler deploy --dry-run` → ok. Testlauf des Cutover-Skripts auf einer Kopie → alle 33 URLs, Sitemap, robots, `aktiv: true` korrekt.
 Nicht vorhanden/nicht anwendbar: Typecheck, Lint, Build (kein Tooling im Projekt).
 

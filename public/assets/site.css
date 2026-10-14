@@ -1,13 +1,21 @@
-/* PlaySaal: gemeinsame Kopfzeile, Menü, Fußzeile. Farben aus design/playsaal/brand-tokens.json */
+/* PlaySaal: gemeinsame Kopfzeile, Menü, Fußzeile.
+   FARBROLLEN (verbindlich, Quelle: design/playsaal/brand-tokens.json → "roles"/"rules"):
+   --basis  Anthrazit #11121A  Bühne: Hintergründe. Auch Schrift auf gelben Knöpfen.
+   --marke  Orange    #FF9200  Identität: Auszeichnungen, Highlights, "Neu"-Badge, Hinweis-Symbole, Rahmen von Hinweisen
+   --aktion Gelb      #FFD21C  Interaktion: Spielen-/Haupt-Knöpfe (schwarze Schrift), aktive Filter/Auswahl, Links, Fokusrahmen
+   --logo-rot Rot-Orange #FF4A13  NUR im Logo-Verlauf, nie als UI-Farbe
+   Texte: Weiß / Hellgrau. Keine weitere dominante UI-Farbe. Der dreifarbige Verlauf bleibt dem Logo vorbehalten. */
 :root{
-  --ink:#11121A;
+  --basis:#11121A;
+  --marke:#FF9200;
+  --aktion:#FFD21C;
+  --aktion-hover:#FFDD4D;
+  --logo-rot:#FF4A13;
+  --ink:var(--basis);
   --flaeche:#1a1b26;
   --flaeche-hell:#232534;
   --text:#f6f7f9;
   --leise:#b6b9c8;
-  --gelb:#FFD21C;
-  --orange:#FF9200;
-  --koralle:#FF4A13;
   --linie:rgba(246,247,249,.12);
   --f-display:"Dela Gothic One","Arial Black",Impact,sans-serif;
   --f-text:"Barlow","Segoe UI",system-ui,sans-serif;
@@ -18,11 +26,11 @@
 [hidden]{display:none!important}
 html{background:var(--ink);scroll-padding-top:calc(var(--kopf) + env(safe-area-inset-top,0px) + 12px)}
 body{margin:0;background:var(--ink);color:var(--text);font:16px/1.5 var(--f-text);-webkit-text-size-adjust:100%}
-:focus-visible{outline:3px solid var(--orange);outline-offset:3px;border-radius:4px}
+:focus-visible{outline:3px solid var(--aktion);outline-offset:3px;border-radius:4px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* Kopfzeile: bleibt oben, wächst nicht. Links Marke, rechts Menü (Profil kommt erst mit Accounts). */
-.site-head{position:sticky;top:0;z-index:50;padding-top:env(safe-area-inset-top,0px);background:rgba(17,18,26,.9);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.site-head{position:sticky;top:0;z-index:50;padding-top:env(safe-area-inset-top,0px);background:rgba(17,18,26,.97);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
 .site-head-in{max-width:1120px;margin:0 auto;height:var(--kopf);padding-inline:max(16px,env(safe-area-inset-left,0px)) max(8px,env(safe-area-inset-right,0px));display:flex;align-items:center;justify-content:space-between;gap:16px}
 .site-logo{display:block;padding:8px 0;border-radius:6px}
 .site-logo img{display:block;height:28px;width:auto}
@@ -58,11 +66,12 @@ body{margin:0;background:var(--ink);color:var(--text);font:16px/1.5 var(--f-text
 @media (prefers-reduced-motion:reduce){.menu[open]{animation:none}}
 
 /* Knöpfe */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 24px;border-radius:999px;background:var(--gelb);color:var(--ink);font:700 17px/1 var(--f-text);text-decoration:none;border:0;cursor:pointer}
-.btn:hover{background:#ffdd4d}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 24px;border-radius:999px;background:var(--aktion);color:var(--basis);font:700 17px/1 var(--f-text);text-decoration:none;border:0;cursor:pointer}
+.btn:hover{background:var(--aktion-hover)}
 
 /* Fußzeile */
 .site-foot{border-top:1px solid var(--linie);margin-top:24px}
 .site-foot-in{max-width:1120px;margin:0 auto;padding:22px 16px calc(env(safe-area-inset-bottom,0px) + 32px);display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:space-between;color:var(--leise);font-size:14px}
 .site-foot nav{display:flex;gap:18px}
 .site-foot a{color:inherit}
+@media (max-width:639px){.site-foot nav a{display:inline-block;padding:10px 0}}

@@ -165,6 +165,73 @@ test('Kopfzeile + Menü auf allen Portalseiten, Menü öffnet/schließt, Filter 
   await ctx.close();
 });
 
+
+// iPhone-Breiten mit eingeblendeter Safari-Leiste (sichtbare Höhe statt Bildschirmhöhe)
+for (const [w, h] of [[375, 548], [390, 664], [430, 746]]) {
+  test(`Startseite mobil ${w}px (Safari-Leiste sichtbar, Höhe ${h}px): kein Überlauf, keine Überlappung, Knöpfe einheitlich`, async () => {
+    const ctx = await kontext({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 });
+    const page = await ctx.newPage();
+    await page.goto(NEU + '/impressum');
+    await page.evaluate(() => { localStorage.setItem('linkespur.v1', JSON.stringify({ coins: 52000, best: 81234, owned: ['kombi', 'strale'] })); localStorage.setItem('anbiss.v1', JSON.stringify({ v: 1, stats: { caught: 37, best: { kg: 3.2 } }, book: { a: 1, b: 1 } })); });
+    await page.goto(NEU + '/'); await page.waitForTimeout(300);
+    const r = await page.evaluate(() => {
+      const box = (e) => e.getBoundingClientRect();
+      const karten = [...document.querySelectorAll('.games .karte')].map((k) => {
+        const kb = box(k), teile = ['h3', '.chips', '.text', '.fuss'].map((s) => box(k.querySelector(s)));
+        const rec = box(k.querySelector('.rec')), play = box(k.querySelector('.play')), shot = box(k.querySelector('.shot'));
+        const h3 = k.querySelector('h3');
+        return {
+          h: Math.round(kb.height), playRechts: Math.round(kb.right - play.right), playUnten: Math.round(kb.bottom - play.bottom),
+          playH: Math.round(play.height), titelPx: parseFloat(getComputedStyle(h3).fontSize),
+          ueberlapp: teile.some((t, i) => i && t.top < teile[i - 1].bottom - 0.5) || rec.right > play.left + 0.5 || shot.right > teile[0].left,
+          drin: [...teile, play, shot].every((t) => t.left >= kb.left - 0.5 && t.right <= kb.right + 0.5 && t.top >= kb.top - 0.5 && t.bottom <= kb.bottom + 0.5),
+          textZeilen: Math.round(box(k.querySelector('.text')).height / parseFloat(getComputedStyle(k.querySelector('.text')).lineHeight))
+        };
+      });
+      return { breite: document.documentElement.scrollWidth, h1: parseFloat(getComputedStyle(document.querySelector('.hero h1')).fontSize),
+        ersteKarteOben: Math.round(box(document.querySelector('.games .karte')).top), karten };
+    });
+    assert.equal(r.breite, w, 'horizontaler Überlauf');
+    assert.ok(r.h1 >= 40 && r.h1 <= 44, 'H1 ' + r.h1);
+    assert.ok(r.ersteKarteOben < h - 100, `erstes Spiel erst bei ${r.ersteKarteOben}px sichtbar`);
+    const h0 = r.karten[0];
+    for (const [i, k] of r.karten.entries()) {
+      assert.ok(!k.ueberlapp, `Karte ${i} überlappt`);
+      assert.ok(k.drin, `Karte ${i} ragt über den Rand`);
+      assert.equal(k.h, h0.h, `Karte ${i} andere Höhe`);
+      assert.equal(k.playRechts, h0.playRechts, `Karte ${i} Knopf anders ausgerichtet`);
+      assert.equal(k.playUnten, h0.playUnten, `Karte ${i} Knopf anders ausgerichtet`);
+      assert.equal(k.titelPx, h0.titelPx, `Karte ${i} andere Titelgröße`);
+      assert.ok(k.textZeilen <= 2, `Karte ${i} Text ${k.textZeilen} Zeilen`);
+      assert.ok(k.h >= 44 && k.playH >= 36, `Karte ${i} Tippfläche`);
+    }
+    // Menü: alle Einträge im sichtbaren Bereich erreichbar
+    await page.click('.menu-btn');
+    const sichtbar = await page.$$eval('#menu a:not([hidden])', (as, hh) => as.every((a) => { const b = a.getBoundingClientRect(); return b.top >= 0 && b.bottom <= hh && b.height >= 40; }), h);
+    assert.ok(sichtbar, 'Menüeintrag außerhalb des sichtbaren Bereichs oder zu klein');
+    await ctx.close();
+  });
+}
+
+
+test('Farbrollen: Gelb = Aktion, Orange = Marke, Rot-Orange nicht in der Oberfläche', async () => {
+  const ctx = await kontext(); const page = await ctx.newPage(); await page.goto(ALT + '/');
+  const f = await page.evaluate(() => {
+    const bg = (s) => getComputedStyle(document.querySelector(s)).backgroundColor;
+    return { play: [...document.querySelectorAll('.play')].map((e) => getComputedStyle(e).backgroundColor), playText: getComputedStyle(document.querySelector('.play')).color,
+      cta: bg('.hero .btn'), filter: bg('[data-filter][aria-pressed="true"]'), badge: bg('.badge') };
+  });
+  const GELB = 'rgb(255, 210, 28)', ORANGE = 'rgb(255, 146, 0)', BASIS = 'rgb(17, 18, 26)';
+  assert.ok(f.play.every((c) => c === GELB)); assert.equal(f.playText, BASIS);
+  assert.equal(f.cta, GELB); assert.equal(f.filter, GELB); assert.equal(f.badge, ORANGE);
+  // Rot-Orange nur im Logo: kein Vorkommen in Portal-CSS/HTML außerhalb der Logo-Dateien
+  for (const datei of ['index.html', 'umzug.html', 'impressum.html', 'datenschutz.html', '404.html', 'assets/site.css']) {
+    const txt = (await (await fetch(ALT + '/' + datei.replace('.html', ''))).text()).replace(/--logo-rot:#FF4A13;|Rot-Orange #FF4A13/g, '');
+    assert.doesNotMatch(txt, /#FF4A13|--koralle/i, datei);
+  }
+  await ctx.close();
+});
+
 // ---------------- Spielstand-Umzug ----------------
 const ALTDATEN = {
   'anbiss.v1': JSON.stringify({ v: 1, money: 420, xp: 900, lvl: 4, stats: { caught: 37, best: { kg: 3.2 } }, book: { hecht: 1, barsch: 1 } }),
