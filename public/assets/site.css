@@ -1,0 +1,68 @@
+/* PlaySaal: gemeinsame Kopfzeile, Menü, Fußzeile. Farben aus design/playsaal/brand-tokens.json */
+:root{
+  --ink:#11121A;
+  --flaeche:#1a1b26;
+  --flaeche-hell:#232534;
+  --text:#f6f7f9;
+  --leise:#b6b9c8;
+  --gelb:#FFD21C;
+  --orange:#FF9200;
+  --koralle:#FF4A13;
+  --linie:rgba(246,247,249,.12);
+  --f-display:"Dela Gothic One","Arial Black",Impact,sans-serif;
+  --f-text:"Barlow","Segoe UI",system-ui,sans-serif;
+  --kopf:56px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--ink);scroll-padding-top:calc(var(--kopf) + env(safe-area-inset-top,0px) + 12px)}
+body{margin:0;background:var(--ink);color:var(--text);font:16px/1.5 var(--f-text);-webkit-text-size-adjust:100%}
+:focus-visible{outline:3px solid var(--orange);outline-offset:3px;border-radius:4px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* Kopfzeile: bleibt oben, wächst nicht. Links Marke, rechts Menü (Profil kommt erst mit Accounts). */
+.site-head{position:sticky;top:0;z-index:50;padding-top:env(safe-area-inset-top,0px);background:rgba(17,18,26,.9);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px)}
+.site-head-in{max-width:1120px;margin:0 auto;height:var(--kopf);padding-inline:max(16px,env(safe-area-inset-left,0px)) max(8px,env(safe-area-inset-right,0px));display:flex;align-items:center;justify-content:space-between;gap:16px}
+.site-logo{display:block;padding:8px 0;border-radius:6px}
+.site-logo img{display:block;height:28px;width:auto}
+.site-nav{display:none;gap:4px}
+.site-nav a{color:var(--leise);text-decoration:none;font-weight:600;padding:8px 12px;border-radius:8px}
+.site-nav a:hover{color:var(--text);background:var(--flaeche)}
+.menu-btn{display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:var(--text);cursor:pointer}
+.menu-btn:hover{background:var(--flaeche)}
+.menu-btn svg{width:24px;height:24px}
+@media (min-width:900px){
+  :root{--kopf:64px}
+  .site-logo img{height:32px}
+  .site-nav{display:flex}
+  .menu-btn{display:none}
+}
+
+/* Menü: Seitenleiste von rechts (nativer <dialog>, Esc und Fokus übernimmt der Browser) */
+.menu{margin:0 0 0 auto;padding:0;border:0;width:min(86vw,340px);max-width:none;height:100%;max-height:none;background:var(--flaeche);color:var(--text)}
+.menu::backdrop{background:rgba(5,6,10,.6)}
+.menu[open]{animation:menu-rein .2s ease-out}
+@keyframes menu-rein{from{transform:translateX(24px);opacity:0}}
+.menu-in{display:flex;flex-direction:column;height:100%;padding:calc(env(safe-area-inset-top,0px) + 6px) 12px calc(env(safe-area-inset-bottom,0px) + 20px)}
+.menu-top{display:flex;align-items:center;justify-content:space-between;height:var(--kopf);padding-left:8px}
+.menu-top span{font-weight:700;color:var(--leise)}
+.menu-close{display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:10px;background:transparent;color:var(--text);cursor:pointer}
+.menu-close:hover{background:var(--flaeche-hell)}
+.menu-close svg{width:22px;height:22px}
+.menu nav{display:flex;flex-direction:column}
+.menu nav a{display:block;padding:14px 8px;font-size:19px;font-weight:600;color:var(--text);text-decoration:none;border-radius:10px}
+.menu nav a:hover{background:var(--flaeche-hell)}
+.menu .menu-recht{margin-top:auto;border-top:1px solid var(--linie);padding-top:12px}
+.menu .menu-recht a{font-size:16px;font-weight:500;color:var(--leise);padding:10px 8px}
+@media (prefers-reduced-motion:reduce){.menu[open]{animation:none}}
+
+/* Knöpfe */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 24px;border-radius:999px;background:var(--gelb);color:var(--ink);font:700 17px/1 var(--f-text);text-decoration:none;border:0;cursor:pointer}
+.btn:hover{background:#ffdd4d}
+
+/* Fußzeile */
+.site-foot{border-top:1px solid var(--linie);margin-top:24px}
+.site-foot-in{max-width:1120px;margin:0 auto;padding:22px 16px calc(env(safe-area-inset-bottom,0px) + 32px);display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:space-between;color:var(--leise);font-size:14px}
+.site-foot nav{display:flex;gap:18px}
+.site-foot a{color:inherit}

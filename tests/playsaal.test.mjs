@@ -130,6 +130,41 @@ test('Branding-Assets, Manifest und alle lokal referenzierten Dateien sind errei
   assert.deepEqual(kaputt, []);
 });
 
+
+// ---------------- Kopfzeile, Menü, Startseite ----------------
+test('Kopfzeile + Menü auf allen Portalseiten, Menü öffnet/schließt, Filter "Neu"', async () => {
+  const ctx = await kontext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  for (const p of ['/', '/impressum', '/datenschutz', '/umzug', '/gibt-es-nicht']) {
+    const page = await ctx.newPage(); await page.goto(ALT + p);
+    const h = await page.evaluate(() => document.querySelector('.site-head').getBoundingClientRect().height);
+    assert.ok(h >= 56 && h <= 60, p + ' Kopfhöhe ' + h);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390, p + ' seitlich scrollbar');
+    await page.click('.menu-btn');
+    assert.ok(await page.evaluate(() => document.getElementById('menu').open), p + ' Menü offen');
+    assert.equal(await page.getAttribute('.menu-btn', 'aria-expanded'), 'true');
+    await page.keyboard.press('Escape');
+    await page.waitForFunction(() => !document.getElementById('menu').open && document.querySelector('.menu-btn').getAttribute('aria-expanded') === 'false');
+    assert.equal(await page.evaluate(() => document.activeElement.className), 'menu-btn', p + ' Fokus zurück auf Menüknopf');
+    // Ranglisten/Freunde/Profil gibt es noch nicht -> dürfen nicht auftauchen
+    assert.doesNotMatch(await page.textContent('#menu'), /Rangliste|Freunde|Profil/);
+    await page.close();
+  }
+  const page = await ctx.newPage(); await page.goto(ALT + '/');
+  assert.equal(await page.locator('.games .game').count(), SPIELE.length);
+  await page.click('.menu-btn'); await page.click('#menu a[href="/#neu"]');
+  await page.waitForFunction(() => document.querySelectorAll('.games .game:not([hidden])').length === 3);
+  assert.equal(await page.textContent('#spiele-titel'), 'Neue Spiele');
+  await page.click('[data-filter="alle"]');
+  assert.equal(await page.locator('.games .game:not([hidden])').count(), SPIELE.length);
+  // Jede Karte führt auf eine echte Spielroute und hat "Spielen"
+  const links = await page.$$eval('.games a', (as) => as.map((a) => [a.getAttribute('href'), a.querySelector('.play').textContent.trim()]));
+  for (const [href, txt] of links) { assert.equal(txt, 'Spielen'); assert.equal((await fetch(ALT + href)).status, 200, href); }
+  // Im Spiel kein Portal-Header
+  const spiel = await ctx.newPage(); await spiel.goto(ALT + '/spiele/linke-spur');
+  assert.equal(await spiel.locator('.site-head').count(), 0);
+  await ctx.close();
+});
+
 // ---------------- Spielstand-Umzug ----------------
 const ALTDATEN = {
   'anbiss.v1': JSON.stringify({ v: 1, money: 420, xp: 900, lvl: 4, stats: { caught: 37, best: { kg: 3.2 } }, book: { hecht: 1, barsch: 1 } }),

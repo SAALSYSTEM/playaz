@@ -1,8 +1,7 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Spielstände umziehen · PlaySaal</title><meta name="robots" content="noindex"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest"><meta name="theme-color" content="#11121A"><link rel="stylesheet" href="/assets/fonts.css"><style>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Spielstände umziehen · PlaySaal</title><meta name="robots" content="noindex"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest"><meta name="theme-color" content="#11121A"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/assets/site.css"><style>
 body{margin:0;background:#11121A;color:#f6f7f9;font:17px/1.6 "Barlow","Segoe UI",system-ui,sans-serif}
-main{max-width:720px;margin:0 auto;padding:32px 16px 56px}
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px}
 a{color:#FFD21C}
-.brand{display:inline-block;margin-bottom:22px}.brand img{display:block;height:45px;width:auto}
 h1{font-family:"Dela Gothic One","Arial Black",sans-serif;font-weight:400;font-size:36px;line-height:1.1;margin:18px 0 18px}
 h2{font-size:19px;margin:30px 0 8px}
 p,li{color:#d6d8e2}
@@ -29,8 +28,19 @@ textarea{width:100%;box-sizing:border-box;min-height:110px;font:13px/1.4 ui-mono
 #tabVergleich td:last-child{grid-column:1/-1}
 #tabVergleich td[data-label]:not(:first-child):not(:last-child)::before{content:attr(data-label);display:block;color:#b6b9c8;font-size:12px}
 #tabVergleich select{width:100%}}
-</style></head><body><main id="umzug">
-<a class="brand" href="/" aria-label="PlaySaal Startseite"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="1140" height="244" alt="PlaySaal"></a><br><a href="/">← Zu den Spielen</a>
+</style></head><body><header class="site-head">
+  <div class="site-head-in">
+    <a class="site-logo" href="/" aria-label="PlaySaal, alle Spiele"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="1140" height="244" alt="PlaySaal"></a>
+    <nav class="site-nav" aria-label="Hauptmenü"><a href="/#spiele">Alle Spiele</a><a href="/#neu">Neue Spiele</a></nav>
+    <button class="menu-btn" type="button" aria-controls="menu" aria-expanded="false" aria-label="Menü öffnen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </div>
+</header>
+<dialog class="menu" id="menu" aria-label="Menü"><div class="menu-in">
+  <div class="menu-top"><span>Menü</span><button class="menu-close" type="button" aria-label="Menü schließen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+  <nav aria-label="Spiele"><a href="/#spiele">Alle Spiele</a><a href="/#neu">Neue Spiele</a><a href="/umzug" data-umzug hidden>Spielstände umziehen</a></nav>
+  <nav class="menu-recht" aria-label="Rechtliches"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
+</div></dialog>
+<main id="umzug">
 <h1>Spielstände umziehen</h1>
 <p>Aus PlayAZ wird PlaySaal. Deine Rekorde, Münzen und Fortschritte liegen nur in deinem Browser und sind dort an die Adresse der Seite gebunden. Nach dem Wechsel der Adresse holst du sie hier einmal herüber. Übertragen werden nur die Spielstände der PlaySaal-Spiele, sonst nichts.</p>
 
@@ -82,6 +92,11 @@ textarea{width:100%;box-sizing:border-box;min-height:110px;font:13px/1.4 ui-mono
 <button id="importText" class="btn zweit" type="button">Text prüfen</button>
 <textarea id="textFeld" hidden aria-label="Spielstand als Text"></textarea>
 </main>
+<footer class="site-foot"><div class="site-foot-in">
+  <span>PlaySaal · Browserspiele ohne Anmeldung</span>
+  <nav aria-label="Rechtliches"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
+</div></footer>
 <script src="/assets/umzug-config.js"></script>
 <script src="/assets/umzug.js"></script>
+<script src="/assets/site.js"></script>
 </body></html>

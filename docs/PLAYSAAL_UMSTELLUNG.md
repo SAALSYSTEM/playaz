@@ -38,6 +38,16 @@ Stand: 14.10.2026 · Branch `playsaal-rebrand` · Phase A umgesetzt, Phase B vor
 **Bewusst NICHT umbenannt (technische IDs)**
 - Worker-Name `playaz` (bestimmt die alte Adresse), Repo-Name, `localStorage`-Schlüssel, CSS-Klasse `pz-home`, Ordner `design/eiszeit`. Umbenennen würde Saves oder die alte Adresse brechen.
 
+## 2a. Design-Update Mobile (Kopfzeile, Menü, Spielkarten)
+
+- Einheitliche Kopfzeile auf Startseite, Impressum, Datenschutz, 404 und Umzug (`/assets/site.css`, `/assets/site.js`): 56 px hoch (Desktop 64 px), bleibt oben, berücksichtigt die iPhone Safe Area, kein Rahmen/Schatten.
+- Anordnung: Marke links, Menü rechts – solange es kein Profil gibt (laut Konzept kein künstliches Drei-Spalten-Layout). Sobald Accounts kommen: Hamburger links, Logo mittig, Profil rechts (nur CSS + ein Knopf).
+- Menü als natives `<dialog>` (Esc, Fokus, Hintergrund gesperrt): Alle Spiele, Neue Spiele, Impressum, Datenschutz; „Spielstände umziehen“ erscheint nur bei `aktiv: true`. Ranglisten/Freunde/Profil erst mit der Funktion.
+- Ab 900 px statt Hamburger zwei Links in der Kopfzeile.
+- Startseite: neuer Hero „Spielen. Einfach so.“, Filter Alle/Neu (auch per `/#neu`), Spielkarten auf dem Handy kompakt (Vorschaubild links, 3–4 Spiele pro Bildschirm), Texte gekürzt (max. 2 Zeilen), einheitlich „Spielen“; ab 640 px Raster mit großem Bild, neuestes Spiel breit.
+- Spielkarten verlinken direkt auf `/spiele/<name>` (spart die 307-Umleitung).
+- In den Spielen kein Portal-Header; dort bleibt der kleine „Alle Spiele“-Knopf.
+
 ## 3. Spielstand-Umzug (alte → neue Adresse)
 
 `localStorage` ist an die Origin gebunden; `playsaal.com` sieht die Daten von `playaz.cf-922.workers.dev` nicht. Umsetzung in `public/umzug.html`, `public/assets/umzug.js`, Adressen zentral in `public/assets/umzug-config.js`.
@@ -60,7 +70,7 @@ Stand: 14.10.2026 · Branch `playsaal-rebrand` · Phase A umgesetzt, Phase B vor
 
 ## 4. Tests & Prüfungen
 
-`node --test --test-concurrency=1 tests/*.test.mjs` → **11/11 bestanden**: alle Routen inkl. `/spiele/linke-spur`, `.html`-Redirects, 404; keine alte Marke im sichtbaren Text/Titel/Meta auf allen Seiten; keine JS-Fehler; Canonical = og:url = echter Pfad; Manifest-Icons und alle lokal verlinkten Dateien erreichbar (Linkcheck); Umzug (siehe 3.); Umzug-Hinweis nur bei `aktiv: true`.
+`node --test --test-concurrency=1 tests/*.test.mjs` → **12/12 bestanden** (inkl. Kopfzeile/Menü/Filter auf 390 px): alle Routen inkl. `/spiele/linke-spur`, `.html`-Redirects, 404; keine alte Marke im sichtbaren Text/Titel/Meta auf allen Seiten; keine JS-Fehler; Canonical = og:url = echter Pfad; Manifest-Icons und alle lokal verlinkten Dateien erreichbar (Linkcheck); Umzug (siehe 3.); Umzug-Hinweis nur bei `aktiv: true`.
 `node tools/domain.mjs` → konsistent. `wrangler deploy --dry-run` → ok. Testlauf des Cutover-Skripts auf einer Kopie → alle 33 URLs, Sitemap, robots, `aktiv: true` korrekt.
 Nicht vorhanden/nicht anwendbar: Typecheck, Lint, Build (kein Tooling im Projekt).
 
