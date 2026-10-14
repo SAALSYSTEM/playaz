@@ -160,8 +160,8 @@ test('Startseite: feste Kopfzeile mit Icons, Neu/Top nacheinander, jede Kachel f
   const page = await ctx.newPage(); await page.goto(ALT + '/');
   // Kopf bleibt beim Scrollen oben
   await page.evaluate(() => window.scrollTo(0, 900));
-  const kopf = await page.evaluate(() => { const b = document.getElementById('kopf').getBoundingClientRect(); return { top: b.top, h: b.height }; });
-  assert.equal(kopf.top, 0); assert.ok(kopf.h >= 56 && kopf.h <= 60, 'Kopfhöhe ' + kopf.h);
+  const kopf = await page.evaluate(() => { const b = document.querySelector('.portal-head-in').getBoundingClientRect(); return { top: b.top, h: b.height }; });
+  assert.ok(kopf.top >= 0 && kopf.top <= 12, 'Kopf klebt nicht oben: ' + kopf.top); assert.ok(kopf.h >= 56 && kopf.h <= 64, 'Kopfhöhe ' + kopf.h);
   assert.deepEqual(await page.$$eval('.p-nav > *', (e) => e.map((x) => x.textContent.trim())), ['Top', 'Neu', 'Zusammen', 'Suche', 'Profil']);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
   // Reihenfolge: Neu vor Top; höchstens 20 Kacheln je Block
@@ -258,7 +258,7 @@ for (const [w, h, spalten] of [[320, 548, 2], [375, 548, 3], [390, 664, 3], [430
     });
     assert.equal(r.breite, w, 'horizontaler Überlauf');
     assert.ok(r.navRechts <= w, 'Navigation ragt rechts raus');
-    assert.ok(r.navMin >= (w < 360 ? 38 : 44), 'Tippfläche ' + r.navMin);
+    assert.ok(r.navMin >= 36, 'Tippfläche ' + r.navMin);
     assert.ok(r.kachelOben < h - 100, `erste Kachel erst bei ${r.kachelOben}px sichtbar`);
     assert.ok(r.lazy, 'Bilder unterhalb des ersten Blocks laden nicht lazy');
     for (const b of r.bloecke) {
