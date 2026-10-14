@@ -5,5 +5,5 @@
 window.PLAYSAAL_UMZUG = {
   ziel: 'https://playsaal.com',
   quellen: ['https://playaz.cf-922.workers.dev'],
-  aktiv: false
+  aktiv: true
 };

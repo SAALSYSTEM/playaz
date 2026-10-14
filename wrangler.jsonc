@@ -10,6 +10,8 @@
   // Ausdrücklich an: Sobald "routes" (z. B. Custom Domain playsaal.com) eingetragen werden,
   // würde Wrangler workers.dev sonst automatisch abschalten – und damit den Spielstand-Umzug unmöglich machen.
   "workers_dev": true,
+  // Hauptadresse: Cloudflare legt DNS-Eintrag und Zertifikat für playsaal.com selbst an (Zone ist Active).
+  "routes": [{ "pattern": "playsaal.com", "custom_domain": true }],
   // Branch-Vorschauen (Worker Previews) nutzen dieselben Einstellungen wie Produktion
   "previews": {}
 }
