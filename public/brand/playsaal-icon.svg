@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="620" height="620" viewBox="0 0 620 620" role="img" aria-label="PlaySaal Logo">
+<defs>
+ <linearGradient id="top" x1="4%" x2="85%" y1="0%" y2="85%"><stop offset="0" stop-color="#FFE35B"/><stop offset="0.31" stop-color="#FFBE13"/><stop offset="0.77" stop-color="#FF8B05"/><stop offset="1" stop-color="#F5650A"/></linearGradient>
+ <linearGradient id="left" x1="0%" x2="85%" y1="0%" y2="98%"><stop offset="0" stop-color="#FFD83E"/><stop offset="0.35" stop-color="#FFAB11"/><stop offset="0.78" stop-color="#FF6A12"/><stop offset="1" stop-color="#E83A17"/></linearGradient>
+ <linearGradient id="inner" x1="0%" x2="95%" y1="75%" y2="25%"><stop offset="0" stop-color="#A91016"/><stop offset="0.47" stop-color="#E02B13"/><stop offset="1" stop-color="#FA5410"/></linearGradient>
+ <linearGradient id="bottom" x1="0%" x2="100%" y1="87%" y2="24%"><stop offset="0" stop-color="#B91A17"/><stop offset="0.23" stop-color="#EE3A0F"/><stop offset="0.60" stop-color="#FF9D0B"/><stop offset="1" stop-color="#FFD447"/></linearGradient>
+ <linearGradient id="rim" x1="0%" x2="100%"><stop offset="0" stop-color="#FFE67E"/><stop offset="1" stop-color="#FFE55B"/></linearGradient>
+ <clipPath id="holeclip" clipPathUnits="userSpaceOnUse"><path fill-rule="evenodd" clip-rule="evenodd" d="M 0 0 H 620 V 620 H 0 Z M 251 299 L 380 374 L 251 449 Z"/></clipPath>
+</defs>
+<g  >
+<!-- Three interior faces leave an actual transparent hole -->
+<path d="M 211 194 L 479 346 L 417 378 L 252 283 L 211 265 Z" fill="url(#inner)"/>
+<path d="M 211 260 L 253 285 L 253 460 L 211 490 Z" fill="#B71C14"/>
+<path d="M 253 459 L 414 367 L 470 399 L 211 540 L 211 487 Z" fill="url(#inner)"/>
+<!-- left front ribbon -->
+<path d="M 129 117 Q 106 132 106 159 L 106 476 Q 106 502 126 517 L 176 546 Q 197 557 214 540 L 214 183 L 164 135 Q 144 116 129 117Z" fill="url(#left)"/>
+<!-- top continuous ribbon and impossible connection -->
+<path d="M 127 117 L 169 91 Q 187 81 208 94 L 497 265 Q 512 274 513 292 Q 515 312 495 324 L 464 344 L 160 166 Q 121 144 109 137 Q 114 124 127 117Z" fill="url(#top)"/>
+<!-- seam highlights that communicate the 3D band -->
+<path d="M 112 134 Q 133 112 158 126 L 463 304" fill="none" stroke="#FFE59A" stroke-width="3" opacity="0.73" stroke-linecap="round"/>
+<!-- bottom ribbon overlays left side and ends at the front right -->
+<path d="M 177 546 Q 194 553 211 544 L 490 382 Q 513 369 513 342 L 513 292 Q 512 312 492 324 L 213 486 L 213 514 Q 209 538 177 546 Z" fill="url(#bottom)"/>
+<!-- cut-out play triangle is transparent via geometry shape overlap; interior white/transparent hole -->
+</g></svg>

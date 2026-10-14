@@ -1,0 +1,31 @@
+{
+  "brand": {
+    "display_name": "PlaySaal",
+    "wordmark": "playsaal",
+    "domain": "playsaal.com",
+    "canonical_url": "https://playsaal.com",
+    "former_name": "PlayAZ",
+    "former_public_worker_url": "https://playaz.cf-922.workers.dev"
+  },
+  "colors": {
+    "yellow": "#FFD21C",
+    "orange": "#FF9200",
+    "coral": "#FF4A13",
+    "deep_red": "#B31912",
+    "ink": "#11121A",
+    "black": "#121212",
+    "white": "#FFFFFF",
+    "surface": "#F6F7F9"
+  },
+  "typography": {
+    "recommended": "Inter, sans-serif",
+    "logo_lettering": "Outlined geometric lowercase wordmark; do not replace SVG paths with runtime fonts"
+  },
+  "assets": {
+    "header_on_light": "/brand/playsaal-logo-horizontal-light.svg",
+    "header_on_dark": "/brand/playsaal-logo-horizontal-dark.svg",
+    "icon": "/brand/playsaal-icon.svg",
+    "favicon": "/favicon.svg",
+    "og_image": "/og-playsaal-1200x630.jpg"
+  }
+}
