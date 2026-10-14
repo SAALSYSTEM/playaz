@@ -1,197 +1,270 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>playaz.fun</title><meta name="description" content="Acht Browserspiele ohne Anmeldung: Sondengänger, Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><link rel="canonical" href="https://playaz.fun/"><meta property="og:type" content="website"><meta property="og:site_name" content="playaz.fun"><meta property="og:title" content="playaz.fun · Browserspiele ohne Anmeldung"><meta property="og:description" content="Acht Browserspiele ohne Anmeldung: Sondengänger, Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><meta property="og:url" content="https://playaz.fun/"><meta property="og:image" content="https://playaz.fun/social-preview-1200x630.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playaz.fun/social-preview-1200x630.png"><link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><meta name="theme-color" content="#10104B"><link rel="stylesheet" href="assets/fonts.css"></head><body>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>PlaySaal · Browserspiele ohne Anmeldung</title><meta name="description" content="Acht Browserspiele ohne Anmeldung: Sondengänger, Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><link rel="canonical" href="https://playaz.cf-922.workers.dev/"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="PlaySaal · Browserspiele ohne Anmeldung"><meta property="og:image:alt" content="PlaySaal: Browsergames direkt spielen"><meta property="og:description" content="Acht Browserspiele ohne Anmeldung: Sondengänger, Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><meta property="og:url" content="https://playaz.cf-922.workers.dev/"><meta property="og:image" content="https://playaz.cf-922.workers.dev/og-playsaal-1200x630.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playaz.cf-922.workers.dev/twitter-playsaal-1200x600.jpg"><link rel="icon" type="image/svg+xml" href="favicon.svg"><link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><meta name="theme-color" content="#11121A"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/assets/site.css"><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"PlaySaal","alternateName":"PlayAZ","url":"https://playaz.cf-922.workers.dev/","inLanguage":"de"}</script></head><body>
 
 <style>
-/* Layout: Spielhalle. Leuchtschrift oben, darunter ein Hauptautomat über die volle Breite und drei Automaten im Raster.
-   Bewusst ein einziger dunkler Look; alle Farben fest gesetzt. */
-:root{
-  --halle:#11103b;
-  --automat:#1b1a50;
-  --automat-hell:#25236a;
-  --kreide:#f5f4ff;
-  --nebel:#b7b5dd;
-  --muenze:#ffc83a;
-  --koralle:#ff4f9a;
-  --linie:rgba(246,242,255,.13);
-  --f-display:"Dela Gothic One","Arial Black",Impact,sans-serif;
-  --f-body:"Barlow","Segoe UI",system-ui,sans-serif;
-  color-scheme:dark;
-}
-*{box-sizing:border-box}
-html{background:var(--halle)}
-body{margin:0;background:var(--halle);background-image:radial-gradient(rgba(246,242,255,.05) 1px,transparent 1.2px);background-size:22px 22px;color:var(--kreide);font-family:var(--f-body);font-size:16px;line-height:1.5}
-a{color:inherit}
+/* Startseite. Basis (Farben, Kopfzeile, Menü, Knöpfe) in /assets/site.css */
 .wrap{max-width:1120px;margin:0 auto;padding-inline:16px}
-:focus-visible{outline:3px solid var(--muenze);outline-offset:3px}
+.hero{padding-block:28px 26px}
+.hero h1{font:400 clamp(46px,12vw,92px)/.95 var(--f-display);letter-spacing:-.025em;margin:0 0 16px;}
+.hero p{margin:0 0 22px;max-width:40ch;font-size:clamp(17px,2.4vw,20px);color:var(--leise)}
+.hero-akt{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px}
+.hero-akt .hinweis{display:flex;align-items:center;gap:8px;color:var(--leise);font-size:15px;font-weight:500}
+.hero-akt .hinweis svg{width:18px;height:18px;color:var(--marke);flex:none}
 
-/* Kopf */
-header{padding-block:28px 8px}
-.logo{display:inline-block;text-decoration:none}
-.logo img{display:block;height:104px;width:auto;max-width:100%}
-.hero{padding-block:34px 30px;display:grid;gap:14px}
-.hero h1{font-family:var(--f-display);font-weight:400;font-size:clamp(40px,8.4vw,86px);line-height:.98;letter-spacing:-.02em;margin:0;text-wrap:balance;max-width:14ch}
-.hero h1 em{font-style:normal;color:var(--muenze)}
-.hero p{margin:0;max-width:52ch;font-size:clamp(17px,2.2vw,20px);color:var(--nebel)}
-.facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;padding:0;list-style:none}
-.facts li{font-weight:600;font-size:14px;letter-spacing:.04em;padding:6px 12px;border:1px solid var(--linie);border-radius:999px;background:rgba(255,255,255,.03)}
+.liste-kopf{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 14px}
+.liste-kopf h2{font:700 22px/1.2 var(--f-text);margin:0}
+.filter{display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--flaeche)}
+.filter button{font:600 14px/1 var(--f-text);color:var(--leise);background:transparent;border:0;border-radius:999px;padding:9px 14px;cursor:pointer;min-height:36px}
+.filter button[aria-pressed="true"]{background:var(--aktion);color:var(--basis)}
+.filter button[aria-pressed="true"] b{color:var(--basis)}
+.filter b{font-weight:600;color:var(--leise);margin-left:4px}
 
-/* Automaten */
-.games{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding-bottom:40px}
-.game{position:relative;display:flex;flex-direction:column;min-width:0;text-decoration:none;background:var(--automat);border:1px solid var(--linie);border-radius:16px;overflow:hidden;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
-.game:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--accent) 60%,transparent);box-shadow:0 18px 40px -18px color-mix(in srgb,var(--accent) 70%,transparent)}
-.shot{position:relative;aspect-ratio:16/10;max-width:100%;background:#0d0a18;overflow:hidden}
-.shot img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
-.game:hover .shot img{transform:scale(1.04)}
-.badge{position:absolute;left:12px;top:12px;font-family:var(--f-display);font-size:13px;letter-spacing:.04em;background:var(--koralle);color:#fff;padding:5px 10px;border-radius:6px}
-.info{display:grid;gap:10px;padding:16px 18px 18px;flex:1;align-content:start}
-.tags{display:flex;flex-wrap:wrap;gap:6px}
-.tags span{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nebel)}
-.tags span+span::before{content:"·";margin-right:6px;color:var(--linie)}
-.game h2{font-family:var(--f-display);font-weight:400;font-size:28px;line-height:1.05;margin:0;letter-spacing:-.01em}
-.game p{margin:0;color:var(--nebel);font-size:16px;line-height:1.45}
-.foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:6px}
-.rec{font-size:14px;font-weight:600;color:var(--kreide);font-variant-numeric:tabular-nums}
-.rec.none{color:var(--nebel);font-weight:500}
-.play{display:inline-flex;align-items:center;gap:8px;font-family:var(--f-display);font-size:16px;padding:9px 16px;border-radius:999px;background:var(--accent);color:var(--accent-ink,#120d1f)}
-.play svg{width:14px;height:14px}
+/* Spielkarten: Handy eine Zeile pro Spiel mit Vorschaubild links, ab Tablet Raster mit großem Bild */
+.games{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.karte{display:grid;grid-template-columns:116px minmax(0,1fr);gap:14px;padding:10px;border-radius:16px;background:var(--flaeche);color:inherit;text-decoration:none;border:1px solid transparent}
+.karte:hover{border-color:var(--linie)}
+.shot{position:relative;border-radius:10px;overflow:hidden;background:#0c0d13;aspect-ratio:1/1;align-self:start}
+.shot img{display:block;width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;left:6px;top:6px;font:700 12px/1 var(--f-text);background:var(--marke);color:var(--basis);padding:4px 7px;border-radius:6px}
+.info{display:flex;flex-direction:column;min-width:0;padding:2px 2px 0 0}
+.info h3{font:400 20px/1.1 var(--f-display);margin:0 0 6px;letter-spacing:-.01em}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 6px;padding:0;list-style:none}
+.chips li{font-size:12px;font-weight:600;color:var(--leise);background:var(--flaeche-hell);padding:2px 8px;border-radius:999px}
+.text{margin:0 0 10px;color:var(--leise);font-size:15px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.fuss{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto}
+.rec{font-size:13px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;min-width:0}
+.rec.none{color:var(--leise);font-weight:500}
+.play{display:inline-flex;align-items:center;gap:6px;flex:none;font:700 15px/1 var(--f-text);padding:10px 14px;border-radius:999px;background:var(--aktion);color:var(--basis)}
+.play svg{width:12px;height:12px}
 
-.game.feat{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}
-.game.feat .shot{aspect-ratio:auto;min-height:100%}
-.game.feat .info{padding:28px 30px 30px;gap:14px}
-.game.feat h2{font-size:clamp(34px,4.6vw,52px)}
-.game.feat p{font-size:18px}
+/* Nur Handy (< 640 px): kompakter Hero, gleich hohe Karten, Knopf immer an derselben Stelle */
+@media (max-width:639px){
+  .hero{padding-block:18px 20px}
+  .hero h1{font-size:clamp(40px,10.4vw,44px);line-height:1;letter-spacing:-.02em;margin:0 0 10px}
+  .hero p{font-size:16px;line-height:1.45;margin:0 0 16px}
+  .hero-akt{gap:10px 14px}
+  .hero-akt .btn{min-height:44px;padding:0 20px;font-size:16px}
+  .hero-akt .hinweis{display:none}  /* steht unten auf der Seite noch einmal */
+  .note.umzug{margin-top:12px;padding:10px 12px;font-size:14px;gap:10px}
+  .note.umzug svg{width:18px;height:18px}
 
-/* Hinweise und Fuß */
-.note{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;margin-bottom:40px;padding:16px 18px;border:1px dashed var(--linie);border-radius:14px;color:var(--nebel);font-size:15px}
-.note svg{width:22px;height:22px;color:var(--muenze)}
-.note b{color:var(--kreide)}
-footer{border-top:1px solid var(--linie);padding-block:22px 34px;color:var(--nebel);font-size:14px}
-footer .wrap{display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:space-between}
-footer nav{display:flex;gap:18px}
+  .liste-kopf{margin:4px 0 10px}
+  .liste-kopf h2{font-size:20px}
+  .filter button{min-height:40px;padding:0 14px}
 
-@media (max-width:900px){
-  .games{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .game.feat{grid-template-columns:1fr}
-  .game.feat .shot{aspect-ratio:16/9}
+  .games{gap:8px}
+  .karte{grid-template-columns:96px minmax(0,1fr);gap:12px;padding:8px;min-height:132px}
+  .shot{aspect-ratio:auto;align-self:stretch;min-height:96px}
+  .badge{left:5px;top:5px;font-size:11px;padding:3px 6px}
+  .info{padding:2px 0 0}
+  .info h3{font-size:16px;line-height:1.15;letter-spacing:.01em;text-transform:uppercase;margin:0 0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .chips{flex-wrap:nowrap;overflow:hidden;margin:0 0 6px}
+  .chips li{font-size:11px;padding:2px 7px;white-space:nowrap}
+  .text{font-size:14px;line-height:1.35;min-height:calc(2 * 1.35em);margin:0 0 8px}
+  .fuss{gap:8px;min-height:36px}
+  .rec{font-size:12px;line-height:1.3;font-weight:500;color:var(--leise);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1}
+  .rec.none{opacity:.75}
+  .play{height:36px;padding:0 14px;font-size:14px}
 }
-@media (max-width:600px){
-  .games{grid-template-columns:1fr}
-  .game.feat .info{padding:18px}
-  .logo img{height:84px}
+
+@media (min-width:640px){
+  .games{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  .karte{grid-template-columns:1fr;padding:0;gap:0;overflow:hidden}
+  .shot{border-radius:0;aspect-ratio:16/10}
+  .badge{left:12px;top:12px;font-size:13px;padding:5px 9px}
+  .info{padding:16px 18px 18px;flex:1}
+  .info h3{font-size:26px}
+  .text{font-size:16px;-webkit-line-clamp:3}
+  .play{padding:11px 18px;font-size:16px}
+  .rec{font-size:14px}
+  .karte:hover .play{background:var(--aktion-hover)}
+  /* Neuestes Spiel breit, damit die übrigen sechs im Raster aufgehen */
+  .games>.game:first-child{grid-column:1/-1}
+  .games>.game:first-child .karte{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
+  .games>.game:first-child .shot{aspect-ratio:16/10}
+  .games>.game:first-child .info{padding:24px 28px;justify-content:center}
+  .games>.game:first-child .fuss{margin-top:18px}
+  .games>.game:first-child h3{font-size:clamp(28px,3.6vw,44px)}
+  .games>.game:first-child .text{-webkit-line-clamp:4;font-size:17px}
+  /* Im Filter "Neu" kein Sonderformat */
+  .games.gefiltert>.game:first-child{grid-column:auto}
+  .games.gefiltert>.game:first-child .karte{grid-template-columns:1fr}
+  .games.gefiltert>.game:first-child .info{padding:16px 18px 18px;justify-content:flex-start}
+  .games.gefiltert>.game:first-child .fuss{margin-top:auto}
+  .games.gefiltert>.game:first-child h3{font-size:26px}
 }
-@media (prefers-reduced-motion:reduce){.game,.shot img{transition:none}.game:hover{transform:none}.game:hover .shot img{transform:none}}
+@media (min-width:1024px){
+  .games{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .hero{padding-block:56px 44px}
+}
+
+.note{display:flex;gap:12px;align-items:flex-start;margin:28px 0 8px;padding:14px 16px;border-radius:14px;background:var(--flaeche);color:var(--leise);font-size:15px}
+.note svg{width:20px;height:20px;color:var(--marke);flex:none;margin-top:2px}
+.note b{color:var(--text)}
+.note.umzug{margin:16px 0 0;border:1px solid color-mix(in srgb,var(--marke) 55%,transparent);color:var(--text)}
+.note.umzug a{color:var(--aktion);font-weight:600}
 </style>
 
-<header class="wrap">
-  <a class="logo" href="./" aria-label="playaz.fun Startseite">
-    <img src="logo.png" width="720" height="519" alt="playaz.fun">
-  </a>
+<header class="site-head">
+  <div class="site-head-in">
+    <a class="site-logo" href="/" aria-label="PlaySaal, alle Spiele"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="1140" height="244" alt="PlaySaal"></a>
+    <nav class="site-nav" aria-label="Hauptmenü"><a href="/#spiele">Alle Spiele</a><a href="/#neu">Neue Spiele</a></nav>
+    <button class="menu-btn" type="button" aria-controls="menu" aria-expanded="false" aria-label="Menü öffnen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </div>
 </header>
+<dialog class="menu" id="menu" aria-label="Menü"><div class="menu-in">
+  <div class="menu-top"><span>Menü</span><button class="menu-close" type="button" aria-label="Menü schließen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+  <nav aria-label="Spiele"><a href="/#spiele">Alle Spiele</a><a href="/#neu">Neue Spiele</a><a href="/umzug" data-umzug hidden>Spielstände umziehen</a></nav>
+  <nav class="menu-recht" aria-label="Rechtliches"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
+</div></dialog>
 
 <main>
+  <div class="wrap"><div class="note umzug" id="umzugHinweis" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h13M12 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div id="umzugText"></div>
+  </div></div>
+
   <section class="hero wrap">
-    <h1>Einwerfen musst du <em>nichts.</em></h1>
-    <p>Acht Spiele direkt im Browser, am Handy wie am Rechner. Ohne Anmeldung, ohne Download, ohne Werbung. Dein Spielstand bleibt auf deinem Gerät.</p>
-    <ul class="facts"><li>Kein Login</li><li>Handy und PC</li><li>Rekorde lokal gespeichert</li></ul>
+    <h1>Spielen.<br>Einfach so.</h1>
+    <p>8 kostenlose Browserspiele. Ohne Download, ohne Anmeldung, am Handy wie am Rechner.</p>
+    <div class="hero-akt">
+      <a class="btn" href="#spiele">Sofort spielen</a>
+      <span class="hinweis"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3.5v6c0 5-3.4 8.9-8 10.5-4.6-1.6-8-5.5-8-10.5v-6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 12l2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Rekorde bleiben auf deinem Gerät</span>
+    </div>
   </section>
 
-  <section class="wrap" aria-label="Spiele">
-    <div class="games">
-      <a class="game feat" href="spiele/sondengaenger.html" style="--accent:#e0a93b">
-        <div class="shot"><img src="bilder/sondengaenger.jpg" width="960" height="600" alt="Blick über einen gepflügten Acker, vorne schwingt die orangene Spule eines Metalldetektors, das Display zeigt ein Silbersignal"><span class="badge">Neu</span></div>
-        <div class="info">
-          <div class="tags"><span>3D</span><span>Simulation</span><span>Schatzsuche</span></div>
-          <h2>SONDENGÄNGER</h2>
-          <p>Mit dem Metalldetektor über Acker, Burghang und Römerlager. Töne deuten, Fundstelle orten, sauber graben, Fund säubern. Jeden Tag ein neues Tagesfeld mit Serie, Wochen- und Monatsschatz.</p>
-          <div class="foot"><span class="rec none" data-rec="sondengaenger">Noch nichts gefunden</span><span class="play">Losgehen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a>
-
-      <a class="game feat" href="spiele/anbiss.html" style="--accent:#ff6a1c">
-        <div class="shot"><img src="bilder/anbiss.jpg" width="960" height="600" alt="Abenddämmerung am Moorsee: Vom Steg aus treibt eine Pose im Wasser, Ringe ziehen über die Oberfläche"><span class="badge">Neu</span></div>
-        <div class="info">
-          <div class="tags"><span>3D</span><span>Simulation</span><span>Angeln</span></div>
-          <h2>ANBISS</h2>
-          <p>Angeln am Moorsee. Pose, Grund oder Spinner, zwölf Fischarten mit echtem Drill: Bremse einstellen, Kopfstöße abfedern, nicht ins Schilf lassen. Tag, Nacht, Regen und Nebel.</p>
-          <div class="foot"><span class="rec none" data-rec="anbiss">Noch nichts gefangen</span><span class="play">Auswerfen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a>
-
-      <a class="game feat" href="spiele/stellwerk.html" style="--accent:#ffb627">
-        <div class="shot"><img src="bilder/stellwerk.jpg" width="960" height="600" alt="Gleisbild-Stellpult: farbige Züge fahren über Weichen, ein grünes und zwei rote Signale"><span class="badge">Neu</span></div>
-        <div class="info">
-          <div class="tags"><span>Puzzle</span><span>Bahn</span><span>Ein Finger</span></div>
-          <h2>Stellwerk</h2>
-          <p>Du bist Fahrdienstleiter. Stell Weichen, zieh Signale und bring jeden Zug an sein Ziel, ohne Zusammenstoß. Fünf Stellwerke vom Abzweig bis zum Großknoten.</p>
-          <div class="foot"><span class="rec none" data-rec="stellwerk">Noch kein Dienst</span><span class="play">Dienst antreten <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a>
-
-      <a class="game feat" href="spiele/eiszeit.html" style="--accent:#7cc8f0">
-        <div class="shot"><img src="bilder/eiszeit.jpg" width="960" height="600" alt="Ein Kind trägt einen hohen Turm aus Erdbeereis, Pinguine mit gelben Mützen und ein Babymammut jubeln"><span class="badge">Neu</span></div>
-        <div class="info">
-          <div class="tags"><span>3D</span><span>Für Kinder</span><span>Aufbauen</span></div>
-          <h2>EISZEIT</h2>
-          <p>Pinguine knacken Eisblöcke mit Schneebällen. Du machst daraus Erdbeereis und verkaufst es an Eisbärbabys, Robben und Babymammuts. Mit den Münzen holst du neue Helfer.</p>
-          <div class="foot"><span class="rec none" data-rec="eiszeit">Noch nicht gespielt</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a>
-
-      <a class="game feat" href="spiele/linke-spur.html" style="--accent:#5b8ff0">
-        <div class="shot"><img src="bilder/linke-spur.jpg" width="960" height="600" alt="Nächtliche Autobahn aus der Verfolgerkamera, vorne ein dunkler Kombi im Abendrot"></div>
-        <div class="info">
-          <div class="tags"><span>3D</span><span>Rennen</span><span>Tuning</span></div>
-          <h2>Linke Spur</h2>
-          <p>Nachts auf der A7 durch dichten Verkehr. Überhol knapp, halte die Kombo und tune dein Auto. Pass auf Blitzer, Baustellen und Wildwechsel auf.</p>
-          <div class="foot"><span class="rec none" data-rec="linkespur">Noch nicht gefahren</span><span class="play">Losfahren <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a>
-
-      <a class="game" href="spiele/schwindelfrei.html" style="--accent:#ee7a45">
-        <div class="shot"><img src="bilder/schwindelfrei.jpg" width="960" height="600" loading="lazy" alt="Gelbe Kugel auf rostroten Stahlträgern im Zickzack hoch über der Stadt"></div>
-        <div class="info">
-          <div class="tags"><span>3D</span><span>Ein Finger</span></div>
-          <h2>Schwindelfrei</h2>
-          <p>Deine Kugel rollt von allein über die Stahlträger. Tippen wechselt die Richtung, daneben geht es 112 m runter.</p>
-          <div class="foot"><span class="rec none" data-rec="schwindelfrei">Noch nicht gespielt</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a>
-
-      <a class="game" href="spiele/hochstapler.html" style="--accent:#f5b72a">
-        <div class="shot"><img src="bilder/hochstapler.jpg" width="960" height="600" loading="lazy" alt="Ein Turm aus Stockwerken wächst am Kran in den blauen Himmel"></div>
-        <div class="info">
-          <div class="tags"><span>Geschick</span><span>Ein Finger</span></div>
-          <h2>Hochstapler</h2>
-          <p>Setz jedes Stockwerk genau auf das darunter. Was übersteht, wird abgesägt. Drei Treffer in Folge geben Fläche zurück.</p>
-          <div class="foot"><span class="rec none" data-rec="hochstapler">Noch nicht gespielt</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a>
-
-      <a class="game" href="spiele/richtfest.html" style="--accent:#9bbc0f">
-        <div class="shot"><img src="bilder/richtfest.jpg" width="960" height="600" loading="lazy" alt="Gelbe Handheld-Konsole, auf dem Bildschirm drei pixelige Baumonster zur Auswahl"></div>
-        <div class="info">
-          <div class="tags"><span>Retro</span><span>Abenteuer</span></div>
-          <h2>Richtfest</h2>
-          <p>Baumonster fangen wie früher am Gameboy. Sammle alle sechs, Bea wartet im Baucontainer.</p>
-          <div class="foot"><span class="rec none" data-rec="richtfest">Noch nicht gestartet</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5l9 5.5-9 5.5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a>
+  <section class="wrap" id="spiele" aria-labelledby="spiele-titel">
+    <div class="liste-kopf">
+      <h2 id="spiele-titel">Alle Spiele</h2>
+      <div class="filter" role="group" aria-label="Spiele filtern">
+        <button type="button" data-filter="alle" aria-pressed="true">Alle<b>8</b></button>
+        <button type="button" data-filter="neu" aria-pressed="false">Neu<b>4</b></button>
+      </div>
     </div>
+    <ul class="games">
+      <li class="game" data-neu><a class="karte" href="/spiele/sondengaenger">
+        <div class="shot"><img src="/bilder/sondengaenger.jpg" width="960" height="600" alt="Blick über einen gepflügten Acker, vorne schwingt die orangene Spule eines Metalldetektors, das Display zeigt ein Silbersignal"><span class="badge">Neu</span></div>
+        <div class="info">
+          <h3>SONDENGÄNGER</h3>
+          <ul class="chips" aria-label="Art"><li>3D</li><li>Schatzsuche</li></ul>
+          <p class="text">Mit dem Metalldetektor Funde orten und heben. Jeden Tag ein neues Feld.</p>
+          <div class="fuss"><span class="rec none" data-rec="sondengaenger">Noch nichts gefunden</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a></li>
+      <li class="game" data-neu><a class="karte" href="/spiele/anbiss">
+        <div class="shot"><img src="/bilder/anbiss.jpg" width="960" height="600" alt="Abenddämmerung am Moorsee: Vom Steg aus treibt eine Pose im Wasser, Ringe ziehen über die Oberfläche"><span class="badge">Neu</span></div>
+        <div class="info">
+          <h3>ANBISS</h3>
+          <ul class="chips" aria-label="Art"><li>3D</li><li>Angeln</li></ul>
+          <p class="text">Angeln am Moorsee mit zwölf Fischarten und echtem Drill.</p>
+          <div class="fuss"><span class="rec none" data-rec="anbiss">Noch nichts gefangen</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a></li>
+      <li class="game" data-neu><a class="karte" href="/spiele/stellwerk">
+        <div class="shot"><img src="/bilder/stellwerk.jpg" width="960" height="600" alt="Gleisbild-Stellpult: farbige Züge fahren über Weichen, ein grünes und zwei rote Signale"><span class="badge">Neu</span></div>
+        <div class="info">
+          <h3>Stellwerk</h3>
+          <ul class="chips" aria-label="Art"><li>Puzzle</li><li>Bahn</li></ul>
+          <p class="text">Weichen stellen und jeden Zug sicher ans Ziel bringen.</p>
+          <div class="fuss"><span class="rec none" data-rec="stellwerk">Noch kein Dienst</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a></li>
+      <li class="game" data-neu><a class="karte" href="/spiele/eiszeit">
+        <div class="shot"><img src="/bilder/eiszeit.jpg" width="960" height="600" alt="Ein Kind trägt einen hohen Turm aus Erdbeereis, Pinguine mit gelben Mützen und ein Babymammut jubeln"><span class="badge">Neu</span></div>
+        <div class="info">
+          <h3>EISZEIT</h3>
+          <ul class="chips" aria-label="Art"><li>3D</li><li>Für Kinder</li></ul>
+          <p class="text">Eis verkaufen, Helfer holen, ein Eis-Schloss bauen.</p>
+          <div class="fuss"><span class="rec none" data-rec="eiszeit">Noch nicht gespielt</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a></li>
+      <li class="game"><a class="karte" href="/spiele/linke-spur">
+        <div class="shot"><img src="/bilder/linke-spur.jpg" width="960" height="600" loading="lazy" alt="Nächtliche Autobahn aus der Verfolgerkamera, vorne ein dunkler Kombi im Abendrot"></div>
+        <div class="info">
+          <h3>Linke Spur</h3>
+          <ul class="chips" aria-label="Art"><li>3D</li><li>Rennen</li></ul>
+          <p class="text">Nachts auf der A7 knapp überholen und dein Auto tunen.</p>
+          <div class="fuss"><span class="rec none" data-rec="linkespur">Noch nicht gefahren</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a></li>
+      <li class="game"><a class="karte" href="/spiele/schwindelfrei">
+        <div class="shot"><img src="/bilder/schwindelfrei.jpg" width="960" height="600" loading="lazy" alt="Gelbe Kugel auf rostroten Stahlträgern im Zickzack hoch über der Stadt"></div>
+        <div class="info">
+          <h3>Schwindelfrei</h3>
+          <ul class="chips" aria-label="Art"><li>3D</li><li>Ein Finger</li></ul>
+          <p class="text">Tippen wechselt die Richtung. Daneben: 112 m Tiefe.</p>
+          <div class="fuss"><span class="rec none" data-rec="schwindelfrei">Noch nicht gespielt</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a></li>
+      <li class="game"><a class="karte" href="/spiele/hochstapler">
+        <div class="shot"><img src="/bilder/hochstapler.jpg" width="960" height="600" loading="lazy" alt="Ein Turm aus Stockwerken wächst am Kran in den blauen Himmel"></div>
+        <div class="info">
+          <h3>Hochstapler</h3>
+          <ul class="chips" aria-label="Art"><li>Geschick</li><li>Ein Finger</li></ul>
+          <p class="text">Stockwerk auf Stockwerk. Was übersteht, wird abgesägt.</p>
+          <div class="fuss"><span class="rec none" data-rec="hochstapler">Noch nicht gespielt</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a></li>
+      <li class="game"><a class="karte" href="/spiele/richtfest">
+        <div class="shot"><img src="/bilder/richtfest.jpg" width="960" height="600" loading="lazy" alt="Gelbe Handheld-Konsole, auf dem Bildschirm drei pixelige Baumonster zur Auswahl"></div>
+        <div class="info">
+          <h3>Richtfest</h3>
+          <ul class="chips" aria-label="Art"><li>Retro</li><li>Abenteuer</li></ul>
+          <p class="text">Baumonster fangen wie am Gameboy. Sammle alle sechs.</p>
+          <div class="fuss"><span class="rec none" data-rec="richtfest">Noch nicht gestartet</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
+        </div>
+      </a></li>
+    </ul>
 
     <div class="note">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3.5v6c0 5-3.4 8.9-8 10.5-4.6-1.6-8-5.5-8-10.5v-6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 12l2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <div><b>Deine Rekorde gehören dir.</b> Sie liegen nur im Speicher dieses Browsers. Es gibt kein Konto und keine Tracker. Wer die Browserdaten löscht, fängt wieder bei null an.</div>
+      <div><b>Deine Rekorde gehören dir.</b> Sie liegen nur im Speicher dieses Browsers. Kein Konto, keine Tracker, keine Werbung. Wer die Browserdaten löscht, fängt wieder bei null an.</div>
     </div>
   </section>
 </main>
 
-<footer>
-  <div class="wrap">
-    <span>playaz.fun · Browserspiele ohne Anmeldung</span>
-    <nav aria-label="Rechtliches"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></nav>
-  </div>
-</footer>
+<footer class="site-foot"><div class="site-foot-in">
+  <span>PlaySaal · Browserspiele ohne Anmeldung</span>
+  <nav aria-label="Rechtliches"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
+</div></footer>
 
+<script src="/assets/umzug-config.js"></script><script src="/assets/site.js"></script>
 <script>
+// Filter "Alle / Neu". /#neu (auch aus dem Menü) zeigt nur neue Spiele.
+(function () {
+  const knoepfe = document.querySelectorAll('[data-filter]');
+  const spiele = document.querySelectorAll('.games .game');
+  const titel = document.getElementById('spiele-titel');
+  function setze(f) {
+    spiele.forEach((li) => { li.hidden = f === 'neu' && !li.hasAttribute('data-neu'); });
+    knoepfe.forEach((k) => k.setAttribute('aria-pressed', String(k.dataset.filter === f)));
+    titel.textContent = f === 'neu' ? 'Neue Spiele' : 'Alle Spiele';
+    document.querySelector('.games').classList.toggle('gefiltert', f === 'neu');
+  }
+  knoepfe.forEach((k) => k.addEventListener('click', () => { setze(k.dataset.filter); history.replaceState(null, '', k.dataset.filter === 'neu' ? '#neu' : '#spiele'); }));
+  function ausHash() {
+    const h = location.hash;
+    setze(h === '#neu' ? 'neu' : 'alle');
+    if (h === '#neu' || h === '#spiele') document.getElementById('spiele').scrollIntoView();
+  }
+  addEventListener('hashchange', ausHash);
+  ausHash();
+})();
+</script>
+<script>
+// Umzug-Hinweis (nur wenn PLAYSAAL_UMZUG.aktiv): alte Adresse verweist auf die neue, neue Adresse bietet das Holen an
+(function () {
+  const C = window.PLAYSAAL_UMZUG; if (!C || !C.aktiv) return;
+  const box = document.getElementById('umzugHinweis'), t = document.getElementById('umzugText');
+  const ls = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const host = C.ziel.replace(/^https?:\/\//, '');
+  if ((C.quellen || []).includes(location.origin)) {
+    t.innerHTML = '<b>PlayAZ heißt jetzt PlaySaal.</b> Die Spiele findest du ab sofort unter <a></a>. Deine Spielstände nimmst du dort mit „Spielstände umziehen“ mit.';
+    const a = t.querySelector('a'); a.href = C.ziel + '/umzug'; a.textContent = host; box.hidden = false;
+  } else if (location.origin === C.ziel && !ls('playsaal.umzug.empfangen')) {
+    t.innerHTML = '<b>Früher bei PlayAZ gespielt?</b> <a href="/umzug">Spielstände von der alten Adresse holen</a>';
+    box.hidden = false;
+  }
+})();
 (function () {
   const read = k => { try { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v); } catch (e) { return null; } };
   const n = v => Math.floor(v).toLocaleString('de-DE');

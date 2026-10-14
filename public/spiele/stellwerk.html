@@ -1,12 +1,12 @@
 <!doctype html><html lang="de"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>STELLWERK · playaz.fun</title>
-<link rel="canonical" href="https://playaz.fun/spiele/stellwerk.html">
+<title>STELLWERK · PlaySaal</title>
+<link rel="canonical" href="https://playaz.cf-922.workers.dev/spiele/stellwerk">
 <meta name="description" content="Du bist Fahrdienstleiter: Weichen stellen, Signale ziehen, Züge pünktlich und ohne Zusammenstoß ans Ziel bringen. Fünf Stellwerke, ohne Anmeldung.">
-<meta property="og:type" content="website"><meta property="og:site_name" content="playaz.fun"><meta property="og:title" content="STELLWERK · playaz.fun"><meta property="og:description" content="Weichen stellen, Signale ziehen, Züge pünktlich und ohne Zusammenstoß ans Ziel bringen. Fünf Stellwerke, ohne Anmeldung."><meta property="og:url" content="https://playaz.fun/spiele/stellwerk.html"><meta property="og:image" content="https://playaz.fun/bilder/stellwerk.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="600"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playaz.fun/bilder/stellwerk.jpg">
+<meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="STELLWERK · PlaySaal"><meta property="og:description" content="Weichen stellen, Signale ziehen, Züge pünktlich und ohne Zusammenstoß ans Ziel bringen. Fünf Stellwerke, ohne Anmeldung."><meta property="og:url" content="https://playaz.cf-922.workers.dev/spiele/stellwerk"><meta property="og:image" content="https://playaz.cf-922.workers.dev/bilder/stellwerk.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="600"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playaz.cf-922.workers.dev/bilder/stellwerk.jpg">
 <meta name="theme-color" content="#151b19">
-<link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
 <link rel="manifest" href="../site.webmanifest">
@@ -139,7 +139,7 @@ button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:tra
 (function () {
 'use strict';
 /* =====================================================================
-   STELLWERK – Fahrdienstleiter-Spiel für playaz.fun
+   STELLWERK – Fahrdienstleiter-Spiel für PlaySaal
    Canvas 2D, kein Backend. Spielstand in localStorage ("stellwerk.v1").
    Gleisnetz als Graph: Knoten (Weiche, Signal, Kreuzung, Ein-/Ausfahrt, Prellbock)
    und gerade Kanten. Züge fahren entlang der Kanten, Weichen entscheiden den Weg.
@@ -651,7 +651,7 @@ function showOver() {
   $('over').hidden = false;
   $('oAgain').onclick = () => startLevel(LVI);
   $('oMenu').onclick = showMenu;
-  if ($('oShare')) $('oShare').onclick = () => { navigator.share({ title: 'STELLWERK', text: 'Ich habe im Stellwerk ' + LV.name + ' ' + G.delivered + ' Züge sicher durchgebracht. Schaffst du mehr?', url: 'https://playaz.fun/spiele/stellwerk.html' }).catch(() => {}); };
+  if ($('oShare')) $('oShare').onclick = () => { navigator.share({ title: 'STELLWERK', text: 'Ich habe im Stellwerk ' + LV.name + ' ' + G.delivered + ' Züge sicher durchgebracht. Schaffst du mehr?', url: (document.querySelector('link[rel=canonical]') || location).href }).catch(() => {}); };
 }
 function showMenu() {
   G.state = 'menu'; $('hud').hidden = true; $('over').hidden = true; $('pause').hidden = true; coach(null);
@@ -882,4 +882,4 @@ window.__stw = {
 };
 })();
 </script>
-<a class="pz-home" href="../" aria-label="Alle Spiele auf playaz.fun" title="Alle Spiele" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#ffcc3d"/></svg></a><style>.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 12px);left:58px;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(23,18,42,.66);color:#f6f2ff;border:1px solid rgba(246,242,255,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}.pz-home:focus-visible{outline:3px solid #ffcc3d;outline-offset:2px}</style><style>*{touch-action:pan-x pan-y}html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%}</style><script>(function(){var stop=function(e){e.preventDefault()};['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,stop,{passive:false})});document.addEventListener('touchmove',function(e){if(e.touches.length>1||(e.scale&&e.scale!==1))e.preventDefault()},{passive:false});var last=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-last<350&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label')))e.preventDefault();last=now},{passive:false});document.addEventListener('dblclick',stop,{passive:false});var vv=window.visualViewport,m=document.querySelector('meta[name=viewport]');if(vv&&m){var base=m.getAttribute('content'),t=0;vv.addEventListener('resize',function(){if(vv.scale<1.02)return;clearTimeout(t);t=setTimeout(function(){m.setAttribute('content',base.replace('maximum-scale=1','maximum-scale=1.0'));setTimeout(function(){m.setAttribute('content',base)},60)},120)})}})();</script></body></html>
+<a class="pz-home" href="../" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a><style>.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 12px);left:58px;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(23,18,42,.66);color:#f6f2ff;border:1px solid rgba(246,242,255,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}.pz-home:focus-visible{outline:3px solid #ffcc3d;outline-offset:2px}</style><style>*{touch-action:pan-x pan-y}html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%}</style><script>(function(){var stop=function(e){e.preventDefault()};['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,stop,{passive:false})});document.addEventListener('touchmove',function(e){if(e.touches.length>1||(e.scale&&e.scale!==1))e.preventDefault()},{passive:false});var last=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-last<350&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label')))e.preventDefault();last=now},{passive:false});document.addEventListener('dblclick',stop,{passive:false});var vv=window.visualViewport,m=document.querySelector('meta[name=viewport]');if(vv&&m){var base=m.getAttribute('content'),t=0;vv.addEventListener('resize',function(){if(vv.scale<1.02)return;clearTimeout(t);t=setTimeout(function(){m.setAttribute('content',base.replace('maximum-scale=1','maximum-scale=1.0'));setTimeout(function(){m.setAttribute('content',base)},60)},120)})}})();</script></body></html>

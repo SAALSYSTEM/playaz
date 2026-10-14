@@ -1,0 +1,102 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Spielstände umziehen · PlaySaal</title><meta name="robots" content="noindex"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest"><meta name="theme-color" content="#11121A"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/assets/site.css"><style>
+body{margin:0;background:#11121A;color:#f6f7f9;font:17px/1.6 "Barlow","Segoe UI",system-ui,sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 40px}
+a{color:#FFD21C}
+h1{font-family:"Dela Gothic One","Arial Black",sans-serif;font-weight:400;font-size:36px;line-height:1.1;margin:18px 0 18px}
+h2{font-size:19px;margin:30px 0 8px}
+p,li{color:#d6d8e2}
+.box{border:1px solid rgba(246,247,249,.14);border-radius:14px;padding:16px 18px;margin:18px 0;background:#1a1b26}
+.btn{font:600 16px/1.2 "Barlow","Segoe UI",system-ui,sans-serif;padding:12px 18px;border-radius:999px;border:0;background:#FFD21C;color:#11121A;cursor:pointer;margin:6px 8px 6px 0}
+.btn.zweit{background:transparent;color:#f6f7f9;border:1px solid rgba(246,247,249,.35)}
+.btn:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #FFD21C;outline-offset:2px}
+label.btn{display:inline-block}
+label.btn input{position:absolute;width:1px;height:1px;opacity:0}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid rgba(246,247,249,.1);vertical-align:top}
+th{color:#b6b9c8;font-weight:600}
+select{font:inherit;font-size:15px;padding:6px 8px;border-radius:8px;background:#11121A;color:#f6f7f9;border:1px solid rgba(246,247,249,.3)}
+textarea{width:100%;box-sizing:border-box;min-height:110px;font:13px/1.4 ui-monospace,monospace;background:#11121A;color:#f6f7f9;border:1px solid rgba(246,247,249,.3);border-radius:8px;padding:8px}
+[hidden]{display:none!important}
+.status{padding:12px 14px;border-radius:10px;font-weight:600;scroll-margin:16px}
+.status.ok{background:#1f3a24;color:#c9f5cf}.status.fehler{background:#4a1a12;color:#ffd2c4}.status.hinweis{background:#3a2c08;color:#ffe9a6}
+.klein{font-size:14px;color:#b6b9c8}
+@media (max-width:520px){table{font-size:14px}th,td{padding:7px 4px}
+#tabVergleich tr:first-child{display:none}
+#tabVergleich tr{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;padding:10px 0;border-bottom:1px solid rgba(246,247,249,.1)}
+#tabVergleich td{border:0;padding:0}
+#tabVergleich td:first-child{grid-column:1/-1;font-weight:700;font-size:16px}
+#tabVergleich td:last-child{grid-column:1/-1}
+#tabVergleich td[data-label]:not(:first-child):not(:last-child)::before{content:attr(data-label);display:block;color:#b6b9c8;font-size:12px}
+#tabVergleich select{width:100%}}
+</style></head><body><header class="site-head">
+  <div class="site-head-in">
+    <a class="site-logo" href="/" aria-label="PlaySaal, alle Spiele"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="1140" height="244" alt="PlaySaal"></a>
+    <nav class="site-nav" aria-label="Hauptmenü"><a href="/#spiele">Alle Spiele</a><a href="/#neu">Neue Spiele</a></nav>
+    <button class="menu-btn" type="button" aria-controls="menu" aria-expanded="false" aria-label="Menü öffnen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </div>
+</header>
+<dialog class="menu" id="menu" aria-label="Menü"><div class="menu-in">
+  <div class="menu-top"><span>Menü</span><button class="menu-close" type="button" aria-label="Menü schließen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+  <nav aria-label="Spiele"><a href="/#spiele">Alle Spiele</a><a href="/#neu">Neue Spiele</a><a href="/umzug" data-umzug hidden>Spielstände umziehen</a></nav>
+  <nav class="menu-recht" aria-label="Rechtliches"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
+</div></dialog>
+<main id="umzug">
+<h1>Spielstände umziehen</h1>
+<p>Aus PlayAZ wird PlaySaal. Deine Rekorde, Münzen und Fortschritte liegen nur in deinem Browser und sind dort an die Adresse der Seite gebunden. Nach dem Wechsel der Adresse holst du sie hier einmal herüber. Übertragen werden nur die Spielstände der PlaySaal-Spiele, sonst nichts.</p>
+
+<section id="empfang" class="box" hidden>
+  <h2 style="margin-top:0">Von der alten Adresse holen</h2>
+  <p>Tippe auf den Knopf. Es öffnet sich die alte Seite, dort bestätigst du die Übertragung. Klappt das nicht, nimm unten die Datei.</p>
+  <div id="quellen"></div>
+</section>
+
+<section id="senden" class="box" hidden>
+  <h2 style="margin-top:0">An <span id="sendenZiel"></span> übertragen</h2>
+  <p>PlaySaal hat dieses Fenster geöffnet und fragt nach deinen Spielständen von dieser Adresse. Sie werden nur an die neue Adresse geschickt und bleiben hier zusätzlich erhalten.</p>
+  <button id="uebertragen" class="btn" type="button">Übertragen</button>
+</section>
+
+<section id="altInfo" class="box" hidden>
+  <p style="margin-top:0">Das ist die alte Adresse. <span id="zumZielBox" hidden>PlaySaal ist jetzt unter <a id="zumZiel" href="#"></a> erreichbar. Öffne dort „Spielstände umziehen“, dann holt die neue Seite deine Spielstände von hier.</span></p>
+  <p class="klein" style="margin-bottom:0">Alternativ: Spielstände unten als Datei sichern und auf der neuen Adresse laden.</p>
+</section>
+
+<section id="andereInfo" class="box" hidden>
+  <p style="margin:0" class="klein">Diese Adresse ist weder die alte noch die neue PlaySaal-Adresse (z. B. eine Vorschau). Hier funktioniert nur die Übertragung per Datei oder Text.</p>
+</section>
+
+<section id="vergleich" class="box" hidden>
+  <h2 style="margin-top:0">Prüfen und übernehmen</h2>
+  <p class="klein">Vorausgewählt ist jeweils der Spielstand mit mehr Fortschritt. Was hier überschrieben wird, wird vorher gesichert und lässt sich rückgängig machen.</p>
+  <table id="tabVergleich"></table>
+  <p id="vergleichLeer" hidden>Keine Spielstände gefunden.</p>
+  <button id="uebernehmen" class="btn" type="button">Auswahl übernehmen</button>
+</section>
+
+<section id="zurueck" class="box" hidden>
+  <p style="margin-top:0">Ein Umzug wurde übernommen. Falls etwas nicht stimmt:</p>
+  <button id="rueckgaengig" class="btn zweit" type="button">Umzug rückgängig machen</button>
+</section>
+
+<p id="status" class="status" role="status" aria-live="polite" hidden></p>
+
+<h2>Spielstände in diesem Browser</h2>
+<table id="tabLokal"></table>
+<p id="lokalLeer" class="klein" hidden>In diesem Browser ist unter dieser Adresse noch nichts gespeichert.</p>
+
+<h2>Per Datei oder Text</h2>
+<p class="klein">Falls das Fenster nicht aufgeht (z. B. in App-Browsern): Auf der alten Adresse sichern, auf der neuen laden. Die Datei enthält nur deine Spielstände.</p>
+<button id="exportDatei" class="btn zweit" type="button">Als Datei sichern</button>
+<button id="exportText" class="btn zweit" type="button">Als Text kopieren</button>
+<label class="btn zweit">Spielstände aus Datei laden<input id="importDatei" type="file" accept="application/json,.json"></label>
+<button id="importText" class="btn zweit" type="button">Text prüfen</button>
+<textarea id="textFeld" hidden aria-label="Spielstand als Text"></textarea>
+</main>
+<footer class="site-foot"><div class="site-foot-in">
+  <span>PlaySaal · Browserspiele ohne Anmeldung</span>
+  <nav aria-label="Rechtliches"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
+</div></footer>
+<script src="/assets/umzug-config.js"></script>
+<script src="/assets/umzug.js"></script>
+<script src="/assets/site.js"></script>
+</body></html>

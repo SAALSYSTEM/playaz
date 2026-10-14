@@ -1,11 +1,15 @@
 {
-  // Cloudflare Worker "playaz": liefert nur statische Dateien aus ./public aus
+  // Cloudflare Worker "playaz" (technischer Name bleibt, Marke ist PlaySaal): liefert nur statische Dateien aus ./public aus.
+  // Name NICHT umbenennen: er bestimmt die alte Adresse playaz.cf-922.workers.dev, auf der die Spielstände der Spieler liegen.
   "name": "playaz",
   "compatibility_date": "2026-10-09",
   "assets": {
     "directory": "./public",
     "not_found_handling": "404-page"
   },
+  // Ausdrücklich an: Sobald "routes" (z. B. Custom Domain playsaal.com) eingetragen werden,
+  // würde Wrangler workers.dev sonst automatisch abschalten – und damit den Spielstand-Umzug unmöglich machen.
+  "workers_dev": true,
   // Branch-Vorschauen (Worker Previews) nutzen dieselben Einstellungen wie Produktion
   "previews": {}
 }
