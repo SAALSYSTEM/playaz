@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><svg xmlns="http://www.w3.org/2000/svg" width="620" height="620" viewBox="0 0 620 620" role="img" aria-label="PlaySaal Logo">
+<defs>
+ <linearGradient id="top" x1="4%" x2="85%" y1="0%" y2="85%"><stop offset="0" stop-color="#FFE35B"/><stop offset="0.31" stop-color="#FFBE13"/><stop offset="0.77" stop-color="#FF8B05"/><stop offset="1" stop-color="#F5650A"/></linearGradient>
+ <linearGradient id="left" x1="0%" x2="85%" y1="0%" y2="98%"><stop offset="0" stop-color="#FFD83E"/><stop offset="0.35" stop-color="#FFAB11"/><stop offset="0.78" stop-color="#FF6A12"/><stop offset="1" stop-color="#E83A17"/></linearGradient>
+ <linearGradient id="inner" x1="0%" x2="95%" y1="75%" y2="25%"><stop offset="0" stop-color="#A91016"/><stop offset="0.47" stop-color="#E02B13"/><stop offset="1" stop-color="#FA5410"/></linearGradient>
+ <linearGradient id="bottom" x1="0%" x2="100%" y1="87%" y2="24%"><stop offset="0" stop-color="#B91A17"/><stop offset="0.23" stop-color="#EE3A0F"/><stop offset="0.60" stop-color="#FF9D0B"/><stop offset="1" stop-color="#FFD447"/></linearGradient>
+ <linearGradient id="rim" x1="0%" x2="100%"><stop offset="0" stop-color="#FFE67E"/><stop offset="1" stop-color="#FFE55B"/></linearGradient>
+ <clipPath id="holeclip" clipPathUnits="userSpaceOnUse"><path fill-rule="evenodd" clip-rule="evenodd" d="M 0 0 H 620 V 620 H 0 Z M 251 299 L 380 374 L 251 449 Z"/></clipPath>
+</defs>
+<g color="#121212"><path fill="currentColor" fill-rule="evenodd" d="M182 81 Q201 81 218 90 L511 260 Q537 276 537 305 L537 349 Q537 378 511 394 L220 558 Q195 573 169 558 L103 520 Q77 505 77 476 L77 159 Q77 130 103 114 L162 84 Q172 80 182 81Z M244 278 L244 458 L402 369 Z"/></g></svg>

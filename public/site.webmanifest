@@ -1,15 +1,17 @@
 {
-  "name": "playaz.fun",
-  "short_name": "playaz",
+  "name": "PlaySaal — Browsergames",
+  "short_name": "PlaySaal",
   "description": "Browserspiele ohne Anmeldung",
   "lang": "de",
+  "id": "/",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "theme_color": "#10104B",
-  "background_color": "#11103b",
+  "theme_color": "#11121A",
+  "background_color": "#11121A",
   "icons": [
-    { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/android-chrome-512x512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

@@ -1,0 +1,46 @@
+{
+  "brand": {
+    "display_name": "PlaySaal",
+    "wordmark": "playsaal",
+    "domain": "playsaal.com",
+    "canonical_url": "https://playsaal.com",
+    "former_name": "PlayAZ",
+    "former_public_worker_url": "https://playaz.cf-922.workers.dev"
+  },
+  "colors": {
+    "yellow": "#FFD21C",
+    "orange": "#FF9200",
+    "coral": "#FF4A13",
+    "deep_red": "#B31912",
+    "ink": "#11121A",
+    "black": "#121212",
+    "white": "#FFFFFF",
+    "surface": "#F6F7F9"
+  },
+  "roles": {
+    "_info": "Verbindliche Farbrollen. CSS-Variablen in public/assets/site.css (:root). Gilt für Portalseiten und künftige Spiele.",
+    "basis":    { "hex": "#11121A", "name": "Anthrazit",  "css": "--basis",    "use": "Bühne: Website-Hintergrund; Schrift auf gelben Knöpfen" },
+    "marke":    { "hex": "#FF9200", "name": "Orange",     "css": "--marke",    "use": "Identität: Auszeichnungen, Highlights, Badge 'Neu', Hinweis-Symbole und -Rahmen" },
+    "aktion":   { "hex": "#FFD21C", "name": "Gelb",       "css": "--aktion",   "use": "Interaktion: Spielen- und Hauptknöpfe (schwarze Schrift), aktive Filter/Auswahl, Links, Fokusrahmen", "hover": "#FFDD4D" },
+    "logo_rot": { "hex": "#FF4A13", "name": "Rot-Orange", "css": "--logo-rot", "use": "Nur im Logo-Verlauf, nie als UI-Farbe" },
+    "text":     { "hex": ["#F6F7F9", "#B6B9C8"], "name": "Weiß / Hellgrau", "use": "Texte; Hellgrau für Nebeninformationen" }
+  },
+  "rules": [
+    "Schwarz (Anthrazit) als Bühne, Orange als Identität, Gelb für Interaktionen.",
+    "Alles Klickbare mit Hauptwirkung ist Gelb mit schwarzer Schrift (z. B. 'Spielen', 'Sofort spielen'). Gelb nicht für Deko oder Auszeichnungen verwenden.",
+    "Orange markiert, ist aber nicht klickbar (Badges, Highlights, Hinweis-Symbole).",
+    "Rot-Orange und der dreifarbige Gelb-Orange-Rot-Verlauf sind dem Logo vorbehalten.",
+    "Keine dritte oder vierte dominante UI-Farbe. Spiele dürfen in ihrer eigenen Spielwelt eigene Farben haben; Portal-Elemente darin (z. B. 'Alle Spiele'-Knopf) folgen diesen Rollen."
+  ],
+  "typography": {
+    "recommended": "Inter, sans-serif",
+    "logo_lettering": "Outlined geometric lowercase wordmark; do not replace SVG paths with runtime fonts"
+  },
+  "assets": {
+    "header_on_light": "/brand/playsaal-logo-horizontal-light.svg",
+    "header_on_dark": "/brand/playsaal-logo-horizontal-dark.svg",
+    "icon": "/brand/playsaal-icon.svg",
+    "favicon": "/favicon.svg",
+    "og_image": "/og-playsaal-1200x630.jpg"
+  }
+}
