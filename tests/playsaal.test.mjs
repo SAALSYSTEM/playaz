@@ -132,9 +132,9 @@ test('Branding-Assets, Manifest und alle lokal referenzierten Dateien sind errei
 
 
 // ---------------- Kopfzeile, Menü, Startseite ----------------
-test('Kopfzeile + Menü auf allen Portalseiten, Menü öffnet/schließt, Filter "Neu"', async () => {
+test('Kopfzeile + Menü auf den Rechtsseiten, Menü öffnet/schließt', async () => {
   const ctx = await kontext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-  for (const p of ['/', '/impressum', '/datenschutz', '/umzug', '/gibt-es-nicht']) {
+  for (const p of ['/impressum', '/datenschutz', '/umzug', '/gibt-es-nicht']) {
     const page = await ctx.newPage(); await page.goto(ALT + p);
     const h = await page.evaluate(() => document.querySelector('.site-head').getBoundingClientRect().height);
     assert.ok(h >= 56 && h <= 60, p + ' Kopfhöhe ' + h);
@@ -149,66 +149,125 @@ test('Kopfzeile + Menü auf allen Portalseiten, Menü öffnet/schließt, Filter 
     assert.doesNotMatch(await page.textContent('#menu'), /Rangliste|Freunde|Profil/);
     await page.close();
   }
-  const page = await ctx.newPage(); await page.goto(ALT + '/');
-  assert.equal(await page.locator('.games .game').count(), SPIELE.length);
-  await page.click('.menu-btn'); await page.click('#menu a[href="/#neu"]');
-  await page.waitForFunction(() => document.querySelectorAll('.games .game:not([hidden])').length === document.querySelectorAll('.games .game[data-neu]').length);
-  assert.equal(await page.textContent('#spiele-titel'), 'Neue Spiele');
-  await page.click('[data-filter="alle"]');
-  assert.equal(await page.locator('.games .game:not([hidden])').count(), SPIELE.length);
-  // Jede Karte führt auf eine echte Spielroute und hat "Spielen"
-  const links = await page.$$eval('.games a', (as) => as.map((a) => [a.getAttribute('href'), a.querySelector('.play').textContent.trim()]));
-  for (const [href, txt] of links) { assert.equal(txt, 'Spielen'); assert.equal((await fetch(ALT + href)).status, 200, href); }
   // Im Spiel kein Portal-Header
   const spiel = await ctx.newPage(); await spiel.goto(ALT + '/spiele/linke-spur');
-  assert.equal(await spiel.locator('.site-head').count(), 0);
+  assert.equal(await spiel.locator('.site-head, .portal-head').count(), 0);
+  await ctx.close();
+});
+
+test('Startseite: feste Kopfzeile mit Icons, Neu/Top nacheinander, jede Kachel führt auf ein echtes Spiel, alle Spiele erreichbar', async () => {
+  const ctx = await kontext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  const page = await ctx.newPage(); await page.goto(ALT + '/');
+  // Kopf bleibt beim Scrollen oben
+  await page.evaluate(() => window.scrollTo(0, 900));
+  const kopf = await page.evaluate(() => { const b = document.getElementById('kopf').getBoundingClientRect(); return { top: b.top, h: b.height }; });
+  assert.equal(kopf.top, 0); assert.ok(kopf.h >= 56 && kopf.h <= 60, 'Kopfhöhe ' + kopf.h);
+  assert.deepEqual(await page.$$eval('.p-nav > *', (e) => e.map((x) => x.textContent.trim())), ['Top', 'Neu', 'Zusammen', 'Suche', 'Profil']);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
+  // Reihenfolge: Neu vor Top; höchstens 20 Kacheln je Block
+  const pos = await page.evaluate(() => [document.getElementById('neu').getBoundingClientRect().top, document.getElementById('top').getBoundingClientRect().top]);
+  assert.ok(pos[0] < pos[1]);
+  for (const id of ['neu', 'top']) { const n = await page.locator(`#${id} .kachel`).count(); assert.ok(n >= 1 && n <= 20, id + ' ' + n); }
+  // Jedes Spiel kommt mindestens einmal vor, jede Kachel führt auf eine echte Route
+  const links = await page.$$eval('.kachel a', (as) => as.map((a) => a.getAttribute('href')));
+  for (const s of SPIELE) assert.ok(links.includes('/spiele/' + s), s + ' fehlt auf der Startseite');
+  for (const h of new Set(links)) assert.equal((await fetch(ALT + h)).status, 200, h);
+  // Anker aus anderen Seiten
+  for (const id of ['spiele', 'neu', 'top']) assert.equal(await page.locator('#' + id).count(), 1, '#' + id);
+  // Zusammen/Profil: nur "bald verfügbar", keine Navigation
+  await page.click('[data-bald="Zusammen"]', { force: true });
+  assert.match(await page.textContent('#toast'), /Zusammen.*bald verfügbar/);
+  assert.ok(page.url().endsWith('/'));
+  await page.click('[data-bald="Profil"]', { force: true });
+  assert.match(await page.textContent('#toast'), /Profil.*bald verfügbar/);
+  assert.match(await page.textContent('.seo'), /bald verfügbar/);
+  assert.equal(await page.locator('.seo a').count(), 0, 'Platzhalter-Kategorien dürfen noch keine Links sein');
+  await ctx.close();
+});
+
+test('Startseite: Suche mit Live-Treffern (Name, Art, Kategorie), Leermeldung, Esc schließt', async () => {
+  const ctx = await kontext(); const page = await ctx.newPage(); await page.goto(ALT + '/');
+  await page.click('#sucheBtn');
+  assert.ok(await page.isVisible('#sucheText'));
+  assert.equal(await page.evaluate(() => document.activeElement.id), 'sucheText');
+  await page.fill('#sucheText', 'stamm');
+  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Stammvölker']);
+  await page.fill('#sucheText', 'retro');
+  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Richtfest']);
+  await page.fill('#sucheText', 'sondengaenger');   // ohne Umlaut
+  assert.equal(await page.locator('#sucheListe li').count(), 1);
+  await page.fill('#sucheText', '3d');
+  assert.ok((await page.locator('#sucheListe li').count()) >= 5);
+  await page.fill('#sucheText', 'xyzxyz');
+  assert.equal(await page.locator('#sucheListe li').count(), 0);
+  assert.ok(await page.isVisible('#sucheLeer')); assert.match(await page.textContent('#sucheLeer'), /Kein Spiel/);
+  // Art-Knopf füllt die Suche
+  await page.click('#sucheTags button:text-is("Puzzle")');
+  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Stellwerk']);
+  await page.click('#sucheListe a'); await page.waitForURL(/\/spiele\/stellwerk/);
+  await page.goBack(); await page.click('#sucheBtn'); await page.keyboard.press('Escape');
+  assert.ok(await page.isHidden('#suche'));
+  await ctx.close();
+});
+
+test('Startseite: "Weiter spielen" erscheint erst nach einem Spiel und führt dorthin zurück', async () => {
+  const ctx = await kontext(); const page = await ctx.newPage();
+  await page.goto(ALT + '/'); assert.ok(await page.isHidden('#weiter'));
+  await page.goto(ALT + '/spiele/hochstapler');
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('playsaal.zuletzt')).s), 'hochstapler');
+  await page.evaluate(() => localStorage.setItem('hochstapler.best', '120'));
+  await page.goto(ALT + '/'); assert.ok(await page.isVisible('#weiter'));
+  assert.equal(await page.textContent('#weiterName'), 'Hochstapler');
+  assert.match(await page.textContent('#weiterRec'), /120/);
+  assert.equal(await page.getAttribute('#weiterLink', 'href'), '/spiele/hochstapler');
+  // kaputter oder fremder Wert: Band bleibt weg, keine Seitenfehler
+  const fehler = []; page.on('pageerror', (e) => fehler.push(e.message));
+  await page.evaluate(() => localStorage.setItem('playsaal.zuletzt', '{"s":"gibt-es-nicht"}')); await page.reload();
+  assert.ok(await page.isHidden('#weiter'));
+  await page.evaluate(() => localStorage.setItem('playsaal.zuletzt', 'kaputt{')); await page.reload();
+  assert.ok(await page.isHidden('#weiter')); assert.deepEqual(fehler, []);
   await ctx.close();
 });
 
 
-// iPhone-Breiten mit eingeblendeter Safari-Leiste (sichtbare Höhe statt Bildschirmhöhe)
-for (const [w, h] of [[375, 548], [390, 664], [430, 746]]) {
-  test(`Startseite mobil ${w}px (Safari-Leiste sichtbar, Höhe ${h}px): kein Überlauf, keine Überlappung, Knöpfe einheitlich`, async () => {
-    const ctx = await kontext({ viewport: { width: w, height: h }, isMobile: true, hasTouch: true, deviceScaleFactor: 3 });
+// Handy (iPhone-Breiten mit Safari-Leiste), schmales Handy, Tablet, Desktop
+for (const [w, h, spalten] of [[320, 548, 2], [375, 548, 3], [390, 664, 3], [430, 746, 3], [768, 1024, 4], [1440, 900, 6]]) {
+  test(`Startseite ${w}px: ${spalten} Spalten, quadratische Zellen, keine Lücken, kein Überlauf, erste Kacheln sichtbar`, async () => {
+    const mobil = w < 700;
+    const ctx = await kontext({ viewport: { width: w, height: h }, isMobile: mobil, hasTouch: mobil, deviceScaleFactor: 2 });
     const page = await ctx.newPage();
     await page.goto(NEU + '/impressum');
-    await page.evaluate(() => { localStorage.setItem('linkespur.v1', JSON.stringify({ coins: 52000, best: 81234, owned: ['kombi', 'strale'] })); localStorage.setItem('anbiss.v1', JSON.stringify({ v: 1, stats: { caught: 37, best: { kg: 3.2 } }, book: { a: 1, b: 1 } })); });
+    await page.evaluate(() => localStorage.setItem('playsaal.zuletzt', JSON.stringify({ s: 'linke-spur', t: 1 })));
     await page.goto(NEU + '/'); await page.waitForTimeout(300);
     const r = await page.evaluate(() => {
-      const box = (e) => e.getBoundingClientRect();
-      const karten = [...document.querySelectorAll('.games .karte')].map((k) => {
-        const kb = box(k), teile = ['h3', '.chips', '.text', '.fuss'].map((s) => box(k.querySelector(s)));
-        const rec = box(k.querySelector('.rec')), play = box(k.querySelector('.play')), shot = box(k.querySelector('.shot'));
-        const h3 = k.querySelector('h3');
-        return {
-          h: Math.round(kb.height), playRechts: Math.round(kb.right - play.right), playUnten: Math.round(kb.bottom - play.bottom),
-          playH: Math.round(play.height), titelPx: parseFloat(getComputedStyle(h3).fontSize),
-          ueberlapp: teile.some((t, i) => i && t.top < teile[i - 1].bottom - 0.5) || rec.right > play.left + 0.5 || shot.right > teile[0].left,
-          drin: [...teile, play, shot].every((t) => t.left >= kb.left - 0.5 && t.right <= kb.right + 0.5 && t.top >= kb.top - 0.5 && t.bottom <= kb.bottom + 0.5),
-          textZeilen: Math.round(box(k.querySelector('.text')).height / parseFloat(getComputedStyle(k.querySelector('.text')).lineHeight))
-        };
+      const bl = (e) => e.getBoundingClientRect();
+      const bloecke = [...document.querySelectorAll('.kacheln')].map((g) => {
+        const cs = getComputedStyle(g), gap = parseFloat(cs.columnGap), cols = cs.gridTemplateColumns.split(' ').length;
+        const z = bl(g).width, zelle = (z - (cols - 1) * gap) / cols, rows = Math.round((bl(g).height + gap) / (zelle + gap));
+        const ts = [...g.children].map((k) => { const b = bl(k); return { sw: Math.round((b.width + gap) / (zelle + gap)), sh: Math.round((b.height + gap) / (zelle + gap)), w: b.width, h: b.height }; });
+        const belegt = ts.reduce((s, x) => s + x.sw * x.sh, 0);
+        const inA = [...g.children].every((k) => { const b = bl(k), gb = bl(g); return b.left >= gb.left - 0.5 && b.right <= gb.right + 0.5; });
+        return { id: g.parentElement.id, cols, rows, zelle, belegt, soll: cols * rows, inA, n: ts.length,
+          ungleich: ts.some((x) => Math.abs(x.w - (x.sw * zelle + (x.sw - 1) * gap)) > 1 || Math.abs(x.h - (x.sh * zelle + (x.sh - 1) * gap)) > 1) };
       });
-      return { breite: document.documentElement.scrollWidth, h1: parseFloat(getComputedStyle(document.querySelector('.hero h1')).fontSize),
-        ersteKarteOben: Math.round(box(document.querySelector('.games .karte')).top), karten };
+      const k1 = bl(document.querySelector('.kachel'));
+      const kopf = bl(document.getElementById('kopf'));
+      const nav = [...document.querySelectorAll('.p-nav > *')].map((e) => bl(e));
+      return { breite: document.documentElement.scrollWidth, bloecke, kachelOben: Math.round(k1.top), kopfH: Math.round(kopf.height), navMin: Math.min(...nav.map((n) => Math.min(n.width, n.height))), navRechts: Math.max(...nav.map((n) => n.right)),
+        bild: document.querySelector('.kachel img').complete, lazy: [...document.querySelectorAll('#top .kachel img')].every((i) => i.loading === 'lazy') };
     });
     assert.equal(r.breite, w, 'horizontaler Überlauf');
-    assert.ok(r.h1 >= 40 && r.h1 <= 44, 'H1 ' + r.h1);
-    assert.ok(r.ersteKarteOben < h - 100, `erstes Spiel erst bei ${r.ersteKarteOben}px sichtbar`);
-    const h0 = r.karten[0];
-    for (const [i, k] of r.karten.entries()) {
-      assert.ok(!k.ueberlapp, `Karte ${i} überlappt`);
-      assert.ok(k.drin, `Karte ${i} ragt über den Rand`);
-      assert.equal(k.h, h0.h, `Karte ${i} andere Höhe`);
-      assert.equal(k.playRechts, h0.playRechts, `Karte ${i} Knopf anders ausgerichtet`);
-      assert.equal(k.playUnten, h0.playUnten, `Karte ${i} Knopf anders ausgerichtet`);
-      assert.equal(k.titelPx, h0.titelPx, `Karte ${i} andere Titelgröße`);
-      assert.ok(k.textZeilen <= 2, `Karte ${i} Text ${k.textZeilen} Zeilen`);
-      assert.ok(k.h >= 44 && k.playH >= 36, `Karte ${i} Tippfläche`);
+    assert.ok(r.navRechts <= w, 'Navigation ragt rechts raus');
+    assert.ok(r.navMin >= (w < 360 ? 38 : 44), 'Tippfläche ' + r.navMin);
+    assert.ok(r.kachelOben < h - 100, `erste Kachel erst bei ${r.kachelOben}px sichtbar`);
+    assert.ok(r.lazy, 'Bilder unterhalb des ersten Blocks laden nicht lazy');
+    for (const b of r.bloecke) {
+      assert.equal(b.cols, spalten, `${b.id}: Spalten`);
+      assert.equal(b.belegt, b.soll, `${b.id}: Lücken im Raster (${b.belegt} von ${b.soll} Zellen belegt)`);
+      assert.ok(!b.ungleich, `${b.id}: Kachelmaße passen nicht zum Raster`);
+      assert.ok(b.inA, `${b.id}: Kachel ragt über den Rand`);
+      assert.ok(b.zelle >= 90, `${b.id}: Zellen zu klein (${Math.round(b.zelle)}px)`);
     }
-    // Menü: alle Einträge im sichtbaren Bereich erreichbar
-    await page.click('.menu-btn');
-    const sichtbar = await page.$$eval('#menu a:not([hidden])', (as, hh) => as.every((a) => { const b = a.getBoundingClientRect(); return b.top >= 0 && b.bottom <= hh && b.height >= 40; }), h);
-    assert.ok(sichtbar, 'Menüeintrag außerhalb des sichtbaren Bereichs oder zu klein');
     await ctx.close();
   });
 }
@@ -218,12 +277,13 @@ test('Farbrollen: Gelb = Aktion, Orange = Marke, Rot-Orange nicht in der Oberfl�
   const ctx = await kontext(); const page = await ctx.newPage(); await page.goto(ALT + '/');
   const f = await page.evaluate(() => {
     const bg = (s) => getComputedStyle(document.querySelector(s)).backgroundColor;
+    const sicht = document.getElementById('weiter'); sicht.hidden = false;
     return { play: [...document.querySelectorAll('.play')].map((e) => getComputedStyle(e).backgroundColor), playText: getComputedStyle(document.querySelector('.play')).color,
-      cta: bg('.hero .btn'), filter: bg('[data-filter][aria-pressed="true"]'), badge: bg('.badge') };
+      badge: bg('.kachel .badge'), basis: getComputedStyle(document.body).backgroundColor, aktiv: (document.getElementById('sucheBtn').click(), getComputedStyle(document.getElementById('sucheBtn')).color) };
   });
   const GELB = 'rgb(255, 210, 28)', ORANGE = 'rgb(255, 146, 0)', BASIS = 'rgb(17, 18, 26)';
   assert.ok(f.play.every((c) => c === GELB)); assert.equal(f.playText, BASIS);
-  assert.equal(f.cta, GELB); assert.equal(f.filter, GELB); assert.equal(f.badge, ORANGE);
+  assert.equal(f.badge, ORANGE); assert.equal(f.basis, BASIS); assert.equal(f.aktiv, GELB);
   // Rot-Orange nur im Logo: kein Vorkommen in Portal-CSS/HTML außerhalb der Logo-Dateien
   for (const datei of ['index.html', 'umzug.html', 'impressum.html', 'datenschutz.html', '404.html', 'assets/site.css']) {
     const txt = (await (await fetch(ALT + '/' + datei.replace('.html', ''))).text()).replace(/--logo-rot:#FF4A13;|Rot-Orange #FF4A13/g, '');
@@ -293,8 +353,8 @@ for (const [name, opts] of [['Desktop', {}], ['Handy (390px, Touch)', { viewport
     assert.ok(alt['playsaal.umzug.gesendet']);
     // Startseite zeigt die übernommenen Rekorde
     const start = await ctx.newPage(); await start.goto(NEU + '/');
-    assert.match(await start.textContent('[data-rec="linkespur"]'), /81\.234/);
-    assert.match(await start.textContent('[data-rec="anbiss"]'), /2 Arten/);
+    await start.evaluate(() => localStorage.setItem('playsaal.zuletzt', JSON.stringify({ s: 'linke-spur', t: 1 }))); await start.reload();
+    assert.match(await start.textContent('#weiterRec'), /81\.234/);
     assert.ok(await start.isHidden('#umzugHinweis'), 'Hinweis nach Umzug weg');
     // Spiel lädt den Stand tatsächlich (Linke Spur liest linkespur.v1)
     const spiel = await ctx.newPage(); await spiel.goto(NEU + '/spiele/linke-spur'); await spiel.waitForTimeout(1500);

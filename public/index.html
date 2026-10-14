@@ -1,121 +1,172 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>PlaySaal · Browserspiele ohne Anmeldung</title><meta name="description" content="Neun Browserspiele ohne Anmeldung: Sondengänger, Stammvölker, Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><link rel="canonical" href="https://playsaal.com/"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="PlaySaal · Browserspiele ohne Anmeldung"><meta property="og:image:alt" content="PlaySaal: Browsergames direkt spielen"><meta property="og:description" content="Neun Browserspiele ohne Anmeldung: Sondengänger, Stammvölker, Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><meta property="og:url" content="https://playsaal.com/"><meta property="og:image" content="https://playsaal.com/og-playsaal-1200x630.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playsaal.com/twitter-playsaal-1200x600.jpg"><link rel="icon" type="image/svg+xml" href="favicon.svg"><link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><meta name="theme-color" content="#11121A"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/assets/site.css"><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"PlaySaal","alternateName":"PlayAZ","url":"https://playsaal.com/","inLanguage":"de"}</script></head><body>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>PlaySaal · Browserspiele ohne Anmeldung</title><meta name="description" content="Neun Browserspiele ohne Anmeldung: Sondengänger, Stammvölker, Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><link rel="canonical" href="https://playsaal.com/"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="PlaySaal · Browserspiele ohne Anmeldung"><meta property="og:image:alt" content="PlaySaal: Browsergames direkt spielen"><meta property="og:description" content="Neun Browserspiele ohne Anmeldung: Sondengänger, Stammvölker, Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><meta property="og:url" content="https://playsaal.com/"><meta property="og:image" content="https://playsaal.com/og-playsaal-1200x630.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playsaal.com/twitter-playsaal-1200x600.jpg"><link rel="icon" type="image/svg+xml" href="favicon.svg"><link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><meta name="theme-color" content="#11121A"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/assets/site.css"><script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"PlaySaal","alternateName":"PlayAZ","url":"https://playsaal.com/","inLanguage":"de"},{"@type":"ItemList","name":"Browserspiele auf PlaySaal","itemListElement":[{"@type":"ListItem","position":1,"name":"Stammvölker","url":"https://playsaal.com/spiele/stammvoelker"},{"@type":"ListItem","position":2,"name":"Sondengänger","url":"https://playsaal.com/spiele/sondengaenger"},{"@type":"ListItem","position":3,"name":"Anbiss","url":"https://playsaal.com/spiele/anbiss"},{"@type":"ListItem","position":4,"name":"Stellwerk","url":"https://playsaal.com/spiele/stellwerk"},{"@type":"ListItem","position":5,"name":"Eiszeit","url":"https://playsaal.com/spiele/eiszeit"},{"@type":"ListItem","position":6,"name":"Linke Spur","url":"https://playsaal.com/spiele/linke-spur"},{"@type":"ListItem","position":7,"name":"Hochstapler","url":"https://playsaal.com/spiele/hochstapler"},{"@type":"ListItem","position":8,"name":"Schwindelfrei","url":"https://playsaal.com/spiele/schwindelfrei"},{"@type":"ListItem","position":9,"name":"Richtfest","url":"https://playsaal.com/spiele/richtfest"}]}]}</script></head><body>
 
 <style>
-/* Startseite. Basis (Farben, Kopfzeile, Menü, Knöpfe) in /assets/site.css */
-.wrap{max-width:1120px;margin:0 auto;padding-inline:16px}
-.hero{padding-block:28px 26px}
-.hero h1{font:400 clamp(46px,12vw,92px)/.95 var(--f-display);letter-spacing:-.025em;margin:0 0 16px;}
-.hero p{margin:0 0 22px;max-width:40ch;font-size:clamp(17px,2.4vw,20px);color:var(--leise)}
-.hero-akt{display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px}
-.hero-akt .hinweis{display:flex;align-items:center;gap:8px;color:var(--leise);font-size:15px;font-weight:500}
-.hero-akt .hinweis svg{width:18px;height:18px;color:var(--marke);flex:none}
+/* Startseite im Portal-Stil. Farben/Schrift kommen aus /assets/site.css (Farbrollen bleiben verbindlich). */
+.wrap{max-width:1280px;margin:0 auto;padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px))}
+@media (min-width:640px){.wrap{padding-inline:20px}}
 
-.liste-kopf{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 14px}
-.liste-kopf h2{font:700 22px/1.2 var(--f-text);margin:0}
-.filter{display:flex;gap:4px;padding:4px;border-radius:999px;background:var(--flaeche)}
-.filter button{font:600 14px/1 var(--f-text);color:var(--leise);background:transparent;border:0;border-radius:999px;padding:9px 14px;cursor:pointer;min-height:36px}
-.filter button[aria-pressed="true"]{background:var(--aktion);color:var(--basis)}
-.filter button[aria-pressed="true"] b{color:var(--basis)}
-.filter b{font-weight:600;color:var(--leise);margin-left:4px}
-
-/* Spielkarten: Handy eine Zeile pro Spiel mit Vorschaubild links, ab Tablet Raster mit großem Bild */
-.games{list-style:none;margin:0;padding:0;display:grid;gap:10px}
-.karte{display:grid;grid-template-columns:116px minmax(0,1fr);gap:14px;padding:10px;border-radius:16px;background:var(--flaeche);color:inherit;text-decoration:none;border:1px solid transparent}
-.karte:hover{border-color:var(--linie)}
-.shot{position:relative;border-radius:10px;overflow:hidden;background:#0c0d13;aspect-ratio:1/1;align-self:start}
-.shot img{display:block;width:100%;height:100%;object-fit:cover}
-.badge{position:absolute;left:6px;top:6px;font:700 12px/1 var(--f-text);background:var(--marke);color:var(--basis);padding:4px 7px;border-radius:6px}
-.info{display:flex;flex-direction:column;min-width:0;padding:2px 2px 0 0}
-.info h3{font:400 20px/1.1 var(--f-display);margin:0 0 6px;letter-spacing:-.01em}
-.chips{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 6px;padding:0;list-style:none}
-.chips li{font-size:12px;font-weight:600;color:var(--leise);background:var(--flaeche-hell);padding:2px 8px;border-radius:999px}
-.text{margin:0 0 10px;color:var(--leise);font-size:15px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.fuss{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto}
-.rec{font-size:13px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;min-width:0}
-.rec.none{color:var(--leise);font-weight:500}
-.play{display:inline-flex;align-items:center;gap:6px;flex:none;font:700 15px/1 var(--f-text);padding:10px 14px;border-radius:999px;background:var(--aktion);color:var(--basis)}
-.play svg{width:12px;height:12px}
-
-/* Nur Handy (< 640 px): kompakter Hero, gleich hohe Karten, Knopf immer an derselben Stelle */
-@media (max-width:639px){
-  .hero{padding-block:18px 20px}
-  .hero h1{font-size:clamp(40px,10.4vw,44px);line-height:1;letter-spacing:-.02em;margin:0 0 10px}
-  .hero p{font-size:16px;line-height:1.45;margin:0 0 16px}
-  .hero-akt{gap:10px 14px}
-  .hero-akt .btn{min-height:44px;padding:0 20px;font-size:16px}
-  .hero-akt .hinweis{display:none}  /* steht unten auf der Seite noch einmal */
-  .note.umzug{margin-top:12px;padding:10px 12px;font-size:14px;gap:10px}
-  .note.umzug svg{width:18px;height:18px}
-
-  .liste-kopf{margin:4px 0 10px}
-  .liste-kopf h2{font-size:20px}
-  .filter button{min-height:40px;padding:0 14px}
-
-  .games{gap:8px}
-  .karte{grid-template-columns:96px minmax(0,1fr);gap:12px;padding:8px;min-height:132px}
-  .shot{aspect-ratio:auto;align-self:stretch;min-height:96px}
-  .badge{left:5px;top:5px;font-size:11px;padding:3px 6px}
-  .info{padding:2px 0 0}
-  .info h3{font-size:16px;line-height:1.15;letter-spacing:.01em;text-transform:uppercase;margin:0 0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .chips{flex-wrap:nowrap;overflow:hidden;margin:0 0 6px}
-  .chips li{font-size:11px;padding:2px 7px;white-space:nowrap}
-  .text{font-size:14px;line-height:1.35;min-height:calc(2 * 1.35em);margin:0 0 8px}
-  .fuss{gap:8px;min-height:36px}
-  .rec{font-size:12px;line-height:1.3;font-weight:500;color:var(--leise);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;flex:1}
-  .rec.none{opacity:.75}
-  .play{height:36px;padding:0 14px;font-size:14px}
+/* Feste Kopfzeile mit Icon-Navigation */
+.portal-head{position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top,0px);background:rgba(17,18,26,.97);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--linie)}
+.portal-head-in{max-width:1280px;margin:0 auto;height:var(--kopf);padding-inline:max(12px,env(safe-area-inset-left,0px)) max(4px,env(safe-area-inset-right,0px));display:flex;align-items:center;justify-content:space-between;gap:8px}
+.p-logo{display:block;flex:0 1 auto;min-width:0;padding:8px 0;border-radius:6px}
+.p-logo img{display:block;height:26px;width:auto;max-width:100%}
+.p-nav{display:flex;align-items:center;flex:none}
+.p-nav a,.p-nav button{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:44px;height:44px;border:0;border-radius:12px;background:transparent;color:var(--leise);font:600 15px/1 var(--f-text);text-decoration:none;cursor:pointer;padding:0}
+.p-nav svg{width:24px;height:24px;flex:none}
+.p-nav span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.p-nav a:hover,.p-nav button:hover{background:var(--flaeche);color:var(--text)}
+.p-nav a.aktiv,.p-nav button[aria-expanded="true"]{color:var(--aktion)}
+.p-nav .bald{opacity:.55}
+@media (max-width:359px){.p-nav a,.p-nav button{width:38px}.p-logo img{height:22px}}
+@media (min-width:900px){
+  :root{--kopf:64px}
+  .p-logo img{height:32px}
+  .p-nav{gap:4px}
+  .p-nav a,.p-nav button{width:auto;padding:0 14px}
+  .p-nav span{position:static;width:auto;height:auto;overflow:visible;clip:auto}
 }
 
+/* Toast "Bald verfügbar" */
+.toast{position:absolute;right:12px;top:calc(100% + 8px);margin:0;padding:10px 14px;border-radius:12px;background:var(--flaeche-hell);border:1px solid color-mix(in srgb,var(--marke) 55%,transparent);color:var(--text);font-size:15px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+
+/* Suche */
+.suche{position:absolute;left:0;right:0;top:100%;max-height:calc(100dvh - var(--kopf) - env(safe-area-inset-top,0px));overflow:auto;background:var(--basis);border-bottom:1px solid var(--linie);box-shadow:0 16px 32px rgba(0,0,0,.5)}
+.suche-in{max-width:760px;margin:0 auto;padding:12px 12px 16px}
+.suche-feld{display:flex;align-items:center;gap:8px;height:48px;padding-inline:14px 4px;border-radius:999px;background:var(--flaeche);border:1px solid var(--linie)}
+.suche-feld:focus-within{border-color:var(--aktion)}
+.suche-feld>svg{width:22px;height:22px;color:var(--leise);flex:none}
+.suche-feld input{flex:1;min-width:0;height:100%;background:transparent;border:0;color:var(--text);font:500 17px/1 var(--f-text);outline:0}
+.suche-feld input::-webkit-search-cancel-button{display:none}
+.suche-feld button{display:grid;place-items:center;width:40px;height:40px;border:0;border-radius:50%;background:transparent;color:var(--leise);cursor:pointer}
+.suche-feld button svg{width:20px;height:20px}
+.suche-tags{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px}
+.suche-tags button{font:600 14px/1 var(--f-text);color:var(--leise);background:var(--flaeche);border:1px solid var(--linie);border-radius:999px;padding:0 14px;min-height:36px;cursor:pointer}
+.suche-tags button:hover{color:var(--text)}
+.suche-liste{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px}
+.suche-liste a{display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;color:var(--text);text-decoration:none}
+.suche-liste a:hover,.suche-liste a:focus-visible{background:var(--flaeche)}
+.suche-liste img{width:64px;height:64px;border-radius:10px;object-fit:cover;flex:none;background:#0c0d13}
+.suche-liste b{display:block;font-size:17px}
+.suche-liste small{display:block;color:var(--leise);font-size:14px}
+.suche-leer{margin:16px 4px 4px;color:var(--leise);font-size:16px}
+
+/* Weiter spielen */
+.weiter{padding-top:12px}
+.weiter-in{display:flex;align-items:center;gap:12px;padding:8px;border-radius:16px;background:var(--flaeche);border:1px solid color-mix(in srgb,var(--marke) 45%,transparent);color:var(--text);text-decoration:none}
+.weiter-in img{width:64px;height:64px;border-radius:10px;object-fit:cover;flex:none;background:#0c0d13}
+.weiter-text{display:flex;flex-direction:column;min-width:0;flex:1}
+.weiter-kopf{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--marke)}
+.weiter-text b{font:400 18px/1.15 var(--f-display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.weiter-rec{font-size:13px;color:var(--leise);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.weiter-rec:empty{display:none}
+.play{display:inline-flex;align-items:center;gap:6px;flex:none;font:700 15px/1 var(--f-text);height:40px;padding:0 16px;border-radius:999px;background:var(--aktion);color:var(--basis)}
+.play svg{width:12px;height:12px}
+.weiter-in:hover .play{background:var(--aktion-hover)}
+@media (min-width:640px){.weiter-in img{width:80px;height:80px}.weiter-text b{font-size:22px}.play{height:44px;padding:0 22px;font-size:16px}}
+
+.claim{margin:14px 0 4px;font:600 15px/1.35 var(--f-text);color:var(--leise)}
+@media (min-width:640px){.claim{font-size:17px;margin-top:20px}}
+
+/* Blöcke Neu / Top */
+.block{margin-top:14px;padding:12px;border-radius:20px;background:var(--flaeche)}
+.block-neu{background:color-mix(in srgb,var(--marke) 7%,var(--flaeche))}
+.block-top{background:color-mix(in srgb,var(--aktion) 5%,var(--flaeche))}
+.block-kopf{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:2px 4px 10px}
+.block-kopf h2{display:flex;align-items:center;gap:8px;margin:0;font:400 22px/1.1 var(--f-display);letter-spacing:-.01em}
+.block-kopf h2 svg{width:24px;height:24px;color:var(--marke);flex:none}
+.block-kopf span{font-size:14px;color:var(--leise)}
+@media (min-width:640px){.block{padding:18px;margin-top:20px}.block-kopf h2{font-size:26px}.block-kopf{margin:2px 2px 14px}}
+
+/* Kacheln: quadratische Zellen aus der Containerbreite, einzelne Kacheln 2x2 oder 2x1. Keine Lücken:
+   Raster-Aufteilung hängt an der Zahl der Spiele je Block (Neu: 5, Top: 6), siehe README. */
+.kacheln{--cols:3;--gap:8px;list-style:none;margin:0;padding:0;display:grid;gap:var(--gap);grid-template-columns:repeat(var(--cols),minmax(0,1fr));grid-auto-flow:dense;
+  grid-auto-rows:calc((100cqw - (var(--cols) - 1) * var(--gap)) / var(--cols))}
+.block{container-type:inline-size}
+.kachel{position:relative;min-width:0;border-radius:14px;overflow:hidden;background:#0c0d13}
+.kachel a{position:absolute;inset:0;display:block;color:#fff;text-decoration:none}
+.kachel img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .3s}
+.kachel[data-slug="richtfest"] img{object-position:50% 25%}
+.kachel .name{position:absolute;left:0;right:0;bottom:0;padding:22px 8px 7px;font:700 12px/1.15 var(--f-text);letter-spacing:.03em;text-transform:uppercase;background:linear-gradient(to top,rgba(10,11,16,.88),rgba(10,11,16,0));display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.kachel .badge{position:absolute;left:6px;top:6px;font:700 11px/1 var(--f-text);background:var(--marke);color:var(--basis);padding:3px 6px;border-radius:6px}
+.kachel a:hover img,.kachel a:focus-visible img{transform:scale(1.05)}
+.kachel a:focus-visible{outline-offset:-3px}
+/* Handy: 3 Spalten. Neu: 1 groß, 2+3 rechts, 4 klein, 5 breit. Top: 1 groß, Rest klein. */
+.kachel:first-child{grid-column:span 2;grid-row:span 2}
+.kachel:first-child .name{font:400 18px/1.1 var(--f-display);padding:30px 12px 10px;text-transform:none;letter-spacing:0}
+[data-lay="neu"] .kachel:nth-child(5){grid-column:span 2}
+/* sehr schmale Handys: 2 Spalten */
+@media (max-width:339px){
+  .kacheln{--cols:2}
+  [data-lay="neu"] .kachel:nth-child(5){grid-column:auto}
+  [data-lay="top"] .kachel:nth-child(6){grid-column:span 2}
+}
 @media (min-width:640px){
-  .games{grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-  .karte{grid-template-columns:1fr;padding:0;gap:0;overflow:hidden}
-  .shot{border-radius:0;aspect-ratio:16/10}
-  .badge{left:12px;top:12px;font-size:13px;padding:5px 9px}
-  .info{padding:16px 18px 18px;flex:1}
-  .info h3{font-size:26px}
-  .text{font-size:16px;-webkit-line-clamp:3}
-  .play{padding:11px 18px;font-size:16px}
-  .rec{font-size:14px}
-  .karte:hover .play{background:var(--aktion-hover)}
-  /* Neuestes Spiel breit, damit die übrigen sechs im Raster aufgehen */
-  .games>.game:first-child{grid-column:1/-1}
-  .games>.game:first-child .karte{grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)}
-  .games>.game:first-child .shot{aspect-ratio:16/10}
-  .games>.game:first-child .info{padding:24px 28px;justify-content:center}
-  .games>.game:first-child .fuss{margin-top:18px}
-  .games>.game:first-child h3{font-size:clamp(28px,3.6vw,44px)}
-  .games>.game:first-child .text{-webkit-line-clamp:4;font-size:17px}
-  /* Im Filter "Neu" kein Sonderformat */
-  .games.gefiltert>.game:first-child{grid-column:auto}
-  .games.gefiltert>.game:first-child .karte{grid-template-columns:1fr}
-  .games.gefiltert>.game:first-child .info{padding:16px 18px 18px;justify-content:flex-start}
-  .games.gefiltert>.game:first-child .fuss{margin-top:auto}
-  .games.gefiltert>.game:first-child h3{font-size:26px}
+  .kacheln{--cols:4;--gap:12px}
+  .kachel{border-radius:18px}
+  .kachel .name{font-size:14px;padding:28px 12px 10px}
+  .kachel:first-child .name{font-size:clamp(22px,3.4vw,32px);padding:40px 18px 16px}
+  .kachel .badge{left:10px;top:10px;font-size:12px;padding:4px 8px}
+  [data-lay="neu"] .kachel:nth-child(5){grid-column:auto}
+  [data-lay="top"] .kachel:nth-child(2),[data-lay="top"] .kachel:nth-child(5),[data-lay="top"] .kachel:nth-child(6){grid-column:span 2}
 }
 @media (min-width:1024px){
-  .games{grid-template-columns:repeat(3,minmax(0,1fr))}
-  .hero{padding-block:56px 44px}
+  .kacheln{--cols:6;--gap:14px}
+  [data-lay="neu"] .kachel:nth-child(n+2){grid-column:span 2}
+  [data-lay="top"] .kachel:nth-child(n+2):nth-child(-n+4){grid-column:span 2}
+  [data-lay="top"] .kachel:nth-child(5),[data-lay="top"] .kachel:nth-child(6){grid-column:auto}
+  .kachel .name{font-size:15px}
 }
+@media (prefers-reduced-motion:reduce){.kachel img{transition:none}}
 
-.note{display:flex;gap:12px;align-items:flex-start;margin:28px 0 8px;padding:14px 16px;border-radius:14px;background:var(--flaeche);color:var(--leise);font-size:15px}
+/* Über, Kategorien (bald), Fußzeile */
+.ueber,.seo{margin-top:28px;padding-inline:4px;max-width:70ch}
+.ueber h2,.seo h2{margin:0 0 8px;font:700 20px/1.2 var(--f-text)}
+.ueber p{margin:0 0 10px;color:var(--leise);font-size:16px}
+.ueber b{color:var(--text)}
+.seo h2 em{font:600 12px/1 var(--f-text);font-style:normal;color:var(--basis);background:var(--marke);padding:3px 7px;border-radius:6px;margin-left:8px;vertical-align:2px}
+.seo-chips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.seo-chips li{font-size:14px;font-weight:600;color:var(--leise);background:var(--flaeche);border:1px dashed var(--linie);border-radius:999px;padding:7px 14px;opacity:.8}
+
+.portal-foot{border-top:1px solid var(--linie);margin-top:36px;background:var(--basis)}
+.portal-foot-in{max-width:1280px;margin:0 auto;padding:28px 16px calc(env(safe-area-inset-bottom,0px) + 32px);display:grid;grid-template-columns:1fr 1fr;gap:24px 16px;color:var(--leise);font-size:15px}
+.pf-marke{grid-column:1/-1}
+.pf-marke img{display:block;height:26px;width:auto;margin-bottom:8px}
+.pf-marke p{margin:0}
+.portal-foot h3{margin:0 0 8px;font:700 13px/1 var(--f-text);letter-spacing:.06em;text-transform:uppercase;color:var(--text)}
+.portal-foot nav,.pf-bald{display:flex;flex-direction:column;align-items:flex-start}
+.portal-foot a{color:var(--leise);text-decoration:none;padding:8px 0}
+.portal-foot a:hover{color:var(--text);text-decoration:underline}
+.pf-bald span{padding:8px 0;opacity:.7}
+@media (min-width:760px){.portal-foot-in{grid-template-columns:2fr 1fr 1fr 1fr;padding-inline:20px}.pf-marke{grid-column:auto}}
+
+.note{display:flex;gap:12px;align-items:flex-start;margin:12px 0 0;padding:12px 14px;border-radius:14px;background:var(--flaeche);color:var(--leise);font-size:15px}
 .note svg{width:20px;height:20px;color:var(--marke);flex:none;margin-top:2px}
-.note b{color:var(--text)}
-.note.umzug{margin:16px 0 0;border:1px solid color-mix(in srgb,var(--marke) 55%,transparent);color:var(--text)}
+.note.umzug{border:1px solid color-mix(in srgb,var(--marke) 55%,transparent);color:var(--text)}
 .note.umzug a{color:var(--aktion);font-weight:600}
+
 </style>
 
-<header class="site-head">
-  <div class="site-head-in">
-    <a class="site-logo" href="/" aria-label="PlaySaal, alle Spiele"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="1140" height="244" alt="PlaySaal"></a>
-    <nav class="site-nav" aria-label="Hauptmenü"><a href="/#spiele">Alle Spiele</a><a href="/#neu">Neue Spiele</a></nav>
-    <button class="menu-btn" type="button" aria-controls="menu" aria-expanded="false" aria-label="Menü öffnen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+<header class="portal-head" id="kopf">
+  <div class="portal-head-in">
+    <a class="p-logo" href="/" aria-label="PlaySaal, Startseite"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="1140" height="244" alt="PlaySaal"></a>
+    <nav class="p-nav" aria-label="Hauptmenü">
+      <a href="#top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.5 3-2.5 4.6-2.5 7.4 0 1 .5 1.8 1.2 2.3-.1-1.6 1-2.6 2-3.3.2 1.3 1.8 2 1.8 4.1A4.5 4.5 0 0 1 8 15.3C8 10 12 8.5 12 3zM7.5 16.5A5.5 5.5 0 0 0 12 21a5.5 5.5 0 0 0 4.6-2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Top</span></a>
+      <a href="#neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><span>Neu</span></a>
+      <button type="button" class="bald" data-bald="Zusammen" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="9" r="3.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 19c.4-3.2 2.8-5 6-5s5.6 1.8 6 5M16 6.2a3 3 0 0 1 0 5.6M18 14.4c1.7.6 2.8 2 3 4.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Zusammen</span></button>
+      <button type="button" id="sucheBtn" aria-expanded="false" aria-controls="suche"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Suche</span></button>
+      <button type="button" class="bald" data-bald="Profil" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4.5 20c.6-4 3.6-6 7.5-6s6.9 2 7.5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Profil</span></button>
+    </nav>
   </div>
+  <div class="suche" id="suche" role="search" hidden>
+    <div class="suche-in">
+      <div class="suche-feld"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="sucheText" type="search" placeholder="Spiel oder Art suchen, z. B. Retro" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Spiele suchen"><button type="button" id="sucheZu" aria-label="Suche schließen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+      <div class="suche-tags" id="sucheTags" aria-label="Arten"></div>
+      <ul class="suche-liste" id="sucheListe"></ul>
+      <p class="suche-leer" id="sucheLeer" role="status" hidden></p>
+    </div>
+  </div>
+  <p class="toast" id="toast" role="status" hidden></p>
 </header>
-<dialog class="menu" id="menu" aria-label="Menü"><div class="menu-in">
-  <div class="menu-top"><span>Menü</span><button class="menu-close" type="button" aria-label="Menü schließen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
-  <nav aria-label="Spiele"><a href="/#spiele">Alle Spiele</a><a href="/#neu">Neue Spiele</a><a href="/umzug" data-umzug hidden>Spielstände umziehen</a></nav>
-  <nav class="menu-recht" aria-label="Rechtliches"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
-</div></dialog>
 
 <main>
   <div class="wrap"><div class="note umzug" id="umzugHinweis" hidden>
@@ -123,141 +174,134 @@
     <div id="umzugText"></div>
   </div></div>
 
-  <section class="hero wrap">
-    <h1>Spielen.<br>Einfach so.</h1>
-    <p>8 kostenlose Browserspiele. Ohne Download, ohne Anmeldung, am Handy wie am Rechner.</p>
-    <div class="hero-akt">
-      <a class="btn" href="#spiele">Sofort spielen</a>
-      <span class="hinweis"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3.5v6c0 5-3.4 8.9-8 10.5-4.6-1.6-8-5.5-8-10.5v-6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 12l2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Rekorde bleiben auf deinem Gerät</span>
-    </div>
+  <section class="wrap weiter" id="weiter" aria-label="Zuletzt gespielt" hidden>
+    <a class="weiter-in" id="weiterLink" href="/">
+      <img id="weiterBild" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" width="960" height="600" alt="">
+      <span class="weiter-text"><span class="weiter-kopf">Zuletzt gespielt</span><b id="weiterName"></b><span class="weiter-rec" id="weiterRec"></span></span>
+      <span class="play">Weiter <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span>
+    </a>
   </section>
 
-  <section class="wrap" id="spiele" aria-labelledby="spiele-titel">
-    <div class="liste-kopf">
-      <h2 id="spiele-titel">Alle Spiele</h2>
-      <div class="filter" role="group" aria-label="Spiele filtern">
-        <button type="button" data-filter="alle" aria-pressed="true">Alle<b>9</b></button>
-        <button type="button" data-filter="neu" aria-pressed="false">Neu<b>5</b></button>
-      </div>
-    </div>
-    <ul class="games">
-      <li class="game" data-neu><a class="karte" href="/spiele/sondengaenger">
-        <div class="shot"><img src="/bilder/sondengaenger.jpg" width="960" height="600" alt="Blick über einen gepflügten Acker, vorne schwingt die orangene Spule eines Metalldetektors, das Display zeigt ein Silbersignal"><span class="badge">Neu</span></div>
-        <div class="info">
-          <h3>SONDENGÄNGER</h3>
-          <ul class="chips" aria-label="Art"><li>3D</li><li>Schatzsuche</li></ul>
-          <p class="text">Mit dem Metalldetektor Funde orten und heben. Jeden Tag ein neues Feld.</p>
-          <div class="fuss"><span class="rec none" data-rec="sondengaenger">Noch nichts gefunden</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a></li>
-      <li class="game" data-neu><a class="karte" href="/spiele/stammvoelker">
-        <div class="shot"><img src="/bilder/stammvoelker.jpg" width="960" height="600" alt="Ein Zeltlager am Fluss in einem Tal, Bauleute fällen Bäume und tragen Holz zum Lager" loading="lazy"><span class="badge">Neu</span></div>
-        <div class="info">
-          <h3>STAMMVÖLKER</h3>
-          <ul class="chips" aria-label="Art"><li>3D</li><li>Aufbau</li></ul>
-          <p class="text">Wälder roden und nachpflanzen, Hütten bauen, ein Volk wachsen lassen.</p>
-          <div class="fuss"><span class="rec none" data-rec="stammvoelker">Noch nicht gespielt</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a></li>
-      <li class="game" data-neu><a class="karte" href="/spiele/anbiss">
-        <div class="shot"><img src="/bilder/anbiss.jpg" width="960" height="600" alt="Abenddämmerung am Moorsee: Vom Steg aus treibt eine Pose im Wasser, Ringe ziehen über die Oberfläche"><span class="badge">Neu</span></div>
-        <div class="info">
-          <h3>ANBISS</h3>
-          <ul class="chips" aria-label="Art"><li>3D</li><li>Angeln</li></ul>
-          <p class="text">Angeln am Moorsee mit zwölf Fischarten und echtem Drill.</p>
-          <div class="fuss"><span class="rec none" data-rec="anbiss">Noch nichts gefangen</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a></li>
-      <li class="game" data-neu><a class="karte" href="/spiele/stellwerk">
-        <div class="shot"><img src="/bilder/stellwerk.jpg" width="960" height="600" alt="Gleisbild-Stellpult: farbige Züge fahren über Weichen, ein grünes und zwei rote Signale"><span class="badge">Neu</span></div>
-        <div class="info">
-          <h3>Stellwerk</h3>
-          <ul class="chips" aria-label="Art"><li>Puzzle</li><li>Bahn</li></ul>
-          <p class="text">Weichen stellen und jeden Zug sicher ans Ziel bringen.</p>
-          <div class="fuss"><span class="rec none" data-rec="stellwerk">Noch kein Dienst</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a></li>
-      <li class="game" data-neu><a class="karte" href="/spiele/eiszeit">
-        <div class="shot"><img src="/bilder/eiszeit.jpg" width="960" height="600" alt="Ein Kind trägt einen hohen Turm aus Erdbeereis, Pinguine mit gelben Mützen und ein Babymammut jubeln"><span class="badge">Neu</span></div>
-        <div class="info">
-          <h3>EISZEIT</h3>
-          <ul class="chips" aria-label="Art"><li>3D</li><li>Für Kinder</li></ul>
-          <p class="text">Eis verkaufen, Helfer holen, ein Eis-Schloss bauen.</p>
-          <div class="fuss"><span class="rec none" data-rec="eiszeit">Noch nicht gespielt</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a></li>
-      <li class="game"><a class="karte" href="/spiele/linke-spur">
-        <div class="shot"><img src="/bilder/linke-spur.jpg" width="960" height="600" loading="lazy" alt="Nächtliche Autobahn aus der Verfolgerkamera, vorne ein dunkler Kombi im Abendrot"></div>
-        <div class="info">
-          <h3>Linke Spur</h3>
-          <ul class="chips" aria-label="Art"><li>3D</li><li>Rennen</li></ul>
-          <p class="text">Nachts auf der A7 knapp überholen und dein Auto tunen.</p>
-          <div class="fuss"><span class="rec none" data-rec="linkespur">Noch nicht gefahren</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a></li>
-      <li class="game"><a class="karte" href="/spiele/schwindelfrei">
-        <div class="shot"><img src="/bilder/schwindelfrei.jpg" width="960" height="600" loading="lazy" alt="Gelbe Kugel auf rostroten Stahlträgern im Zickzack hoch über der Stadt"></div>
-        <div class="info">
-          <h3>Schwindelfrei</h3>
-          <ul class="chips" aria-label="Art"><li>3D</li><li>Ein Finger</li></ul>
-          <p class="text">Tippen wechselt die Richtung. Daneben: 112 m Tiefe.</p>
-          <div class="fuss"><span class="rec none" data-rec="schwindelfrei">Noch nicht gespielt</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a></li>
-      <li class="game"><a class="karte" href="/spiele/hochstapler">
-        <div class="shot"><img src="/bilder/hochstapler.jpg" width="960" height="600" loading="lazy" alt="Ein Turm aus Stockwerken wächst am Kran in den blauen Himmel"></div>
-        <div class="info">
-          <h3>Hochstapler</h3>
-          <ul class="chips" aria-label="Art"><li>Geschick</li><li>Ein Finger</li></ul>
-          <p class="text">Stockwerk auf Stockwerk. Was übersteht, wird abgesägt.</p>
-          <div class="fuss"><span class="rec none" data-rec="hochstapler">Noch nicht gespielt</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a></li>
-      <li class="game"><a class="karte" href="/spiele/richtfest">
-        <div class="shot"><img src="/bilder/richtfest.jpg" width="960" height="600" loading="lazy" alt="Gelbe Handheld-Konsole, auf dem Bildschirm drei pixelige Baumonster zur Auswahl"></div>
-        <div class="info">
-          <h3>Richtfest</h3>
-          <ul class="chips" aria-label="Art"><li>Retro</li><li>Abenteuer</li></ul>
-          <p class="text">Baumonster fangen wie am Gameboy. Sammle alle sechs.</p>
-          <div class="fuss"><span class="rec none" data-rec="richtfest">Noch nicht gestartet</span><span class="play">Spielen <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></span></div>
-        </div>
-      </a></li>
+  <div class="wrap"><h1 class="claim">Kostenlose Browserspiele. Sofort spielen, ohne Anmeldung.</h1></div>
+
+  <div class="wrap" id="spiele">
+    <section class="block block-neu" id="neu" aria-labelledby="neu-titel">
+      <div class="block-kopf"><h2 id="neu-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Neu</h2><span>Frisch dazugekommen</span></div>
+      <ul class="kacheln" data-lay="neu">
+      <li class="kachel" data-slug="stammvoelker" data-rec="stammvoelker" data-name="Stammvölker" data-arten="3D,Aufbau" data-kat="neu"><a href="/spiele/stammvoelker"><img src="/bilder/stammvoelker.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Stammvölker</span></a></li>
+      <li class="kachel" data-slug="sondengaenger" data-rec="sondengaenger" data-name="Sondengänger" data-arten="3D,Schatzsuche" data-kat="neu"><a href="/spiele/sondengaenger"><img src="/bilder/sondengaenger.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Sondengänger</span></a></li>
+      <li class="kachel" data-slug="anbiss" data-rec="anbiss" data-name="Anbiss" data-arten="3D,Angeln" data-kat="neu"><a href="/spiele/anbiss"><img src="/bilder/anbiss.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Anbiss</span></a></li>
+      <li class="kachel" data-slug="stellwerk" data-rec="stellwerk" data-name="Stellwerk" data-arten="Puzzle,Bahn" data-kat="neu"><a href="/spiele/stellwerk"><img src="/bilder/stellwerk.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Stellwerk</span></a></li>
+      <li class="kachel" data-slug="eiszeit" data-rec="eiszeit" data-name="Eiszeit" data-arten="3D,Für Kinder" data-kat="neu"><a href="/spiele/eiszeit"><img src="/bilder/eiszeit.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Eiszeit</span></a></li>
     </ul>
+    </section>
 
-    <div class="note">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l8 3.5v6c0 5-3.4 8.9-8 10.5-4.6-1.6-8-5.5-8-10.5v-6z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8.5 12l2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <div><b>Deine Rekorde gehören dir.</b> Sie liegen nur im Speicher dieses Browsers. Kein Konto, keine Tracker, keine Werbung. Wer die Browserdaten löscht, fängt wieder bei null an.</div>
-    </div>
-  </section>
+    <section class="block block-top" id="top" aria-labelledby="top-titel">
+      <div class="block-kopf"><h2 id="top-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c.5 3-2.5 4.6-2.5 7.4 0 1 .5 1.8 1.2 2.3-.1-1.6 1-2.6 2-3.3.2 1.3 1.8 2 1.8 4.1A4.5 4.5 0 0 1 8 15.3C8 10 12 8.5 12 3zM7.5 16.5A5.5 5.5 0 0 0 12 21a5.5 5.5 0 0 0 4.6-2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Top</h2><span>Unsere Empfehlungen</span></div>
+      <ul class="kacheln" data-lay="top">
+      <li class="kachel" data-slug="linke-spur" data-rec="linkespur" data-name="Linke Spur" data-arten="3D,Rennen" data-kat="top"><a href="/spiele/linke-spur"><img src="/bilder/linke-spur.jpg" width="960" height="600" alt="" loading="lazy" decoding="async"><span class="name">Linke Spur</span></a></li>
+      <li class="kachel" data-slug="hochstapler" data-rec="hochstapler" data-name="Hochstapler" data-arten="Geschick,Ein Finger" data-kat="top"><a href="/spiele/hochstapler"><img src="/bilder/hochstapler.jpg" width="960" height="600" alt="" loading="lazy" decoding="async"><span class="name">Hochstapler</span></a></li>
+      <li class="kachel" data-slug="schwindelfrei" data-rec="schwindelfrei" data-name="Schwindelfrei" data-arten="3D,Ein Finger" data-kat="top"><a href="/spiele/schwindelfrei"><img src="/bilder/schwindelfrei.jpg" width="960" height="600" alt="" loading="lazy" decoding="async"><span class="name">Schwindelfrei</span></a></li>
+      <li class="kachel" data-slug="richtfest" data-rec="richtfest" data-name="Richtfest" data-arten="Retro,Abenteuer" data-kat="top"><a href="/spiele/richtfest"><img src="/bilder/richtfest.jpg" width="960" height="600" alt="" loading="lazy" decoding="async"><span class="name">Richtfest</span></a></li>
+      <li class="kachel" data-slug="eiszeit" data-rec="eiszeit" data-name="Eiszeit" data-arten="3D,Für Kinder" data-kat="top"><a href="/spiele/eiszeit"><img src="/bilder/eiszeit.jpg" width="960" height="600" alt="" loading="lazy" decoding="async"><span class="name">Eiszeit</span><span class="badge">Neu</span></a></li>
+      <li class="kachel" data-slug="stellwerk" data-rec="stellwerk" data-name="Stellwerk" data-arten="Puzzle,Bahn" data-kat="top"><a href="/spiele/stellwerk"><img src="/bilder/stellwerk.jpg" width="960" height="600" alt="" loading="lazy" decoding="async"><span class="name">Stellwerk</span><span class="badge">Neu</span></a></li>
+    </ul>
+    </section>
+
+    <section class="ueber" id="ueber" aria-labelledby="ueber-titel">
+      <h2 id="ueber-titel">Über PlaySaal</h2>
+      <p>PlaySaal ist eine kleine Sammlung kostenloser Browserspiele. Du öffnest ein Spiel und spielst sofort: ohne Download, ohne Konto, am Handy wie am Rechner.</p>
+      <p><b>Deine Rekorde gehören dir.</b> Sie liegen nur im Speicher dieses Browsers. Keine Tracker, keine Werbung. Wer die Browserdaten löscht, fängt wieder bei null an.</p>
+    </section>
+
+    <section class="seo" aria-labelledby="seo-titel">
+      <h2 id="seo-titel">Spielekategorien <em>bald verfügbar</em></h2>
+      <ul class="seo-chips" aria-label="Geplante Kategorien">
+        <li>3D-Spiele</li><li>Puzzle-Spiele</li><li>Aufbauspiele</li><li>Rennspiele</li><li>Angelspiele</li><li>Retro-Spiele</li><li>Spiele für Kinder</li><li>Ein-Finger-Spiele</li>
+      </ul>
+    </section>
+  </div>
 </main>
 
-<footer class="site-foot"><div class="site-foot-in">
-  <span>PlaySaal · Browserspiele ohne Anmeldung</span>
-  <nav aria-label="Rechtliches"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
+<footer class="portal-foot"><div class="portal-foot-in">
+  <div class="pf-marke"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="1140" height="244" alt="PlaySaal"><p>Browserspiele ohne Anmeldung.</p></div>
+  <nav aria-label="Spiele"><h3>Spiele</h3><a href="#neu">Neu</a><a href="#top">Top</a><a href="/umzug" data-umzug hidden>Spielstände umziehen</a></nav>
+  <nav aria-label="Rechtliches"><h3>Rechtliches</h3><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
+  <div class="pf-bald"><h3>Bald</h3><span>Zusammen spielen</span><span>Profil</span></div>
 </div></footer>
 
-<script src="/assets/umzug-config.js"></script><script src="/assets/site.js"></script>
+<script src="/assets/umzug-config.js"></script>
 <script>
-// Filter "Alle / Neu". /#neu (auch aus dem Menü) zeigt nur neue Spiele.
+// Startseite: Suche, "Bald verfügbar", Weiter spielen, Navigation
 (function () {
-  const knoepfe = document.querySelectorAll('[data-filter]');
-  const spiele = document.querySelectorAll('.games .game');
-  const titel = document.getElementById('spiele-titel');
-  function setze(f) {
-    spiele.forEach((li) => { li.hidden = f === 'neu' && !li.hasAttribute('data-neu'); });
-    knoepfe.forEach((k) => k.setAttribute('aria-pressed', String(k.dataset.filter === f)));
-    titel.textContent = f === 'neu' ? 'Neue Spiele' : 'Alle Spiele';
-    document.querySelector('.games').classList.toggle('gefiltert', f === 'neu');
+  const $ = (s) => document.querySelector(s);
+  // Umlaute zwei Wege: ä = ae (ohne Umlaut getippt) und ä = a (nur Akzent entfernt)
+  const varianten = (s) => { const l = s.toLowerCase(); return [l.replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss'), l.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss')]; };
+  const kopf = $('#kopf');
+  // Spiele einmal aus dem HTML einsammeln (ein Spiel kann in Neu und Top vorkommen)
+  const spiele = [];
+  document.querySelectorAll('.kachel').forEach((li) => {
+    let s = spiele.find((x) => x.slug === li.dataset.slug);
+    if (!s) { s = { slug: li.dataset.slug, name: li.dataset.name, rec: li.dataset.rec, bild: li.querySelector('img').getAttribute('src'), arten: li.dataset.arten.split(','), kat: [] }; spiele.push(s); }
+    if (!s.kat.includes(li.dataset.kat)) s.kat.push(li.dataset.kat);
+  });
+
+  // "Bald verfügbar"
+  const toast = $('#toast'); let tt;
+  document.querySelectorAll('[data-bald]').forEach((b) => b.addEventListener('click', () => {
+    toast.textContent = b.dataset.bald + ': bald verfügbar'; toast.hidden = false; clearTimeout(tt); tt = setTimeout(() => { toast.hidden = true; }, 2600);
+  }));
+
+  // Suche
+  const knopf = $('#sucheBtn'), panel = $('#suche'), feld = $('#sucheText'), liste = $('#sucheListe'), leer = $('#sucheLeer'), tags = $('#sucheTags');
+  const alleArten = [...new Set(spiele.flatMap((s) => s.arten))].sort((a, b) => a.localeCompare(b, 'de'));
+  alleArten.forEach((a) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = a; b.addEventListener('click', () => { feld.value = a; zeige(); feld.focus(); }); tags.appendChild(b); });
+  function zeige() {
+    const q = varianten(feld.value.trim());
+    liste.textContent = ''; leer.hidden = true;
+    if (!q[0]) return;
+    const treffer = spiele.filter((s) => { const h = varianten([s.name, ...s.arten, ...s.kat].join(' ')); return h.some((x) => q.some((y) => x.includes(y))); });
+    treffer.forEach((s) => {
+      const li = document.createElement('li'), a = document.createElement('a'), i = document.createElement('img'), d = document.createElement('div'), b = document.createElement('b'), k = document.createElement('small');
+      a.href = '/spiele/' + s.slug; i.src = s.bild; i.alt = ''; i.width = 64; i.height = 64; b.textContent = s.name; k.textContent = s.arten.join(' · ');
+      d.append(b, k); a.append(i, d); li.appendChild(a); liste.appendChild(li);
+    });
+    if (!treffer.length) { leer.textContent = 'Kein Spiel für „' + feld.value.trim() + '“ gefunden. Probier es mit einer Art wie 3D, Retro oder Puzzle.'; leer.hidden = false; }
   }
-  knoepfe.forEach((k) => k.addEventListener('click', () => { setze(k.dataset.filter); history.replaceState(null, '', k.dataset.filter === 'neu' ? '#neu' : '#spiele'); }));
-  function ausHash() {
-    const h = location.hash;
-    setze(h === '#neu' ? 'neu' : 'alle');
-    if (h === '#neu' || h === '#spiele') document.getElementById('spiele').scrollIntoView();
+  function auf() { panel.hidden = false; knopf.setAttribute('aria-expanded', 'true'); feld.focus(); zeige(); }
+  function zu(fokus) { panel.hidden = true; knopf.setAttribute('aria-expanded', 'false'); if (fokus) knopf.focus(); }
+  knopf.addEventListener('click', () => (panel.hidden ? auf() : zu(true)));
+  $('#sucheZu').addEventListener('click', () => zu(true));
+  feld.addEventListener('input', zeige);
+  addEventListener('keydown', (e) => { if (e.key === 'Escape' && !panel.hidden) zu(true); });
+  document.addEventListener('click', (e) => { if (!panel.hidden && !kopf.contains(e.target)) zu(false); });
+  liste.addEventListener('click', () => zu(false));
+
+  // Aktiver Bereich in der Navigation
+  const navA = { neu: $('.p-nav a[href="#neu"]'), top: $('.p-nav a[href="#top"]') };
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((es) => es.forEach((e) => { const a = navA[e.target.id]; if (a) a.classList.toggle('aktiv', e.isIntersecting); }), { rootMargin: '-30% 0px -50% 0px' });
+    ['neu', 'top'].forEach((id) => io.observe(document.getElementById(id)));
   }
-  addEventListener('hashchange', ausHash);
-  ausHash();
+  // Menüpunkte schließen die Suche
+  document.querySelectorAll('.p-nav a').forEach((a) => a.addEventListener('click', () => zu(false)));
+
+  // Umzug-Link im Fuß nur solange der Umzug aktiv ist
+  const C = window.PLAYSAAL_UMZUG;
+  if (C && C.aktiv) document.querySelectorAll('[data-umzug]').forEach((a) => { a.hidden = false; });
+
+  // Weiter spielen: das Spiel schreibt "playsaal.zuletzt" beim Öffnen
+  window.__weiter = function (rec) {
+    let z = null; try { z = JSON.parse(localStorage.getItem('playsaal.zuletzt')); } catch (e) {}
+    const s = z && typeof z.s === 'string' && spiele.find((x) => x.slug === z.s);
+    if (!s) return;
+    $('#weiterLink').href = '/spiele/' + s.slug;
+    $('#weiterBild').src = s.bild; $('#weiterName').textContent = s.name;
+    $('#weiterRec').textContent = rec[s.rec] || '';
+    $('#weiter').hidden = false;
+  };
 })();
+
 </script>
 <script>
 // Umzug-Hinweis (nur wenn PLAYSAAL_UMZUG.aktiv): alte Adresse verweist auf die neue, neue Adresse bietet das Holen an
@@ -277,7 +321,7 @@
 (function () {
   const read = k => { try { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v); } catch (e) { return null; } };
   const n = v => Math.floor(v).toLocaleString('de-DE');
-  const show = (key, text) => { const el = document.querySelector('[data-rec="' + key + '"]'); if (el && text) { el.textContent = text; el.classList.remove('none'); } };
+  const REC = {}; const show = (key, text) => { if (text) REC[key] = text; };
   const sg = read('sondengaenger.v1');
   if (sg && sg.stats && (sg.stats.finds || sg.stats.trash)) { const d = sg.daily || {}; show('sondengaenger', 'Stufe ' + (sg.lvl || 1) + ' · ' + n(sg.stats.finds || 0) + ' Funde' + (d.streak > 1 ? ' · Serie ' + d.streak : '')); }
   const sv = read('stammvoelker.v1');
@@ -299,6 +343,7 @@
     const c = Array.isArray(rf.caught) ? rf.caught.length : Object.keys(rf.caught).filter(k => rf.caught[k]).length;
     show('richtfest', c + ' von 6 Baumonstern gefangen');
   }
+  window.__weiter(REC);
 })();
 </script>
 </body></html>
