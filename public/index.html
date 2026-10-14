@@ -1,22 +1,25 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>playaz.fun</title><meta name="description" content="Sieben Browserspiele ohne Anmeldung: Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><link rel="canonical" href="https://playaz.fun/"><meta property="og:type" content="website"><meta property="og:site_name" content="playaz.fun"><meta property="og:title" content="playaz.fun · Browserspiele ohne Anmeldung"><meta property="og:description" content="Sieben Browserspiele ohne Anmeldung: Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><meta property="og:url" content="https://playaz.fun/"><meta property="og:image" content="https://playaz.fun/social-preview-1200x630.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playaz.fun/social-preview-1200x630.png"><link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><meta name="theme-color" content="#10104B"><link rel="stylesheet" href="assets/fonts.css"></head><body>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>PlaySaal · Browserspiele ohne Anmeldung</title><meta name="description" content="Sieben Browserspiele ohne Anmeldung: Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><link rel="canonical" href="https://playaz.cf-922.workers.dev/"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="PlaySaal · Browserspiele ohne Anmeldung"><meta property="og:image:alt" content="PlaySaal: Browsergames direkt spielen"><meta property="og:description" content="Sieben Browserspiele ohne Anmeldung: Anbiss, Stellwerk, Eiszeit, Linke Spur, Schwindelfrei, Hochstapler und Richtfest. Am Handy und am Rechner, Rekorde bleiben auf deinem Gerät."><meta property="og:url" content="https://playaz.cf-922.workers.dev/"><meta property="og:image" content="https://playaz.cf-922.workers.dev/og-playsaal-1200x630.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playaz.cf-922.workers.dev/twitter-playsaal-1200x600.jpg"><link rel="icon" type="image/svg+xml" href="favicon.svg"><link rel="icon" href="favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png"><link rel="manifest" href="site.webmanifest"><meta name="theme-color" content="#11121A"><link rel="stylesheet" href="assets/fonts.css"><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"PlaySaal","alternateName":"PlayAZ","url":"https://playaz.cf-922.workers.dev/","inLanguage":"de"}</script></head><body>
 
 <style>
 /* Layout: Spielhalle. Leuchtschrift oben, darunter ein Hauptautomat über die volle Breite und drei Automaten im Raster.
    Bewusst ein einziger dunkler Look; alle Farben fest gesetzt. */
 :root{
-  --halle:#11103b;
-  --automat:#1b1a50;
-  --automat-hell:#25236a;
-  --kreide:#f5f4ff;
-  --nebel:#b7b5dd;
-  --muenze:#ffc83a;
-  --koralle:#ff4f9a;
-  --linie:rgba(246,242,255,.13);
+  /* PlaySaal-Markenfarben (design/playsaal/brand-tokens.json) */
+  --halle:#11121A;
+  --automat:#1a1b26;
+  --automat-hell:#242635;
+  --kreide:#f6f7f9;
+  --nebel:#b6b9c8;
+  --muenze:#FFD21C;
+  --orange:#FF9200;
+  --koralle:#FF4A13;
+  --linie:rgba(246,247,249,.13);
   --f-display:"Dela Gothic One","Arial Black",Impact,sans-serif;
   --f-body:"Barlow","Segoe UI",system-ui,sans-serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html{background:var(--halle)}
 body{margin:0;background:var(--halle);background-image:radial-gradient(rgba(246,242,255,.05) 1px,transparent 1.2px);background-size:22px 22px;color:var(--kreide);font-family:var(--f-body);font-size:16px;line-height:1.5}
 a{color:inherit}
@@ -24,9 +27,9 @@ a{color:inherit}
 :focus-visible{outline:3px solid var(--muenze);outline-offset:3px}
 
 /* Kopf */
-header{padding-block:28px 8px}
+header{padding-block:32px 8px}
 .logo{display:inline-block;text-decoration:none}
-.logo img{display:block;height:104px;width:auto;max-width:100%}
+.logo img{display:block;height:64px;width:auto;max-width:100%}
 .hero{padding-block:34px 30px;display:grid;gap:14px}
 .hero h1{font-family:var(--f-display);font-weight:400;font-size:clamp(40px,8.4vw,86px);line-height:.98;letter-spacing:-.02em;margin:0;text-wrap:balance;max-width:14ch}
 .hero h1 em{font-style:normal;color:var(--muenze)}
@@ -41,7 +44,7 @@ header{padding-block:28px 8px}
 .shot{position:relative;aspect-ratio:16/10;max-width:100%;background:#0d0a18;overflow:hidden}
 .shot img{display:block;width:100%;height:100%;object-fit:cover;transition:transform .4s ease}
 .game:hover .shot img{transform:scale(1.04)}
-.badge{position:absolute;left:12px;top:12px;font-family:var(--f-display);font-size:13px;letter-spacing:.04em;background:var(--koralle);color:#fff;padding:5px 10px;border-radius:6px}
+.badge{position:absolute;left:12px;top:12px;font-family:var(--f-display);font-size:13px;letter-spacing:.04em;background:var(--koralle);color:var(--halle);padding:5px 10px;border-radius:6px}
 .info{display:grid;gap:10px;padding:16px 18px 18px;flex:1;align-content:start}
 .tags{display:flex;flex-wrap:wrap;gap:6px}
 .tags span{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--nebel)}
@@ -67,6 +70,8 @@ header{padding-block:28px 8px}
 footer{border-top:1px solid var(--linie);padding-block:22px 34px;color:var(--nebel);font-size:14px}
 footer .wrap{display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:space-between}
 footer nav{display:flex;gap:18px}
+.note.umzug{margin:18px 0 0;border-style:solid;border-color:color-mix(in srgb,var(--orange) 55%,transparent);color:var(--kreide)}
+.note.umzug a{color:var(--muenze);font-weight:600}
 
 @media (max-width:900px){
   .games{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -76,18 +81,22 @@ footer nav{display:flex;gap:18px}
 @media (max-width:600px){
   .games{grid-template-columns:1fr}
   .game.feat .info{padding:18px}
-  .logo img{height:84px}
+  .logo img{height:50px}
 }
 @media (prefers-reduced-motion:reduce){.game,.shot img{transition:none}.game:hover{transform:none}.game:hover .shot img{transform:none}}
 </style>
 
 <header class="wrap">
-  <a class="logo" href="./" aria-label="playaz.fun Startseite">
-    <img src="logo.png" width="720" height="519" alt="playaz.fun">
+  <a class="logo" href="./" aria-label="PlaySaal Startseite">
+    <img src="brand/playsaal-logo-horizontal-dark.svg" width="1140" height="244" alt="PlaySaal">
   </a>
 </header>
 
 <main>
+  <div class="wrap"><div class="note umzug" id="umzugHinweis" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h13M12 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div id="umzugText"></div>
+  </div></div>
   <section class="hero wrap">
     <h1>Einwerfen musst du <em>nichts.</em></h1>
     <p>Sieben Spiele direkt im Browser, am Handy wie am Rechner. Ohne Anmeldung, ohne Download, ohne Werbung. Dein Spielstand bleibt auf deinem Gerät.</p>
@@ -176,12 +185,27 @@ footer nav{display:flex;gap:18px}
 
 <footer>
   <div class="wrap">
-    <span>playaz.fun · Browserspiele ohne Anmeldung</span>
+    <span>PlaySaal · Browserspiele ohne Anmeldung</span>
     <nav aria-label="Rechtliches"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a></nav>
   </div>
 </footer>
 
+<script src="assets/umzug-config.js"></script>
 <script>
+// Umzug-Hinweis (nur wenn PLAYSAAL_UMZUG.aktiv): alte Adresse verweist auf die neue, neue Adresse bietet das Holen an
+(function () {
+  const C = window.PLAYSAAL_UMZUG; if (!C || !C.aktiv) return;
+  const box = document.getElementById('umzugHinweis'), t = document.getElementById('umzugText');
+  const ls = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const host = C.ziel.replace(/^https?:\/\//, '');
+  if ((C.quellen || []).includes(location.origin)) {
+    t.innerHTML = '<b>PlayAZ heißt jetzt PlaySaal.</b> Die Spiele findest du ab sofort unter <a></a>. Deine Spielstände nimmst du dort mit „Spielstände umziehen“ mit.';
+    const a = t.querySelector('a'); a.href = C.ziel + '/umzug'; a.textContent = host; box.hidden = false;
+  } else if (location.origin === C.ziel && !ls('playsaal.umzug.empfangen')) {
+    t.innerHTML = '<b>Früher bei PlayAZ gespielt?</b> <a href="umzug">Spielstände von der alten Adresse holen</a>';
+    box.hidden = false;
+  }
+})();
 (function () {
   const read = k => { try { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v); } catch (e) { return null; } };
   const n = v => Math.floor(v).toLocaleString('de-DE');

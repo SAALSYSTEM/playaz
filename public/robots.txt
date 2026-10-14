@@ -1,2 +1,4 @@
 User-agent: *
 Allow: /
+
+Sitemap: https://playaz.cf-922.workers.dev/sitemap.xml
