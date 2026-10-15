@@ -1169,6 +1169,8 @@ function demoTakt() {
 const SCREENS = ['#sMenu', '#sLevels', '#sAwards', '#sGarage', '#sZeiten', '#oPause', '#oErgebnis', '#oAward'];
 function zeigeNur(sel) {
   for (const s of SCREENS) $(s).hidden = s !== sel;
+  // Klicksperre: Panels blenden ein, ein früher Klick soll keinen frisch erscheinenden Button treffen
+  if (sel) { const el = $(sel); el.classList.add('sperre'); setTimeout(() => el.classList.remove('sperre'), 450); }
   const spiel = sel === null;
   pedaleZeigen(spiel && zustand === 'play');
 }
