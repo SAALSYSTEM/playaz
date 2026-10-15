@@ -1,11 +1,11 @@
-// HAU DIE „POLITIKER“: Level, Spiellogik, Bot-Durchläufe ohne Browser.
-// Start: node --test tests/politiker-sim.test.mjs   (keine weiteren Abhängigkeiten)
+// HAU DIE KAKERLAKE!: Level, Spiellogik, Bot-Durchläufe ohne Browser.
+// Start: node --test tests/kakerlake-sim.test.mjs   (keine weiteren Abhängigkeiten)
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Game, comboMult, starsFor, STEP, COMBO_WINDOW, STRIKE_COOLDOWN, DEFENSE_MAX, POWER_EVERY } from '../public/spiele/hau-die-politiker/sim.js';
-import { LEVELS, CHAPTERS, TYPES, BOSSES, buildPlan, buildEndlessWave, endlessParams, POWER_FROM_LEVEL, FOLLOWUP_LEAD } from '../public/spiele/hau-die-politiker/levels.js';
-import { getLayout, AISLE_IDS, sampleRoute } from '../public/spiele/hau-die-politiker/layout.js';
-import { playBot } from './politiker-bot.mjs';
+import { Game, comboMult, starsFor, STEP, COMBO_WINDOW, STRIKE_COOLDOWN, DEFENSE_MAX, POWER_EVERY } from '../public/spiele/hau-die-kakerlake/sim.js';
+import { LEVELS, CHAPTERS, TYPES, BOSSES, buildPlan, buildEndlessWave, endlessParams, POWER_FROM_LEVEL, FOLLOWUP_LEAD } from '../public/spiele/hau-die-kakerlake/levels.js';
+import { getLayout, AISLE_IDS, sampleRoute } from '../public/spiele/hau-die-kakerlake/layout.js';
+import { playBot } from './kakerlake-bot.mjs';
 
 // Vorgaben aus der Aufgabenstellung
 const TOTALS = [3, 6, 9, 12, 15, 18, 18, 20, 23, 25, 28, 30, 28, 30, 33, 35, 38, 40, 38, 40, 43, 45, 48, 50, 48, 52, 56, 60, 65, 75];

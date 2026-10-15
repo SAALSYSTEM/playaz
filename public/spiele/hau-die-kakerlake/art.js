@@ -1,4 +1,4 @@
-// HAU DIE „POLITIKER“ – Kakerlaken im Parlament: Zeichenfunktionen (Canvas 2D, alles selbst gezeichnet).
+// HAU DIE KAKERLAKE! – Kakerlaken im Parlament: Zeichenfunktionen (Canvas 2D, alles selbst gezeichnet).
 // Saal, Sitze, Türen, Kakerlaken (alle Arten und Bosse), Spielzeughammer, Warnschilder, Kleinteile.
 // Kein Spielzustand hier, nur Zeichnen. Koordinaten sind Layout-Einheiten.
 

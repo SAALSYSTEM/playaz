@@ -1,4 +1,4 @@
-// HAU DIE „POLITIKER“ – Darstellung: Ansicht (Skalierung, Letterbox), Saal-Zwischenspeicher, Effekte.
+// HAU DIE KAKERLAKE! – Darstellung: Ansicht (Skalierung, Letterbox), Saal-Zwischenspeicher, Effekte.
 // Liest nur den Spielzustand und die Ereignisse der Simulation, ändert nichts daran.
 // Reihenfolge der Ebenen: Saal → besetzte Sitze → Texte/Blasen/Gefallene → Warnschilder → Gegner (nach y) →
 // Hammer, Funken, Kleinteile. So liegen Schrift und Sprechblasen immer UNTER den Gegnern.

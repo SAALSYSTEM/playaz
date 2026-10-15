@@ -1,4 +1,4 @@
-// HAU DIE „POLITIKER“ – Kakerlaken im Parlament: Spiellogik.
+// HAU DIE KAKERLAKE! – Kakerlaken im Parlament: Spiellogik.
 // Kein DOM, kein Zufall außerhalb des gesetzten Startwerts: läuft im Browser und in Node (Tests, Bots).
 // Feste Schrittweite von 1/60 s, die Bildrate spielt keine Rolle. Zeit ist reine Simulationszeit:
 // wird nicht aktualisiert (Pause, verborgener Tab), springt nichts nach vorn.

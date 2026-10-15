@@ -1,5 +1,5 @@
-// HAU DIE „POLITIKER“ im Browser: Start, Pause, Neustart, Maus und Touch, Speicherstand, Ergebnis, Layouts.
-// Start: node --test --test-concurrency=1 tests/politiker.test.mjs   (startet wrangler dev selbst, wie tests/playsaal.test.mjs)
+// HAU DIE KAKERLAKE! im Browser: Start, Pause, Neustart, Maus und Touch, Speicherstand, Ergebnis, Layouts.
+// Start: node --test --test-concurrency=1 tests/kakerlake.test.mjs   (startet wrangler dev selbst, wie tests/playsaal.test.mjs)
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn, execSync } from 'node:child_process';
@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.PK_PORT || 8798);
 const BASE = `http://127.0.0.1:${PORT}`;
-const SPIEL = BASE + '/spiele/hau-die-politiker';
+const SPIEL = BASE + '/spiele/hau-die-kakerlake';
 
 function ladePlaywright() {
   const req = createRequire(import.meta.url);
@@ -66,14 +66,14 @@ async function spieleBis(page, ende, touch = false, maxMs = 90000) {
 test('Seite: lädt ohne Fehler, SEO, PlaySaal-Muster (Zurück-Link, zuletzt gespielt), Module erreichbar', async () => {
   const { ctx, page, fehler } = await seite({}, SPIEL);
   await page.waitForFunction(() => document.getElementById('sTitel') && !document.getElementById('sTitel').hidden);
-  assert.match(await page.title(), /POLITIKER/);
-  assert.equal(await page.getAttribute('link[rel=canonical]', 'href'), 'https://playsaal.com/spiele/hau-die-politiker');
-  assert.equal(await page.getAttribute('meta[property="og:url"]', 'content'), 'https://playsaal.com/spiele/hau-die-politiker');
+  assert.match(await page.title(), /Kakerlake/);
+  assert.equal(await page.getAttribute('link[rel=canonical]', 'href'), 'https://playsaal.com/spiele/hau-die-kakerlake');
+  assert.equal(await page.getAttribute('meta[property="og:url"]', 'content'), 'https://playsaal.com/spiele/hau-die-kakerlake');
   assert.match(await page.getAttribute('meta[name=description]', 'content'), /Kakerlaken/);
   assert.equal(await page.getAttribute('a.pz-home', 'href'), '../');
-  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('playsaal.zuletzt')).s), 'hau-die-politiker');
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('playsaal.zuletzt')).s), 'hau-die-kakerlake');
   for (const f of ['game.js', 'sim.js', 'levels.js', 'layout.js', 'render.js', 'art.js', 'audio.js']) assert.equal((await fetch(`${SPIEL}/${f}`)).status, 200, f);
-  assert.equal((await fetch(BASE + '/bilder/hau-die-politiker.jpg')).status, 200);
+  assert.equal((await fetch(BASE + '/bilder/hau-die-kakerlake.jpg')).status, 200);
   assert.ok(!(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)), 'kein Querscrollen');
   assert.deepEqual(fehler, []);
   await ctx.close();
@@ -157,7 +157,7 @@ test('Level 1 gewinnen: Ergebnis mit Sternen, Genauigkeit, Rekord; Fortschritt b
   assert.equal(await page.locator('#eSterne svg.an').count(), 3);
   assert.match(await page.textContent('#eStats'), /3 \/ 3/);
   assert.match(await page.textContent('#eStats'), /\d+ %/);
-  const gespeichert = await page.evaluate(() => JSON.parse(localStorage.getItem('politiker.v1')));
+  const gespeichert = await page.evaluate(() => JSON.parse(localStorage.getItem('kakerlake.v1')));
   assert.equal(gespeichert.stars[1], 3); assert.equal(gespeichert.unlocked, 2); assert.ok(gespeichert.best[1] >= 300);
   await page.reload(); await page.waitForFunction(() => window.__pk);
   await page.click('#tLevels');
@@ -176,7 +176,17 @@ test('Niederlage nach fünf besetzten Sitzen, Ergebnis ohne Sterne, „Erneut ve
   assert.match(await page.textContent('#eTitel'), /Sitze besetzt/);
   assert.equal(await page.locator('#eSterne svg.an').count(), 0);
   assert.equal(await page.textContent('#eWeiter'), 'Erneut versuchen');
-  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('politiker.v1')).unlocked), 1, 'Niederlage schaltet nichts frei');
+  // Punkte teilen: Web-Share-Schnittstelle, sonst Zwischenablage
+  await page.evaluate(() => { window.__geteilt = null; navigator.share = async (d) => { window.__geteilt = d; }; });
+  await page.click('#eTeilen');
+  const d = await page.evaluate(() => window.__geteilt);
+  assert.equal(d.url, 'https://playsaal.com/spiele/hau-die-kakerlake');
+  assert.match(d.text, /Level 8/); assert.match(d.text, /Punkte/); assert.match(d.title, /Kakerlake/);
+  await page.evaluate(() => { navigator.share = undefined; window.__kopiert = null; Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: async (t) => { window.__kopiert = t; } } }); });
+  await page.click('#eTeilen');
+  assert.match(await page.evaluate(() => window.__kopiert), /playsaal\.com\/spiele\/hau-die-kakerlake/);
+  assert.match(await page.textContent('#eStatus'), /kopiert/);
+  assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('kakerlake.v1')).unlocked), 1, 'Niederlage schaltet nichts frei');
   await page.click('#eWeiter');
   assert.equal(await zustand(page), 'play');
   assert.equal(await page.evaluate(() => __pk.game.defense), 5);
@@ -186,7 +196,7 @@ test('Niederlage nach fünf besetzten Sitzen, Ergebnis ohne Sterne, „Erneut ve
 
 test('Speicher: beschädigte Daten blockieren nichts, Ton aus bleibt gespeichert', async () => {
   for (const kaputt of ['{{{', 'null', '[1,2]', JSON.stringify({ unlocked: 'x', stars: { 1: 99, 2: 'a' }, best: 5, sound: 0, endless: 3 })]) {
-    const { ctx, page, fehler } = await seite({}, SPIEL + '?test', `localStorage.setItem('politiker.v1', ${JSON.stringify(kaputt)})`);
+    const { ctx, page, fehler } = await seite({}, SPIEL + '?test', `localStorage.setItem('kakerlake.v1', ${JSON.stringify(kaputt)})`);
     await page.click('#tLevels');
     assert.ok(await page.locator('.lv:not([disabled])').count() >= 1, 'Level 1 frei bei ' + kaputt);
     assert.equal(await page.locator('.lv:not([disabled])').count() <= 3, true);
@@ -245,7 +255,7 @@ test('Dauersitzung: gesperrt bis Level 30, danach spielbar mit Wellenanzeige', a
   await page.evaluate(() => __pk.resetStore());
   await page.click('#tLevels');
   assert.ok(await page.isDisabled('#lDauer'));
-  await page.evaluate(() => localStorage.setItem('politiker.v1', JSON.stringify({ v: 1, unlocked: 31, stars: { 30: 2 } })));
+  await page.evaluate(() => localStorage.setItem('kakerlake.v1', JSON.stringify({ v: 1, unlocked: 31, stars: { 30: 2 } })));
   await page.reload(); await page.waitForFunction(() => window.__pk);
   await page.click('#tDauer');
   assert.equal(await zustand(page), 'ready');

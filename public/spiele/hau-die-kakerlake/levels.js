@@ -1,4 +1,4 @@
-// HAU DIE „POLITIKER“ – Kakerlaken im Parlament: Leveldaten, Gegnerarten und reproduzierbare Spawnpläne.
+// HAU DIE KAKERLAKE! – Kakerlaken im Parlament: Leveldaten, Gegnerarten und reproduzierbare Spawnpläne.
 // Reine Daten und Mathematik, kein DOM. Jeder Plan ist über einen festen Zufallsstart (Level-Nummer)
 // vollständig vorherbestimmt, damit schwierige Stellen nachvollziehbar bleiben und Tests exakt rechnen können.
 // Alles Erfundene: keine echten Personen, Parteien, Logos oder Porträts.

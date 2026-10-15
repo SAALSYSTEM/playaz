@@ -1,4 +1,4 @@
-// HAU DIE „POLITIKER“ – Kakerlaken im Parlament: Steuerung, Oberfläche, Speicherstand.
+// HAU DIE KAKERLAKE! – Kakerlaken im Parlament: Steuerung, Oberfläche, Speicherstand.
 // Verbindet Simulation (sim.js), Darstellung (render.js) und Ton (audio.js). Alle Eingaben sind pointerdown.
 
 import { Game } from './sim.js';
@@ -6,7 +6,7 @@ import { LEVELS, CHAPTERS, LEVEL_COUNT, BOSSES, POWER_FROM_LEVEL } from './level
 import { Renderer } from './render.js';
 import { Sound } from './audio.js';
 
-const KEY = 'politiker.v1';
+const KEY = 'kakerlake.v1';
 const ALL = ['C', 'L1', 'R1', 'L2', 'R2'];
 const MIN_HIT_CSS = 22;                 // mindestens 44 CSS-Pixel Trefferfläche
 const $ = (id) => document.getElementById(id);
@@ -48,6 +48,7 @@ let current = null;                     // 1…30 | 'endless'
 let layoutName = 'land';
 let last = performance.now();
 let endT = 0;
+let lastSummary = null;
 let attempt = 0;
 const hudCache = {};
 
@@ -173,6 +174,7 @@ function finish(summary) {
     if (Math.floor(summary.time) > e.time) e.time = Math.floor(summary.time);
   }
   save();
+  lastSummary = summary;
   fillResult(summary, neuerRekord);
   setState('result');
   sound.play(summary.won ? 'win' : 'lose');
@@ -186,6 +188,7 @@ function starSvg(on) {
 function statBox(label, val, cls) { return '<div' + (cls ? ' class="' + cls + '"' : '') + '><small>' + label + '</small><b>' + val + '</b></div>'; }
 
 function fillResult(s, neuerRekord) {
+  $('eStatus').textContent = '';
   const endless = s.mode === 'endless';
   $('eTitel').textContent = endless ? 'Sitzung beendet' : s.won ? 'Sitzung gerettet!' : 'Alle Sitze besetzt!';
   $('eSub').textContent = endless ? 'Dauersitzung' : 'Level ' + s.level + ' · ' + LEVELS[s.level - 1].name;
@@ -411,6 +414,36 @@ $('eWeiter').addEventListener('click', () => {
 $('eNochmal').addEventListener('click', () => startLevel(current, true));
 $('eLevels').addEventListener('click', () => (current === 'endless' ? toTitle() : toLevels()));
 
+// ------------------------------------------------------------------ Punkte teilen
+const SHARE_URL = 'https://playsaal.com/spiele/hau-die-kakerlake';
+const SHARE_TITLE = 'Hau die Kakerlake! – Chaos im Parlament';
+function shareText(s) {
+  const pts = fmt(s.score) + ' Punkte';
+  if (s.mode === 'endless') return 'Ich habe in der Dauersitzung von „' + SHARE_TITLE + '“ ' + pts + ' geholt (Welle ' + s.wave + ', ' + fmtTime(s.time) + ' durchgehalten). Schaffst du mehr?';
+  const stars = s.won ? ' ' + '★'.repeat(s.stars) + '☆'.repeat(3 - s.stars) : '';
+  return 'Ich habe in Level ' + s.level + ' von „' + SHARE_TITLE + '“ ' + pts + ' geholt' + stars + (s.won ? '' : ' (leider nicht geschafft)') + '. Schaffst du mehr?';
+}
+async function sharePoints() {
+  const s = lastSummary, out = $('eStatus');
+  if (!s) return;
+  const text = shareText(s);
+  if (navigator.share) {
+    try { await navigator.share({ title: SHARE_TITLE, text, url: SHARE_URL }); out.textContent = 'Geteilt.'; return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  const full = text + ' ' + SHARE_URL;
+  try { await navigator.clipboard.writeText(full); out.textContent = 'Text kopiert. Jetzt in einen Chat einfügen.'; return; } catch (e) { /* weiter */ }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = full; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;left:-999px;top:0';
+    document.body.appendChild(ta); ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    out.textContent = ok ? 'Text kopiert. Jetzt in einen Chat einfügen.' : full;
+  } catch (e) { out.textContent = full; }
+}
+$('eTeilen').addEventListener('click', sharePoints);
+
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { pauseGame(); sound.suspend(); } else { sound.resume(); last = performance.now(); }
 });
@@ -424,7 +457,7 @@ requestAnimationFrame((t) => { last = t; frame(t); });
 
 if (TEST) {
   window.__pk = {
-    get game() { return game; }, get state() { return state; }, renderer, store: () => store,
+    get game() { return game; }, share: shareText, get state() { return state; }, renderer, store: () => store,
     start: (id, direct = true) => { sound.unlock(); startLevel(id, direct); }, resize,
     toLogical: (x, y) => renderer.toLogical(x, y), pause: pauseGame, resume: resumeGame,
     resetStore: () => { store = sanitize(null); save(); }

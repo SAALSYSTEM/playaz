@@ -1,7 +1,7 @@
-// Spielbots für HAU DIE „POLITIKER“: spielen ein Level mit festgelegter Reaktionszeit, Schlagtempo und Trefferquote
+// Spielbots für HAU DIE KAKERLAKE!: spielen ein Level mit festgelegter Reaktionszeit, Schlagtempo und Trefferquote
 // durch. Sie nutzen nur die öffentliche Schnittstelle (strike/arm), wie ein Mensch am Bildschirm.
-import { Game, STEP } from '../public/spiele/hau-die-politiker/sim.js';
-import { mulberry32 } from '../public/spiele/hau-die-politiker/levels.js';
+import { Game, STEP } from '../public/spiele/hau-die-kakerlake/sim.js';
+import { mulberry32 } from '../public/spiele/hau-die-kakerlake/levels.js';
 
 // reaction: Sekunden, bis ein neuer Gegner bemerkt wird. base + perUnit·Entfernung: Zeit für die Zeigerbewegung zum
 // nächsten Ziel (Layout-Einheiten). accuracy: Anteil der Schläge, die zielen wie vorgesehen (Rest geht daneben).

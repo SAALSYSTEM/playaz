@@ -1,4 +1,4 @@
-// HAU DIE „POLITIKER“ – Ton: alles per WebAudio erzeugt, keine Dateien. Der AudioContext entsteht erst nach der
+// HAU DIE KAKERLAKE! – Ton: alles per WebAudio erzeugt, keine Dateien. Der AudioContext entsteht erst nach der
 // ersten Bedienung (unlock). Stummschalten wirkt sofort und vollständig (Master-Gain = 0, keine neuen Töne).
 
 export class Sound {

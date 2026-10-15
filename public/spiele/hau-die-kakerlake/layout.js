@@ -1,4 +1,4 @@
-// HAU DIE „POLITIKER“: Geometrie des Plenarsaals.
+// HAU DIE KAKERLAKE!: Geometrie des Plenarsaals.
 // Zwei Layouts (Querformat "land", Hochformat "port") mit derselben Topologie: fünf Gänge, je ein Eingang am
 // äußeren Ende, je Gang zwölf Zielsitze (6 Tiefen × 2 Seiten). Nur die Maße unterscheiden sich, damit ein
 // Wechsel zwischen Hoch- und Querformat mitten in der Runde die Gegner nicht verliert: ein Gegner wird
