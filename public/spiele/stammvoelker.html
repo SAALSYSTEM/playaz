@@ -453,7 +453,7 @@ function updateTrees(dt) {
   if (treesDirty && treeTimer > 0.12) { treeTimer = 0; rebuildTrees(); }
 }
 const treesOn = t => trees.reduce((n, tr) => n + (tr.tile === t && !tr.fell ? 1 : 0), 0);
-const reach = t => t.ch !== 'w' && (t.x >= 3 || t.z <= 1) && t.z <= 6; // Seite des Lagers, ohne Flussufer gegenüber
+const reach = t => t.ch !== 'w' && !t.fog && (((t.x >= 3 || t.z <= 1) && t.z <= 6) || t.open); // Seite des Lagers, ohne Flussufer gegenüber
 
 // Felsen
 const rockGeo = new T.DodecahedronGeometry(0.22, 0);
@@ -812,7 +812,7 @@ function stonePlan(a) {
 // Sammlerin: Beeren pflücken, zum Vorrat bringen
 function gathererPlan(a) {
   if (!SEASONS[seasonI].food) return [{ t: 'walk', to: V(firePos.x + R(-0.8, 0.8), 0, firePos.z + R(0.35, 0.9)) }, { t: 'wait', d: R(3, 6) }];
-  const b = pick(bushes.filter(b => b.tile.x >= 3 && b.tile.z <= 6));
+  const b = pick(bushes.filter(b => !b.tile.fog && ((b.tile.x >= 3 && b.tile.z <= 6) || b.tile.open)));
   const spot = near(villageCenter, b.p, 0.28);
   return [
     { t: 'walk', to: spot },
@@ -869,7 +869,52 @@ person({ ...look(), shirt: '#E6CC9E', sash: '#E07A3A', tool: 'basket', pants: '#
 const fisher = person({ ...look(), shirt: '#2F9C95', sash: '#E6CC9E', hat: '#C9A876' }, fisherPlan, pierT.wx - 0.92 + 0.38, pierT.wz, { name: 'Fischer' });
 fisher.o.position.set(pierT.wx - 0.86, 0.02, pierT.wz - 0.02); fisher.o.rotation.y = -Math.PI / 2;
 const builder = person({ ...look(), shirt: '#B07A45', sash: '#2F9C95', tool: 'hammer' }, builderPlan, firePos.x + 0.9, firePos.z + 0.5, { name: 'Baumeister' });
-person({ ...look(), shirt: '#E6CC9E', cloak: '#E07A3A', tool: 'staff', scarf: '#2F9C95' }, scoutPlan, patrol[0].x, patrol[0].z, { name: 'Späher', speed: 0.62 });
+const scout = person({ ...look(), shirt: '#E6CC9E', cloak: '#E07A3A', tool: 'staff', scarf: '#2F9C95' }, scoutPlan, patrol[0].x, patrol[0].z, { name: 'Späher', speed: 0.62 });
+
+// ---------- Nebel: unentdecktes Land, der Späher deckt es auf ----------
+const zones = [{ id: 'sued', name: 'Südland', cost: 10, fog: true, busy: false, go: V(9.6 - 5.5 + 0.5, 0, 9 - 5.5), tiles: tiles.filter(t => t.x >= 8 && t.z >= 7), puffs: [] }];
+const fogMat = new T.MeshStandardMaterial({ color: C('#ffffff'), emissive: C('#b4c3cf'), emissiveIntensity: 0.55, flatShading: true, roughness: 1 });
+const fogGeo = new T.IcosahedronGeometry(0.8, 1);
+const fading = [];
+zones.forEach(z => z.tiles.forEach(t => {
+  t.fog = true; t.zone = z.id;
+  for (let k = 0; k < 2; k++) {
+    const m = new T.Mesh(fogGeo, fogMat); m.position.set(t.wx + R(-0.25, 0.25), t.top + 0.5 + R(0, 0.25), t.wz + R(-0.25, 0.25));
+    m.scale.set(R(0.9, 1.25), R(0.8, 1.05), R(0.9, 1.25)); m.rotation.y = R(0, 6); scene.add(m); z.puffs.push(m);
+  }
+}));
+function openZone(z, instant) {
+  z.fog = false; z.busy = false;
+  z.tiles.forEach(t => { t.fog = false; t.open = true; });
+  z.puffs.forEach(m => { if (instant) scene.remove(m); else fading.push({ m, t: -R(0, 0.5), s: m.scale.clone(), y: m.position.y }); });
+  z.puffs = [];
+}
+function updateFog(dt) {
+  for (let i = fading.length - 1; i >= 0; i--) {
+    const f = fading[i]; f.t += dt; if (f.t < 0) continue;
+    const k = Math.min(1, f.t / 1.3), e = 1 - (1 - k) * (1 - k);
+    f.m.scale.copy(f.s).multiplyScalar(1 - e); f.m.position.y = f.y + e * 0.6;
+    if (k >= 1) { scene.remove(f.m); fading.splice(i, 1); }
+  }
+}
+function explore(id) {
+  const z = zones.find(q => q.id === id); if (!z || z.busy || !z.fog) return;
+  if (state.food < z.cost) { toast('Es fehlen ' + (z.cost - state.food) + ' Nahrung', 'Der Späher braucht Proviant'); return; }
+  state.food -= z.cost; updateHud('pFood'); z.busy = true; sound('build');
+  scout.reset();
+  scout.q = [
+    { t: 'walk', to: z.go, speed: 0.85 },
+    { t: 'wait', d: 16 },
+    { t: 'walk', to: patrol[0], speed: 0.85 },
+    { t: 'do', fn: () => { openZone(z); toast(z.name + ' entdeckt', 'Neue Bauplätze, Bäume und Beeren'); sound('done'); save(); } }
+  ];
+  chip('Der <b>Späher</b> bricht ins Unbekannte auf', 5000);
+}
+function fogChip(t) {
+  const z = zones.find(q => q.id === t.zone);
+  if (z.busy) return '<b>Unbekanntes Land</b> · Der Späher ist unterwegs …';
+  return '<b>Unbekanntes Land</b><button type="button" class="up" data-explore="' + z.id + '">Späher aussenden<span>' + ICON.food + z.cost + '</span></button>';
+}
 person({ skin: pick(SKIN), hair: pick(HAIR), shirt: '#F6CF5E', sash: '#2F9C95', tool: 'toy', scale: 0.72 }, childPlan, firePos.x + 0.6, firePos.z, { name: 'Kind' });
 const elder = person({ skin: '#D9A066', hair: '#cfc6bb', shirt: '#E07A3A', scarf: '#E6CC9E', sash: '#2F9C95' }, () => [{ t: 'wait', d: 6, anim: 'sit', keepY: true }], firePos.x - 0.32, firePos.z - 0.36, { name: 'Älteste' });
 elder.o.position.set(firePos.x - 0.3, 0.07, firePos.z - 0.48); elder.o.rotation.y = 0.55;
@@ -920,7 +965,7 @@ const KINDS = Object.keys(BUILD);
 const RES = { wood: 'Holz', stone: 'Stein', food: 'Nahrung' };
 const lacking = cost => Object.entries(cost).filter(([r, n]) => state[r] < n).map(([r, n]) => (n - state[r]) + ' ' + RES[r]).join(', ');
 const pay = cost => { for (const r in cost) state[r] -= cost[r]; };
-const buildable = t => t.ch === 'g' && !t.occ && t.x >= 3 && t.x <= 11 && t.z >= 2 && t.z <= 6 && !(t.x === 3 && t.z === 2) && treesOn(t) === 0;
+const buildable = t => t.ch === 'g' && !t.occ && !t.fog && ((t.x >= 3 && t.x <= 11 && t.z >= 2 && t.z <= 6 && !(t.x === 3 && t.z === 2)) || t.open) && treesOn(t) === 0;
 const hlMat = new T.MeshBasicMaterial({ color: C('#c8ffd4'), transparent: true, opacity: 0.6, depthWrite: false });
 const hlGeo = new T.BoxGeometry(0.86, 0.02, 0.86);
 const highlight = new T.InstancedMesh(hlGeo, hlMat, 64); highlight.frustumCulled = false; highlight.count = 0; scene.add(highlight);
@@ -1158,7 +1203,7 @@ function sound(kind) {
 let toastT = 0;
 function toast(title, sub) { const el = $('#toast'); el.innerHTML = ''; el.append(title); if (sub) { const s = document.createElement('small'); s.textContent = sub; el.append(s); } el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); }
 let chipTimer = 0;
-function chip(html, ms) { const el = $('#chip'); el.innerHTML = html; el.classList.toggle('act', html.includes('data-up')); el.hidden = false; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); clearTimeout(chipTimer); chipTimer = setTimeout(() => { el.hidden = true; }, ms || 4200); }
+function chip(html, ms) { const el = $('#chip'); el.innerHTML = html; el.classList.toggle('act', html.includes('data-up') || html.includes('data-explore')); el.hidden = false; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); clearTimeout(chipTimer); chipTimer = setTimeout(() => { el.hidden = true; }, ms || 4200); }
 const hintAt = {};
 function hintOnce(key, html, every) { const n = Date.now(); if (hintAt[key] && n - hintAt[key] < every) return; hintAt[key] = n; if (started) chip(html); }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -1258,6 +1303,7 @@ function onTap(x, y) {
   }
   if (!t) { sel.visible = false; return; }
   sel.position.set(t.wx, t.top + 0.015, t.wz); sel.visible = true; selT = 0;
+  if (t.fog) { sel.visible = false; chip(fogChip(t), 8000); sound('tap'); return; }
   const bb = t.occ && t.occ !== 'site' ? builtAt(t.x, t.z) : null;
   if (bb) chip(upChip(bb), 8000); else chip(tileInfo(t));
   sound('tap');
@@ -1328,7 +1374,7 @@ function upgrade(b) {
   else { spawnWorker(b.kind, b.x, b.z); toast(BUILD[b.kind].name + ' ausgebaut', 'Stufe ' + b.lvl + ' · ein Arbeiter mehr'); }
   updateHud('pWood'); chip(upChip(b), 8000); save();
 }
-$('#chip').addEventListener('click', e => { const u = e.target.closest('[data-up]'); if (!u) return; const [x, z] = u.dataset.up.split(',').map(Number), b = builtAt(x, z); if (b) upgrade(b); });
+$('#chip').addEventListener('click', e => { const ex = e.target.closest('[data-explore]'); if (ex) { explore(ex.dataset.explore); return; } const u = e.target.closest('[data-up]'); if (!u) return; const [x, z] = u.dataset.up.split(',').map(Number), b = builtAt(x, z); if (b) upgrade(b); });
 
 // ---------- Speichern (nur in diesem Browser) ----------
 const KEY = 'stammvoelker.v1';
@@ -1336,7 +1382,7 @@ function save() {
   try {
     const f2 = v => Math.round(v * 100) / 100;
     localStorage.setItem(KEY, JSON.stringify({
-      v: 1, wood: state.wood, stone: state.stone, food: state.food, pop: state.pop, cap: state.cap, m: Math.round(meal.t), h: meal.hungry,
+      v: 1, wood: state.wood, stone: state.stone, food: state.food, pop: state.pop, cap: state.cap, m: Math.round(meal.t), h: meal.hungry, z: zones.filter(z => !z.fog).map(z => z.id),
       b: built.map(b => [b.kind, b.x, b.z, b.lvl]),
       s: sites.filter(s => !s.done).map(s => [s.kind, s.tile.x, s.tile.z]),
       t: trees.filter(tr => !tr.fell).map(tr => [tr.tile.x, tr.tile.z, f2(tr.ox), f2(tr.oz), tr.kind === 'c' ? 0 : 1, f2(tr.s), f2(tr.ry), f2(tr.g), f2(tr.tint)])
@@ -1351,6 +1397,7 @@ function load() {
   const num = (v, d) => Number.isFinite(v) ? Math.max(0, Math.min(99999, Math.round(v))) : d;
   state.wood = num(o.wood, state.wood); state.stone = num(o.stone, state.stone); state.food = num(o.food, state.food);
   state.pop = Math.max(1, num(o.pop, state.pop)); state.cap = Math.max(state.pop, num(o.cap, state.cap));
+  for (const id of Array.isArray(o.z) ? o.z : []) { const z = zones.find(q => q.id === id); if (z && z.fog) openZone(z, true); }
   state.food = Math.min(state.food, Math.max(60, state.pop * 8));
   if (Number.isFinite(o.m)) meal.t = clamp(o.m, 1, MEAL_SEC); if (Number.isFinite(o.h)) meal.hungry = clamp(Math.round(o.h), 0, 9);
   if (Array.isArray(o.t)) {
@@ -1388,6 +1435,7 @@ $('#goBtn').addEventListener('click', () => {
   try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; }
   setTimeout(() => { if (!hintGone) hideHint(); }, 6000);
   setTimeout(() => chip('Tippe auf <b>Bauen</b>. Holz bringen die Holzfäller'), 900);
+  setTimeout(() => { if (zones.some(z => z.fog)) chip('Im <b>Nebel</b> liegt unentdecktes Land. Tippe darauf', 6000); }, 25000);
 });
 if (/[?&]direkt\b/.test(location.search)) { started = true; $('#start').classList.add('out'); }
 
@@ -1424,7 +1472,7 @@ function tick(now) {
   if (sel.visible) { selT += dt; sel.scale.setScalar(1 + Math.max(0, 0.12 - selT * 0.6)); }
   if (buildMode) hlMat.opacity = 0.5 + Math.sin(time * 5) * 0.18;
   updateSeason(dt); updateSeasonClock(dt);
-  updateTrees(dt);
+  updateTrees(dt); updateFog(dt);
   if (started) { checkArrivals(dt); updateMeal(dt); saveT += dt; if (saveT > 8) { saveT = 0; save(); } }
   updatePrecip(dt, time);
   updateFloats(dt);
