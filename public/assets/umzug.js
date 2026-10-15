@@ -22,6 +22,8 @@
   // "haupt" = Schlüssel, die echten Fortschritt enthalten (Ton an/aus zählt nicht als Spielstand).
   // Neues Spiel mit eigenem Präfix? Hier eintragen, sonst wird es nicht mit umgezogen.
   const SPIELE = [
+    { id: 'schraeglage', name: 'Schräglage', prefix: 'schraeglage.', haupt: ['schraeglage.v1'],
+      info: (g) => { const d = J(g['schraeglage.v1']) || {}; const lv = Object.values(d.levels || {}).filter((l) => l && l.done); const gold = lv.filter((l) => l.gold).length; return { text: lv.length + ' von 30 Level · ' + gold + ' Gold', wert: lv.length * 100 + gold * 10 + Object.keys(d.awards || {}).length }; } },
     { id: 'sondengaenger', name: 'Sondengänger', prefix: 'sondengaenger.', haupt: ['sondengaenger.v1'],
       info: (g) => { const d = J(g['sondengaenger.v1']) || {}; const st = d.stats || {}; const serie = (d.daily && d.daily.streak) || 0; return { text: zahl(st.finds) + ' Funde · Stufe ' + zahl(d.lvl || 1) + (serie > 1 ? ' · Serie ' + zahl(serie) : ''), wert: (d.xp || 0) + (st.finds || 0) * 10 }; } },
     { id: 'stammvoelker', name: 'Stammvölker', prefix: 'stammvoelker.', haupt: ['stammvoelker.v1'],

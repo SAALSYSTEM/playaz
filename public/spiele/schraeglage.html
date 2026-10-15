@@ -1,0 +1,387 @@
+<!doctype html><html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>SCHRÄGLAGE · Physik-Fahrspiel · PlaySaal</title>
+<link rel="canonical" href="https://playsaal.com/spiele/schraeglage">
+<meta name="description" content="Verrücktes Physik-Fahrspiel: Gas, Bremse und Gefühl. Bring Geländewagen, Monstertruck und LKW über Hügel, Wippen und Brücken ins Ziel. 30 Level, Goldzeiten und Awards, ohne Anmeldung.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="SCHRÄGLAGE · PlaySaal"><meta property="og:description" content="Physik-Fahrspiel mit 30 Leveln: Gas geben, Bremse dosieren, nicht überschlagen. Schaffst du die Goldzeit?"><meta property="og:url" content="https://playsaal.com/spiele/schraeglage"><meta property="og:image" content="https://playsaal.com/bilder/schraeglage.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="600"><meta property="og:image:alt" content="SCHRÄGLAGE: Geländewagen springt über eine Schlucht"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playsaal.com/bilder/schraeglage.jpg">
+<meta name="theme-color" content="#11121A">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="modulepreload" href="schraeglage/planck.js"><link rel="modulepreload" href="schraeglage/sim.js"><link rel="modulepreload" href="schraeglage/levels.js">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Schräglage","url":"https://playsaal.com/spiele/schraeglage","inLanguage":"de","genre":["Fahrspiel","Geschicklichkeitsspiel","Physikspiel"],"gamePlatform":"Webbrowser","applicationCategory":"Game","operatingSystem":"Alle","isAccessibleForFree":true,"publisher":{"@type":"Organization","name":"PlaySaal"}}</script>
+<script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'schraeglage',t:Date.now()}))}catch(e){}</script>
+<style>
+/* SCHRÄGLAGE: Spielwelt bunt, Bedienelemente in den PlaySaal-Farbrollen:
+   Anthrazit = Bühne/Panels, Gelb = Aktionen (schwarze Schrift), Orange = Auszeichnungen/Highlights. */
+:root{
+  --basis:#11121A; --flaeche:#1a1b26; --flaeche-hell:#262838; --marke:#FF9200; --aktion:#FFD21C; --aktion-hover:#FFDD4D;
+  --text:#f6f7f9; --leise:#b6b9c8; --linie:rgba(246,247,249,.14);
+  --f-display:"Dela Gothic One","Arial Black",Impact,sans-serif; --f-text:"Barlow","Segoe UI",system-ui,sans-serif;
+  --f-zahl:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px); --sl:env(safe-area-inset-left,0px); --sr:env(safe-area-inset-right,0px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--basis);color:var(--text);font:16px/1.4 var(--f-text);overflow:hidden;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#game{position:fixed;inset:0;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+:focus-visible{outline:3px solid var(--aktion);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- HUD ---------- */
+.hud{position:absolute;left:0;right:0;top:0;padding:calc(var(--st) + 10px) calc(var(--sr) + 10px) 0 calc(var(--sl) + 56px);display:flex;align-items:flex-start;gap:8px;pointer-events:none;z-index:5}
+.hud>*{pointer-events:auto}
+.chip{display:flex;align-items:center;gap:8px;height:36px;padding:0 12px;border-radius:10px;background:rgba(17,18,26,.78);border:1px solid var(--linie);font-weight:700;white-space:nowrap;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.lvchip{min-width:0;flex:0 1 auto}
+.lvchip b{font-family:var(--f-zahl);font-size:20px;color:var(--marke)}
+.lvchip span{overflow:hidden;text-overflow:ellipsis;font-size:15px}
+.zeit{position:absolute;left:50%;top:calc(var(--st) + 6px);transform:translateX(-50%);text-align:center;pointer-events:none}
+.zeit b{display:block;font:700 34px/1 var(--f-zahl);font-variant-numeric:tabular-nums;letter-spacing:.01em;text-shadow:0 2px 0 rgba(0,0,0,.35),0 0 14px rgba(0,0,0,.35)}
+.zeit small{display:inline-block;margin-top:3px;padding:1px 8px;border-radius:6px;background:rgba(17,18,26,.66);font:600 13px/1.4 var(--f-zahl);letter-spacing:.04em;color:var(--leise)}
+.zeit small.gold{color:var(--marke)}
+.hud .rechts{margin-left:auto;display:flex;gap:8px}
+.ibtn{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:rgba(17,18,26,.78);border:1px solid var(--linie);padding:0;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.ibtn svg{width:20px;height:20px}
+.ibtn:hover{background:rgba(38,40,56,.92)}
+.fortschritt{position:absolute;left:calc(var(--sl) + 14px);right:calc(var(--sr) + 14px);top:calc(var(--st) + 56px);height:8px;border-radius:99px;background:rgba(17,18,26,.55);z-index:4;pointer-events:none}
+.fortschritt i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,rgba(255,146,0,.65),var(--marke));width:0}
+.fortschritt em{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#fff;border:3px solid var(--marke);left:0}
+.fortschritt em.geist{background:rgba(255,255,255,.4);border-color:rgba(255,255,255,.7);width:10px;height:10px;margin:-5px 0 0 -5px;border-width:2px}
+.fortschritt u{position:absolute;right:-4px;top:-7px;width:16px;height:22px;text-decoration:none;background:conic-gradient(#fff 0 25%,#11121A 0 50%,#fff 0 75%,#11121A 0) 0 0/8px 8px;border-radius:2px;border:1px solid rgba(0,0,0,.4)}
+@media (max-width:560px){.lvchip span{display:none}.zeit b{font-size:30px}}
+@media (max-height:420px){.zeit b{font-size:28px}.fortschritt{top:calc(var(--st) + 54px)}}
+
+/* ---------- Pedale (Touch) ---------- */
+.pedale{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;padding:0 calc(var(--sr) + 14px) calc(var(--sb) + 14px) calc(var(--sl) + 14px);pointer-events:none;z-index:4}
+.pedal{pointer-events:auto;width:min(34vw,170px);height:min(26vh,128px);min-height:84px;border-radius:22px;border:2px solid rgba(246,247,249,.25);display:grid;place-items:center;touch-action:none;transition:transform .06s,background .06s;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.pedal svg{width:44px;height:44px}
+.pedal span{position:absolute;bottom:10px;font:700 13px/1 var(--f-text);letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.pedal{position:relative}
+#pBremse{background:rgba(17,18,26,.55);color:var(--text)}
+#pGas{background:rgba(255,210,28,.82);color:var(--basis);border-color:rgba(255,210,28,.9)}
+.pedal.an{transform:scale(.94)}
+#pBremse.an{background:rgba(38,40,56,.85)}
+#pGas.an{background:var(--aktion)}
+.zonen{position:absolute;inset:0;display:flex;z-index:3}
+.zonen div{flex:1;touch-action:none}
+
+/* ---------- Hinweise ---------- */
+.hilfe{position:absolute;left:50%;bottom:calc(var(--sb) + 26px);transform:translateX(-50%);z-index:6;display:flex;gap:14px;align-items:center;padding:10px 16px;border-radius:14px;background:rgba(17,18,26,.86);border:1px solid var(--linie);font-weight:600;pointer-events:none;white-space:nowrap;animation:puls 1.6s ease-in-out infinite}
+.hilfe kbd{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px;border-radius:7px;background:var(--flaeche-hell);border:1px solid var(--linie);border-bottom-width:3px;font:700 15px/1 var(--f-text)}
+.hilfe .touch{display:none}
+body.touch .hilfe{bottom:calc(var(--sb) + min(26vh,128px) + 34px)}
+body.touch .hilfe .taste{display:none}
+body.touch .hilfe .touch{display:inline}
+@keyframes puls{50%{opacity:.75}}
+.tipp{position:absolute;left:50%;top:calc(var(--st) + 76px);transform:translateX(-50%);z-index:5;max-width:min(92vw,520px);padding:8px 14px;border-radius:12px;background:rgba(17,18,26,.8);color:var(--text);font-weight:600;font-size:15px;text-align:center;pointer-events:none}
+.banner{position:absolute;left:50%;top:calc(var(--st) + 76px);transform:translateX(-50%);z-index:6;display:flex;gap:10px;align-items:center;width:max-content;max-width:min(94vw,560px);padding:9px 14px;border-radius:12px;background:rgba(17,18,26,.9);border:1px solid rgba(255,146,0,.6);font-size:15px;font-weight:600;pointer-events:none}
+.banner svg{flex:none;width:20px;height:20px;color:var(--marke)}
+.banner small{display:block;color:var(--leise);font-weight:500;font-size:13px}
+.toasts{position:absolute;left:50%;top:calc(var(--st) + 120px);transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toasts div{padding:9px 14px;border-radius:12px;background:rgba(17,18,26,.94);border:1px solid rgba(255,146,0,.6);font-weight:600;animation:rein .25s ease-out both;white-space:nowrap}
+@keyframes rein{from{opacity:0;transform:translateY(-8px)}}
+
+/* ---------- Crash ---------- */
+.crash{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);z-index:8;text-align:center;pointer-events:none}
+.crash b{display:block;font:400 clamp(44px,10vw,84px)/1 var(--f-display);color:#fff;text-shadow:0 5px 0 rgba(0,0,0,.35);transform:rotate(-6deg);animation:knall .35s cubic-bezier(.2,1.6,.4,1) both}
+.crash span{display:inline-block;margin-top:12px;padding:6px 12px;border-radius:10px;background:rgba(17,18,26,.85);font-weight:600}
+.crash small{display:block;margin-top:8px;color:#fff;font-weight:600;text-shadow:0 1px 4px rgba(0,0,0,.8)}
+@keyframes knall{from{transform:rotate(-6deg) scale(.2);opacity:0}}
+.ziel{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%) rotate(-5deg);z-index:8;font:400 clamp(56px,13vw,120px)/1 var(--f-display);color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.3);pointer-events:none;animation:knall .45s cubic-bezier(.2,1.6,.4,1) both}
+
+/* ---------- Bildschirme ---------- */
+.screen{position:absolute;inset:0;z-index:20;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding:calc(var(--st) + 12px) calc(var(--sr) + 16px) calc(var(--sb) + 24px) calc(var(--sl) + 16px)}
+.screen.voll{background:rgba(17,18,26,.96)}
+.kopf{display:flex;align-items:center;gap:12px;max-width:980px;margin:0 auto 14px;min-height:44px}
+.kopf h2{margin:0;font:400 26px/1.1 var(--f-display);letter-spacing:-.01em}
+@media (max-width:1060px){.kopf{padding-left:42px}}
+@media (max-width:420px){.kopf h2{font-size:22px}}
+.kopf .zahl{margin-left:auto;color:var(--leise);font-weight:600}
+.zurueck{width:44px;height:44px;border-radius:12px;border:1px solid var(--linie);background:var(--flaeche);display:grid;place-items:center;padding:0;flex:none}
+.zurueck svg{width:22px;height:22px}
+
+#sMenu{display:flex;flex-direction:column;justify-content:center;padding-left:calc(var(--sl) + 56px);background:linear-gradient(90deg,rgba(17,18,26,.92) 0,rgba(17,18,26,.78) 420px,rgba(17,18,26,.15) 760px,rgba(17,18,26,0))}
+.menu-in{width:min(100%,400px);display:flex;flex-direction:column;gap:10px}
+.titel{margin:0 0 4px;font:400 clamp(44px,8.6vw,64px)/.95 var(--f-display);letter-spacing:-.01em;transform:rotate(-6deg) translateX(-2px);transform-origin:left bottom}
+.titel span{display:block}
+.titel span:last-child{position:relative;display:inline-block;padding:0 10px 4px 2px}
+.titel span:last-child::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:12px;background:var(--marke);z-index:-1;transform:skewX(-14deg)}
+.unter{margin:6px 0 14px;color:var(--leise);font-weight:600}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 22px;border-radius:999px;border:0;background:var(--aktion);color:var(--basis);font:700 18px/1 var(--f-text);text-decoration:none;cursor:pointer}
+.btn:hover{background:var(--aktion-hover)}
+.btn small{font-weight:600;opacity:.8;font-size:15px}
+.btn svg{width:18px;height:18px}
+.btn2{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 16px;border-radius:14px;border:1px solid var(--linie);background:rgba(26,27,38,.92);color:var(--text);font:600 17px/1 var(--f-text);text-decoration:none;cursor:pointer}
+.btn2:hover{background:var(--flaeche-hell)}
+.btn2 svg{width:22px;height:22px;flex:none;color:var(--leise)}
+.btn2 em{margin-left:auto;font-style:normal;color:var(--leise);font-weight:600;font-size:15px}
+.btn2 .neu{margin-left:auto;font:700 12px/1 var(--f-text);background:var(--marke);color:var(--basis);padding:4px 7px;border-radius:6px}
+.reihe{display:flex;gap:8px;flex-wrap:wrap}
+.reihe>*{flex:1 1 0}
+.klein{display:flex;gap:8px;margin-top:6px}
+.klein .ibtn{width:44px;height:44px;background:rgba(26,27,38,.92)}
+@media (max-width:640px) and (orientation:portrait){
+  #sMenu{padding-left:calc(var(--sl) + 16px);justify-content:flex-end;background:linear-gradient(0deg,rgba(17,18,26,.95) 0,rgba(17,18,26,.88) 62%,rgba(17,18,26,.2) 86%,rgba(17,18,26,0))}
+  .menu-in{width:100%}
+}
+@media (max-height:500px) and (orientation:landscape){
+  #sMenu{justify-content:flex-start}
+  .titel{font-size:40px}.unter{margin:2px 0 8px}
+  .btn{min-height:46px}.btn2{min-height:42px}
+  .menu-in{gap:7px}
+}
+
+/* Levelauswahl */
+.gruppe{max-width:980px;margin:0 auto 18px}
+.gruppe h3{margin:0 0 8px;font:700 13px/1 var(--f-text);letter-spacing:.1em;text-transform:uppercase;color:var(--leise)}
+.lgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+@media (max-width:420px){.lgrid{gap:6px}}
+.ltile{position:relative;aspect-ratio:1/1;min-height:58px;border-radius:14px;border:1px solid var(--linie);background:var(--flaeche);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px}
+.ltile b{font:700 clamp(22px,5vw,30px)/1 var(--f-zahl)}
+.ltile small{font:600 12px/1 var(--f-zahl);color:var(--leise);letter-spacing:.02em}
+.ltile.offen{border-color:rgba(255,210,28,.55)}
+.ltile.geschafft{background:var(--flaeche-hell)}
+.ltile .ok{position:absolute;right:6px;top:6px;width:10px;height:10px;border-radius:50%;background:#58c779}
+.ltile .med{position:absolute;left:6px;top:5px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff1a8,#f2b81f 60%,#a86d00);box-shadow:0 0 0 1px rgba(0,0,0,.3)}
+.ltile.zu{opacity:.45}
+.ltile.zu b{color:var(--leise)}
+.ltile svg{width:16px;height:16px;color:var(--leise)}
+
+/* Auszeichnungen */
+.agrid{max-width:980px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.akarte{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:16px;background:var(--flaeche);border:1px solid var(--linie);text-align:left;width:100%}
+.akarte.da{border-color:rgba(255,146,0,.5);background:linear-gradient(135deg,rgba(255,146,0,.10),var(--flaeche) 55%)}
+.akarte canvas{width:64px;height:64px;flex:none}
+.akarte>div{flex:1;min-width:0}
+.akarte .bar+small{display:block;margin-top:3px;font-size:12px;color:var(--leise);font-weight:600}
+.akarte b{display:block;font-size:17px}
+.akarte .r{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.akarte p{margin:2px 0 0;color:var(--leise);font-size:14px;line-height:1.3}
+.akarte .bar{height:6px;border-radius:9px;background:var(--flaeche-hell);margin-top:6px;overflow:hidden}
+.akarte .bar i{display:block;height:100%;background:var(--marke)}
+.akarte time{display:block;margin-top:3px;font-size:13px;color:var(--marke);font-weight:600}
+
+/* Garage */
+.ggrid{max-width:980px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.fkarte{padding:12px;border-radius:16px;background:var(--flaeche);border:1px solid var(--linie)}
+.fkarte canvas{width:100%;height:120px;display:block;border-radius:10px;background:linear-gradient(#2a3150,#1d2030)}
+.fkarte b{display:block;margin-top:8px;font:400 20px/1.1 var(--f-display)}
+.fkarte .art{color:var(--marke);font-weight:700;font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+.fkarte p{margin:4px 0 8px;color:var(--leise);font-size:14px}
+.werte{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px;color:var(--leise);align-items:center}
+.werte i{display:block;height:6px;border-radius:9px;background:var(--flaeche-hell);overflow:hidden}
+.werte i::after{content:"";display:block;height:100%;width:var(--w);background:var(--text);border-radius:9px}
+
+.fkarte .schloss{color:var(--leise);font-weight:600;font-size:14px;margin-top:8px}
+.lacke{max-width:980px;margin:18px auto 0}
+.lacke h3{margin:0 0 4px;font:700 13px/1 var(--f-text);letter-spacing:.1em;text-transform:uppercase;color:var(--leise)}
+.lacke p{margin:0 0 10px;color:var(--leise);font-size:14px}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.swatch{width:58px;height:58px;border-radius:16px;border:2px solid var(--linie);padding:0;position:relative;overflow:hidden}
+.swatch[aria-pressed="true"]{border-color:var(--aktion);box-shadow:0 0 0 2px var(--aktion)}
+.swatch:disabled{opacity:.35;cursor:not-allowed}
+.swatch span{position:absolute;inset:0}
+.name-feld{max-width:980px;margin:18px auto 0}
+.name-feld label{display:block;font:700 13px/1 var(--f-text);letter-spacing:.1em;text-transform:uppercase;color:var(--leise);margin-bottom:8px}
+.name-feld input{width:min(100%,320px);height:48px;border-radius:12px;border:1px solid var(--linie);background:var(--flaeche);color:var(--text);padding:0 14px;font:600 17px var(--f-text)}
+.name-feld input:focus{outline:2px solid var(--aktion);border-color:transparent}
+.name-feld p{margin:6px 0 0;color:var(--leise);font-size:13px}
+
+/* Bestzeiten */
+.zeiten{max-width:720px;margin:0 auto;border-collapse:collapse;width:100%}
+.zeiten th,.zeiten td{padding:9px 8px;border-bottom:1px solid var(--linie);text-align:left;font-variant-numeric:tabular-nums}
+.zeiten th{font:700 12px/1 var(--f-text);letter-spacing:.08em;text-transform:uppercase;color:var(--leise)}
+.zeiten td.z{font:700 18px/1 var(--f-zahl)}
+.zeiten .lok{font-size:12px;color:var(--leise)}
+.zeiten .ver{font-size:12px;color:#58c779;font-weight:700}
+.zeiten .med{display:inline-block;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff1a8,#f2b81f 60%,#a86d00);vertical-align:-1px;margin-left:6px}
+.info{max-width:720px;margin:14px auto;padding:12px 14px;border-radius:14px;background:var(--flaeche);border:1px solid rgba(255,146,0,.45);color:var(--leise);font-size:15px;display:flex;gap:10px}
+.info svg{flex:none;width:20px;height:20px;color:var(--marke);margin-top:1px}
+.tabs{max-width:720px;margin:0 auto 10px;display:flex;gap:8px}
+.tabs button{min-height:40px;padding:0 14px;border-radius:999px;border:1px solid var(--linie);background:var(--flaeche);font-weight:600}
+.tabs button[aria-pressed="true"]{background:var(--aktion);color:var(--basis);border-color:transparent}
+
+/* ---------- Overlays (Pause, Ziel, Award) ---------- */
+.overlay{position:absolute;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;padding:calc(var(--st) + 12px) calc(var(--sr) + 12px) calc(var(--sb) + 12px) calc(var(--sl) + 12px);background:rgba(10,11,16,.55);overflow-y:auto;touch-action:pan-y}
+.panel{width:min(100%,430px);margin:auto;padding:20px;border-radius:22px;background:rgba(17,18,26,.96);border:1px solid var(--linie);box-shadow:0 20px 60px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:10px;animation:hoch .28s cubic-bezier(.2,1.2,.4,1) both}
+@keyframes hoch{from{opacity:0;transform:translateY(18px) scale(.97)}}
+.panel h2{margin:0;font:400 30px/1.05 var(--f-display);text-align:center}
+.panel .sub{margin:-4px 0 4px;text-align:center;color:var(--leise);font-weight:600}
+.ergebnis{text-align:center}
+.ergebnis .gross{font:700 64px/1 var(--f-zahl);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.ergebnis .vgl{margin-top:4px;font-weight:700}
+.ergebnis .vgl.neu{color:var(--marke)}
+.ergebnis .vgl.alt{color:var(--leise)}
+.goldzeile{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--leise);font-weight:600}
+.goldzeile .med{width:18px;height:18px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff1a8,#f2b81f 60%,#a86d00)}
+.goldzeile.erreicht{color:var(--marke)}
+.goldzeile .med.leer{background:none;border:2px dashed rgba(246,247,249,.3)}
+.ministats{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;color:var(--leise);font-size:14px;font-weight:600}
+.awardsrow{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.awardsrow button{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--flaeche-hell);border:1px solid rgba(255,146,0,.5);font-weight:700;font-size:14px}
+.awardsrow canvas{width:32px;height:32px}
+.status{text-align:center;font-size:13px;color:var(--leise)}
+.status.ok{color:#58c779}
+.panel .reihe .btn2{justify-content:center}
+
+/* Award-Popup */
+#oAward{background:radial-gradient(circle at 50% 38%,rgba(255,146,0,.28),rgba(10,11,16,.86) 60%)}
+.awardpanel{align-items:center;text-align:center;background:rgba(17,18,26,.92)}
+.awardpanel .strahl{position:relative;width:200px;height:200px;margin:-6px auto 0}
+.awardpanel .strahl::before{content:"";position:absolute;inset:-40px;background:repeating-conic-gradient(rgba(255,210,28,.16) 0 9deg,transparent 9deg 22deg);border-radius:50%;animation:dreh 9s linear infinite;-webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%)}
+.awardpanel canvas{position:relative;width:200px;height:200px;animation:pop .6s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes dreh{to{transform:rotate(360deg)}}
+@keyframes pop{0%{transform:scale(.1) rotate(-30deg);opacity:0}100%{transform:none;opacity:1}}
+.awardpanel .art{font:700 14px/1 var(--f-text);letter-spacing:.16em;text-transform:uppercase}
+.awardpanel h2{font-size:30px}
+.awardpanel q{display:block;font-size:19px;font-weight:600;quotes:"„" "“"}
+.awardpanel .frage{color:var(--leise);font-weight:600;margin-top:-4px}
+.awardpanel .reihe{width:100%}
+.awardpanel .btn{width:100%}
+.mitte{display:flex;justify-content:center}
+.p-links,.p-rechts{display:flex;flex-direction:column;gap:10px}
+.awardpanel .p-links{align-items:center}
+@media (max-height:520px) and (orientation:landscape){
+  .panel.zweiteilig{display:grid;grid-template-columns:1fr 1fr;column-gap:22px;align-items:center;width:min(100%,780px)}
+  .awardpanel .strahl{width:110px;height:110px}.awardpanel canvas{width:110px;height:110px}
+  .panel.zweiteilig .p-links{gap:6px}
+  .ergebnis .gross{font-size:46px}
+  .panel h2{font-size:26px}
+  .titel{margin-top:14px;font-size:36px}
+}
+@media (max-height:620px){.awardpanel .strahl{width:130px;height:130px}.awardpanel canvas{width:130px;height:130px}.panel{gap:8px;padding:16px}.ergebnis .gross{font-size:50px}}
+@media (prefers-reduced-motion:reduce){.panel,.awardpanel canvas,.awardpanel .strahl::before,.crash b,.ziel,.hilfe{animation:none}}
+.noscript{position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center}
+</style>
+</head><body>
+<div id="game">
+  <canvas id="c" aria-label="Spielfeld"></canvas>
+  <div class="zonen" id="zonen" hidden><div data-p="-1"></div><div data-p="1"></div></div>
+
+  <div class="hud" id="hud" hidden>
+    <div class="chip lvchip"><b id="hLevel">1</b><span id="hName"></span></div>
+    <div class="rechts">
+      <button class="ibtn" id="bNeu" aria-label="Neustart (R)" title="Neustart (R)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5M4.5 4v4h4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="ibtn" id="bPause" aria-label="Pause (Esc)" title="Pause (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+  <div class="zeit" id="zeit" hidden><b id="hZeit">0,00</b><small id="hGold"></small></div>
+  <div class="fortschritt" id="fort" hidden><i id="fBar"></i><em class="geist" id="fGeist" hidden></em><em id="fAuto"></em><u></u></div>
+
+  <div class="pedale" id="pedale" hidden>
+    <button class="pedal" id="pBremse" aria-label="Bremse / Rückwärts"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="12" y="8" width="24" height="32" rx="6" fill="none" stroke="currentColor" stroke-width="3.5"/><path d="M17 17h14M17 24h14M17 31h14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><span>Bremse</span></button>
+    <button class="pedal" id="pGas" aria-label="Gas"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="15" y="4" width="18" height="40" rx="6" fill="none" stroke="currentColor" stroke-width="3.5"/><path d="M20 12v24M28 12v24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><span>Gas</span></button>
+  </div>
+
+  <div class="hilfe" id="hilfe" hidden>
+    <span class="taste"><kbd>→</kbd> / <kbd>D</kbd> Gas</span><span class="taste"><kbd>←</kbd> / <kbd>A</kbd> Bremse</span>
+    <span class="touch">Rechts Gas · Links Bremse</span>
+  </div>
+  <div class="tipp" id="tipp" hidden></div>
+  <div class="banner" id="banner" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h12l-2.5 4L17 12H5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/></svg><div id="bannerText"></div></div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div class="crash" id="crash" hidden><b id="crashTitel">Crash!</b><span id="crashGrund"></span><small id="crashHilfe">Gleich geht's weiter …</small></div>
+  <div class="ziel" id="zielText" hidden>ZIEL!</div>
+
+  <!-- Hauptmenü -->
+  <section class="screen" id="sMenu" aria-labelledby="titel" hidden>
+    <div class="menu-in">
+      <h1 class="titel" id="titel"><span>SCHRÄG</span><span>LAGE</span></h1>
+      <p class="unter">Gas. Bremse. Gefühl. 30 Level voller Physik.</p>
+      <button class="btn" id="mSpielen"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg><span id="mSpielenText">Spielen</span></button>
+      <button class="btn2" id="mLevel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Level wählen<em id="mLevelZahl"></em></button>
+      <button class="btn2" id="mAwards"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 3h3l1 5M16 3h-3l-1 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Auszeichnungen<em id="mAwardsZahl"></em></button>
+      <div class="reihe">
+        <button class="btn2" id="mGarage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 15l2-5h14l2 5v3H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="7.5" cy="18" r="2" fill="currentColor"/><circle cx="16.5" cy="18" r="2" fill="currentColor"/></svg>Garage</button>
+        <button class="btn2" id="mZeiten"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 13V9M10 2.5h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Bestzeiten</button>
+      </div>
+      <div class="klein">
+        <button class="ibtn" id="mTon" aria-label="Ton aus" title="Ton an/aus"></button>
+        <button class="ibtn" id="mVoll" aria-label="Vollbild" title="Vollbild"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen voll" id="sLevels" aria-labelledby="hLevels" hidden>
+    <div class="kopf"><button class="zurueck" data-zurueck aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="hLevels">Level wählen</h2><span class="zahl" id="lZahl"></span></div>
+    <div id="lListe"></div>
+  </section>
+
+  <section class="screen voll" id="sAwards" aria-labelledby="hAwards" hidden>
+    <div class="kopf"><button class="zurueck" data-zurueck aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="hAwards">Auszeichnungen</h2><span class="zahl" id="aZahl"></span></div>
+    <div class="agrid" id="aListe"></div>
+  </section>
+
+  <section class="screen voll" id="sGarage" aria-labelledby="hGarage" hidden>
+    <div class="kopf"><button class="zurueck" data-zurueck aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="hGarage">Garage</h2></div>
+    <div class="ggrid" id="gListe"></div>
+    <div class="lacke"><h3>Lackierung</h3><p>Neue Farben gibt es für Auszeichnungen. Nur Optik, kein Vorteil.</p><div class="swatches" id="gLacke"></div></div>
+    <div class="name-feld"><label for="gName">Dein Name auf geteilten Bildern</label><input id="gName" maxlength="16" autocomplete="nickname" placeholder="optional" spellcheck="false"><p>Bleibt auf diesem Gerät. Buchstaben, Zahlen, Punkt, Strich, 3–16 Zeichen.</p></div>
+  </section>
+
+  <section class="screen voll" id="sZeiten" aria-labelledby="hZeiten" hidden>
+    <div class="kopf"><button class="zurueck" data-zurueck aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="hZeiten">Bestzeiten</h2></div>
+    <div id="zOnline"></div>
+    <table class="zeiten"><thead><tr><th>Level</th><th>Bestzeit</th><th>Gold</th><th>Status</th></tr></thead><tbody id="zListe"></tbody></table>
+  </section>
+
+  <!-- Pause -->
+  <section class="overlay" id="oPause" hidden role="dialog" aria-modal="true" aria-labelledby="hPause">
+    <div class="panel">
+      <h2 id="hPause">Pause</h2>
+      <button class="btn" id="pWeiter">Weiterfahren</button>
+      <div class="reihe"><button class="btn2" id="pNeu">Neustart</button><button class="btn2" id="pLevel">Level</button></div>
+      <div class="reihe"><button class="btn2" id="pTon">Ton</button><button class="btn2" id="pVoll">Vollbild</button></div>
+      <button class="btn2" id="pMenu" style="justify-content:center">Hauptmenü</button>
+    </div>
+  </section>
+
+  <!-- Ziel -->
+  <section class="overlay" id="oErgebnis" hidden role="dialog" aria-modal="true" aria-labelledby="hErgebnis">
+    <div class="panel zweiteilig">
+      <div class="p-links">
+      <h2 id="hErgebnis">Geschafft!</h2>
+      <p class="sub" id="eLevel"></p>
+      <div class="ergebnis"><div class="gross" id="eZeit"></div><div class="vgl" id="eVgl"></div></div>
+      <div class="goldzeile" id="eGold"></div>
+      <div class="ministats" id="eStats"></div>
+      <div class="awardsrow" id="eAwards"></div>
+      </div>
+      <div class="p-rechts">
+      <button class="btn" id="eWeiter">Nächstes Level <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></button>
+      <div class="reihe"><button class="btn2" id="eNochmal">Nochmal</button><button class="btn2" id="eTeilen">Herausfordern</button></div>
+      <div class="reihe"><button class="btn2" id="eLevels">Level</button><button class="btn2" id="eMenu">Menü</button></div>
+      <p class="status" id="eStatus"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Award / Teilen -->
+  <section class="overlay" id="oAward" hidden role="dialog" aria-modal="true" aria-labelledby="hAward">
+    <div class="panel awardpanel zweiteilig">
+      <div class="p-links">
+      <div class="strahl"><canvas id="awIcon" width="400" height="400"></canvas></div>
+      <div class="art" id="awArt"></div>
+      <h2 id="hAward"></h2>
+      <q id="awZitat"></q>
+      <p class="frage" id="awFrage">Kannst du mich schlagen?</p>
+      </div>
+      <div class="p-rechts">
+      <div class="reihe"><button class="btn" id="awTeilen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.6" fill="currentColor"/><circle cx="18" cy="6" r="2.6" fill="currentColor"/><circle cx="18" cy="18" r="2.6" fill="currentColor"/><path d="M6 12l12-6M6 12l12 6" stroke="currentColor" stroke-width="2"/></svg>Teilen</button></div>
+      <div class="reihe"><button class="btn2" id="awBild">Bild speichern</button><button class="btn2" id="awLink">Link kopieren</button></div>
+      <button class="btn2" id="awWeiter" style="justify-content:center;width:100%">Weiter spielen</button>
+      <p class="status" id="awStatus"></p>
+      </div>
+    </div>
+  </section>
+  <noscript><div class="noscript">SCHRÄGLAGE braucht JavaScript.</div></noscript>
+</div>
+<script type="module" src="schraeglage/game.js"></script>
+<a class="pz-home" href="../" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a><style>.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 13px);left:calc(env(safe-area-inset-left,0px) + 12px);width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(17,18,26,.78);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}.pz-home:focus-visible{outline:3px solid #FFD21C;outline-offset:2px}</style><style>*{touch-action:pan-x pan-y}html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%}#game,#game canvas,.pedal,.zonen div{touch-action:none}</style><script>(function(){var stop=function(e){e.preventDefault()};['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,stop,{passive:false})});document.addEventListener('touchmove',function(e){if(e.touches.length>1||(e.scale&&e.scale!==1))e.preventDefault()},{passive:false});var last=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-last<350&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label')))e.preventDefault();last=now},{passive:false});document.addEventListener('dblclick',stop,{passive:false});var vv=window.visualViewport,m=document.querySelector('meta[name=viewport]');if(vv&&m){var base=m.getAttribute('content'),t=0;vv.addEventListener('resize',function(){if(vv.scale<1.02)return;clearTimeout(t);t=setTimeout(function(){m.setAttribute('content',base.replace('maximum-scale=1','maximum-scale=1.0'));setTimeout(function(){m.setAttribute('content',base)},60)},120)})}})();</script>
+</body></html>

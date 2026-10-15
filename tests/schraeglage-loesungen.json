@@ -1,0 +1,272 @@
+{
+ "1": {
+  "ms": 12327,
+  "inputs": "0g",
+  "einfach": "0g",
+  "einfachMs": 12327,
+  "robust4": 1,
+  "robust8": 1,
+  "gold": 14
+ },
+ "2": {
+  "ms": 7987,
+  "inputs": "0g",
+  "einfach": "0g",
+  "einfachMs": 7987,
+  "robust4": 1,
+  "robust8": 1,
+  "gold": 9
+ },
+ "3": {
+  "ms": 15183,
+  "inputs": "0g.c6b.e0n.e6g.ecn.eog.eun.f0g.f6n.fcg.fon.fug",
+  "einfach": "0g.c6b.gug",
+  "einfachMs": 16533,
+  "robust4": 0.9,
+  "robust8": 0.9333333333333333,
+  "gold": 17.5
+ },
+ "4": {
+  "ms": 14292,
+  "inputs": "0g",
+  "einfach": "0g",
+  "einfachMs": 14292,
+  "robust4": 1,
+  "robust8": 1,
+  "gold": 16.5
+ },
+ "5": {
+  "ms": 11433,
+  "inputs": "0g.8ob.90n.9cg.con.dcg.e6n.eig.eon.f6g",
+  "einfach": "0g.8ob.9cg.bun.g6g",
+  "einfachMs": 13029,
+  "robust4": 0.6666666666666666,
+  "robust8": 0.4,
+  "gold": 13
+ },
+ "6": {
+  "ms": 9329,
+  "inputs": "0g.aon.big.bon.bug",
+  "einfach": "0g.aon.c0g",
+  "einfachMs": 9369,
+  "robust4": 1,
+  "robust8": 0.6,
+  "gold": 10.5
+ },
+ "7": {
+  "ms": 8812,
+  "inputs": "0g.4cn.4ib.50n.56g.6cn.6og.80n.8ig",
+  "einfach": "0g.4ib.50n.bcg",
+  "einfachMs": 11342,
+  "robust4": 0.7666666666666667,
+  "robust8": 0.8,
+  "gold": 10
+ },
+ "8": {
+  "ms": 9546,
+  "inputs": "0g.6un.7cg.7in.7og.e0b.ecn.eig",
+  "einfach": "0g.6un.7ug.e0b.f6g",
+  "einfachMs": 9636,
+  "robust4": 0.7333333333333333,
+  "robust8": 0.5333333333333333,
+  "gold": 11
+ },
+ "9": {
+  "ms": 10073,
+  "inputs": "0g.1un.20b.2on.30g.3cn.3ig.3on.3ug",
+  "einfach": "0g.20b.46g",
+  "einfachMs": 11041,
+  "robust4": 0.7666666666666667,
+  "robust8": 0.7666666666666667,
+  "gold": 11.5
+ },
+ "10": {
+  "ms": 15998,
+  "inputs": "0g.dcb.dug.e0b.e6n.eig.eon.fog.g0n.jug",
+  "einfach": "0g.dcb.e6n.kug",
+  "einfachMs": 16592,
+  "robust4": 0.7,
+  "robust8": 0.7333333333333333,
+  "gold": 18
+ },
+ "11": {
+  "ms": 21075,
+  "inputs": "0g.16b.1un.20g.2ub.36n.80g.9on.a0b.aig.aob.b6n.c6g.ccn.d0g",
+  "einfach": "0g.16b.1un.26g.2ub.36n.80g.a0b.b6n.d0g",
+  "einfachMs": 21087,
+  "robust4": 0.43333333333333335,
+  "robust8": 0.2,
+  "gold": 24
+ },
+ "12": {
+  "ms": 17518,
+  "inputs": "0g.aub.b0g.b6b.c0n.c6g.ccn.hog",
+  "einfach": "0g.aub.c0n.iog",
+  "einfachMs": 18968,
+  "robust4": 0.8333333333333334,
+  "robust8": 0.8666666666666667,
+  "gold": 20
+ },
+ "13": {
+  "ms": 12279,
+  "inputs": "0g.6ob.70g.76b.7cg.7in.bog",
+  "einfach": "0g.6ob.7in.cog",
+  "einfachMs": 18232,
+  "robust4": 0.43333333333333335,
+  "robust8": 0.5,
+  "gold": 14
+ },
+ "14": {
+  "ms": 15394,
+  "inputs": "0b.6n.ub.1ug.2cn.36b.3cn.3og.4cb.4ig.56b.6cg.7cn.7og.8ub.9cn.9ig.a6n.aog.d6n.dcg.job.k0g.k6b.kug",
+  "einfach": "0b.6n.ub.1ug.2cn.36b.3cn.3og.4cb.4ig.56b.6cg.7cn.7og.8ub.9cn.9ig.a6n.aog.d6n.dcg.job.k0g",
+  "einfachMs": 14786,
+  "robust4": 0.03333333333333333,
+  "robust8": 0,
+  "gold": 17.5
+ },
+ "15": {
+  "ms": 10246,
+  "inputs": "0g.d0b.d6g",
+  "einfach": "0g.d0b.d6g",
+  "einfachMs": 10246,
+  "robust4": 0.43333333333333335,
+  "robust8": 0.36666666666666664,
+  "gold": 11.5
+ },
+ "16": {
+  "ms": 9115,
+  "inputs": "0g.5ob.66g.70n.7cg.86n.8cg.8on.90g.a6n.acg.ain.aog",
+  "einfach": "0g.5ob.66n.cig",
+  "einfachMs": 10386,
+  "robust4": 0.5666666666666667,
+  "robust8": 0.7,
+  "gold": 10.5
+ },
+ "17": {
+  "ms": 9483,
+  "inputs": "0g.80n.8cg.8ib.8ug.90n.9ug.a0n.a6g.aon.c0g.ccn.cig",
+  "einfach": "0g.8ib.90n.cug",
+  "einfachMs": 9777,
+  "robust4": 0.8333333333333334,
+  "robust8": 0.6666666666666666,
+  "gold": 11
+ },
+ "18": {
+  "ms": 14979,
+  "inputs": "0g.eob.f0g.f6b.fog",
+  "einfach": "0g.eob.j0g",
+  "einfachMs": 17203,
+  "robust4": 0.26666666666666666,
+  "robust8": 0.1,
+  "gold": 17
+ },
+ "19": {
+  "ms": 10599,
+  "inputs": "0g.70b.76g.7cn.7og.b0n.b6b.bcg.bin.bog",
+  "einfach": "0g.70b.76g.7cn.7og",
+  "einfachMs": 11262,
+  "robust4": 0.5,
+  "robust8": 0.5,
+  "gold": 12
+ },
+ "20": {
+  "ms": 8430,
+  "inputs": "0g.6cb.7cg",
+  "einfach": "0g.6cb.7cg",
+  "einfachMs": 8430,
+  "robust4": 0.23333333333333334,
+  "robust8": 0.23333333333333334,
+  "gold": 9.5
+ },
+ "21": {
+  "ms": 11070,
+  "inputs": "0g",
+  "einfach": "0g",
+  "einfachMs": 11070,
+  "robust4": 1,
+  "robust8": 1,
+  "gold": 12.5
+ },
+ "22": {
+  "ms": 13767,
+  "inputs": "0g.9cn.9og.9un.a0g.a6n.aog",
+  "einfach": "0g.9cn.aog",
+  "einfachMs": 13812,
+  "robust4": 0.8666666666666667,
+  "robust8": 0.8666666666666667,
+  "gold": 15.5
+ },
+ "23": {
+  "ms": 6743,
+  "inputs": "0g.4ib.4ug.5cb.5ig",
+  "einfach": "0g.4ib.4un.50g",
+  "einfachMs": 6539,
+  "robust4": 0.2,
+  "robust8": 0.13333333333333333,
+  "gold": 8
+ },
+ "24": {
+  "ms": 15470,
+  "inputs": "0g.36b.4ig.a6b.aug.b6b.bug.c0b.c6n.gcg.mon.ncg.nin.nog.nun.o0g",
+  "einfach": "0g.36b.4ig.a6b.aug.b6b.bug.c0b.c6n.gig.mon.ncg.nin.o0g",
+  "einfachMs": 15526,
+  "robust4": 0,
+  "robust8": 0,
+  "gold": 17.5
+ },
+ "25": {
+  "ms": 13582,
+  "inputs": "0b.ug.16b.1un.30g.36n.56g.hcb.hug.i0b.i6n.icg",
+  "einfach": "0b.ug.16b.1un.56g.hcb.i6n.icg",
+  "einfachMs": 12536,
+  "robust4": 0.13333333333333333,
+  "robust8": 0.03333333333333333,
+  "gold": 15.5
+ },
+ "26": {
+  "ms": 16003,
+  "inputs": "0g.ecn.f0g.f6b.gcn.gob.h6g.nun.pig",
+  "einfach": "0g.ecn.f6b.gcn.gob.h6g",
+  "einfachMs": 16608,
+  "robust4": 0.16666666666666666,
+  "robust8": 0.26666666666666666,
+  "gold": 18
+ },
+ "27": {
+  "ms": 13454,
+  "inputs": "0g.3ib.3on.46b.4ug.9ob.aig.aob.bin.bog.dob.e0g.ein.eog.icn.j0g",
+  "einfach": "0g.3ib.3on.46b.4ug.9ob.bog.dob.e0g",
+  "einfachMs": 13942,
+  "robust4": 0.03333333333333333,
+  "robust8": 0.06666666666666667,
+  "gold": 15.5
+ },
+ "28": {
+  "ms": 16643,
+  "inputs": "0g.5cb.7cn.7og",
+  "einfach": "0g.5cb.7cn.7og",
+  "einfachMs": 16643,
+  "robust4": 0.26666666666666666,
+  "robust8": 0.1,
+  "gold": 19
+ },
+ "29": {
+  "ms": 11357,
+  "inputs": "0g.eib.fig",
+  "einfach": "0g.eib.fig",
+  "einfachMs": 11357,
+  "robust4": 0.1,
+  "robust8": 0.13333333333333333,
+  "gold": 13
+ },
+ "30": {
+  "ms": 17739,
+  "inputs": "0g.4un.50b.5ig.5ob.60n.7og.bcb.d0g",
+  "einfach": "0g.4un.50b.60n.7ug.bcb.d0g",
+  "einfachMs": 18221,
+  "robust4": 0,
+  "robust8": 0,
+  "gold": 20
+ }
+}
