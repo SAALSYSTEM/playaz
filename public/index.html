@@ -5,28 +5,44 @@
 .wrap{max-width:1280px;margin:0 auto;padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px))}
 @media (min-width:640px){.wrap{padding-inline:20px}}
 
-/* Feste Kopfzeile: schwebende Pille wie bei Poki (Logo | Icons) */
-:root{--kopf:72px}
+/* Feste Kopfzeile: eine schwebende Karte. Handy: Zeile 1 Logo + Suche/Profil, Zeile 2 die Bereiche Hot | Neu | Freunde mit Beschriftung.
+   Ab 900 px alles in einer Zeile. Aktiver Bereich: gefüllt in seiner Bereichsfarbe (Hot = Orange, Neu = Gelb). */
+:root{--kopf:128px}
 .portal-head{position:sticky;top:0;z-index:60;padding-top:env(safe-area-inset-top,0px);pointer-events:none}
 .portal-head>*{pointer-events:auto}
-.portal-head-in{max-width:1280px;height:56px;margin:8px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));padding-inline:14px 6px;display:flex;align-items:center;gap:0;border-radius:22px;background:var(--flaeche);border:1px solid var(--linie);box-shadow:0 8px 24px rgba(0,0,0,.5)}
-.p-logo{display:block;flex:none;padding:8px 14px 8px 0;margin-right:6px;border-right:1px solid var(--linie);border-radius:0}
-.p-logo img{display:block;height:22px;width:auto}
-.p-nav{display:flex;align-items:center;justify-content:space-around;flex:1;min-width:0}
-.p-nav a,.p-nav button{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:1 1 0;min-width:36px;max-width:60px;height:44px;border:0;border-radius:14px;background:transparent;color:var(--text);font:600 15px/1 var(--f-text);text-decoration:none;cursor:pointer;padding:0}
-.p-nav svg{width:28px;height:28px;flex:none}
-.p-nav span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.p-nav a:hover,.p-nav button:hover{background:var(--flaeche-hell)}
-.p-nav a.aktiv,.p-nav button[aria-expanded="true"]{color:var(--aktion)}
-.p-nav .bald{opacity:.6}
-@media (max-width:359px){.p-logo img{height:18px}.p-logo{padding-right:10px}.p-nav svg{width:24px;height:24px}}
+.portal-head-in{max-width:1240px;margin:8px max(10px,env(safe-area-inset-right,0px)) 8px max(10px,env(safe-area-inset-left,0px));padding:6px 8px 8px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"logo tools" "tabs tabs";align-items:center;border-radius:22px;background:var(--flaeche);border:1px solid var(--linie);box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.p-logo{grid-area:logo;display:flex;align-items:center;height:44px;min-width:0;justify-self:start;border-radius:6px}
+.p-logo img{display:block;height:28px;width:auto;max-width:100%}
+.p-tools{grid-area:tools;display:flex;align-items:center;gap:2px}
+.p-tabs{grid-area:tabs;display:flex;gap:8px;margin-top:6px;padding-top:8px;padding-right:0;border-top:1px solid var(--linie)}
+.p-tabs a,.p-tabs button,.p-tools button{--c:var(--text);display:inline-flex;align-items:center;justify-content:center;gap:7px;border:0;font:700 15px/1 var(--f-text);text-decoration:none;cursor:pointer;color:var(--text);padding:0;-webkit-tap-highlight-color:transparent}
+.p-tabs a,.p-tabs button{flex:1 1 0;min-width:0;height:40px;border-radius:999px;background:var(--flaeche-hell);transition:background .15s,color .15s}
+.p-tabs svg,.p-tools svg{width:22px;height:22px;flex:none;display:block}
+.p-tabs svg{color:var(--c)}
+.p-tabs .t-hot{--c:var(--marke)}
+.p-tabs .t-neu{--c:var(--aktion)}
+.p-tabs .t-freunde{--c:var(--leise)}
+.p-tabs a:hover,.p-tabs button:hover{background:color-mix(in srgb,var(--c) 16%,var(--flaeche-hell))}
+.p-tabs .aktiv{background:var(--c);color:var(--basis)}
+.p-tabs .aktiv svg{color:var(--basis)}
+.p-tabs .bald{opacity:.65}
+.p-tools button{width:44px;height:44px;border-radius:14px;background:transparent}
+.p-tools button svg{width:26px;height:26px}
+.p-tools button:hover{background:var(--flaeche-hell)}
+.p-tools button[aria-expanded="true"]{color:var(--aktion);background:var(--flaeche-hell)}
+.p-tools .bald{opacity:.65}
+.p-tools span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (max-width:359px){.p-logo img{height:24px}.p-tabs a,.p-tabs button{font-size:14px;gap:5px}.p-tabs svg{width:20px;height:20px}}
 @media (min-width:900px){
   :root{--kopf:84px}
-  .portal-head-in{height:64px;margin-inline:auto;width:calc(100% - 40px);max-width:1240px;padding-inline:20px 10px}
-  .p-logo img{height:30px}
-  .p-nav{flex:none;gap:4px;margin-left:auto}
-  .p-nav a,.p-nav button{flex:none;max-width:none;padding:0 16px}
-  .p-nav span{position:static;width:auto;height:auto;overflow:visible;clip:auto}
+  .portal-head-in{width:calc(100% - 40px);margin-inline:auto;height:64px;padding:0 10px 0 20px;grid-template-columns:auto 1fr auto;grid-template-areas:"logo tabs tools"}
+  .p-logo img{height:34px}
+  .p-tabs{margin:0;padding:0;border:0;justify-content:flex-end;gap:8px;padding-right:12px}
+  .p-tabs a,.p-tabs button{flex:none;height:44px;padding:0 18px;background:transparent;font-size:16px}
+  .p-tools{gap:4px}
+  .p-tools button{width:auto;padding:0 14px;gap:8px;font-size:16px}
+  .p-tools button svg{width:22px;height:22px}
+  .p-tools span{position:static;width:auto;height:auto;overflow:visible;clip:auto}
 }
 
 /* Toast "Bald verfügbar" */
@@ -71,16 +87,18 @@
 @media (min-width:900px){.weiter{padding-top:0}.weiter-in img{width:84px;height:84px}.weiter-text b{font-size:26px}}
 
 .claim{margin:14px 0 4px;font:600 15px/1.35 var(--f-text);color:var(--leise)}
+@media (max-width:639px){.claim{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);margin:0}}  /* Handy: H1 bleibt für Suchmaschinen/Screenreader, nimmt aber keinen Platz vor den Spielen */
 @media (min-width:640px){.claim{font-size:17px;margin-top:20px}}
 
 /* Blöcke Neu / Top: kein Hintergrund, die Kacheln stehen frei */
-.block{margin-top:22px;container-type:inline-size}
-.block-kopf{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 6px 12px}
-.block-kopf h2{display:flex;align-items:center;gap:8px;margin:0;font:400 22px/1.1 var(--f-display);letter-spacing:-.01em}
-.block-kopf h2 svg{width:26px;height:26px;color:var(--marke);flex:none}
-.block-top .block-kopf h2 svg{color:var(--aktion)}
-.block-kopf span{font-size:14px;color:var(--leise)}
-@media (min-width:640px){.block{margin-top:32px}.block-kopf h2{font-size:26px}}
+.block{margin-top:26px;container-type:inline-size}
+.block-kopf{margin:0 6px 14px}
+.block-kopf h2{display:flex;align-items:center;gap:10px;margin:0;font:400 32px/1.05 var(--f-display);letter-spacing:-.015em}
+.block-kopf h2 svg{width:34px;height:34px;flex:none}
+.block-hot .block-kopf h2 svg{color:var(--marke)}
+.block-neu .block-kopf h2 svg{color:var(--aktion)}
+.block-kopf p{margin:6px 0 0 44px;font-size:15px;font-weight:600;color:var(--leise)}
+@media (min-width:640px){.block{margin-top:36px}.block-kopf h2{font-size:40px}.block-kopf h2 svg{width:40px;height:40px}.block-kopf p{margin-left:50px;font-size:16px}}
 
 /* Kacheln: quadratische Zellen aus der Containerbreite, einzelne Kacheln 2x2 oder 2x1. Keine Lücken:
    Raster-Aufteilung hängt an der Zahl der Spiele je Block (Neu: 5, Top: 6), siehe README. */
@@ -103,20 +121,20 @@
 @media (max-width:339px){
   .kacheln{--cols:2}
   [data-lay="neu"] .kachel:nth-child(5){grid-column:auto}
-  [data-lay="top"] .kachel:nth-child(6){grid-column:span 2}
+  [data-lay="hot"] .kachel:nth-child(6){grid-column:span 2}
 }
 @media (min-width:640px){
   .kacheln{--cols:4;--gap:12px}
   .kacheln{--gap:16px}
   .kachel{border-radius:26px}
   [data-lay="neu"] .kachel:nth-child(5){grid-column:auto}
-  [data-lay="top"] .kachel:nth-child(2),[data-lay="top"] .kachel:nth-child(5),[data-lay="top"] .kachel:nth-child(6){grid-column:span 2}
+  [data-lay="hot"] .kachel:nth-child(2),[data-lay="hot"] .kachel:nth-child(5),[data-lay="hot"] .kachel:nth-child(6){grid-column:span 2}
 }
 @media (min-width:1024px){
   .kacheln{--cols:6;--gap:18px}
   [data-lay="neu"] .kachel:nth-child(n+2){grid-column:span 2}
-  [data-lay="top"] .kachel:nth-child(n+2):nth-child(-n+4){grid-column:span 2}
-  [data-lay="top"] .kachel:nth-child(5),[data-lay="top"] .kachel:nth-child(6){grid-column:auto}
+  [data-lay="hot"] .kachel:nth-child(n+2):nth-child(-n+4){grid-column:span 2}
+  [data-lay="hot"] .kachel:nth-child(5),[data-lay="hot"] .kachel:nth-child(6){grid-column:auto}
 }
 @media (hover:hover) and (min-width:640px){
   .kachel .name{position:absolute;width:auto;height:auto;clip:auto;white-space:normal;left:0;right:0;bottom:0;padding:34px 14px 12px;font:700 15px/1.15 var(--f-text);letter-spacing:.03em;text-transform:uppercase;color:#fff;background:linear-gradient(to top,rgba(10,11,16,.88),rgba(10,11,16,0));opacity:0;transition:opacity .2s}
@@ -154,18 +172,20 @@
 
 <header class="portal-head" id="kopf">
   <div class="portal-head-in">
-    <a class="p-logo" href="/" aria-label="PlaySaal, Startseite"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="1140" height="244" alt="PlaySaal"></a>
-    <nav class="p-nav" aria-label="Hauptmenü">
-      <a href="#top"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.2 2.8c.5 3.3 5 5.4 5 10.2a5.2 5.2 0 0 1-10.4 0c0-2.1.9-3.6 2-4.7.2 1.3.9 2.1 1.7 2.5-.3-2.8.2-5.6 1.7-8z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 21a2.6 2.6 0 0 1-2.6-2.6c0-1.6 1.4-2.3 2.6-3.6 1.2 1.3 2.6 2 2.6 3.6A2.6 2.6 0 0 1 12 21z" fill="currentColor"/></svg><span>Top</span></a>
-      <a href="#neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2.8l2 5.7 5.7 2-5.7 2-2 5.7-2-5.7-5.7-2 5.7-2z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M18.5 15.2l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9z" fill="currentColor"/></svg><span>Neu</span></a>
-      <button type="button" class="bald" data-bald="Zusammen" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7.2 7.5h9.6a5 5 0 0 1 4.8 6.3l-.7 2.7a2.6 2.6 0 0 1-4.5 1.1L14.9 15.5H9.1l-1.5 2.1a2.6 2.6 0 0 1-4.5-1.1l-.7-2.7a5 5 0 0 1 4.8-6.3z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M8 10.6v3.2M6.4 12.2h3.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="15.6" cy="11" r="1.1" fill="currentColor"/><circle cx="17.9" cy="13.2" r="1.1" fill="currentColor"/></svg><span>Zusammen</span></button>
-      <button type="button" id="sucheBtn" aria-expanded="false" aria-controls="suche"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M15.8 15.8l5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>Suche</span></button>
-      <button type="button" class="bald" data-bald="Profil" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4.2" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M4.2 20.5c.5-4 3.5-6.2 7.8-6.2s7.3 2.2 7.8 6.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>Profil</span></button>
+    <a class="p-logo" href="/" aria-label="PlaySaal, Startseite"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="830" height="244" alt="PlaySaal"></a>
+    <nav class="p-tabs" aria-label="Bereiche">
+      <a class="t-hot aktiv" href="#hot" aria-current="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Hot</span></a>
+      <a class="t-neu" href="#neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Neu</span></a>
+      <button type="button" class="t-freunde bald" data-bald="Freunde" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Freunde</span></button>
     </nav>
+    <div class="p-tools">
+      <button type="button" id="sucheBtn" aria-expanded="false" aria-controls="suche"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.3-4.3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Suche</span></button>
+      <button type="button" class="bald" data-bald="Profil" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Profil</span></button>
+    </div>
   </div>
   <div class="suche" id="suche" role="search" hidden>
     <div class="suche-in">
-      <div class="suche-feld"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M15.8 15.8l5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><input id="sucheText" type="search" placeholder="Spiel oder Art suchen, z. B. Retro" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Spiele suchen"><button type="button" id="sucheZu" aria-label="Suche schließen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+      <div class="suche-feld"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.3-4.3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="sucheText" type="search" placeholder="Spiel oder Art suchen, z. B. Retro" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Spiele suchen"><button type="button" id="sucheZu" aria-label="Suche schließen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
       <div class="suche-tags" id="sucheTags" aria-label="Arten"></div>
       <ul class="suche-liste" id="sucheListe"></ul>
       <p class="suche-leer" id="sucheLeer" role="status" hidden></p>
@@ -191,26 +211,26 @@
   <div class="wrap"><h1 class="claim">Kostenlose Browserspiele. Sofort spielen, ohne Anmeldung.</h1></div>
 
   <div class="wrap" id="spiele">
-    <section class="block block-neu" id="neu" aria-labelledby="neu-titel">
-      <div class="block-kopf"><h2 id="neu-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 2.8l2 5.7 5.7 2-5.7 2-2 5.7-2-5.7-5.7-2 5.7-2z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M18.5 15.2l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9z" fill="currentColor"/></svg>Neu</h2><span>Frisch dazugekommen</span></div>
-      <ul class="kacheln" data-lay="neu">
-      <li class="kachel" data-slug="stammvoelker" data-rec="stammvoelker" data-name="Stammvölker" data-arten="3D,Aufbau" data-kat="neu"><a href="/spiele/stammvoelker"><img src="/bilder/stammvoelker.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Stammvölker</span></a></li>
-      <li class="kachel" data-slug="sondengaenger" data-rec="sondengaenger" data-name="Sondengänger" data-arten="3D,Schatzsuche" data-kat="neu"><a href="/spiele/sondengaenger"><img src="/bilder/sondengaenger.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Sondengänger</span></a></li>
-      <li class="kachel" data-slug="anbiss" data-rec="anbiss" data-name="Anbiss" data-arten="3D,Angeln" data-kat="neu"><a href="/spiele/anbiss"><img src="/bilder/anbiss.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Anbiss</span></a></li>
-      <li class="kachel" data-slug="stellwerk" data-rec="stellwerk" data-name="Stellwerk" data-arten="Puzzle,Bahn" data-kat="neu"><a href="/spiele/stellwerk"><img src="/bilder/stellwerk.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Stellwerk</span></a></li>
-      <li class="kachel" data-slug="eiszeit" data-rec="eiszeit" data-name="Eiszeit" data-arten="3D,Für Kinder" data-kat="neu"><a href="/spiele/eiszeit"><img src="/bilder/eiszeit.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Eiszeit</span></a></li>
+    <section class="block block-hot" id="hot" aria-labelledby="hot-titel">
+      <div class="block-kopf"><h2 id="hot-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Hot</h2><p>Unsere Highlights</p></div>
+      <ul class="kacheln" data-lay="hot">
+      <li class="kachel" data-slug="linke-spur" data-rec="linkespur" data-name="Linke Spur" data-arten="3D,Rennen" data-kat="hot"><a href="/spiele/linke-spur"><img src="/bilder/linke-spur.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Linke Spur</span></a></li>
+      <li class="kachel" data-slug="hochstapler" data-rec="hochstapler" data-name="Hochstapler" data-arten="Geschick,Ein Finger" data-kat="hot"><a href="/spiele/hochstapler"><img src="/bilder/hochstapler.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Hochstapler</span></a></li>
+      <li class="kachel" data-slug="schwindelfrei" data-rec="schwindelfrei" data-name="Schwindelfrei" data-arten="3D,Ein Finger" data-kat="hot"><a href="/spiele/schwindelfrei"><img src="/bilder/schwindelfrei.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Schwindelfrei</span></a></li>
+      <li class="kachel" data-slug="richtfest" data-rec="richtfest" data-name="Richtfest" data-arten="Retro,Abenteuer" data-kat="hot"><a href="/spiele/richtfest"><img src="/bilder/richtfest.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Richtfest</span></a></li>
+      <li class="kachel" data-slug="eiszeit" data-rec="eiszeit" data-name="Eiszeit" data-arten="3D,Für Kinder" data-kat="hot"><a href="/spiele/eiszeit"><img src="/bilder/eiszeit.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Eiszeit</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
+      <li class="kachel" data-slug="stellwerk" data-rec="stellwerk" data-name="Stellwerk" data-arten="Puzzle,Bahn" data-kat="hot"><a href="/spiele/stellwerk"><img src="/bilder/stellwerk.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Stellwerk</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
     </ul>
     </section>
 
-    <section class="block block-top" id="top" aria-labelledby="top-titel">
-      <div class="block-kopf"><h2 id="top-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.2 2.8c.5 3.3 5 5.4 5 10.2a5.2 5.2 0 0 1-10.4 0c0-2.1.9-3.6 2-4.7.2 1.3.9 2.1 1.7 2.5-.3-2.8.2-5.6 1.7-8z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 21a2.6 2.6 0 0 1-2.6-2.6c0-1.6 1.4-2.3 2.6-3.6 1.2 1.3 2.6 2 2.6 3.6A2.6 2.6 0 0 1 12 21z" fill="currentColor"/></svg>Top</h2><span>Unsere Empfehlungen</span></div>
-      <ul class="kacheln" data-lay="top">
-      <li class="kachel" data-slug="linke-spur" data-rec="linkespur" data-name="Linke Spur" data-arten="3D,Rennen" data-kat="top"><a href="/spiele/linke-spur"><img src="/bilder/linke-spur.jpg" width="960" height="600" alt="" loading="lazy" decoding="async"><span class="name">Linke Spur</span></a></li>
-      <li class="kachel" data-slug="hochstapler" data-rec="hochstapler" data-name="Hochstapler" data-arten="Geschick,Ein Finger" data-kat="top"><a href="/spiele/hochstapler"><img src="/bilder/hochstapler.jpg" width="960" height="600" alt="" loading="lazy" decoding="async"><span class="name">Hochstapler</span></a></li>
-      <li class="kachel" data-slug="schwindelfrei" data-rec="schwindelfrei" data-name="Schwindelfrei" data-arten="3D,Ein Finger" data-kat="top"><a href="/spiele/schwindelfrei"><img src="/bilder/schwindelfrei.jpg" width="960" height="600" alt="" loading="lazy" decoding="async"><span class="name">Schwindelfrei</span></a></li>
-      <li class="kachel" data-slug="richtfest" data-rec="richtfest" data-name="Richtfest" data-arten="Retro,Abenteuer" data-kat="top"><a href="/spiele/richtfest"><img src="/bilder/richtfest.jpg" width="960" height="600" alt="" loading="lazy" decoding="async"><span class="name">Richtfest</span></a></li>
-      <li class="kachel" data-slug="eiszeit" data-rec="eiszeit" data-name="Eiszeit" data-arten="3D,Für Kinder" data-kat="top"><a href="/spiele/eiszeit"><img src="/bilder/eiszeit.jpg" width="960" height="600" alt="" loading="lazy" decoding="async"><span class="name">Eiszeit</span><span class="badge" title="Neu">${svg('spark')}<span class="sr">Neu</span></span></a></li>
-      <li class="kachel" data-slug="stellwerk" data-rec="stellwerk" data-name="Stellwerk" data-arten="Puzzle,Bahn" data-kat="top"><a href="/spiele/stellwerk"><img src="/bilder/stellwerk.jpg" width="960" height="600" alt="" loading="lazy" decoding="async"><span class="name">Stellwerk</span><span class="badge" title="Neu">${svg('spark')}<span class="sr">Neu</span></span></a></li>
+    <section class="block block-neu" id="neu" aria-labelledby="neu-titel">
+      <div class="block-kopf"><h2 id="neu-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Neu</h2><p>Neu bei PlaySaal</p></div>
+      <ul class="kacheln" data-lay="neu">
+      <li class="kachel" data-slug="stammvoelker" data-rec="stammvoelker" data-name="Stammvölker" data-arten="3D,Aufbau" data-kat="neu"><a href="/spiele/stammvoelker"><img src="/bilder/stammvoelker.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Stammvölker</span></a></li>
+      <li class="kachel" data-slug="sondengaenger" data-rec="sondengaenger" data-name="Sondengänger" data-arten="3D,Schatzsuche" data-kat="neu"><a href="/spiele/sondengaenger"><img src="/bilder/sondengaenger.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Sondengänger</span></a></li>
+      <li class="kachel" data-slug="anbiss" data-rec="anbiss" data-name="Anbiss" data-arten="3D,Angeln" data-kat="neu"><a href="/spiele/anbiss"><img src="/bilder/anbiss.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Anbiss</span></a></li>
+      <li class="kachel" data-slug="stellwerk" data-rec="stellwerk" data-name="Stellwerk" data-arten="Puzzle,Bahn" data-kat="neu"><a href="/spiele/stellwerk"><img src="/bilder/stellwerk.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Stellwerk</span></a></li>
+      <li class="kachel" data-slug="eiszeit" data-rec="eiszeit" data-name="Eiszeit" data-arten="3D,Für Kinder" data-kat="neu"><a href="/spiele/eiszeit"><img src="/bilder/eiszeit.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Eiszeit</span></a></li>
     </ul>
     </section>
 
@@ -230,10 +250,10 @@
 </main>
 
 <footer class="portal-foot"><div class="portal-foot-in">
-  <div class="pf-marke"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="1140" height="244" alt="PlaySaal"><p>Browserspiele ohne Anmeldung.</p></div>
-  <nav aria-label="Spiele"><h3>Spiele</h3><a href="#neu">Neu</a><a href="#top">Top</a><a href="/umzug" data-umzug hidden>Spielstände umziehen</a></nav>
+  <div class="pf-marke"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="830" height="244" alt="PlaySaal"><p>Browserspiele ohne Anmeldung.</p></div>
+  <nav aria-label="Spiele"><h3>Spiele</h3><a href="#hot">Hot</a><a href="#neu">Neu</a><a href="/umzug" data-umzug hidden>Spielstände umziehen</a></nav>
   <nav aria-label="Rechtliches"><h3>Rechtliches</h3><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
-  <div class="pf-bald"><h3>Bald</h3><span>Zusammen spielen</span><span>Profil</span></div>
+  <div class="pf-bald"><h3>Bald</h3><span>Freunde</span><span>Profil</span></div>
 </div></footer>
 
 <script src="/assets/umzug-config.js"></script>
@@ -283,14 +303,25 @@
   document.addEventListener('click', (e) => { if (!panel.hidden && !kopf.contains(e.target)) zu(false); });
   liste.addEventListener('click', () => zu(false));
 
-  // Aktiver Bereich in der Navigation
-  const navA = { neu: $('.p-nav a[href="#neu"]'), top: $('.p-nav a[href="#top"]') };
-  if ('IntersectionObserver' in window) {
-    const io = new IntersectionObserver((es) => es.forEach((e) => { const a = navA[e.target.id]; if (a) a.classList.toggle('aktiv', e.isIntersecting); }), { rootMargin: '-30% 0px -50% 0px' });
-    ['neu', 'top'].forEach((id) => io.observe(document.getElementById(id)));
+  // Aktiver Bereich: der letzte Block, dessen Oberkante unter der festen Kopfzeile angekommen ist (am Seitenanfang: Hot)
+  const tabs = { hot: $('.p-tabs a[href="#hot"]'), neu: $('.p-tabs a[href="#neu"]') };
+  const bloecke = ['hot', 'neu'].map((id) => document.getElementById(id));
+  let aktiv = '', rahmen = 0;
+  function markiere() {
+    rahmen = 0;
+    const grenze = kopf.getBoundingClientRect().bottom + 60;
+    let id = 'hot';
+    bloecke.forEach((b) => { if (b.getBoundingClientRect().top <= grenze) id = b.id; });
+    if (id === aktiv) return;
+    aktiv = id;
+    for (const k in tabs) { tabs[k].classList.toggle('aktiv', k === id); if (k === id) tabs[k].setAttribute('aria-current', 'true'); else tabs[k].removeAttribute('aria-current'); }
   }
-  // Menüpunkte schließen die Suche
-  document.querySelectorAll('.p-nav a').forEach((a) => a.addEventListener('click', () => zu(false)));
+  addEventListener('scroll', () => { if (!rahmen) rahmen = requestAnimationFrame(markiere); }, { passive: true });
+  addEventListener('resize', markiere); markiere();
+  // Antippen markiert sofort, auch wenn die Seite nicht weiter scrollen kann
+  Object.keys(tabs).forEach((k) => tabs[k].addEventListener('click', () => { aktiv = ''; setTimeout(() => { if (aktiv === '') { aktiv = k; for (const j in tabs) tabs[j].classList.toggle('aktiv', j === k); } }, 400); }));
+  // Antippen von Hot/Neu schließt die Suche
+  document.querySelectorAll('.p-tabs a').forEach((a) => a.addEventListener('click', () => zu(false)));
 
   // Umzug-Link im Fuß nur solange der Umzug aktiv ist
   const C = window.PLAYSAAL_UMZUG;
