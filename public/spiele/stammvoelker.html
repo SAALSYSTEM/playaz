@@ -83,6 +83,12 @@ body{background:linear-gradient(180deg,#8ccaf0 0%,#c8e6f5 38%,#e9f2f2 62%,#f6efe
 /* Hinweise */
 .chip{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 82px);transform:translateX(-50%);max-width:calc(100% - 24px);padding:9px 16px;background:var(--paper);border-radius:16px;box-shadow:0 4px 0 rgba(58,46,37,.16),0 12px 26px rgba(58,46,37,.16);font:500 16px/1.25 var(--font);color:var(--ink);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
 .chip b{font-weight:700}
+.chip.act{pointer-events:auto}
+.chip .up{display:inline-flex;align-items:center;gap:6px;margin-left:8px;padding:7px 12px;border:0;border-radius:999px;background:var(--terra);color:#fff;font:700 15px/1 var(--font);cursor:pointer;box-shadow:0 3px 0 var(--terra-d);vertical-align:middle}
+.chip .up:active{transform:translateY(2px);box-shadow:0 1px 0 var(--terra-d)}
+.chip .up span{display:inline-flex;align-items:center;gap:2px}
+.chip .up svg{width:16px;height:16px}
+.chip .up .lack{color:#ffd9cc}
 .chip.in{animation:chipIn .25s ease-out}
 @keyframes chipIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
 .toast{position:absolute;left:50%;top:30%;padding:12px 22px;background:var(--paper);border-radius:20px;box-shadow:0 6px 0 rgba(58,46,37,.16),0 18px 40px rgba(58,46,37,.2);font:700 22px/1.15 var(--font);color:var(--ink);text-align:center;white-space:nowrap;pointer-events:none;opacity:0;transform:translate(-50%,-50%)}
@@ -987,8 +993,8 @@ function makeSite(t, kind) {
 function updateSite(s) { s.posts.forEach(m => { m.scale.y = Math.max(0.01, Math.min(1, s.progress * 2.2)); }); s.beams.forEach(b => { b.visible = s.progress > 0.45; }); }
 function finishSite(s) {
   s.done = true; scene.remove(s.g);
-  placeBuilding(s.kind, s.tile.x, s.tile.z, true);
-  built.push({ kind: s.kind, x: s.tile.x, z: s.tile.z });
+  const g = placeBuilding(s.kind, s.tile.x, s.tile.z, true);
+  built.push({ kind: s.kind, x: s.tile.x, z: s.tile.z, lvl: 1, g });
   dust(s.p, 14); sound('done');
   if (s.kind === 'tent') { state.cap += 4; updateHud('pPop'); toast('Neues Zelt', '+4 Wohnplätze'); arrivalT = 8; }
   else { spawnWorker(s.kind, s.tile.x, s.tile.z); toast(BUILD[s.kind].name + ' fertig', BUILD[s.kind].info); updateHud(); }
@@ -1152,7 +1158,7 @@ function sound(kind) {
 let toastT = 0;
 function toast(title, sub) { const el = $('#toast'); el.innerHTML = ''; el.append(title); if (sub) { const s = document.createElement('small'); s.textContent = sub; el.append(s); } el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); }
 let chipTimer = 0;
-function chip(html) { const el = $('#chip'); el.innerHTML = html; el.hidden = false; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); clearTimeout(chipTimer); chipTimer = setTimeout(() => { el.hidden = true; }, 4200); }
+function chip(html, ms) { const el = $('#chip'); el.innerHTML = html; el.classList.toggle('act', html.includes('data-up')); el.hidden = false; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); clearTimeout(chipTimer); chipTimer = setTimeout(() => { el.hidden = true; }, ms || 4200); }
 const hintAt = {};
 function hintOnce(key, html, every) { const n = Date.now(); if (hintAt[key] && n - hintAt[key] < every) return; hintAt[key] = n; if (started) chip(html); }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -1235,6 +1241,8 @@ const ray = new T.Raycaster(), ndc = new T.Vector2();
 function pickTile(x, y) {
   ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, cam);
+  const bh = ray.intersectObjects(built.map(b => b.g), true)[0];
+  if (bh) { let o = bh.object; while (o) { const b = built.find(q => q.g === o); if (b) return tileAt(b.x, b.z); o = o.parent; } }
   const hits = ray.intersectObjects([grassMesh, waterMesh], false);
   if (!hits.length) return null;
   const h = hits[0];
@@ -1250,7 +1258,9 @@ function onTap(x, y) {
   }
   if (!t) { sel.visible = false; return; }
   sel.position.set(t.wx, t.top + 0.015, t.wz); sel.visible = true; selT = 0;
-  chip(tileInfo(t)); sound('tap');
+  const bb = t.occ && t.occ !== 'site' ? builtAt(t.x, t.z) : null;
+  if (bb) chip(upChip(bb), 8000); else chip(tileInfo(t));
+  sound('tap');
 }
 
 // ---------- Bauen ----------
@@ -1298,6 +1308,28 @@ function pickKind(k) {
 sheet.addEventListener('click', e => { const c = e.target.closest('.card'); if (c) pickKind(c.dataset.k); });
 buildBtn.addEventListener('click', () => { if (buildMode) { exitBuild(); return; } if (sheet.hidden) openSheet(); else closeSheet(); });
 
+// ---------- Ausbauen: Antippen eines Gebäudes ----------
+const UPG_MAX = 3;
+const upCost = b => ({ wood: Math.ceil(BUILD[b.kind].cost.wood * 1.5 * b.lvl), stone: 3 * b.lvl });
+const lvlScale = l => 1.18 * (1 + 0.1 * (l - 1));
+const builtAt = (x, z) => built.find(b => b.x === x && b.z === z);
+function upChip(b) {
+  const nm = esc(BUILD[b.kind].name) + ' · Stufe ' + b.lvl;
+  if (b.lvl >= UPG_MAX) return '<b>' + nm + '</b> · voll ausgebaut';
+  const c = upCost(b);
+  return '<b>' + nm + '</b><button type="button" class="up" data-up="' + b.x + ',' + b.z + '">Ausbauen' + Object.entries(c).map(([r, n]) => '<span class="' + (state[r] < n ? 'lack' : '') + '">' + ICON[r] + n + '</span>').join('') + '</button>';
+}
+function upgrade(b) {
+  if (b.lvl >= UPG_MAX) return;
+  const c = upCost(b), miss = lacking(c);
+  if (miss) { toast('Es fehlen ' + miss, 'Die Arbeiter bringen Nachschub'); return; }
+  pay(c); b.lvl++; b.g.scale.setScalar(lvlScale(b.lvl)); dust(W(b.x, b.z), 12); sound('done');
+  if (b.kind === 'tent') { state.cap += 2; arrivalT = 8; toast('Zelt ausgebaut', 'Stufe ' + b.lvl + ' · +2 Wohnplätze'); }
+  else { spawnWorker(b.kind, b.x, b.z); toast(BUILD[b.kind].name + ' ausgebaut', 'Stufe ' + b.lvl + ' · ein Arbeiter mehr'); }
+  updateHud('pWood'); chip(upChip(b), 8000); save();
+}
+$('#chip').addEventListener('click', e => { const u = e.target.closest('[data-up]'); if (!u) return; const [x, z] = u.dataset.up.split(',').map(Number), b = builtAt(x, z); if (b) upgrade(b); });
+
 // ---------- Speichern (nur in diesem Browser) ----------
 const KEY = 'stammvoelker.v1';
 function save() {
@@ -1305,7 +1337,7 @@ function save() {
     const f2 = v => Math.round(v * 100) / 100;
     localStorage.setItem(KEY, JSON.stringify({
       v: 1, wood: state.wood, stone: state.stone, food: state.food, pop: state.pop, cap: state.cap, m: Math.round(meal.t), h: meal.hungry,
-      b: built.map(b => [b.kind, b.x, b.z]),
+      b: built.map(b => [b.kind, b.x, b.z, b.lvl]),
       s: sites.filter(s => !s.done).map(s => [s.kind, s.tile.x, s.tile.z]),
       t: trees.filter(tr => !tr.fell).map(tr => [tr.tile.x, tr.tile.z, f2(tr.ox), f2(tr.oz), tr.kind === 'c' ? 0 : 1, f2(tr.s), f2(tr.ry), f2(tr.g), f2(tr.tint)])
     }));
@@ -1330,7 +1362,9 @@ function load() {
     if (!Array.isArray(r)) continue;
     const [k, x, z] = r, t = tileAt(x, z);
     if (!KINDS.includes(k) || !t || t.ch !== 'g' || t.occ) continue;
-    placeBuilding(k, x, z, false); built.push({ kind: k, x, z }); if (k !== 'tent') spawnWorker(k, x, z);
+    const g = placeBuilding(k, x, z, false), lvl = clamp(Math.round(r[3]) || 1, 1, UPG_MAX);
+    built.push({ kind: k, x, z, lvl, g }); g.scale.setScalar(lvlScale(lvl));
+    if (k !== 'tent') for (let i = 0; i < lvl; i++) spawnWorker(k, x, z);
   }
   for (const r of Array.isArray(o.s) ? o.s : []) {
     if (!Array.isArray(r)) continue;
