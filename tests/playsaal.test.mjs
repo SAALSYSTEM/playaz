@@ -160,27 +160,36 @@ test('Startseite: feste Kopfzeile mit Icons, Neu/Top nacheinander, jede Kachel f
   const page = await ctx.newPage(); await page.goto(ALT + '/');
   // Kopf bleibt beim Scrollen oben
   await page.evaluate(() => window.scrollTo(0, 900));
-  const kopf = await page.evaluate(() => { const b = document.getElementById('kopf').getBoundingClientRect(); return { top: b.top, h: b.height }; });
-  assert.equal(kopf.top, 0); assert.ok(kopf.h >= 56 && kopf.h <= 60, 'Kopfhöhe ' + kopf.h);
-  assert.deepEqual(await page.$$eval('.p-nav > *', (e) => e.map((x) => x.textContent.trim())), ['Top', 'Neu', 'Zusammen', 'Suche', 'Profil']);
+  const kopf = await page.evaluate(() => { const b = document.querySelector('.portal-head-in').getBoundingClientRect(); return { top: b.top, h: b.height }; });
+  assert.ok(kopf.top >= 0 && kopf.top <= 12, 'Kopf klebt nicht oben: ' + kopf.top); assert.ok(kopf.h >= 56 && kopf.h <= 120, 'Kopfhöhe ' + kopf.h);
+  assert.deepEqual(await page.$$eval('.p-tabs > *, .p-tools > *', (e) => e.map((x) => x.textContent.trim())), ['Hot', 'Neu', 'Freunde', 'Suche', 'Profil']);
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth), 390);
-  // Reihenfolge: Neu vor Top; höchstens 20 Kacheln je Block
-  const pos = await page.evaluate(() => [document.getElementById('neu').getBoundingClientRect().top, document.getElementById('top').getBoundingClientRect().top]);
+  // Reihenfolge: Hot vor Neu; höchstens 20 Kacheln je Block
+  const pos = await page.evaluate(() => [document.getElementById('hot').getBoundingClientRect().top, document.getElementById('neu').getBoundingClientRect().top]);
   assert.ok(pos[0] < pos[1]);
-  for (const id of ['neu', 'top']) { const n = await page.locator(`#${id} .kachel`).count(); assert.ok(n >= 1 && n <= 20, id + ' ' + n); }
+  for (const id of ['hot', 'neu']) { const n = await page.locator(`#${id} .kachel`).count(); assert.ok(n >= 1 && n <= 20, id + ' ' + n); }
   // Jedes Spiel kommt mindestens einmal vor, jede Kachel führt auf eine echte Route
   const links = await page.$$eval('.kachel a', (as) => as.map((a) => a.getAttribute('href')));
   for (const s of SPIELE) assert.ok(links.includes('/spiele/' + s), s + ' fehlt auf der Startseite');
   for (const h of new Set(links)) assert.equal((await fetch(ALT + h)).status, 200, h);
   // Anker aus anderen Seiten
-  for (const id of ['spiele', 'neu', 'top']) assert.equal(await page.locator('#' + id).count(), 1, '#' + id);
+  for (const id of ['spiele', 'hot', 'neu']) assert.equal(await page.locator('#' + id).count(), 1, '#' + id);
   // Zusammen/Profil: nur "bald verfügbar", keine Navigation
-  await page.click('[data-bald="Zusammen"]', { force: true });
-  assert.match(await page.textContent('#toast'), /Zusammen.*bald verfügbar/);
+  await page.click('[data-bald="Freunde"]', { force: true });
+  assert.match(await page.textContent('#toast'), /Freunde.*bald verfügbar/);
   assert.ok(page.url().endsWith('/'));
   await page.click('[data-bald="Profil"]', { force: true });
   assert.match(await page.textContent('#toast'), /Profil.*bald verfügbar/);
   assert.match(await page.textContent('.seo'), /bald verfügbar/);
+  // Aktiver Bereich: am Anfang Hot, nach dem Springen zu Neu Neu
+  assert.equal(await page.getAttribute('.p-tabs a[href="#hot"]', 'aria-current'), 'true');
+  await page.evaluate(() => document.getElementById('neu').scrollIntoView());
+  await page.waitForFunction(() => document.querySelector('.p-tabs a[href="#neu"]').getAttribute('aria-current') === 'true');
+  assert.equal(await page.getAttribute('.p-tabs a[href="#hot"]', 'aria-current'), null);
+  await page.waitForTimeout(400);
+  // Farben passend zum Bereich: Hot orange, Neu gelb
+  const farbe = await page.evaluate(() => { const bg = (s) => getComputedStyle(document.querySelector(s)).backgroundColor; return [bg('.p-tabs a[href="#neu"]'), getComputedStyle(document.querySelector('.p-tabs a[href="#hot"] svg')).color]; });
+  assert.equal(farbe[0], 'rgb(255, 210, 28)'); assert.equal(farbe[1], 'rgb(255, 146, 0)');
   assert.equal(await page.locator('.seo a').count(), 0, 'Platzhalter-Kategorien dürfen noch keine Links sein');
   await ctx.close();
 });
@@ -252,13 +261,13 @@ for (const [w, h, spalten] of [[320, 548, 2], [375, 548, 3], [390, 664, 3], [430
       });
       const k1 = bl(document.querySelector('.kachel'));
       const kopf = bl(document.getElementById('kopf'));
-      const nav = [...document.querySelectorAll('.p-nav > *')].map((e) => bl(e));
+      const nav = [...document.querySelectorAll('.p-tabs > *, .p-tools > *')].map((e) => bl(e));
       return { breite: document.documentElement.scrollWidth, bloecke, kachelOben: Math.round(k1.top), kopfH: Math.round(kopf.height), navMin: Math.min(...nav.map((n) => Math.min(n.width, n.height))), navRechts: Math.max(...nav.map((n) => n.right)),
-        bild: document.querySelector('.kachel img').complete, lazy: [...document.querySelectorAll('#top .kachel img')].every((i) => i.loading === 'lazy') };
+        bild: document.querySelector('.kachel img').complete, lazy: [...document.querySelectorAll('#neu .kachel img')].every((i) => i.loading === 'lazy') };
     });
     assert.equal(r.breite, w, 'horizontaler Überlauf');
     assert.ok(r.navRechts <= w, 'Navigation ragt rechts raus');
-    assert.ok(r.navMin >= (w < 360 ? 38 : 44), 'Tippfläche ' + r.navMin);
+    assert.ok(r.navMin >= 36, 'Tippfläche ' + r.navMin);
     assert.ok(r.kachelOben < h - 100, `erste Kachel erst bei ${r.kachelOben}px sichtbar`);
     assert.ok(r.lazy, 'Bilder unterhalb des ersten Blocks laden nicht lazy');
     for (const b of r.bloecke) {
