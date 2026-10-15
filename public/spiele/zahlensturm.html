@@ -1,0 +1,373 @@
+<!doctype html><html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>ZAHLENSTURM · 3D-Rechenlauf · PlaySaal</title>
+<link rel="canonical" href="https://playsaal.com/spiele/zahlensturm">
+<meta name="description" content="3D-Rechenlauf: Lenke deine wachsende Gruppe durch Plus-, Mal-, Minus- und Geteilt-Tore, weich Hindernissen aus und besiege den Boss. 20 Level, Awards und Teilen, ohne Anmeldung und ohne Werbung.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="ZAHLENSTURM · PlaySaal"><meta property="og:description" content="Wähle die richtigen Rechentore und führe deine Gruppe zum Sieg. 20 Level, werbefrei, ohne Anmeldung."><meta property="og:url" content="https://playsaal.com/spiele/zahlensturm"><meta property="og:image" content="https://playsaal.com/bilder/zahlensturm.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="600"><meta property="og:image:alt" content="ZAHLENSTURM: Eine blaue Figurengruppe läuft auf Rechentore zu"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playsaal.com/bilder/zahlensturm.jpg">
+<meta name="theme-color" content="#11121A">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="modulepreload" href="zahlensturm/sim.js"><link rel="modulepreload" href="zahlensturm/levels.js"><link rel="modulepreload" href="zahlensturm/render.js">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Zahlensturm","url":"https://playsaal.com/spiele/zahlensturm","inLanguage":"de","genre":["Geschicklichkeitsspiel","Rechenspiel","Laufspiel"],"gamePlatform":"Webbrowser","applicationCategory":"Game","operatingSystem":"Alle","isAccessibleForFree":true,"publisher":{"@type":"Organization","name":"PlaySaal"}}</script>
+<script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'zahlensturm',t:Date.now()}))}catch(e){}</script>
+<style>
+
+/* ZAHLENSTURM: 3D-Spielwelt bunt, Bedienelemente in den PlaySaal-Farbrollen:
+   Anthrazit = Bühne/Panels, Gelb = Aktionen (schwarze Schrift), Orange = Auszeichnungen/Highlights. */
+:root{
+  --basis:#11121A; --flaeche:#1a1b26; --flaeche-hell:#262838; --marke:#FF9200; --aktion:#FFD21C; --aktion-hover:#FFDD4D;
+  --text:#f6f7f9; --leise:#b6b9c8; --linie:rgba(246,247,249,.14);
+  --f-display:"Dela Gothic One","Arial Black",Impact,sans-serif; --f-text:"Barlow","Segoe UI",system-ui,sans-serif;
+  --f-zahl:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --st:env(safe-area-inset-top,0px); --sb:env(safe-area-inset-bottom,0px); --sl:env(safe-area-inset-left,0px); --sr:env(safe-area-inset-right,0px);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--basis);color:var(--text);font:16px/1.4 var(--f-text);overflow:hidden;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#game{position:fixed;inset:0;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+:focus-visible{outline:3px solid var(--aktion);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------- HUD ---------- */
+body{--himmel0:#bfe6ff;--himmel1:#f4fbff}
+#game{background:linear-gradient(180deg,var(--himmel0) 0,var(--himmel1) 46%,var(--himmel1) 100%)}
+.hud{position:absolute;left:0;right:0;top:0;padding:calc(var(--st) + 10px) calc(var(--sr) + 10px) 0 calc(var(--sl) + 56px);display:flex;align-items:center;gap:10px;pointer-events:none;z-index:5}
+.hud>*{pointer-events:auto}
+.ibtn{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:rgba(17,18,26,.78);border:1px solid var(--linie);padding:0;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);flex:none}
+.ibtn svg{width:20px;height:20px}
+.ibtn:hover{background:rgba(38,40,56,.92)}
+.fort{flex:1;min-width:60px;height:16px;border-radius:99px;background:rgba(17,18,26,.55);border:2px solid rgba(17,18,26,.7);position:relative;pointer-events:none;overflow:visible}
+.fort i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#38bdf8,#7dd3fc);width:0}
+.fort u{position:absolute;right:-6px;top:-7px;width:24px;height:26px;border-radius:6px;background:conic-gradient(#fff 0 25%,#14182e 0 50%,#fff 0 75%,#14182e 0) 0 0/10px 10px;border:2px solid #14182e}
+.fort b{position:absolute;left:0;top:-2px;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid #38bdf8;margin-left:-10px;display:none}
+.hud2{position:absolute;left:0;right:0;top:calc(var(--st) + 58px);padding:0 calc(var(--sr) + 12px) 0 calc(var(--sl) + 14px);display:flex;gap:8px;align-items:center;pointer-events:none;z-index:5}
+.chip{display:flex;align-items:center;gap:7px;height:34px;padding:0 12px;border-radius:10px;background:rgba(17,18,26,.78);border:1px solid var(--linie);font-weight:700;white-space:nowrap;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff}
+.chip b{font-family:var(--f-zahl);font-size:20px;font-variant-numeric:tabular-nums}
+.chip svg{width:18px;height:18px;flex:none}
+.chip.lv b{color:var(--marke)}
+.chip.lv span{font-size:14px;color:var(--leise);max-width:34vw;overflow:hidden;text-overflow:ellipsis}
+.chip.muenze{margin-left:auto}
+.chip.muenze b{color:var(--aktion)}
+@media (max-width:420px){.chip.lv span{display:none}}
+.zahl{position:absolute;left:0;top:0;z-index:4;pointer-events:none;transform:translate(-50%,-100%);padding:5px 14px 6px;border-radius:14px;background:#3b82f6;color:#fff;font:800 28px/1 var(--f-zahl);font-variant-numeric:tabular-nums;box-shadow:0 4px 0 rgba(20,24,50,.35),0 6px 16px rgba(20,24,50,.25);will-change:transform;white-space:nowrap}
+.zahl::after{content:"";position:absolute;left:50%;bottom:-7px;margin-left:-7px;border:7px solid transparent;border-top-color:inherit;border-bottom:0;filter:none}
+.zahl.bump{animation:bump .28s ease-out}
+@keyframes bump{40%{scale:1.22}}
+.pop{position:absolute;left:0;top:0;z-index:6;pointer-events:none;font:800 44px/1 var(--f-zahl);color:#fff;text-shadow:0 3px 0 rgba(20,24,50,.55),0 0 18px rgba(20,24,50,.35);animation:schweb 1s ease-out forwards;white-space:nowrap}
+.pop.gut{color:#9dffc4}.pop.schlecht{color:#ff9aa0}.pop.gold{color:#ffe27a}
+@keyframes schweb{0%{opacity:0;translate:-50% 0;scale:.5}15%{opacity:1;scale:1.15}100%{opacity:0;translate:-50% -90px;scale:1}}
+.kampf{position:absolute;left:50%;top:calc(var(--st) + 100px);transform:translateX(-50%);z-index:6;width:min(86vw,420px);pointer-events:none}
+.kampf .kopf2{display:flex;justify-content:space-between;font:800 24px/1 var(--f-zahl);color:#fff;text-shadow:0 2px 0 rgba(20,24,50,.6);margin-bottom:5px}
+.kampf .bar{height:14px;border-radius:99px;background:rgba(17,18,26,.65);overflow:hidden;border:2px solid rgba(17,18,26,.75)}
+.kampf .bar i{display:block;height:100%;background:linear-gradient(90deg,#ff5d73,#ff9f43);width:100%}
+.kampf small{display:block;text-align:center;margin-top:4px;color:#fff;font-weight:700;text-shadow:0 1px 3px rgba(20,24,50,.7)}
+.hilfe{position:absolute;left:50%;bottom:calc(var(--sb) + 8vh);transform:translateX(-50%);z-index:6;display:flex;gap:12px;align-items:center;padding:11px 18px;border-radius:16px;background:rgba(17,18,26,.86);border:1px solid var(--linie);font-weight:700;pointer-events:none;white-space:nowrap;animation:puls 1.6s ease-in-out infinite;color:#fff}
+.hilfe kbd{display:inline-grid;place-items:center;min-width:30px;height:30px;padding:0 6px;border-radius:7px;background:var(--flaeche-hell);border:1px solid var(--linie);border-bottom-width:3px;font:700 15px/1 var(--f-text)}
+.hilfe .touch{display:none}
+body.touch .hilfe .taste{display:none}
+body.touch .hilfe .touch{display:inline}
+@keyframes puls{50%{opacity:.75}}
+.tipp{position:absolute;left:50%;top:calc(var(--st) + 100px);transform:translateX(-50%);z-index:5;max-width:min(92vw,520px);padding:8px 14px;border-radius:12px;background:rgba(17,18,26,.82);color:#fff;font-weight:600;font-size:15px;text-align:center;pointer-events:none}
+.banner{position:absolute;left:50%;top:calc(var(--st) + 100px);transform:translateX(-50%);z-index:6;display:flex;gap:10px;align-items:center;width:max-content;max-width:min(94vw,560px);padding:9px 14px;border-radius:12px;background:rgba(17,18,26,.9);border:1px solid rgba(255,146,0,.6);font-size:15px;font-weight:600;pointer-events:none;color:#fff}
+.toasts{position:absolute;left:50%;top:calc(var(--st) + 150px);transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+.toasts div{padding:9px 14px;border-radius:12px;background:rgba(17,18,26,.94);border:1px solid rgba(255,146,0,.6);font-weight:600;animation:rein .25s ease-out both;white-space:nowrap;color:#fff}
+@keyframes rein{from{opacity:0;transform:translateY(-8px)}}
+.ziel{position:absolute;left:50%;top:34%;transform:translate(-50%,-50%) rotate(-5deg);z-index:8;font:400 clamp(56px,13vw,120px)/1 var(--f-display);color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.3);pointer-events:none;animation:knall .45s cubic-bezier(.2,1.6,.4,1) both;white-space:nowrap}
+.ziel.aus{color:#ffb3b8}
+@keyframes knall{from{transform:translate(-50%,-50%) rotate(-5deg) scale(.2);opacity:0}}
+
+/* ---------- Bildschirme ---------- */
+.screen{position:absolute;inset:0;z-index:20;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;overscroll-behavior:contain;padding:calc(var(--st) + 12px) calc(var(--sr) + 16px) calc(var(--sb) + 24px) calc(var(--sl) + 16px)}
+.screen.voll{background:rgba(17,18,26,.96)}
+.kopf{display:flex;align-items:center;gap:12px;max-width:980px;margin:0 auto 14px;min-height:44px}
+.kopf h2{margin:0;font:400 26px/1.1 var(--f-display);letter-spacing:-.01em}
+@media (max-width:1060px){.kopf{padding-left:42px}}
+@media (max-width:420px){.kopf h2{font-size:22px}}
+.kopf .zahl{margin-left:auto;color:var(--leise);font-weight:600}
+.zurueck{width:44px;height:44px;border-radius:12px;border:1px solid var(--linie);background:var(--flaeche);display:grid;place-items:center;padding:0;flex:none}
+.zurueck svg{width:22px;height:22px}
+
+#sMenu{display:flex;flex-direction:column;justify-content:center;padding-left:calc(var(--sl) + 56px);background:linear-gradient(90deg,rgba(17,18,26,.92) 0,rgba(17,18,26,.78) 420px,rgba(17,18,26,.15) 760px,rgba(17,18,26,0))}
+.menu-in{width:min(100%,400px);display:flex;flex-direction:column;gap:10px}
+.titel{margin:0 0 4px;font:400 clamp(44px,8.6vw,64px)/.95 var(--f-display);letter-spacing:-.01em;transform:rotate(-6deg) translateX(-2px);transform-origin:left bottom}
+.titel span{display:block}
+.titel span:last-child{position:relative;display:inline-block;padding:0 10px 4px 2px}
+.titel span:last-child::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:12px;background:var(--marke);z-index:-1;transform:skewX(-14deg)}
+.unter{margin:6px 0 14px;color:var(--leise);font-weight:600}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 22px;border-radius:999px;border:0;background:var(--aktion);color:var(--basis);font:700 18px/1 var(--f-text);text-decoration:none;cursor:pointer}
+.btn:hover{background:var(--aktion-hover)}
+.btn small{font-weight:600;opacity:.8;font-size:15px}
+.btn svg{width:18px;height:18px}
+.btn2{display:flex;align-items:center;gap:12px;min-height:48px;padding:0 16px;border-radius:14px;border:1px solid var(--linie);background:rgba(26,27,38,.92);color:var(--text);font:600 17px/1 var(--f-text);text-decoration:none;cursor:pointer}
+.btn2:hover{background:var(--flaeche-hell)}
+.btn2 svg{width:22px;height:22px;flex:none;color:var(--leise)}
+.btn2 em{margin-left:auto;font-style:normal;color:var(--leise);font-weight:600;font-size:15px}
+.btn2 .neu{margin-left:auto;font:700 12px/1 var(--f-text);background:var(--marke);color:var(--basis);padding:4px 7px;border-radius:6px}
+.reihe{display:flex;gap:8px;flex-wrap:wrap}
+.reihe>*{flex:1 1 0}
+.klein{display:flex;gap:8px;margin-top:6px}
+.klein .ibtn{width:44px;height:44px;background:rgba(26,27,38,.92)}
+@media (max-width:640px) and (orientation:portrait){
+  #sMenu{padding-left:calc(var(--sl) + 16px);justify-content:flex-end;background:linear-gradient(0deg,rgba(17,18,26,.95) 0,rgba(17,18,26,.88) 62%,rgba(17,18,26,.2) 86%,rgba(17,18,26,0))}
+  .menu-in{width:100%}
+}
+@media (max-height:500px) and (orientation:landscape){
+  #sMenu{justify-content:flex-start}
+  .titel{font-size:40px}.unter{margin:2px 0 8px}
+  .btn{min-height:46px}.btn2{min-height:42px}
+  .menu-in{gap:7px}
+}
+
+/* Levelauswahl */
+.gruppe{max-width:980px;margin:0 auto 18px}
+.gruppe h3{margin:0 0 8px;font:700 13px/1 var(--f-text);letter-spacing:.1em;text-transform:uppercase;color:var(--leise)}
+.lgrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+@media (max-width:420px){.lgrid{gap:6px}}
+.ltile{position:relative;aspect-ratio:1/1;min-height:58px;border-radius:14px;border:1px solid var(--linie);background:var(--flaeche);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px}
+.ltile b{font:700 clamp(22px,5vw,30px)/1 var(--f-zahl)}
+.ltile small{font:600 12px/1 var(--f-zahl);color:var(--leise);letter-spacing:.02em}
+.ltile.offen{border-color:rgba(255,210,28,.55)}
+.ltile.geschafft{background:var(--flaeche-hell)}
+.ltile .ok{position:absolute;right:6px;top:6px;width:10px;height:10px;border-radius:50%;background:#58c779}
+.ltile .med{position:absolute;left:6px;top:5px;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff1a8,#f2b81f 60%,#a86d00);box-shadow:0 0 0 1px rgba(0,0,0,.3)}
+.ltile.zu{opacity:.45}
+.ltile.zu b{color:var(--leise)}
+.ltile svg{width:16px;height:16px;color:var(--leise)}
+
+/* Auszeichnungen */
+.agrid{max-width:980px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px}
+.akarte{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:16px;background:var(--flaeche);border:1px solid var(--linie);text-align:left;width:100%}
+.akarte.da{border-color:rgba(255,146,0,.5);background:linear-gradient(135deg,rgba(255,146,0,.10),var(--flaeche) 55%)}
+.akarte canvas{width:64px;height:64px;flex:none}
+.akarte>div{flex:1;min-width:0}
+.akarte .bar+small{display:block;margin-top:3px;font-size:12px;color:var(--leise);font-weight:600}
+.akarte b{display:block;font-size:17px}
+.akarte .r{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.akarte p{margin:2px 0 0;color:var(--leise);font-size:14px;line-height:1.3}
+.akarte .bar{height:6px;border-radius:9px;background:var(--flaeche-hell);margin-top:6px;overflow:hidden}
+.akarte .bar i{display:block;height:100%;background:var(--marke)}
+.akarte time{display:block;margin-top:3px;font-size:13px;color:var(--marke);font-weight:600}
+
+/* Garage (Figurenfarben) */
+.ggrid{max-width:980px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.skin{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 10px;border-radius:16px;background:var(--flaeche);border:2px solid var(--linie);text-align:center}
+.skin canvas{width:80px;height:80px}
+.skin b{font-size:16px}
+.skin small{color:var(--leise);font-weight:600;font-size:13px;min-height:18px}
+.skin.aktiv{border-color:var(--aktion)}
+.skin .btn2{min-height:38px;padding:0 12px;font-size:15px;justify-content:center;width:100%}
+.name-feld{max-width:980px;margin:18px auto 0}
+.name-feld label{display:block;font:700 13px/1 var(--f-text);letter-spacing:.1em;text-transform:uppercase;color:var(--leise);margin-bottom:8px}
+.name-feld input{width:min(100%,320px);height:48px;border-radius:12px;border:1px solid var(--linie);background:var(--flaeche);color:var(--text);padding:0 14px;font:600 17px var(--f-text)}
+.name-feld input:focus{outline:2px solid var(--aktion);border-color:transparent}
+.name-feld p{margin:6px 0 0;color:var(--leise);font-size:13px}
+.sterne{display:inline-flex;gap:3px;vertical-align:middle}
+.sterne svg{width:18px;height:18px}
+.ltile .sterne{position:absolute;left:0;right:0;bottom:3px;justify-content:center;gap:1px}
+.ltile .sterne svg{width:12px;height:12px}
+.gross-sterne{display:flex;justify-content:center;gap:6px;margin:2px 0 4px}
+.gross-sterne svg{width:46px;height:46px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) both}
+.gross-sterne svg:nth-child(2){animation-delay:.12s}.gross-sterne svg:nth-child(3){animation-delay:.24s}
+.zahlen3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.zahlen3 div{padding:8px 4px;border-radius:12px;background:var(--flaeche-hell)}
+.zahlen3 b{display:block;font:800 26px/1.05 var(--f-zahl);font-variant-numeric:tabular-nums}
+.zahlen3 small{color:var(--leise);font-weight:600;font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+
+/* ---------- Overlays (Pause, Ziel, Award) ---------- */
+.overlay{position:absolute;inset:0;z-index:25;display:flex;align-items:center;justify-content:center;padding:calc(var(--st) + 12px) calc(var(--sr) + 12px) calc(var(--sb) + 12px) calc(var(--sl) + 12px);background:rgba(10,11,16,.55);overflow-y:auto;touch-action:pan-y}
+.panel{width:min(100%,430px);margin:auto;padding:20px;border-radius:22px;background:rgba(17,18,26,.96);border:1px solid var(--linie);box-shadow:0 20px 60px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:10px;animation:hoch .28s cubic-bezier(.2,1.2,.4,1) both}
+.sperre{pointer-events:none}
+@keyframes hoch{from{opacity:0;transform:translateY(18px) scale(.97)}}
+.panel h2{margin:0;font:400 30px/1.05 var(--f-display);text-align:center}
+.panel .sub{margin:-4px 0 4px;text-align:center;color:var(--leise);font-weight:600}
+.ergebnis{text-align:center}
+.ergebnis .gross{font:700 64px/1 var(--f-zahl);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.ergebnis .vgl{margin-top:4px;font-weight:700}
+.ergebnis .vgl.neu{color:var(--marke)}
+.ergebnis .vgl.alt{color:var(--leise)}
+.ministats{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;color:var(--leise);font-size:14px;font-weight:600}
+.awardsrow{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+.awardsrow button{display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px;border-radius:999px;background:var(--flaeche-hell);border:1px solid rgba(255,146,0,.5);font-weight:700;font-size:14px}
+.awardsrow canvas{width:32px;height:32px}
+.status{text-align:center;font-size:13px;color:var(--leise)}
+.status.ok{color:#58c779}
+.panel .reihe .btn2{justify-content:center}
+
+/* Award-Popup */
+#oAward{background:radial-gradient(circle at 50% 38%,rgba(255,146,0,.28),rgba(10,11,16,.86) 60%)}
+.awardpanel{align-items:center;text-align:center;background:rgba(17,18,26,.92)}
+.awardpanel .strahl{position:relative;width:200px;height:200px;margin:-6px auto 0}
+.awardpanel .strahl::before{content:"";position:absolute;inset:-40px;background:repeating-conic-gradient(rgba(255,210,28,.16) 0 9deg,transparent 9deg 22deg);border-radius:50%;animation:dreh 9s linear infinite;-webkit-mask:radial-gradient(circle,#000 30%,transparent 70%);mask:radial-gradient(circle,#000 30%,transparent 70%)}
+.awardpanel canvas{position:relative;width:200px;height:200px;animation:pop .6s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes dreh{to{transform:rotate(360deg)}}
+@keyframes pop{0%{transform:scale(.1) rotate(-30deg);opacity:0}100%{transform:none;opacity:1}}
+.awardpanel .art{font:700 14px/1 var(--f-text);letter-spacing:.16em;text-transform:uppercase}
+.awardpanel h2{font-size:30px}
+.awardpanel q{display:block;font-size:19px;font-weight:600;quotes:"„" "“"}
+.awardpanel .frage{color:var(--leise);font-weight:600;margin-top:-4px}
+.awardpanel .reihe{width:100%}
+.awardpanel .btn{width:100%}
+.mitte{display:flex;justify-content:center}
+.p-links,.p-rechts{display:flex;flex-direction:column;gap:10px}
+.awardpanel .p-links{align-items:center}
+@media (max-height:520px) and (orientation:landscape){
+  .panel.zweiteilig{display:grid;grid-template-columns:1fr 1fr;column-gap:22px;align-items:center;width:min(100%,780px)}
+  .awardpanel .strahl{width:110px;height:110px}.awardpanel canvas{width:110px;height:110px}
+  .panel.zweiteilig .p-links{gap:6px}
+  .ergebnis .gross{font-size:46px}
+  .panel h2{font-size:26px}
+  .titel{margin-top:14px;font-size:36px}
+}
+@media (max-height:620px){.awardpanel .strahl{width:130px;height:130px}.awardpanel canvas{width:130px;height:130px}.panel{gap:8px;padding:16px}.ergebnis .gross{font-size:50px}}
+@media (prefers-reduced-motion:reduce){.panel,.awardpanel canvas,.awardpanel .strahl::before,.ziel,.hilfe,.pop,.zahl.bump,.gross-sterne svg{animation:none}}
+.noscript{position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center}
+</style>
+</head><body>
+<div id="game">
+  <canvas id="c" aria-label="Spielfeld in 3D"></canvas>
+
+  <div class="hud" id="hud" hidden>
+    <div class="fort" id="fort" aria-hidden="true"><i id="fBar"></i><b id="fPunkt"></b><u></u></div>
+    <button class="ibtn" id="bNeu" aria-label="Neustart (R)" title="Neustart (R)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5M4.5 4v4h4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="ibtn" id="bPause" aria-label="Pause (Esc)" title="Pause (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>
+  </div>
+  <div class="hud2" id="hud2" hidden>
+    <div class="chip lv"><b id="hLevel">1</b><span id="hName"></span></div>
+    <div class="chip" title="Gruppengröße"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.4" fill="#7dd3fc"/><path d="M5.5 20c0-4 3-6.4 6.5-6.4s6.5 2.4 6.5 6.4z" fill="#7dd3fc"/></svg><b id="hAnzahl">1</b></div>
+    <div class="chip muenze" title="Münzen in diesem Level"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#ffc928" stroke="#b07a00" stroke-width="2"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="#b07a00" stroke-width="2"/></svg><b id="hMuenzen">0</b></div>
+  </div>
+  <div class="zahl" id="zahl" hidden>1</div>
+  <div id="pops"></div>
+  <div class="kampf" id="kampf" hidden><div class="kopf2"><span id="kDu">Du 0</span><span id="kGegner">0</span></div><div class="bar"><i id="kBar"></i></div><small id="kText"></small></div>
+
+  <div class="hilfe" id="hilfe" hidden>
+    <span class="taste"><kbd>←</kbd><kbd>→</kbd> / <kbd>A</kbd><kbd>D</kbd> oder Maus ziehen</span>
+    <span class="touch">Finger nach links oder rechts ziehen</span>
+  </div>
+  <div class="tipp" id="tipp" hidden></div>
+  <div class="banner" id="banner" hidden><div id="bannerText"></div></div>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div class="ziel" id="zielText" hidden>GESCHAFFT!</div>
+
+  <!-- Hauptmenü -->
+  <section class="screen" id="sMenu" aria-labelledby="titel" hidden>
+    <div class="menu-in">
+      <h1 class="titel" id="titel"><span>ZAHLEN</span><span>STURM</span></h1>
+      <p class="unter">Wähle die richtigen Tore. 20 Level, keine Werbung.</p>
+      <button class="btn" id="mSpielen"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg><span id="mSpielenText">Spielen</span></button>
+      <button class="btn2" id="mLevel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Level wählen<em id="mLevelZahl"></em></button>
+      <button class="btn2" id="mAwards"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 3h3l1 5M16 3h-3l-1 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Auszeichnungen<em id="mAwardsZahl"></em></button>
+      <div class="reihe">
+        <button class="btn2" id="mGarage"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.4" fill="currentColor"/><path d="M5.5 20c0-4 3-6.4 6.5-6.4s6.5 2.4 6.5 6.4z" fill="currentColor"/></svg>Figuren<em id="mMuenzen"></em></button>
+        <button class="btn2" id="mHilfe"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.6 9.4a2.6 2.6 0 1 1 3.6 2.4c-.8.4-1.2.9-1.2 1.8M12 16.6v.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>So geht's</button>
+      </div>
+      <div class="klein">
+        <button class="ibtn" id="mTon" aria-label="Ton aus" title="Ton an/aus"></button>
+        <button class="ibtn" id="mVoll" aria-label="Vollbild" title="Vollbild"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <section class="screen voll" id="sLevels" aria-labelledby="hLevels" hidden>
+    <div class="kopf"><button class="zurueck" data-zurueck aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="hLevels">Level wählen</h2><span class="zahl-kopf" id="lZahl" style="margin-left:auto;color:var(--leise);font-weight:600"></span></div>
+    <div id="lListe"></div>
+  </section>
+
+  <section class="screen voll" id="sAwards" aria-labelledby="hAwards" hidden>
+    <div class="kopf"><button class="zurueck" data-zurueck aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="hAwards">Auszeichnungen</h2><span class="zahl-kopf" id="aZahl" style="margin-left:auto;color:var(--leise);font-weight:600"></span></div>
+    <div class="agrid" id="aListe"></div>
+  </section>
+
+  <section class="screen voll" id="sGarage" aria-labelledby="hGarage" hidden>
+    <div class="kopf"><button class="zurueck" data-zurueck aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="hGarage">Figuren</h2><span class="zahl-kopf" id="gMuenzen" style="margin-left:auto;color:var(--aktion);font-weight:700"></span></div>
+    <p style="max-width:980px;margin:0 auto 12px;color:var(--leise)">Neue Farben kaufst du mit Münzen aus den Leveln. Nur Optik, kein Vorteil.</p>
+    <div class="ggrid" id="gListe"></div>
+    <div class="name-feld"><label for="gName">Dein Name auf geteilten Bildern</label><input id="gName" maxlength="16" autocomplete="nickname" placeholder="optional" spellcheck="false"><p>Bleibt auf diesem Gerät. Buchstaben, Zahlen, Punkt, Strich, 3–16 Zeichen.</p></div>
+  </section>
+
+  <section class="overlay" id="oHilfe" hidden role="dialog" aria-modal="true" aria-labelledby="hHilfe">
+    <div class="panel">
+      <h2 id="hHilfe">So geht's</h2>
+      <ul style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;font-weight:600">
+        <li>Deine Gruppe läuft von allein. Du lenkst nur nach links und rechts: Finger ziehen, Maus ziehen oder <b>←/→</b> bzw. <b>A/D</b>.</li>
+        <li>Lauf durch ein Rechentor: <b>+</b>, <b>×</b>, <b>−</b> und <b>÷</b> ändern sofort die Zahl deiner Figuren. Wähle das Tor mit dem besten Ergebnis.</li>
+        <li>Weich Wänden, Stacheln, Sägen und Gruben aus. Gegnertrupps und der Boss kosten Figuren: Je größer deine Gruppe, desto weniger verlierst du.</li>
+        <li>Sammle Münzen und hol dir bis zu drei Sterne. Nach dem Boss wartet die Bonus-Treppe mit hohen Faktoren.</li>
+      </ul>
+      <button class="btn" id="hZu">Verstanden</button>
+    </div>
+  </section>
+
+  <!-- Pause -->
+  <section class="overlay" id="oPause" hidden role="dialog" aria-modal="true" aria-labelledby="hPause">
+    <div class="panel">
+      <h2 id="hPause">Pause</h2>
+      <button class="btn" id="pWeiter">Weiterlaufen</button>
+      <div class="reihe"><button class="btn2" id="pNeu">Neustart</button><button class="btn2" id="pLevel">Level</button></div>
+      <div class="reihe"><button class="btn2" id="pTon">Ton</button><button class="btn2" id="pVoll">Vollbild</button></div>
+      <button class="btn2" id="pMenu" style="justify-content:center">Hauptmenü</button>
+    </div>
+  </section>
+
+  <!-- Sieg -->
+  <section class="overlay" id="oErgebnis" hidden role="dialog" aria-modal="true" aria-labelledby="hErgebnis">
+    <div class="panel zweiteilig">
+      <div class="p-links">
+      <h2 id="hErgebnis">Geschafft!</h2>
+      <p class="sub" id="eLevel"></p>
+      <div class="gross-sterne" id="eSterne" aria-live="polite"></div>
+      <div class="zahlen3"><div><b id="eFiguren">0</b><small>Figuren</small></div><div><b id="eMuenzen">0</b><small>Münzen</small></div><div><b id="ePunkte">0</b><small>Punkte</small></div></div>
+      <div class="ministats" id="eStats"></div>
+      <div class="awardsrow" id="eAwards"></div>
+      </div>
+      <div class="p-rechts">
+      <button class="btn" id="eWeiter">Nächstes Level <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg></button>
+      <div class="reihe"><button class="btn2" id="eNochmal">Nochmal</button><button class="btn2" id="eTeilen">Herausfordern</button></div>
+      <div class="reihe"><button class="btn2" id="eLevels">Level</button><button class="btn2" id="eMenu">Menü</button></div>
+      <p class="status" id="eStatus"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Niederlage -->
+  <section class="overlay" id="oVerloren" hidden role="dialog" aria-modal="true" aria-labelledby="hVerloren">
+    <div class="panel">
+      <h2 id="hVerloren">Verloren</h2>
+      <p class="sub" id="vGrund"></p>
+      <p class="sub" id="vTipp" style="color:var(--text)"></p>
+      <button class="btn" id="vNochmal">Nochmal <small>(R)</small></button>
+      <div class="reihe"><button class="btn2" id="vLevels">Level</button><button class="btn2" id="vMenu">Menü</button></div>
+    </div>
+  </section>
+
+  <!-- Award / Teilen -->
+  <section class="overlay" id="oAward" hidden role="dialog" aria-modal="true" aria-labelledby="hAward">
+    <div class="panel awardpanel zweiteilig">
+      <div class="p-links">
+      <div class="strahl"><canvas id="awIcon" width="400" height="400"></canvas></div>
+      <div class="art" id="awArt"></div>
+      <h2 id="hAward"></h2>
+      <q id="awZitat"></q>
+      <p class="frage" id="awFrage">Kannst du mich schlagen?</p>
+      </div>
+      <div class="p-rechts">
+      <div class="reihe"><button class="btn" id="awTeilen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.6" fill="currentColor"/><circle cx="18" cy="6" r="2.6" fill="currentColor"/><circle cx="18" cy="18" r="2.6" fill="currentColor"/><path d="M6 12l12-6M6 12l12 6" stroke="currentColor" stroke-width="2"/></svg>Teilen</button></div>
+      <div class="reihe"><button class="btn2" id="awBild">Bild speichern</button><button class="btn2" id="awLink">Link kopieren</button></div>
+      <button class="btn2" id="awWeiter" style="justify-content:center;width:100%">Weiter</button>
+      <p class="status" id="awStatus"></p>
+      </div>
+    </div>
+  </section>
+  <noscript><div class="noscript">ZAHLENSTURM braucht JavaScript und WebGL.</div></noscript>
+</div>
+<script src="../assets/three.min.js"></script>
+<script type="module" src="zahlensturm/game.js"></script>
+<a class="pz-home" href="../" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a><style>.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 13px);left:calc(env(safe-area-inset-left,0px) + 12px);width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(17,18,26,.78);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}.pz-home:focus-visible{outline:3px solid #FFD21C;outline-offset:2px}</style><style>*{touch-action:pan-x pan-y}html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%}#game,#game canvas,.pedal,.zonen div{touch-action:none}</style><script>(function(){var stop=function(e){e.preventDefault()};['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,stop,{passive:false})});document.addEventListener('touchmove',function(e){if(e.touches.length>1||(e.scale&&e.scale!==1))e.preventDefault()},{passive:false});var last=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-last<350&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label')))e.preventDefault();last=now},{passive:false});document.addEventListener('dblclick',stop,{passive:false});var vv=window.visualViewport,m=document.querySelector('meta[name=viewport]');if(vv&&m){var base=m.getAttribute('content'),t=0;vv.addEventListener('resize',function(){if(vv.scale<1.02)return;clearTimeout(t);t=setTimeout(function(){m.setAttribute('content',base.replace('maximum-scale=1','maximum-scale=1.0'));setTimeout(function(){m.setAttribute('content',base)},60)},120)})}})();</script>
+</body></html>
