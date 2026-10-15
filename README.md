@@ -4,7 +4,7 @@ Browserspiele ohne Anmeldung: **Schräglage**, **Sondengänger**, **Stammvölker
 Früher PlayAZ; Umstellung siehe [`docs/PLAYSAAL_UMSTELLUNG.md`](docs/PLAYSAAL_UMSTELLUNG.md).
 
 - `public/` – die komplette Website (statisch, keine Build-Schritte)
-- `public/spiele/` – die Spiele, je eine HTML-Datei (EISZEIT lädt zusätzlich seine Bilder aus `public/spiele/eiszeit/`; SCHRÄGLAGE lädt seine JS-Module aus `public/spiele/schraeglage/`, siehe [`docs/SCHRAEGLAGE.md`](docs/SCHRAEGLAGE.md))
+- `public/spiele/` – die Spiele, je eine HTML-Datei (EISZEIT lädt zusätzlich seine Bilder aus `public/spiele/eiszeit/`; SCHRÄGLAGE lädt seine JS-Module aus `public/spiele/schraeglage/`, siehe [`docs/SCHRAEGLAGE.md`](docs/SCHRAEGLAGE.md); HAU DIE „POLITIKER“ lädt seine Module aus `public/spiele/hau-die-politiker/`: `layout.js` Saalgeometrie, `levels.js` Level und Spawnpläne, `sim.js` Spiellogik ohne DOM, `render.js`/`art.js` Zeichnen, `audio.js` Ton, `game.js` Oberfläche)
 - `public/brand/`, `public/favicon*`, `public/icon-*`, `public/og-*`, `public/twitter-*` – PlaySaal-Branding
 - `public/umzug.html` + `public/assets/umzug*.js` – Spielstände von der alten auf die neue Adresse übertragen
 - `public/assets/` – selbst gehostete Schriften und three.js (keine externen CDNs, keine Google Fonts)
@@ -30,12 +30,13 @@ Pushes auf andere Branches erzeugen eine Vorschau (`npx wrangler preview`, brauc
 npm i -g playwright && npx playwright install chromium   # einmalig
 node --test --test-concurrency=1 tests/*.test.mjs       # startet wrangler dev selbst
 node --test tests/schraeglage-sim.test.mjs              # nur SCHRÄGLAGE-Physik und Level, ohne Browser (schnell)
+node --test tests/politiker-sim.test.mjs                # nur HAU DIE „POLITIKER“: Level, Logik, Bot-Durchläufe, ohne Browser (schnell)
 node tools/domain.mjs                                   # Canonical/Sitemap/robots konsistent?
 ```
 
 ## Spielstände
 
-Alle Rekorde liegen nur im `localStorage` des Browsers (Schlüssel `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Kein Backend, keine Cookies, kein Tracking.
+Alle Rekorde liegen nur im `localStorage` des Browsers (Schlüssel `schraeglage.v1`, `politiker.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Kein Backend, keine Cookies, kein Tracking.
 `localStorage` hängt an der Adresse: Ein neues Spiel mit eigenem Schlüssel-Präfix muss in `public/assets/umzug.js` (Liste `SPIELE`) eingetragen werden, sonst wird es beim Umzug nicht mitgenommen.
 
 ## Vor dem Livegang

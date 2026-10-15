@@ -30,6 +30,8 @@
       info: (g) => { const d = J(g['stammvoelker.v1']) || {}; const h = Array.isArray(d.b) ? d.b.length : 0; return { text: zahl(d.pop || 12) + ' Einwohner · ' + h + (h === 1 ? ' Hütte' : ' Hütten'), wert: (d.pop || 0) * 10 + h * 20 + (d.wood || 0) / 100 }; } },
     { id: 'anbiss', name: 'Anbiss', prefix: 'anbiss.', haupt: ['anbiss.v1'],
       info: (g) => { const d = J(g['anbiss.v1']) || {}; const st = d.stats || {}; return { text: zahl(st.caught) + ' Fische · Level ' + zahl(d.lvl || 1) + ' · ' + zahl(d.money) + ' €', wert: (d.xp || 0) + (st.caught || 0) }; } },
+    { id: 'politiker', name: 'Hau die „Politiker“', prefix: 'politiker.', haupt: ['politiker.v1'],
+      info: (g) => { const d = J(g['politiker.v1']) || {}; const st = Object.values(d.stars || {}).reduce((a, b) => a + (Number(b) || 0), 0); const lv = Object.keys(d.stars || {}).length; return { text: lv + ' von 30 Level · ' + st + ' ★', wert: st * 1000 + lv * 100 + ((d.endless && d.endless.score) || 0) / 1000 }; } },
     { id: 'stellwerk', name: 'Stellwerk', prefix: 'stellwerk.', haupt: ['stellwerk.v1'],
       info: (g) => { const d = J(g['stellwerk.v1']) || {}; const sterne = Object.values(d.stars || {}).reduce((a, b) => a + (Number(b) || 0), 0); const zuege = Object.values(d.best || {}).reduce((a, b) => a + ((b && b.n) || 0), 0); return { text: sterne + ' ★ · ' + zahl(zuege) + ' Züge in Rekorden', wert: sterne * 1000 + zuege }; } },
     { id: 'eiszeit', name: 'Eiszeit', prefix: 'eiszeit.', haupt: ['eiszeit.v1', 'eiszeit.best'],
