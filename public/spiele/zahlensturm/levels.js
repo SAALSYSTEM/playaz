@@ -34,7 +34,8 @@ class Bau {
   mover(z, cx, amp, half, period, ph = 0) { this.obs.push({ type: 'mover', z, cx, amp, half, period, ph }); return this; }
   rotor(z, cx, len, period, ph = 0) { this.obs.push({ type: 'rotor', z, cx, len, period, ph }); return this; }
   plat(z, cx, amp, pw, period, ph = 0) { this.obs.push({ type: 'plat', z, cx, amp, pw, period, ph }); return this; }
-  squad(z, x0, x1, hp, atk) { this.enemies.push({ z, x0, x1, hp, atk: atk ?? Math.round(hp * 0.4) }); return this; }
+  // Gegnertrupp: „hp“ = Zahl der gegnerischen Figuren (so viele braucht man mindestens +1, um zu gewinnen)
+  squad(z, x0, x1, hp) { this.enemies.push({ z, x0, x1, hp }); return this; }
   // Münzen: Linie von (xa, za) nach (xb, zb) mit n Stück
   line(xa, za, xb, zb, n) { for (let i = 0; i < n; i++) { const t = n === 1 ? 0 : i / (n - 1); this.coins.push([+(xa + (xb - xa) * t).toFixed(2), +(za + (zb - za) * t).toFixed(2)]); } return this; }
   // Münzen in Schlangenlinie um die Mitte cx, Amplitude a
@@ -50,24 +51,21 @@ function sprossen(hw, reihen) {
   });
 }
 
-// Boss-Stärke: „t“ = ab dieser Gruppengröße gewinnt man den Kampf (hp = t² / (2·atk), siehe sim.js)
-const bossHp = (t, atk) => Math.round((t * t) / (2 * atk));
-
-export const BOSS_T = [
-  24, 34, 37, 44, 62,
-  41, 148, 188, 131, 271,
-  150, 329, 302, 285, 324,
-  817, 486, 444, 628, 293
+// Boss-Stärke = Zahl der Figuren des Bosses (steht über ihm). Man gewinnt mit mehr Figuren, der Rest bleibt übrig.
+export const BOSS_N = [
+  60, 70, 55, 80, 100,
+  80, 180, 250, 150, 260,
+  165, 340, 340, 240, 350,
+  410, 450, 400, 520, 330
 ];
-const BOSS_ATK = (i) => 8 + i * 1.5;
 
 const L = [];
 function level(id, name, theme, hw, start, len, bau, bonus, extra = {}) {
-  const i = id - 1, atk = Math.round(BOSS_ATK(i)), t = BOSS_T[i];
+  const i = id - 1;
   L.push({
     id, name, theme, hw, start, len,
     gates: bau.gates, obs: bau.obs, enemies: bau.enemies, coins: bau.coins,
-    boss: { z: len, hp: bossHp(t, atk), atk, t, name: extra.boss || 'Zahlenwächter' },
+    boss: { z: len, hp: BOSS_N[i], name: extra.boss || 'Zahlenwächter' },
     bonus: sprossen(hw, bonus), hint: extra.hint || '', par: extra.par || 0
   });
 }
@@ -95,7 +93,7 @@ level(4, 'Der erste Gegner', 'wiese', 5, 10, 210, new Bau()
   .gate(24, ['×2', '+10']).gate(54, ['+15', '×2', '-8']).squad(82, -5, 1, 8, 4).gate(104, ['+12', '+8']).wall(126, -5, 0)
   .gate(144, ['+20', '+12']).squad(166, 0.5, 5, 16, 6).gate(186, ['+10', '+25'])
   .line(3.5, 12, 3.5, 44, 8).wave(0, 3, 58, 100, 10).line(-3.5, 108, -3.5, 138, 6).wave(1, 3, 150, 200, 10),
-  [[1, 2], [2, 4], [1, 2, 3]], { hint: 'Gegner kosten Figuren. Weich ihnen aus oder sei stärker.' });
+  [[1, 2], [2, 4], [1, 2, 3]], { hint: 'Gegner haben eine Zahl. Hast du mehr Figuren, gewinnst du. Sonst weich aus!' });
 
 level(5, 'Wackelwand', 'wiese', 5, 12, 220, new Bau()
   .gate(26, ['+10', '×2', '+5']).mover(52, 0, 3.4, 1.6, 3.2).gate(72, ['+8', '-10', '+20']).mover(96, 0, 3, 1.4, 2.6, 1.2)

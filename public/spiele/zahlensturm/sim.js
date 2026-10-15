@@ -11,7 +11,8 @@ export const SPEED = 9;          // m/s Laufgeschwindigkeit
 export const LAT_SPEED = 16;     // m/s maximale Seitenbewegung
 export const FOLLOW = 14;        // 1/s weiche Nachführung zum Zielpunkt
 export const MAX_N = 9999;       // technische Obergrenze der Gruppe (Anzeige „9999“)
-export const DPS = 1;            // Schaden pro Figur und Sekunde im Kampf
+export const FIGHT_TICKS = 70;   // Kampf dauert höchstens etwa so viele Schritte (nur Dauer der Animation, nicht das Ergebnis)
+export const COIN_N = 1;         // jede eingesammelte Münze bringt so viele Figuren dazu
 export const BONUS_CAP = 300;    // höchstens so viele Figuren zählen für die Bonus-Münzen
 export const BONUS_DIV = 15;     // Münzen je Sprosse = ceil(min(n, BONUS_CAP) × Faktor / BONUS_DIV)
 export const BONUS_GAP = 11;     // Abstand der Bonus-Sprossen in Metern
@@ -126,7 +127,7 @@ export function step(sim, tx) {
   // Münzen
   while (s.ci < p.coins.length && p.coins[s.ci].z <= s.z) {
     const c = p.coins[s.ci++];
-    if (Math.abs(c.x - s.x) <= crowdHalfWidth(s.n) + 0.45) { s.coins++; s.log.push({ e: 'coin', x: c.x, z: c.z }); }
+    if (Math.abs(c.x - s.x) <= crowdHalfWidth(s.n) + 0.45) { s.coins++; setN(s, Math.min(MAX_N, s.n + COIN_N)); s.log.push({ e: 'coin', x: c.x, z: c.z }); }
   }
   if (s.phase === 'run') {
     while (s.ei < p.ev.length && p.ev[s.ei].z <= s.z) {
@@ -159,7 +160,7 @@ export function step(sim, tx) {
         if (!trifft) { s.stats.avoided++; s.log.push({ e: 'avoid', z: e.z }); continue; }
         s.z = e.z;
         s.phase = 'fight';
-        s.fight = { ev: e, hp: e.hp, acc: 0, t: 0, n0: s.n, hp0: e.hp };
+        s.fight = { ev: e, hp: e.hp, rate: Math.max(1, Math.ceil(Math.min(s.n, e.hp) / FIGHT_TICKS)), t: 0, n0: s.n, hp0: e.hp };
         s.stats.fights++;
         if (e.boss) s.stats.bossN = s.n;
         s.log.push({ e: 'fight', boss: !!e.boss, z: e.z, hp: e.hp, n: s.n });
@@ -187,20 +188,21 @@ function beginBonus(sim) {
   else { s.phase = 'won'; s.log.push({ e: 'won' }); }
 }
 
+// Kampf = Figuren gegeneinander legen: Pro Schritt fallen auf beiden Seiten gleich viele. Gewonnen hat nur,
+// wer übrig bleibt (bei Gleichstand gewinnt der Gegner). Wer mehr Figuren hat als die Zahl am Gegner, gewinnt also
+// und behält Figuren = eigene Zahl − Zahl des Gegners.
 function kampf(sim) {
   const { s } = sim, f = s.fight, e = f.ev;
   f.t += DT;
-  f.hp -= s.n * DPS * DT;
-  f.acc += e.atk * DT;
-  while (f.acc >= 1 && s.n > 0) { f.acc -= 1; s.n--; s.stats.fightLoss++; }
-  if (s.n <= 0) { f.hp = Math.max(f.hp, 0.0001); lose(s, e.boss ? 'boss' : 'gegner'); return; }
-  if (f.hp <= 0) {
-    f.hp = 0;
-    s.log.push({ e: 'sieg', boss: !!e.boss, z: e.z, n: s.n, verlust: f.n0 - s.n });
-    s.fight = null;
-    if (e.boss) { s.z = e.z; s.phase = 'run'; beginBonus(sim); if (s.phase === 'run') { s.phase = 'won'; s.log.push({ e: 'won' }); } }
-    else s.phase = 'run';
-  }
+  const k = Math.min(f.rate, s.n, f.hp);
+  f.hp -= k; s.n -= k; s.stats.fightLoss += k;
+  if (f.hp > 0 && s.n > 0) return;
+  if (s.n <= 0) { f.hp = Math.max(f.hp, 0); lose(s, e.boss ? 'boss' : 'gegner'); return; }
+  f.hp = 0;
+  s.log.push({ e: 'sieg', boss: !!e.boss, z: e.z, n: s.n, verlust: f.n0 - s.n });
+  s.fight = null;
+  if (e.boss) { s.z = e.z; s.phase = 'run'; beginBonus(sim); if (s.phase === 'run') { s.phase = 'won'; s.log.push({ e: 'won' }); } }
+  else s.phase = 'run';
 }
 
 // Gesamtergebnis eines gewonnenen Laufs

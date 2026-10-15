@@ -30,9 +30,9 @@ Kein Build-Schritt. Die Module werden direkt als `type="module"` geladen. three.
 - Die Gruppe läuft mit 9 m/s bei festem 60-Hz-Takt, die Darstellung interpoliert (ruckelfrei auch bei 120 Hz). Die Seitenbewegung folgt dem Ziel weich. Steuerung: Finger oder Maus ziehen, Pfeiltasten oder A/D.
 - **Tore:** Wer mit der Gruppenmitte in einem Torfeld steht, bekommt genau dieses Tor, und zwar genau einmal. `+`, `−`, `×`, `÷` rechnen mit ganzen Figuren. Division rundet ab, die Zahl wird nie negativ, Obergrenze 9999. Fällt die Gruppe durch ein Tor auf 0, ist der Lauf verloren.
 - **Hindernisse:** feste Wände, Engstellen, Stacheln (fester Verlust), Gruben, bewegliche Balken, Drehbalken, wandernde Plattformen (alles außerhalb fällt). Ein Treffer kostet den überdeckten Anteil der Gruppe. Ausweichen kostet nichts.
-- **Gegnergruppen:** ausweichen oder kämpfen. Der Kampf ist deterministisch: Man gewinnt, wenn n ≥ √(2·Angriff·Leben). Der Boss steht immer im Weg.
-- **Münzen:** liegen auf Routen, die Entscheidungen belohnen. Eingesammelt wird, was die Gruppenbreite trifft.
-- **Bonus „Zahlenleiter“** (nach dem Boss): Sprossen mit Bahnen ×1 … ×8, die Bahn wechselt man je Sprosse. Münzen je Sprosse = ⌈min(n, 300)·Faktor / 15⌉. Die Deckelung bei 300 verhindert, dass riesige Gruppen unbegrenzt Münzen erzeugen.
+- **Gegnergruppen:** ausweichen oder kämpfen. Figuren werden gegeneinander gelegt: Die Zahl am Gegner ist seine Figurenzahl. Wer mehr Figuren hat, gewinnt und behält die Differenz (150 gegen 100 → 50 bleiben), bei Gleichstand gewinnt der Gegner. Der Boss steht immer im Weg und funktioniert genauso. Im Spiel sieht man die Figuren wirklich (bis 300 pro Trupp, bis 1000 eigene).
+- **Münzen:** liegen auf Routen, die Entscheidungen belohnen. Eingesammelt wird, was die Gruppenbreite trifft. Jede Münze bringt eine Figur mehr.
+- **Bonus „Zahlenleiter“** (nach dem Boss, als gelb-orange Treppe mit 0,9 m hohen Stufen): Sprossen mit Bahnen ×1 … ×8, die Bahn wechselt man je Sprosse. Münzen je Sprosse = ⌈min(n, 300)·Faktor / 15⌉. Die Deckelung bei 300 verhindert, dass riesige Gruppen unbegrenzt Münzen erzeugen.
 - **Sterne:** 1 = geschafft, 2 = alle Münzen, 3 = Figurenzahl ≥ Par (85 % der besten Bot-Zahl).
 - **Münzen und Anti-Farming:** Es wird nur die Verbesserung gegenüber dem bisherigen Bestwert eines Levels gutgeschrieben. Wiederholen mit gleicher Leistung bringt 0.
 - Münzen kaufen Figurenfarben (reine Optik, keine Vorteile, keine Wartezeiten, kein Bezahlen).
@@ -43,26 +43,26 @@ Werte stammen aus `tools/zahlensturm-bot.mjs` (Stand dieser Version). „Bot“ 
 
 | # | Name | Welt | Tore | Hindernisse | Gegner | Münzen | Bot (Figuren am Ziel) | Par (3. Stern) |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Erste Schritte | Sonnenwiese | 5 (+ ×) | 1 | 0+Boss | 26 | 66 | 56 |
-| 2 | Rechenwege | Sonnenwiese | 5 (+ ×) | 2 | 0+Boss | 32 | 80 | 68 |
-| 3 | Minus ist gemein | Sonnenwiese | 6 (+ − ×) | 2 | 0+Boss | 30 | 80 | 68 |
-| 4 | Der erste Gegner | Sonnenwiese | 5 (× + −) | 1 | 2+Boss | 34 | 87 | 73 |
-| 5 | Wackelwand | Sonnenwiese | 5 (+ × −) | 4 | 0+Boss | 31 | 107 | 90 |
-| 6 | Sägeblätter | Zuckerwüste | 5 (+ × −) | 4 | 1+Boss | 32 | 100 | 85 |
-| 7 | Geteilt | Zuckerwüste | 7 (+ × ÷) | 2 | 1+Boss | 31 | 226 | 192 |
-| 8 | Stachelfeld | Zuckerwüste | 6 (× + − ÷) | 4 | 1+Boss | 31 | 286 | 243 |
-| 9 | Schmaler Grat | Zuckerwüste | 6 (+ × − ÷) | 7 | 1+Boss | 37 | 184 | 156 |
-| 10 | Wanderplattform | Zuckerwüste | 6 (× + − ÷) | 4 | 1+Boss | 31 | 362 | 307 |
-| 11 | Glatteis | Eiskristall | 7 (+ ÷ × −) | 5 | 1+Boss | 31 | 190 | 161 |
-| 12 | Entscheidung | Eiskristall | 8 (+ × ÷ −) | 4 | 1+Boss | 36 | 416 | 353 |
-| 13 | Doppelkopf | Eiskristall | 7 (+ − ÷ ×) | 6 | 2+Boss | 33 | 353 | 300 |
-| 14 | Lawine | Eiskristall | 9 (+ ÷ − ×) | 5 | 1+Boss | 30 | 333 | 283 |
-| 15 | Kristallhöhle | Eiskristall | 7 (+ − ÷) | 7 | 1+Boss | 41 | 349 | 296 |
-| 16 | Torschuss | Sternenzirkus | 11 (+ ÷ −) | 3 | 1+Boss | 29 | 834 | 708 |
-| 17 | Manege | Sternenzirkus | 8 (+ ÷ −) | 6 | 1+Boss | 39 | 496 | 421 |
-| 18 | Seiltanz | Sternenzirkus | 8 (+ − ÷) | 7 | 1+Boss | 35 | 429 | 364 |
-| 19 | Feuerwerk | Sternenzirkus | 10 (+ ÷ −) | 7 | 2+Boss | 34 | 605 | 514 |
-| 20 | Das große Finale | Sternenzirkus | 9 (+ ÷ −) | 7 | 1+Boss | 34 | 260 | 221 |
+| 1 | Erste Schritte | Sonnenwiese | 5 (+ ×) | 1 | 0+Boss | 26 | 76 | 64 |
+| 2 | Rechenwege | Sonnenwiese | 5 (+ ×) | 2 | 0+Boss | 32 | 87 | 73 |
+| 3 | Minus ist gemein | Sonnenwiese | 6 (+ − ×) | 2 | 0+Boss | 30 | 70 | 59 |
+| 4 | Der erste Gegner | Sonnenwiese | 5 (× + −) | 1 | 2+Boss | 34 | 60 | 51 |
+| 5 | Wackelwand | Sonnenwiese | 5 (+ × −) | 4 | 0+Boss | 31 | 67 | 56 |
+| 6 | Sägeblätter | Zuckerwüste | 5 (+ × −) | 4 | 1+Boss | 32 | 54 | 45 |
+| 7 | Geteilt | Zuckerwüste | 7 (+ × ÷) | 2 | 1+Boss | 31 | 120 | 102 |
+| 8 | Stachelfeld | Zuckerwüste | 6 (× + − ÷) | 4 | 1+Boss | 31 | 162 | 137 |
+| 9 | Schmaler Grat | Zuckerwüste | 6 (+ × − ÷) | 7 | 1+Boss | 37 | 106 | 90 |
+| 10 | Wanderplattform | Zuckerwüste | 6 (× + − ÷) | 4 | 1+Boss | 31 | 172 | 146 |
+| 11 | Glatteis | Eiskristall | 7 (+ ÷ × −) | 5 | 1+Boss | 31 | 111 | 94 |
+| 12 | Entscheidung | Eiskristall | 8 (+ × ÷ −) | 4 | 1+Boss | 36 | 225 | 191 |
+| 13 | Doppelkopf | Eiskristall | 7 (+ − ÷ ×) | 6 | 2+Boss | 33 | 220 | 187 |
+| 14 | Lawine | Eiskristall | 9 (+ ÷ − ×) | 5 | 1+Boss | 30 | 157 | 133 |
+| 15 | Kristallhöhle | Eiskristall | 7 (+ − ÷) | 7 | 1+Boss | 41 | 230 | 195 |
+| 16 | Torschuss | Sternenzirkus | 11 (+ ÷ −) | 3 | 1+Boss | 29 | 276 | 234 |
+| 17 | Manege | Sternenzirkus | 8 (+ ÷ −) | 6 | 1+Boss | 39 | 293 | 249 |
+| 18 | Seiltanz | Sternenzirkus | 8 (+ − ÷) | 7 | 1+Boss | 35 | 271 | 230 |
+| 19 | Feuerwerk | Sternenzirkus | 10 (+ ÷ −) | 7 | 2+Boss | 34 | 344 | 292 |
+| 20 | Das große Finale | Sternenzirkus | 9 (+ ÷ −) | 7 | 1+Boss | 34 | 214 | 181 |
 
 Aufbau der Welten: Welt 1 führt Plus, Mal und Minus ein, dazu den ersten Gegner und einen wackelnden Balken. Welt 2 bringt Division, Drehbalken, Stacheln, den schmalen Grat und die wandernde Plattform. Welt 3 (Eiswelt) bringt Doppelentscheidungen und Ketten aus bis zu 9 Toren. Welt 4 hat die meisten Tore (bis 11), die schmalste Strecke (Seiltanz) und das Finale.
 

@@ -79,26 +79,35 @@ test('Bewegte Hindernisse sind deterministisch und zeitabhängig', () => {
   assert.notEqual(l1, l2);
 });
 
-test('Gegner: ausweichen oder kämpfen; Kampf folgt n0 ≥ √(2·atk·hp)', () => {
-  const lvl = mini({ start: 50, enemies: [{ z: 20, x0: -hw, x1: 0, hp: 100, atk: 10 }] });
+test('Gegner: ausweichen oder kämpfen; wer mehr Figuren hat gewinnt und behält die Differenz, Gleichstand verliert', () => {
+  const lvl = mini({ start: 50, enemies: [{ z: 20, x0: -hw, x1: 0, hp: 30 }] });
   const aus = lauf(lvl, 3);
   assert.equal(aus.s.n, 50); assert.equal(aus.s.stats.avoided, 1);
   const kampf = lauf(lvl, -3);
-  assert.equal(kampf.s.phase, 'won'); assert.ok(kampf.s.n < 50 && kampf.s.n > 0);
-  // schwächer als nötig: √(2·10·100) ≈ 44.7 → 44 verlieren, 46 gewinnen
-  const knapp = (n) => lauf(mini({ start: n, enemies: [{ z: 20, x0: -hw, x1: hw, hp: 100, atk: 10 }] }), 0).s.phase;
-  assert.equal(knapp(44), 'lost'); assert.equal(knapp(46), 'won');
+  assert.equal(kampf.s.phase, 'won'); assert.equal(kampf.s.n, 20);
+  const knapp = (n) => lauf(mini({ start: n, enemies: [{ z: 20, x0: -hw, x1: hw, hp: 100 }] }), 0);
+  assert.equal(knapp(99).s.phase, 'lost'); assert.equal(knapp(100).s.phase, 'lost');
+  const g = knapp(101); assert.equal(g.s.phase, 'won'); assert.equal(g.s.n, 1);
+  assert.equal(knapp(250).s.n, 150);
 });
 
-test('Boss: Kampf, Sieg führt in den Bonus, Niederlage beendet den Lauf', () => {
-  const boss = { z: 40, hp: 100, atk: 10 };
+test('Boss: Kampf (Zahl gegen Zahl), Sieg führt in den Bonus, Niederlage beendet den Lauf', () => {
+  const boss = { z: 40, hp: 100 };
   const bonus = [[{ x0: -hw, x1: 0, m: 2 }, { x0: 0, x1: hw, m: 5 }]];
-  const sieg = lauf(mini({ start: 60, boss, bonus }), 3);
-  assert.equal(sieg.s.phase, 'won'); assert.equal(sieg.s.stats.bossN, 60);
+  const sieg = lauf(mini({ start: 160, boss, bonus }), 3);
+  assert.equal(sieg.s.phase, 'won'); assert.equal(sieg.s.stats.bossN, 160); assert.equal(sieg.s.n, 60);
   assert.deepEqual(sieg.s.mults, [5]);
   assert.equal(sieg.s.bonusCoins, Math.ceil((sieg.s.n * 5) / 15));
+  const gleich = lauf(mini({ start: 100, boss, bonus }), 3);
+  assert.equal(gleich.s.phase, 'lost'); assert.equal(gleich.s.why, 'boss');
   const verloren = lauf(mini({ start: 20, boss, bonus }), 3);
   assert.equal(verloren.s.phase, 'lost'); assert.equal(verloren.s.why, 'boss');
+});
+
+test('Münzen bringen Figuren: jede eingesammelte Münze ist +1 Figur', () => {
+  const lvl = mini({ start: 10, coins: [[0, 10], [0, 20], [0, 30], [4.8, 40]] });
+  const s = lauf(lvl, 0);
+  assert.equal(s.s.coins, 3); assert.equal(s.s.n, 13);
 });
 
 test('Bonus: Münzen je Sprosse gedeckelt (Farm-Schutz), Sprossen genau einmal', () => {
@@ -149,8 +158,8 @@ test('Levels: 20 Stück, Pflichtfelder, aufsteigende IDs, sortierbare Strecke, T
 });
 
 test('Schwierigkeit steigt: Boss wird stärker, Rechenarten nehmen zu', () => {
-  const t = LEVELS.map((l) => (l.boss.hp * 2 * l.boss.atk) ** 0.5);
-  assert.ok(t[19] > t[0] * 5, 'Boss-Schwelle Level 20 ≫ Level 1');
+  const t = LEVELS.map((l) => l.boss.hp);
+  assert.ok(t[19] > t[0] * 5, 'Boss-Zahl Level 20 ≫ Level 1');
   for (let i = 5; i < 20; i += 5) assert.ok(t[i] > t[i - 5] * 0.9, 'Block ' + i);
   const ops = (a, b) => new Set(LEVELS.slice(a, b).flatMap((l) => l.gates.flatMap((g) => g.panels.map((p) => p.op))));
   assert.ok(ops(0, 2).size <= ops(5, 20).size && ops(5, 20).size === 4);

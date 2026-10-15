@@ -97,7 +97,7 @@ if (process.argv[1] && process.argv[1].endsWith('zahlensturm-bot.mjs')) {
         for (const e of sim.s.log) {
           if (e.e === 'gate') { const g = l.gates.find((q) => q.z === e.z); rows.push(`z${e.z}: n=${e.vor} [${g.panels.map((q, k) => (k === e.panel ? '*' : '') + q.op + q.v + '→' + applyOp(e.vor, q.op, q.v)).join(' ')}]`); }
           else if (e.e === 'hit') rows.push(`z${e.z}: TREFFER ${e.type} -${e.loss}`);
-          else if (e.e === 'fight') rows.push(`z${e.z}: KAMPF ${e.boss ? 'BOSS' : 'Trupp'} hp=${e.hp} n=${e.n}`);
+          else if (e.e === 'fight') rows.push(`z${e.z}: KAMPF ${e.boss ? 'BOSS' : 'Trupp'} Gegner=${e.hp} n=${e.n}`);
           else if (e.e === 'sieg') rows.push(`z${e.z}: SIEG n=${e.n} (−${e.verlust})`);
         }
         sim.s.log.length = 0;
@@ -109,7 +109,7 @@ if (process.argv[1] && process.argv[1].endsWith('zahlensturm-bot.mjs')) {
     const kon = [-3.3, 0, 3.3].map((x) => { const q = konstant(l, x); return q.s.phase === 'won' ? q.s.n : 'x'; });
     par[l.id] = Math.floor(rs.n * 0.85);
     lsg[l.id] = { a: encodeInputs(r.a.inputs), nA: rs.n, bossN: rs.bossN, b: encodeInputs(r.b.inputs), coinsB: rb.coins, coinsGesamt: rb.coinsGesamt, nB: rb.n, bonusA: rs.bonusCoins };
-    console.log(`L${String(l.id).padStart(2)} ${l.name.padEnd(18)} n_Ziel=${String(rs.n).padStart(4)} Boss-Start=${String(rs.bossN).padStart(4)} (Boss braucht ${l.boss.t}) Münzen A ${rs.coins}/${rs.coinsGesamt} B ${rb.coins} unversehrt=${rs.unversehrt ? 'ja' : 'nein'} Tore L/M/R=${cnt.L}/${cnt.M}/${cnt.R} konstant l/m/r=${kon.join('/')} Bonus=${rs.bonusCoins} (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
+    console.log(`L${String(l.id).padStart(2)} ${l.name.padEnd(18)} n_Ziel=${String(rs.n).padStart(4)} Boss-Start=${String(rs.bossN).padStart(4)} (Boss ${l.boss.hp}) Münzen A ${rs.coins}/${rs.coinsGesamt} B ${rb.coins} unversehrt=${rs.unversehrt ? 'ja' : 'nein'} Tore L/M/R=${cnt.L}/${cnt.M}/${cnt.R} konstant l/m/r=${kon.join('/')} Bonus=${rs.bonusCoins} (${((Date.now() - t0) / 1000).toFixed(1)}s)`);
   }
   if (schreiben && !nur.length) {
     writeFileSync(new URL('../public/spiele/zahlensturm/par.js', import.meta.url), '// Erzeugt von tools/zahlensturm-bot.mjs: 85 % der besten Figurenzahl am Ziel (Bot) = Par für den 3. Stern.\nexport const PAR = ' + JSON.stringify(par) + ';\n');

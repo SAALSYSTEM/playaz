@@ -186,7 +186,7 @@ const GRUND = { tor: 'Ein Tor hat alle Figuren gekostet', wall: 'Gegen eine Wand
   rotor: 'Von der Säge erwischt', plat: 'Von der Plattform gefallen', gegner: 'Der Gegnertrupp war stärker', boss: 'Der Boss war zu stark' };
 const TIPP = { tor: 'Rechne vor jedem Tor: Welches Ergebnis ist am größten?', wall: 'Weich der Wand aus, ein Treffer kostet den überdeckten Teil der Gruppe.', spikes: 'Stacheln kosten feste Figuren. Lauf drumherum.',
   pit: 'Gruben kosten alle Figuren darüber. Bleib auf der Strecke.', mover: 'Beobachte die Wand und lauf durch die Lücke.', rotor: 'Warte auf die Lücke zwischen den Sägeblättern.',
-  plat: 'Bleib auf der Plattform, sie wandert hin und her.', gegner: 'Sammle vorher mehr Figuren oder weich dem Trupp aus.', boss: 'Je größer deine Gruppe, desto weniger verlierst du im Kampf. Hol dir vorher die besten Tore.' };
+  plat: 'Bleib auf der Plattform, sie wandert hin und her.', gegner: 'Du brauchst mehr Figuren als der Trupp. Sammle vorher mehr oder weich ihm aus.', boss: 'Du brauchst mehr Figuren als der Boss. Hol dir vorher die besten Tore und alle Münzen.' };
 
 function ereignisse(log, still) {
   for (const e of log) {
@@ -531,7 +531,7 @@ function zeigeVerloren(why) {
   const b = level.boss;
   $('#vGrund').textContent = GRUND[why] || 'Alle Figuren sind weg';
   let tipp = TIPP[why] || '';
-  if (why === 'boss') tipp = 'Der Boss hatte Stärke ' + b.hp + '. ' + TIPP.boss;
+  if (why === 'boss') tipp = 'Der Boss hatte ' + b.hp + ' Figuren, du ' + (sim.s.fight ? sim.s.fight.n0 : sim.s.stats.bossN) + '. ' + TIPP.boss;
   $('#vTipp').textContent = tipp;
   zeigeNur('#oVerloren');
   setTimeout(() => $('#vNochmal').focus(), 30);

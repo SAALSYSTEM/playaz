@@ -5,7 +5,8 @@ import { crowdHalfWidth, obstacleState, BONUS_START, BONUS_GAP, prepare } from '
 import { THEMES } from './levels.js';
 
 const T = window.THREE;
-const CAP = 420;        // so viele Figuren werden höchstens gezeichnet (die Zahl im Spiel kann größer sein)
+const STUFE = 0.9;      // Höhe einer Bonus-Stufe in Metern
+const CAP = 1000;       // so viele Figuren werden höchstens gezeichnet (darüber zeigt die Zahl mehr, als zu sehen ist)
 const PCAP = 320;       // Partikel
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const lerp = (a, b, t) => a + (b - a) * t;
@@ -49,6 +50,24 @@ export function createRenderer(canvas, opts = {}) {
     x.fillStyle = farbe || '#fff'; x.fillText(text, 128, 70);
     const t = new T.CanvasTexture(c); t.anisotropy = 4;
     texCache.set(k, t); return t;
+  }
+  // Zahl, die sich ändern kann (Gegner-/Boss-Zahl zählt im Kampf runter)
+  function zahlTafel(w, h, farbe) {
+    const c = document.createElement('canvas'); c.width = 256; c.height = Math.round(256 * h / w);
+    const x = c.getContext('2d'), t = new T.CanvasTexture(c); t.anisotropy = 4;
+    const m = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshBasicMaterial({ map: t, transparent: true, depthWrite: false }));
+    let alt = null;
+    m.userData.setze = (text) => {
+      if (text === alt) return; alt = text;
+      x.clearRect(0, 0, c.width, c.height);
+      x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.font = `800 ${text.length > 3 ? 92 : 110}px "Barlow Condensed","Arial Narrow",Arial,sans-serif`;
+      x.lineJoin = 'round'; x.lineWidth = 16; x.strokeStyle = 'rgba(20,24,50,.7)'; x.strokeText(text, c.width / 2, c.height * 0.55);
+      x.fillStyle = farbe; x.fillText(text, c.width / 2, c.height * 0.55);
+      t.needsUpdate = true;
+    };
+    keep(m.geometry); keep(m.material); keep(t);
+    return m;
   }
   function gradTex(col) {
     const k = 'g' + col; if (texCache.has(k)) return texCache.get(k);
@@ -128,7 +147,9 @@ export function createRenderer(canvas, opts = {}) {
     for (const o of level.obs) baueHindernis(o, hw);
     // Gegnertrupps
     let enN = 0;
-    for (const e of level.enemies) { const zeig = Math.min(70, e.hp); squads.push({ e, first: enN, zeig, hp: e.hp }); enN += zeig; }
+    for (const e of level.enemies) { const zeig = Math.min(300, e.hp); squads.push({ e, first: enN, zeig, hp: e.hp, zs: 0.85 }); enN += zeig; }
+    const bossEv = p.ev.find((v) => v.e && v.e.boss);
+    if (bossEv) { const e = bossEv.e, zeig = Math.min(300, e.hp); squads.push({ e, first: enN, zeig, hp: e.hp, zs: 0.4, boss: true }); enN += zeig; }
     enMesh = new T.InstancedMesh(figGeo, new T.MeshLambertMaterial({ color: 0xffffff }), Math.max(1, enN));
     enMesh.frustumCulled = false; enMesh.instanceMatrix.setUsage(T.DynamicDrawUsage); grp.add(enMesh); keep(enMesh.material);
     for (let i = 0; i < enN; i++) { col.setHSL(0.0 + (i % 5) * 0.006, 0.72, 0.52 + (i % 3) * 0.03); enMesh.setColorAt(i, col); }
@@ -137,9 +158,9 @@ export function createRenderer(canvas, opts = {}) {
     enShadow.frustumCulled = false; enShadow.instanceMatrix.setUsage(T.DynamicDrawUsage); grp.add(enShadow); keep(enShadow.material); enShadow.count = enN;
     for (const s of squads) {
       const cx = (s.e.x0 + s.e.x1) / 2;
-      s.cx = cx; s.cz = s.e.z + 1.6; s.r = Math.max(0.8, (s.e.x1 - s.e.x0) / 2 - 0.3);
-      s.label = label(String(s.e.hp), cx, 1.9, w3(s.cz), 1.5, 0.75, '#ffffff');
-      s.label.position.y = 2.1;
+      s.cx = cx; s.cz = s.e.z + (s.boss ? 3 : 1.6); s.r = s.boss ? level.hw - 0.4 : Math.max(0.8, (s.e.x1 - s.e.x0) / 2 - 0.3);
+      s.label = zahlTafel(s.boss ? 3.6 : 1.7, s.boss ? 1.8 : 0.85, s.boss ? '#ffe08a' : '#ffffff');
+      s.label.position.set(cx, s.boss ? 8.6 : 2.4, w3(s.boss ? s.e.z + 7 : s.cz)); grp.add(s.label); s.label.userData.setze(String(s.e.hp));
     }
     // Boss
     baueBoss(level);
@@ -248,7 +269,7 @@ export function createRenderer(canvas, opts = {}) {
   }
 
   function baueBoss(level) {
-    const b = level.boss, z = w3(b.z + 3.4);
+    const b = level.boss, z = w3(b.z + 7);
     const g = new T.Group(); g.position.set(0, 0, z);
     const farbe = [0x7c3aed, 0xdb2777, 0x0ea5e9, 0xf59e0b][['wiese', 'wueste', 'eis', 'zirkus'].indexOf(level.theme)];
     const koerper = new T.Mesh(kugel, mat(farbe)); koerper.scale.set(4.6, 4.2, 4.2); koerper.position.y = 2.1;
@@ -264,12 +285,12 @@ export function createRenderer(canvas, opts = {}) {
     grp.add(g);
     const sh = new T.Mesh(scheibe, new T.MeshBasicMaterial({ color: 0x1c2038, transparent: true, opacity: 0.25, depthWrite: false })); sh.scale.set(6, 1, 5.5); sh.position.set(0, 0.03, 0); g.add(sh);
     keep(sh.material);
-    boss = { g, koerper, pupL, pupR, baseY: 0, z: b.z + 3.4, hp0: b.hp, tot: 0 };
+    boss = { g, koerper, pupL, pupR, baseY: 0, z: b.z + 7, hp0: b.hp, tot: 0 };
     // Zielbogen
-    mesh(box, mat(0x14182e), -level.hw - 0.6, 3, w3(b.z + 9), 0.5, 6, 0.5);
-    mesh(box, mat(0x14182e), level.hw + 0.6, 3, w3(b.z + 9), 0.5, 6, 0.5);
+    mesh(box, mat(0x14182e), -level.hw - 0.6, 3, w3(b.z + 12), 0.5, 6, 0.5);
+    mesh(box, mat(0x14182e), level.hw + 0.6, 3, w3(b.z + 12), 0.5, 6, 0.5);
     const banner = new T.Mesh(new T.PlaneGeometry(level.hw * 2 + 1.7, 1.2), new T.MeshBasicMaterial({ map: ziel, side: T.DoubleSide }));
-    banner.position.set(0, 5.9, w3(b.z + 9)); grp.add(banner); keep(banner.geometry); keep(banner.material);
+    banner.position.set(0, 5.9, w3(b.z + 12)); grp.add(banner); keep(banner.geometry); keep(banner.material);
   }
 
   function hoeheBonus(z) {
@@ -277,8 +298,8 @@ export function createRenderer(canvas, opts = {}) {
     const z0 = lvl.boss.z + BONUS_START;
     let h = 0;
     for (let i = 0; i < lvl.bonus.length; i++) {
-      const zr = z0 + i * BONUS_GAP, hi = 0.55 * (i + 1);
-      if (z >= zr - 2) h = hi; else if (z > zr - 3.2) { h = lerp(0.55 * i, hi, (z - (zr - 3.2)) / 1.2); break; } else break;
+      const zr = z0 + i * BONUS_GAP, hi = STUFE * (i + 1);
+      if (z >= zr - 2) h = hi; else if (z > zr - 3.2) { h = lerp(STUFE * i, hi, (z - (zr - 3.2)) / 1.2); break; } else break;
     }
     return h;
   }
@@ -286,8 +307,8 @@ export function createRenderer(canvas, opts = {}) {
   function baueBonus(level, p) {
     const hw = level.hw;
     p.rungs.forEach((r, i) => {
-      const hi = 0.55 * (i + 1), zs = r.z - 2, ze = i === p.rungs.length - 1 ? p.ende + 30 : p.rungs[i + 1].z - 2;
-      const stufe = mesh(box, mat(i % 2 ? th.stripe : th.track), 0, hi / 2 - 0.02, w3((zs + ze) / 2), hw * 2 + 0.4, hi, ze - zs);
+      const hi = STUFE * (i + 1), zs = r.z - 2, ze = i === p.rungs.length - 1 ? p.ende + 30 : p.rungs[i + 1].z - 2;
+      const stufe = mesh(box, mat(i % 2 ? 0xffa63d : 0xffd23f), 0, hi / 2 - 0.02, w3((zs + ze) / 2), hw * 2 + 0.4, hi, ze - zs);
       const row = [];
       for (const l of r.lanes) {
         const w = l.x1 - l.x0, cx = (l.x0 + l.x1) / 2;
@@ -301,7 +322,7 @@ export function createRenderer(canvas, opts = {}) {
     });
     // Podest am Ende
     if (p.rungs.length) {
-      const hTop = 0.55 * p.rungs.length, zp = p.ende - 6;
+      const hTop = STUFE * p.rungs.length, zp = p.ende - 6;
       const g = new T.Group(); g.position.set(0, hTop, w3(zp));
       const sockel = new T.Mesh(cyl, mat(0xffc928)); sockel.scale.set(5, 1.2, 5); sockel.position.y = 0.6;
       const stern = new T.Mesh(new T.OctahedronGeometry(0.8), mat(0xffd84d, { emissive: 0x7a5200 })); stern.position.y = 2.6; keep(stern.geometry);
@@ -422,6 +443,8 @@ export function createRenderer(canvas, opts = {}) {
     for (const sq of squads) {
       const vis = fightRef && fightRef.ev === sq.e ? Math.max(0, Math.ceil((fightRef.hp / sq.e.hp) * sq.zeig)) : sq.gebesiegt ? 0 : sq.zeig;
       sq.vis = vis;
+      const zahl = fightRef && fightRef.ev === sq.e ? Math.max(0, Math.ceil(fightRef.hp)) : sq.gebesiegt ? 0 : sq.e.hp;
+      if (sq.label) { sq.label.visible = zahl > 0; sq.label.userData.setze(String(zahl)); }
     }
     // ---- Gegner
     if (enMesh && squads.length) {
@@ -432,7 +455,7 @@ export function createRenderer(canvas, opts = {}) {
           const o = sq.first + i;
           if (i >= sq.vis) { setMat(a, o, 0, -5, 0, 0.0001, 0.0001, 0.0001); setMat(sa, o, 0, -5, 0, 0.0001, 1, 0.0001); continue; }
           const r = sq.r * Math.sqrt((i + 0.5) / Math.max(1, sq.zeig)), ang = i * 2.399963;
-          let X = sq.cx + Math.cos(ang) * r, Z = w3(sq.cz) + Math.sin(ang) * r * 0.85;
+          let X = sq.cx + Math.cos(ang) * r, Z = w3(sq.cz) + Math.sin(ang) * r * sq.zs;
           const bob = nahe ? Math.abs(Math.sin(tSek * (kampf ? 20 : 8) + i)) * (kampf ? 0.2 : 0.1) : 0;
           if (kampf) Z += 1.6 - Math.sin(tSek * 12 + i) * 0.35 - (1 - 1) * 0;
           setMat(a, o, X, bob, Z, 0.66, 0.66, 0.66); setMat(sa, o, X, 0.03, Z, 0.5, 1, 0.5);
