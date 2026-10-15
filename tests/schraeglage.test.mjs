@@ -299,7 +299,7 @@ for (const [w, h, touch] of [[320, 568, true], [390, 844, true], [844, 390, true
 test('Portal: Kachel unter „Neu“, Weiter spielen zeigt Fortschritt', async () => {
   const ctx = await browser.newContext(); const page = await ctx.newPage();
   await page.goto(BASE + '/');
-  assert.equal(await page.getAttribute('#neu .kachel:first-child a', 'href'), '/spiele/schraeglage');
+  assert.equal(await page.locator('#neu .kachel a[href="/spiele/schraeglage"]').count(), 1);   // neueste Spiele stehen vorn, Schräglage bleibt unter „Neu“
   await page.goto(SPIEL);
   await page.evaluate(() => localStorage.setItem('schraeglage.v1', JSON.stringify({ v: 1, levels: { 1: { done: true, best: 12000, gold: true }, 2: { done: true, best: 9000 } }, awards: {} })));
   await page.goto(BASE + '/');
