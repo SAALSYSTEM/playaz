@@ -1,7 +1,8 @@
-import {renderPreview,renderBauPreview} from './vorschau.js';
+import {renderPreview,renderBauPreview,renderSebiPreview} from './vorschau.js';
 
 const BASE='/spiele/blocksaal';
 const BAU='/spiele/bausaal';
+const SEBI='/spiele/sprungsebi';
 function lines(raw){return raw!==null&&/^(0|[1-9]\d{0,3})$/.test(raw)?Number(raw):null;}
 function replaceMeta(html,key,value){
   const escaped=key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
@@ -22,7 +23,23 @@ export default {
       const image=renderBauPreview(m[1]==='start'?null:Number(m[1]));
       return new Response(image,{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=86400','X-Content-Type-Options':'nosniff'}});
     }
-    if(url.pathname!==BASE&&url.pathname!==BAU)return env.ASSETS.fetch(request);
+    if(url.pathname.startsWith('/og/sprungsebi/')){
+      const m=url.pathname.match(/^\/og\/sprungsebi\/(start|([1-9]|[12]\d|30)-([0-9]|[1-8]\d|90))\.png$/);
+      if(!m)return new Response('Not found',{status:404});
+      const image=m[1]==='start'?renderSebiPreview():renderSebiPreview(Number(m[2]),Number(m[3]));
+      return new Response(image,{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=86400','X-Content-Type-Options':'nosniff'}});
+    }
+    if(url.pathname!==BASE&&url.pathname!==BAU&&url.pathname!==SEBI)return env.ASSETS.fetch(request);
+    if(url.pathname===SEBI){
+      const level=Number(url.searchParams.get('c')),stars=Number(url.searchParams.get('s'));
+      if(!Number.isInteger(level)||level<1||level>30||!Number.isInteger(stars)||stars<0||stars>90)return env.ASSETS.fetch(request);
+      const asset=await env.ASSETS.fetch(new Request(new URL(SEBI,url.origin),request));if(!asset.ok)return asset;
+      let html=await asset.text();const title=`Level ${level} erreicht – bist du besser?`,description=`Ich habe bei SprungSebi Level ${level} erreicht und ${stars} von 90 Sternen gesammelt. Jetzt spielen!`,href=`${url.origin}${SEBI}?c=${level}&amp;s=${stars}`,image=`${url.origin}/og/sprungsebi/${level}-${stars}.png`;
+      for(const key of ['og:title','twitter:title'])html=replaceMeta(html,key,title);
+      for(const key of ['og:description','twitter:description'])html=replaceMeta(html,key,description);
+      html=replaceMeta(html,'og:url',href);for(const key of ['og:image','twitter:image'])html=replaceMeta(html,key,image);
+      const headers=new Headers(asset.headers);headers.set('Content-Type','text/html; charset=utf-8');headers.set('Cache-Control','public, max-age=300');headers.delete('Content-Length');headers.delete('ETag');return new Response(html,{status:200,headers});
+    }
     const count=lines(url.searchParams.get('c'));
     if(count===null)return env.ASSETS.fetch(request);
     const bau=url.pathname===BAU,base=bau?BAU:BASE;

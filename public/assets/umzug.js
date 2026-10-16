@@ -38,6 +38,8 @@
       info: (g) => { const d = J(g['blocksaal.v1']) || {}; return { text: zahl(d.lines) + ' Reihen · ' + zahl(d.score) + ' Punkte', wert: Number(d.score) || 0 }; } },
     { id: 'bausaal', name: 'BauSaal', prefix: 'bausaal.', haupt: ['bausaal.v1'],
       info: (g) => { const d = J(g['bausaal.v1']) || {}; const top = Math.max(0, ...Object.values(d).map(v => Number(v && v.score) || 0)); return { text: zahl(top) + ' Punkte', wert: top }; } },
+    { id: 'sprungsebi', name: 'SprungSebi', prefix: 'sprungssebi.', haupt: ['sprungssebi.v1'],
+      info: (g) => { const d = J(g['sprungssebi.v1']) || {}; const lv = Object.values(d.levels || {}).filter((x) => x && x.time).length; const st = Object.values(d.levels || {}).reduce((a, x) => a + ((x && x.stars) || 0), 0); return { text: lv + ' von 30 Level · ' + st + ' Sterne', wert: lv * 1000 + st * 10 }; } },
     { id: 'stellwerk', name: 'Stellwerk', prefix: 'stellwerk.', haupt: ['stellwerk.v1'],
       info: (g) => { const d = J(g['stellwerk.v1']) || {}; const sterne = Object.values(d.stars || {}).reduce((a, b) => a + (Number(b) || 0), 0); const zuege = Object.values(d.best || {}).reduce((a, b) => a + ((b && b.n) || 0), 0); return { text: sterne + ' ★ · ' + zahl(zuege) + ' Züge in Rekorden', wert: sterne * 1000 + zuege }; } },
     { id: 'eiszeit', name: 'Eiszeit', prefix: 'eiszeit.', haupt: ['eiszeit.v1', 'eiszeit.best'],

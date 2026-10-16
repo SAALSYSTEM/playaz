@@ -5,10 +5,12 @@ const font={
  A:['01110','10001','10001','11111','10001','10001','10001'],B:['11110','10001','10001','11110','10001','10001','11110'],
  C:['01111','10000','10000','10000','10000','10000','01111'],D:['11110','10001','10001','10001','10001','10001','11110'],
  E:['11111','10000','10000','11110','10000','10000','11111'],F:['11111','10000','10000','11110','10000','10000','10000'],
+ G:['01111','10000','10000','10111','10001','10001','01111'],
  H:['10001','10001','10001','11111','10001','10001','10001'],I:['11111','00100','00100','00100','00100','00100','11111'],
  K:['10001','10010','10100','11000','10100','10010','10001'],L:['10000','10000','10000','10000','10000','10000','11111'],
  M:['10001','11011','10101','10101','10001','10001','10001'],N:['10001','11001','10101','10011','10001','10001','10001'],
  O:['01110','10001','10001','10001','10001','10001','01110'],R:['11110','10001','10001','11110','10100','10010','10001'],
+ P:['11110','10001','10001','11110','10000','10000','10000'],
  S:['01111','10000','10000','01110','00001','00001','11110'],T:['11111','00100','00100','00100','00100','00100','00100'],
  U:['10001','10001','10001','10001','10001','10001','01110'],V:['10001','10001','10001','10001','01010','01010','00100'],
  W:['10001','10001','10001','10101','10101','11011','10001'],
@@ -60,6 +62,28 @@ export function renderBauPreview(score=null){
   write('BAU',625,95,15,3);write('SAAL',625,215,15,4);
   write(score===null?'WIE VIEL PASST?':String(score)+' PUNKTE',590,365,score!==null&&score>999?6:5,3);
   write('SCHAFFST DU MEHR?',590,475,5,4);
+  const raw=new Uint8Array(H*(W+1));for(let y=0;y<H;y++)raw.set(px.subarray(y*W,(y+1)*W),y*(W+1)+1);
+  return join([Uint8Array.from([137,80,78,71,13,10,26,10]),chunk('IHDR',Uint8Array.from([...be(W),...be(H),8,3,0,0,0])),chunk('PLTE',Uint8Array.from(palette.flat())),chunk('IDAT',deflate(raw)),chunk('IEND',new Uint8Array())]);
+}
+
+export function renderSebiPreview(level=null,stars=0){
+  const px=new Uint8Array(W*H);px.fill(0);
+  function rect(x,y,w,h,color){for(let yy=Math.max(0,Math.floor(y));yy<Math.min(H,y+h);yy++)px.fill(color,yy*W+Math.max(0,Math.floor(x)),yy*W+Math.min(W,x+w));}
+  function write(str,x,y,scale,color){let xx=x;for(const ch of str){const g=font[ch]||font[' '];for(let row=0;row<7;row++)for(let col=0;col<5;col++)if(g[row][col]==='1')rect(xx+col*scale,y+row*scale,scale,scale,color);xx+=6*scale;}}
+  function center(str,y,scale,color){write(str,Math.round((W-(str.length*6-1)*scale)/2),y,scale,color);}
+  // Sky, distant hills and a readable platform scene in the PlaySaal palette.
+  rect(0,0,W,H,7);rect(0,410,W,220,6);
+  for(let i=0;i<8;i++){rect(i*175-50,305+(i%3)*22,230,130,8);rect(i*175+22,260+(i%3)*20,88,160,8);}
+  rect(0,475,330,155,2);rect(405,520,310,110,2);rect(790,455,410,175,2);
+  rect(0,475,330,22,5);rect(405,520,310,22,5);rect(790,455,410,22,5);
+  // Coins and goal.
+  for(let i=0;i<5;i++){rect(435+i*52,452,24,34,4);rect(441+i*52,458,6,20,3);}
+  rect(1060,315,12,140,3);rect(1072,315,78,48,4);
+  // Sebi: yellow jumper, red face/cap, dark blue legs.
+  rect(200,350,54,68,4);rect(210,318,42,38,3);rect(205,309,55,14,1);rect(214,418,16,48,1);rect(242,418,16,48,1);rect(250,365,26,12,4);
+  center('SPRUNGSEBI',44,14,3);
+  if(level===null){center('30 LEVEL. 90 STERNE.',165,7,4);center('WIE WEIT KOMMST DU?',235,7,3);}
+  else{center('LEVEL '+String(level)+' ERREICHT',160,9,4);center(String(stars)+' VON 90 STERNEN',245,7,3);center('BIST DU BESSER?',332,7,4);}
   const raw=new Uint8Array(H*(W+1));for(let y=0;y<H;y++)raw.set(px.subarray(y*W,(y+1)*W),y*(W+1)+1);
   return join([Uint8Array.from([137,80,78,71,13,10,26,10]),chunk('IHDR',Uint8Array.from([...be(W),...be(H),8,3,0,0,0])),chunk('PLTE',Uint8Array.from(palette.flat())),chunk('IDAT',deflate(raw)),chunk('IEND',new Uint8Array())]);
 }
