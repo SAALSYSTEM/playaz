@@ -91,6 +91,7 @@ body{background:linear-gradient(180deg,#8ccaf0 0%,#c8e6f5 38%,#e9f2f2 62%,#f6efe
 .chip .up span{display:inline-flex;align-items:center;gap:2px}
 .chip .up svg{width:16px;height:16px}
 .chip .up .lack{color:#ffd9cc}
+.chip .gain{color:var(--ink-2);font-size:14px}
 .chip.in{animation:chipIn .25s ease-out}
 @keyframes chipIn{from{opacity:0;transform:translate(-50%,8px)}to{opacity:1;transform:translate(-50%,0)}}
 .toast{position:absolute;left:50%;top:30%;padding:12px 22px;background:var(--paper);border-radius:20px;box-shadow:0 6px 0 rgba(58,46,37,.16),0 18px 40px rgba(58,46,37,.2);font:700 22px/1.15 var(--font);color:var(--ink);text-align:center;white-space:nowrap;pointer-events:none;opacity:0;transform:translate(-50%,-50%)}
@@ -826,7 +827,7 @@ function woodcutterPlan(a) {
     { t: 'work', d: R(2.6, 3.6), anim: 'chop', face: tree.p },
     { t: 'do', fn: () => { tree.fell = 0.001; treesDirty = true; dust(tree.p, 6, '#d8e6bf'); a.o.userData.carry.visible = true; } },
     { t: 'walk', to: drop, anim: 'carry', speed: 0.6 },
-    { t: 'do', fn: () => { a.o.userData.carry.visible = false; addRes('wood', 1, a.o.position); } },
+    { t: 'do', fn: () => { a.o.userData.carry.visible = false; addRes('wood', yieldOf(a, 1), a.o.position); } },
     { t: 'wait', d: R(0.4, 1.2) }
   ];
 }
@@ -857,7 +858,7 @@ function stonePlan(a) {
     { t: 'work', d: R(3, 4), anim: 'hammer', face: r },
     { t: 'do', fn: () => { a.o.userData.carryS.visible = true; dust(r, 4, '#bdb6aa'); } },
     { t: 'walk', to: drop, anim: 'carry', speed: 0.6 },
-    { t: 'do', fn: () => { a.o.userData.carryS.visible = false; addRes('stone', 1, a.o.position); } },
+    { t: 'do', fn: () => { a.o.userData.carryS.visible = false; addRes('stone', yieldOf(a, 1), a.o.position); } },
     { t: 'wait', d: R(0.4, 1.2) }
   ];
 }
@@ -871,7 +872,7 @@ function gathererPlan(a) {
     { t: 'work', d: R(2.2, 3.2), anim: 'gather', face: b.p },
     { t: 'do', fn: () => { if (a.o.userData.fill) a.o.userData.fill.visible = true; } },
     { t: 'walk', to: V(storePos.x + R(-0.3, -0.2), 0, storePos.z + R(0.2, 0.32)) },
-    { t: 'do', fn: () => { if (a.o.userData.fill) a.o.userData.fill.visible = false; addRes('food', SEASONS[seasonI].food, a.o.position); } },
+    { t: 'do', fn: () => { if (a.o.userData.fill) a.o.userData.fill.visible = false; addRes('food', yieldOf(a, SEASONS[seasonI].food), a.o.position); } },
     { t: 'wait', d: R(6, 10) }
   ];
 }
@@ -898,7 +899,7 @@ function minePlan(a) {
     { t: 'work', d: R(4, 6), anim: 'hammer', face: V(hp.x, 0, hp.z) },
     { t: 'do', fn: () => { a.o.userData.carryS.visible = true; dust(V(hp.x, hp.y, hp.z), 4, '#8a8f98'); } },
     { t: 'walk', to: drop, anim: 'carry', speed: 0.6 },
-    { t: 'do', fn: () => { a.o.userData.carryS.visible = false; addRes('iron', 1, a.o.position); } },
+    { t: 'do', fn: () => { a.o.userData.carryS.visible = false; addRes('iron', yieldOf(a, 1), a.o.position); } },
     { t: 'wait', d: R(1, 3) }
   ];
 }
@@ -912,7 +913,7 @@ function farmPlan(a) {
     { t: 'work', d: R(4, 6), anim: 'gather', face: V(hp.x + 0.5, 0, hp.z) },
     { t: 'do', fn: () => { if (a.o.userData.fill) a.o.userData.fill.visible = true; } },
     { t: 'walk', to: V(storePos.x + R(-0.3, -0.2), 0, storePos.z + R(0.2, 0.32)), anim: 'carry', speed: 0.6 },
-    { t: 'do', fn: () => { if (a.o.userData.fill) a.o.userData.fill.visible = false; addRes('food', SEASONS[seasonI].farm, a.o.position); } },
+    { t: 'do', fn: () => { if (a.o.userData.fill) a.o.userData.fill.visible = false; addRes('food', yieldOf(a, SEASONS[seasonI].farm), a.o.position); } },
     { t: 'wait', d: R(5, 9) }
   ];
 }
@@ -1145,10 +1146,13 @@ const WORKER = {
   mine: [{ shirt: '#7C8592', sash: '#E07A3A', tool: 'hammer', pants: '#4A3A2A', hat: '#968E82' }, minePlan, 'Bergmann'],
   farm: [{ shirt: '#D9B440', sash: '#8C5A31', tool: 'basket', hat: '#C9A876' }, farmPlan, 'Bauer']
 };
+// Ausbau: jede Stufe bringt +50 % Ertrag je Fuhre (mindestens +1)
+const yieldOf = (a, n) => n <= 0 ? 0 : n + ((a.home ? a.home.lvl : 1) - 1) * Math.max(1, Math.round(n * 0.5));
 function spawnWorker(kind, x, z) {
   const w = WORKER[kind]; if (!w) return null;
   const p = W(x, z);
-  return person({ ...look(), ...w[0] }, w[1], p.x + R(-0.1, 0.1), p.z + 0.42, { name: w[2] });
+  const a = person({ ...look(), ...w[0] }, w[1], p.x + R(-0.1, 0.1), p.z + 0.42, { name: w[2] });
+  a.home = builtAt(x, z); return a;
 }
 function makeSite(t, kind) {
   const g = new T.Group(); const p = V(t.wx, t.top, t.wz); g.position.copy(p); g.rotation.y = Math.round(facing(p, firePos) / (Math.PI / 2)) * (Math.PI / 2);
@@ -1501,15 +1505,16 @@ function upChip(b) {
   const nm = esc(BUILD[b.kind].name) + ' · Stufe ' + b.lvl;
   if (b.lvl >= UPG_MAX) return '<b>' + nm + '</b> · voll ausgebaut';
   const c = upCost(b);
-  return '<b>' + nm + '</b><button type="button" class="up" data-up="' + b.x + ',' + b.z + '">Ausbauen' + Object.entries(c).map(([r, n]) => '<span class="' + (state[r] < n ? 'lack' : '') + '">' + ICON[r] + n + '</span>').join('') + '</button>';
+  const gain = b.kind === 'tent' ? '+' + (b.lvl === 1 ? 4 : 6) + ' Plätze' : '+50 % Ertrag';
+  return '<b>' + nm + '</b> <span class="gain">' + gain + '</span><button type="button" class="up" data-up="' + b.x + ',' + b.z + '">Ausbauen' + Object.entries(c).map(([r, n]) => '<span class="' + (state[r] < n ? 'lack' : '') + '">' + ICON[r] + n + '</span>').join('') + '</button>';
 }
 function upgrade(b) {
   if (b.lvl >= UPG_MAX) return;
   const c = upCost(b), miss = lacking(c);
   if (miss) { toast('Es fehlen ' + miss, 'Die Arbeiter bringen Nachschub'); return; }
   pay(c); b.lvl++; b.g.scale.setScalar(lvlScale(b.lvl)); dust(W(b.x, b.z), 12); sound('done');
-  if (b.kind === 'tent') { state.cap += 2; arrivalT = 8; toast('Zelt ausgebaut', 'Stufe ' + b.lvl + ' · +2 Wohnplätze'); }
-  else { spawnWorker(b.kind, b.x, b.z); toast(BUILD[b.kind].name + ' ausgebaut', 'Stufe ' + b.lvl + ' · ein Arbeiter mehr'); }
+  if (b.kind === 'tent') { const gain = b.lvl === 2 ? 4 : 6; state.cap += gain; arrivalT = 8; toast('Zelt ausgebaut', 'Stufe ' + b.lvl + ' · +' + gain + ' Wohnplätze'); }
+  else toast(BUILD[b.kind].name + ' ausgebaut', 'Stufe ' + b.lvl + ' · mehr Ertrag je Fuhre');
   updateHud('pWood'); chip(upChip(b), 8000); save();
 }
 $('#chip').addEventListener('click', e => { const ex = e.target.closest('[data-explore]'); if (ex) { explore(ex.dataset.explore); return; } const u = e.target.closest('[data-up]'); if (!u) return; const [x, z] = u.dataset.up.split(',').map(Number), b = builtAt(x, z); if (b) upgrade(b); });
@@ -1549,7 +1554,7 @@ function load() {
     if (!KINDS.includes(k) || !t || !okTile(k, t) || t.occ) continue;
     const g = placeBuilding(k, x, z, false), lvl = clamp(Math.round(r[3]) || 1, 1, UPG_MAX);
     built.push({ kind: k, x, z, lvl, g }); g.scale.setScalar(lvlScale(lvl)); if (k === 'bruecke') openWest(true);
-    if (k !== 'tent' && k !== 'bruecke') for (let i = 0; i < lvl; i++) spawnWorker(k, x, z);
+    if (k !== 'tent' && k !== 'bruecke') spawnWorker(k, x, z);
   }
   for (const r of Array.isArray(o.s) ? o.s : []) {
     if (!Array.isArray(r)) continue;
