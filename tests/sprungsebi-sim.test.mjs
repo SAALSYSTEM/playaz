@@ -1,7 +1,7 @@
 import{test}from'node:test';
 import assert from'node:assert/strict';
 import{readFileSync}from'node:fs';
-import{LEVEL_COUNT,WORLD_NAMES,makeLevel,hitsUnderside,freshSave,sanitizeSave,totalStars,completedLevels,recordLevel,challengeText}from'../public/spiele/sprungsebi/engine.js';
+import{LEVEL_COUNT,WORLD_NAMES,makeLevel,hitsUnderside,waterPosition,advanceWater,freshSave,sanitizeSave,totalStars,completedLevels,recordLevel,challengeText}from'../public/spiele/sprungsebi/engine.js';
 import worker from'../src/worker.js';
 import{renderSebiPreview}from'../src/vorschau.js';
 
@@ -30,10 +30,17 @@ test('solid platform undersides stop Sebis head',()=>{
   assert.equal(hitsUnderside({x:360,y:520,w:62,h:82,vy:500},550,platform),false);
 });
 
+test('the flood keeps rising and follows Sebi up the tower',()=>{
+  const level=makeLevel(1),start=waterPosition(level,0,0);
+  assert.ok(waterPosition(level,5,0)<start,'time always raises the water');
+  assert.equal(waterPosition(level,0,1000),start-780,'climbing pulls the visible flood upward');
+  const climbed=advanceWater(start,level,2,800);assert.ok(advanceWater(climbed,level,3,100)<=climbed,'falling never makes the flood recede');
+  assert.ok(level.platforms.every(p=>p.type!=='crumble'),'mandatory platforms never disappear');
+});
+
 test('the flood accelerates and mechanics are introduced gradually',()=>{
   assert.ok(makeLevel(30).water.speed>makeLevel(1).water.speed);
   assert.ok(!makeLevel(2).items.some(x=>x.type==='spring'));assert.ok(makeLevel(3).items.some(x=>x.type==='spring'));
-  assert.ok(makeLevel(6).platforms.some(x=>x.type==='crumble'));
   assert.ok(makeLevel(8).platforms.some(x=>x.type==='moving'));
   assert.ok(makeLevel(11).hazards.some(x=>x.type==='bird'));
   assert.ok(makeLevel(16).items.some(x=>x.type==='jetpack'));

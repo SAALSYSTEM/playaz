@@ -10,6 +10,8 @@ export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 export function seeded(seed=1){let s=seed>>>0;return()=>((s=(s*1664525+1013904223)>>>0)/4294967296);}
 export function overlap(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
 export function hitsUnderside(body,oldY,platform){return body.vy<0&&body.x+body.w>platform.x+7&&body.x<platform.x+platform.w-7&&oldY>=platform.y+platform.h-12&&body.y<=platform.y+platform.h;}
+export function waterPosition(level,elapsed,climb){return level.water.startY-elapsed*level.water.speed-Math.max(0,climb)*.78;}
+export function advanceWater(previous,level,elapsed,climb){return Math.min(previous,waterPosition(level,elapsed,climb));}
 
 export function makeLevel(number){
   const n=clamp(Math.floor(number)||1,1,LEVEL_COUNT),world=Math.floor((n-1)/5),step=(n-1)%5,rnd=seeded(7301+n*811);
@@ -22,7 +24,6 @@ export function makeLevel(number){
     const lane=i%2===1?1:(Math.floor(i/2)%2?2-firstOuter:firstOuter);
     const x=[40,350,660][lane]+Math.floor((rnd()-.5)*17);
     let type='solid';
-    if(n>=6&&i>3&&i%7===step%7)type='crumble';
     if(n>=8&&i>4&&i%8===(step+2)%8)type='moving';
     const p={x,y,w,h:34,type,index:i};
     if(type==='moving')Object.assign(p,{baseX:x,range:35+step*8,speed:.75+world*.08,phase:rnd()*6.28});
