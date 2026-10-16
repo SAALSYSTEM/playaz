@@ -108,11 +108,6 @@ body{background:linear-gradient(180deg,#8ccaf0 0%,#c8e6f5 38%,#e9f2f2 62%,#f6efe
 .hint{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 134px);transform:translateX(-50%);padding:7px 14px;border-radius:999px;background:rgba(58,46,37,.78);color:var(--paper);font:500 14px/1.2 var(--font);white-space:nowrap;pointer-events:none;transition:opacity .6s}
 .hint.out{opacity:0}
 
-/* Vorlage zum Vergleich */
-.cmp{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(58,46,37,.55)}
-.cmp figure{margin:0;max-width:min(92vw,560px);background:var(--paper);border-radius:22px;padding:10px 10px 14px;box-shadow:0 18px 50px rgba(0,0,0,.35);text-align:center}
-.cmp img{display:block;width:100%;height:auto;border-radius:14px}
-.cmp figcaption{margin-top:10px;font:500 15px/1.3 var(--font);color:var(--ink-2)}
 
 /* Startbild */
 .screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,2.4vh,20px);padding:calc(env(safe-area-inset-top,0px) + 18px) 20px calc(env(safe-area-inset-bottom,0px) + 22px);background:radial-gradient(120% 80% at 50% 0%,#fffaf1 0%,#fbefd9 55%,#f1dcb8 100%);overflow:auto;transition:opacity .5s ease,visibility .5s}
@@ -141,7 +136,6 @@ body{background:linear-gradient(180deg,#8ccaf0 0%,#c8e6f5 38%,#e9f2f2 62%,#f6efe
   </div>
   <div class="season-badge" id="seasonBadge"><i id="seasonDot"></i><span id="seasonName">Sommer</span><small id="seasonLeft"></small></div>
   <div class="season-badge meal" id="meal"><span id="mealTxt">Essen</span></div>
-  <button class="tag" id="cmpBtn" aria-label="Vorlage zum Vergleich zeigen">Vorlage</button>
   <div class="hint" id="hint">Ziehen: bewegen · Zwei Finger: zoomen · Antippen: Info</div>
   <div class="chip" id="chip" hidden></div>
   <div class="toast" id="toast"></div>
@@ -154,9 +148,6 @@ body{background:linear-gradient(180deg,#8ccaf0 0%,#c8e6f5 38%,#e9f2f2 62%,#f6efe
     <button class="b" id="rotR" aria-label="Ansicht nach rechts drehen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5l4 4-4 4" fill="none" stroke="#3A2E25" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.5 9H10a6 6 0 0 0 0 12h3" fill="none" stroke="#3A2E25" stroke-width="2.4" stroke-linecap="round"/></svg></button>
   </div>
 
-  <div class="cmp" id="cmp" hidden>
-    <figure><img src="stammvoelker/stufe1.webp" alt="Vorlage: Zeltlager der Turi" loading="lazy"><figcaption>Vorlage (ChatGPT) · Antippen zum Schließen</figcaption></figure>
-  </div>
 
   <div class="screen" id="start">
     <h1 class="title">STAMMVÖLKER</h1>
@@ -1564,9 +1555,6 @@ function load() {
   }
   for (let i = 0; i < Math.min(10, state.pop - 12); i++) person({ ...look(), shirt: pick(['#E6CC9E', '#C9A876', '#E07A3A']), sash: pick(['#2F9C95', '#E07A3A']), tool: 'basket' }, gathererPlan, firePos.x + R(-0.8, 0.8), firePos.z + R(0.4, 1.0), { name: 'Bewohner' }).res = true;
 }
-const cmp = $('#cmp');
-$('#cmpBtn').addEventListener('click', () => { cmp.hidden = false; });
-cmp.addEventListener('click', () => { cmp.hidden = true; });
 
 let hintGone = false;
 function hideHint() { if (hintGone) return; hintGone = true; setTimeout(() => $('#hint').classList.add('out'), 2500); }
