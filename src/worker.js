@@ -1,7 +1,7 @@
-import {renderPreview,renderSanduhrPreview} from './vorschau.js';
+import {renderPreview,renderBauPreview} from './vorschau.js';
 
 const BASE='/spiele/blocksaal';
-const SANDUHR='/spiele/sanduhrblock';
+const BAU='/spiele/bausaal';
 function lines(raw){return raw!==null&&/^(0|[1-9]\d{0,3})$/.test(raw)?Number(raw):null;}
 function replaceMeta(html,key,value){
   const escaped=key.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
@@ -16,25 +16,26 @@ export default {
       const image=renderPreview(m[1]==='start'?null:Number(m[1]));
       return new Response(image,{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=86400','X-Content-Type-Options':'nosniff'}});
     }
-    if(url.pathname.startsWith('/og/sanduhrblock/')){
-      const m=url.pathname.match(/^\/og\/sanduhrblock\/(start|0|[1-9]\d{0,3})\.png$/);
+    if(url.pathname.startsWith('/og/bausaal/')){
+      const m=url.pathname.match(/^\/og\/bausaal\/(start|0|[1-9]\d{0,3})\.png$/);
       if(!m)return new Response('Not found',{status:404});
-      const image=renderSanduhrPreview(m[1]==='start'?null:Number(m[1]));
+      const image=renderBauPreview(m[1]==='start'?null:Number(m[1]));
       return new Response(image,{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=86400','X-Content-Type-Options':'nosniff'}});
     }
-    if(url.pathname!==BASE&&url.pathname!==SANDUHR)return env.ASSETS.fetch(request);
+    if(url.pathname!==BASE&&url.pathname!==BAU)return env.ASSETS.fetch(request);
     const count=lines(url.searchParams.get('c'));
     if(count===null)return env.ASSETS.fetch(request);
-    const sanduhr=url.pathname===SANDUHR,base=sanduhr?SANDUHR:BASE;
+    const bau=url.pathname===BAU,base=bau?BAU:BASE;
     const asset=await env.ASSETS.fetch(new Request(new URL(base,url.origin),request));
     if(!asset.ok)return asset;
     let html=await asset.text();
     const number=count.toLocaleString('de-DE');
-    const unit=sanduhr?(count===1?'Kern':'Kerne'):(count===1?'Reihe':'Reihen');
+    const unit=bau?'Punkte':(count===1?'Reihe':'Reihen');
     const title=`${number} ${unit} geschafft – schlägst du mich?`;
-    const description=sanduhr?`Ich habe ${number} ${unit} bei Sanduhrblock erzeugt. Schlägst du mich? Spiele kostenlos auf PlaySaal.`:`Ich habe ${number} ${unit} bei BlockSaal geschafft. Schlägst du mich? Spiele kostenlos auf PlaySaal.`;
-    const href=`${url.origin}${base}?c=${count}`;
-    const image=`${url.origin}/og/${sanduhr?'sanduhrblock':'blocksaal'}/${count}.png`;
+    const description=bau?`Ich habe ${number} ${unit} bei BauSaal geschafft. Schlägst du mich? Spiele kostenlos auf PlaySaal.`:`Ich habe ${number} ${unit} bei BlockSaal geschafft. Schlägst du mich? Spiele kostenlos auf PlaySaal.`;
+    const room=bau&&['schacht','kamin','zimmer'].includes(url.searchParams.get('room'))?'&amp;room='+url.searchParams.get('room'):'';
+    const href=`${url.origin}${base}?c=${count}${room}`;
+    const image=`${url.origin}/og/${bau?'bausaal':'blocksaal'}/${count}.png`;
     for(const key of ['og:title','twitter:title'])html=replaceMeta(html,key,title);
     for(const key of ['og:description','twitter:description'])html=replaceMeta(html,key,description);
     html=replaceMeta(html,'og:url',href);

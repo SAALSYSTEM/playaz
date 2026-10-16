@@ -215,8 +215,8 @@ test('Startseite: Suche mit Live-Treffern (Name, Art, Kategorie), Leermeldung, E
   assert.ok(await page.isVisible('#sucheLeer')); assert.match(await page.textContent('#sucheLeer'), /Kein Spiel/);
   // Art-Knopf füllt die Suche
   await page.click('#sucheTags button:text-is("Puzzle")');
-  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Stellwerk', 'Sanduhrblock']);
-  await page.click('#sucheListe a[href="/spiele/sanduhrblock"]'); await page.waitForURL(/\/spiele\/sanduhrblock/);
+  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Stellwerk', 'BauSaal']);
+  await page.click('#sucheListe a[href="/spiele/bausaal"]'); await page.waitForURL(/\/spiele\/bausaal/);
   await page.goBack(); await page.click('#sucheBtn'); await page.keyboard.press('Escape');
   assert.ok(await page.isHidden('#suche'));
   await ctx.close();
