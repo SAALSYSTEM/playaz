@@ -4,7 +4,7 @@ Browserspiele ohne Anmeldung: **SprungSebi**, **BauSaal**, **Zahlensturm**, **Sc
 Früher PlayAZ; Umstellung siehe [`docs/PLAYSAAL_UMSTELLUNG.md`](docs/PLAYSAAL_UMSTELLUNG.md).
 
 - `public/` – die komplette Website (statisch, keine Build-Schritte)
-- `public/spiele/` – die Spiele, je eine HTML-Datei. SPRUNGSEBI besitzt 30 deterministische Levelpläne in `sprungsebi/engine.js` und die Canvas-Oberfläche in `sprungsebi/game.js`. BAUSAAL trennt Regeln (`bausaal/engine.js`) und Oberfläche (`bausaal/game.js`). BLOCKSAAL bleibt als `noindex`-Prototyp direkt erreichbar, ist aber nicht mehr auf der Startseite oder in der Sitemap. EISZEIT lädt zusätzlich Bilder; SCHRÄGLAGE und ZAHLENSTURM sind in eigenen Unterordnern dokumentiert; HAU DIE KAKERLAKE! ist ebenfalls modular aufgebaut.
+- `public/spiele/` – die Spiele, je eine HTML-Datei. SPRUNGSEBI ist eine Hochkant-Flucht vor steigendem Wasser mit 30 deterministischen Kletterstrecken in `sprungsebi/engine.js` und der Canvas-Oberfläche in `sprungsebi/game.js`. BAUSAAL trennt Regeln (`bausaal/engine.js`) und Oberfläche (`bausaal/game.js`). BLOCKSAAL bleibt als `noindex`-Prototyp direkt erreichbar, ist aber nicht mehr auf der Startseite oder in der Sitemap. EISZEIT lädt zusätzlich Bilder; SCHRÄGLAGE und ZAHLENSTURM sind in eigenen Unterordnern dokumentiert; HAU DIE KAKERLAKE! ist ebenfalls modular aufgebaut.
 - `public/brand/`, `public/favicon*`, `public/icon-*`, `public/og-*`, `public/twitter-*` – PlaySaal-Branding
 - `public/umzug.html` + `public/assets/umzug*.js` – Spielstände von der alten auf die neue Adresse übertragen
 - `public/assets/` – selbst gehostete Schriften und three.js (keine externen CDNs, keine Google Fonts)

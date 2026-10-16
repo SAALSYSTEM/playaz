@@ -34,7 +34,7 @@ export default {
       const level=Number(url.searchParams.get('c')),stars=Number(url.searchParams.get('s'));
       if(!Number.isInteger(level)||level<1||level>30||!Number.isInteger(stars)||stars<0||stars>90)return env.ASSETS.fetch(request);
       const asset=await env.ASSETS.fetch(new Request(new URL(SEBI,url.origin),request));if(!asset.ok)return asset;
-      let html=await asset.text();const title=`Level ${level} erreicht – bist du besser?`,description=`Ich habe bei SprungSebi Level ${level} erreicht und ${stars} von 90 Sternen gesammelt. Jetzt spielen!`,href=`${url.origin}${SEBI}?c=${level}&amp;s=${stars}`,image=`${url.origin}/og/sprungsebi/${level}-${stars}.png`;
+      let html=await asset.text();const title=`Bis Level ${level} vor dem Hochwasser – kommst du höher?`,description=`Ich bin bei SprungSebi bis Level ${level} vor dem Hochwasser geflohen und habe ${stars} von 90 Sternen gesammelt. Jetzt spielen!`,href=`${url.origin}${SEBI}?c=${level}&amp;s=${stars}`,image=`${url.origin}/og/sprungsebi/${level}-${stars}.png`;
       for(const key of ['og:title','twitter:title'])html=replaceMeta(html,key,title);
       for(const key of ['og:description','twitter:description'])html=replaceMeta(html,key,description);
       html=replaceMeta(html,'og:url',href);for(const key of ['og:image','twitter:image'])html=replaceMeta(html,key,image);

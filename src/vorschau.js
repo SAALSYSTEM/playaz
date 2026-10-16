@@ -71,19 +71,20 @@ export function renderSebiPreview(level=null,stars=0){
   function rect(x,y,w,h,color){for(let yy=Math.max(0,Math.floor(y));yy<Math.min(H,y+h);yy++)px.fill(color,yy*W+Math.max(0,Math.floor(x)),yy*W+Math.min(W,x+w));}
   function write(str,x,y,scale,color){let xx=x;for(const ch of str){const g=font[ch]||font[' '];for(let row=0;row<7;row++)for(let col=0;col<5;col++)if(g[row][col]==='1')rect(xx+col*scale,y+row*scale,scale,scale,color);xx+=6*scale;}}
   function center(str,y,scale,color){write(str,Math.round((W-(str.length*6-1)*scale)/2),y,scale,color);}
-  // Sky, distant hills and a readable platform scene in the PlaySaal palette.
-  rect(0,0,W,H,7);rect(0,410,W,220,6);
-  for(let i=0;i<8;i++){rect(i*175-50,305+(i%3)*22,230,130,8);rect(i*175+22,260+(i%3)*20,88,160,8);}
-  rect(0,475,330,155,2);rect(405,520,310,110,2);rect(790,455,410,175,2);
-  rect(0,475,330,22,5);rect(405,520,310,22,5);rect(790,455,410,22,5);
-  // Coins and goal.
-  for(let i=0;i<5;i++){rect(435+i*52,452,24,34,4);rect(441+i*52,458,6,20,3);}
-  rect(1060,315,12,140,3);rect(1072,315,78,48,4);
-  // Sebi: yellow jumper, red face/cap, dark blue legs.
-  rect(200,350,54,68,4);rect(210,318,42,38,3);rect(205,309,55,14,1);rect(214,418,16,48,1);rect(242,418,16,48,1);rect(250,365,26,12,4);
+  // A narrow vertical escape route with rising water at the bottom.
+  rect(0,0,W,H,7);rect(86,0,1028,H,8);rect(108,0,22,H,1);rect(1070,0,22,H,1);
+  rect(155,455,330,35,2);rect(155,455,330,12,5);
+  rect(670,350,315,35,2);rect(670,350,315,12,5);
+  rect(255,245,300,35,2);rect(255,245,300,12,5);
+  rect(725,145,240,35,2);rect(725,145,240,12,5);
+  for(let i=0;i<4;i++){rect(460+i*58,393,26,35,4);rect(467+i*58,399,6,21,3);}
+  // Sebi jumps upward between platforms.
+  rect(548,342,54,68,4);rect(558,310,42,38,3);rect(553,301,55,14,1);rect(562,410,16,40,1);rect(590,410,16,40,1);rect(598,357,26,12,4);
+  // Animated-looking flood line and water mass.
+  rect(0,505,W,125,6);for(let x=0;x<W;x+=80)rect(x,493+(x/80%2)*8,80,20,6);
   center('SPRUNGSEBI',44,14,3);
-  if(level===null){center('30 LEVEL. 90 STERNE.',165,7,4);center('WIE WEIT KOMMST DU?',235,7,3);}
-  else{center('LEVEL '+String(level)+' ERREICHT',160,9,4);center(String(stars)+' VON 90 STERNEN',245,7,3);center('BIST DU BESSER?',332,7,4);}
+  if(level===null){center('DAS WASSER STEIGT!',105,7,4);center('WIE HOCH KOMMST DU?',185,7,3);}
+  else{center('BIS LEVEL '+String(level)+' GEFLUECHTET',105,8,4);center(String(stars)+' VON 90 STERNEN',190,7,3);center('KOMMST DU HOEHER?',275,7,4);}
   const raw=new Uint8Array(H*(W+1));for(let y=0;y<H;y++)raw.set(px.subarray(y*W,(y+1)*W),y*(W+1)+1);
   return join([Uint8Array.from([137,80,78,71,13,10,26,10]),chunk('IHDR',Uint8Array.from([...be(W),...be(H),8,3,0,0,0])),chunk('PLTE',Uint8Array.from(palette.flat())),chunk('IDAT',deflate(raw)),chunk('IEND',new Uint8Array())]);
 }
