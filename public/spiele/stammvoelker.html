@@ -197,7 +197,7 @@ const FOG = '#e3eef2';
 scene.fog = new T.Fog(C(FOG), 44, 72);
 
 const cam = new T.OrthographicCamera(-10, 10, 10, -10, 0.1, 200);
-const startZoom = innerWidth < innerHeight ? 2.0 : 1.15;
+const startZoom = innerWidth < innerHeight ? 1.6 : 1.0;
 const camS = { az: Math.PI / 4, azT: Math.PI / 4, el: 0.58, zoom: startZoom, zoomT: startZoom, target: new T.Vector3(0.6, 0, -1.2) };
 
 // ---------- Licht: Sonne von links oben ----------
@@ -272,21 +272,32 @@ const V = (x, y, z) => new T.Vector3(x, y, z);
 
 // ---------- Karte: 12 × 12 Felder ----------
 // . leer  g Ebene  f Wald  h Hügel  k Bergwald  r Felsen  w Fluss
+const OLD_MAP = ['..fkkkhrrk..', '.ffkkhhhrrk.', 'wwwfggghhrk.', 'ffwggggggghk', 'ffwggggggggg', 'ffwggggggggg', 'ffwggggggggg', 'ffwwwwwwgggg', 'fffggggwgggg', '.ffgggfwgggg', '.ffrggfwgfg.', '..fggggwgg..'];
 const MAP = [
-  '..fkkkhrrk..',
-  '.ffkkhhhrrk.',
-  'wwwfggghhrk.',
-  'ffwggggggghk',
-  'ffwggggggggg',
-  'ffwggggggggg',
-  'ffwggggggggg',
-  'ffwwwwwwgggg',
-  'fffggggwgggg',
-  '.ffgggfwgggg',
-  '.ffrggfwgfg.',
-  '..fggggwgg..'
+  '..fkkkhrrkkkkkkhrrhkkk',
+  '.ffkkhhhrrkkkkhhrrhhkk',
+  'wwwfggghhrkkkhhhrhhhhk',
+  'ffwggggggghkkffhgggffk',
+  'ffwggggggggggffgggggff',
+  'ffwggggggggggggggfgggf',
+  'ffwggggggggggggfgggggf',
+  'ffwwwwwwggggggggggggff',
+  'fffggggwggggggffgggggf',
+  '.ffgggfwggggggfgggfffg',
+  '.ffrggfwgfgggggghhgggf',
+  '..fggggwggggggghrgggfg',
+  '.......wggggffgggghhgg',
+  '.......wgggffggggghhrg',
+  '.......wggffgggggghrrg',
+  '.......wggggggffgggghh',
+  '.......wgfggggffggggff',
+  '.......wgffggggggffggf',
+  '.......wgggfgghhggffgg',
+  '.......wgggghrrhgggfff',
+  '.......wggghrhgggfffgg',
+  '.......w.gggggggggfff.'
 ];
-const N = 12;
+const N = 22;
 const TYPES = {
   g: { name: 'Ebene', res: 'Bauplatz, Beeren, Wild', lvl: 0 },
   f: { name: 'Wald', res: 'Holz, Wild, Kräuter', lvl: 0 },
@@ -298,15 +309,21 @@ const TYPES = {
 const WATER_Y = -0.2;
 const grid = [];
 const tiles = [];
-for (let z = 0; z < N; z++) {
-  grid[z] = [];
-  for (let x = 0; x < N; x++) {
-    const ch = MAP[z][x];
-    if (ch === '.') { grid[z][x] = null; continue; }
-    const t = { x, z, ch, type: TYPES[ch], top: ch === 'w' ? WATER_Y : (TYPES[ch].lvl === 1 ? 0.5 : 0), occ: null, wx: x - 5.5, wz: z - 5.5 };
-    grid[z][x] = t; tiles.push(t);
-  }
+const isNewLand = (x, z) => x > 11 || z > 11 || OLD_MAP[z][x] === '.';
+for (let z = 0; z < N; z++) grid[z] = [];
+function makeTile(x, z) {
+  const ch = MAP[z][x];
+  if (ch === '.') { grid[z][x] = null; return; }
+  const t = { x, z, ch, type: TYPES[ch], top: ch === 'w' ? WATER_Y : (TYPES[ch].lvl === 1 ? 0.5 : 0), occ: null, wx: x - 5.5, wz: z - 5.5 };
+  t.nw = isNewLand(x, z);
+  if (x > 15 || z > 15) t.zone = z > 15 ? 'sued' : 'ost';
+  t.west = !t.nw && ((x <= 1 && z >= 3) || (z >= 8 && x <= 6));
+  t.home = !t.zone && !t.west;
+  grid[z][x] = t; tiles.push(t);
 }
+// erst das alte Gebiet (gleiche Reihenfolge wie früher), dann das neue Land
+for (let z = 0; z < 12; z++) for (let x = 0; x < 12; x++) makeTile(x, z);
+for (let z = 0; z < N; z++) for (let x = 0; x < N; x++) if (x > 11 || z > 11) makeTile(x, z);
 const tileAt = (x, z) => (x < 0 || z < 0 || x >= N || z >= N) ? null : grid[z][x];
 const tileAtWorld = (wx, wz) => tileAt(Math.round(wx + 5.5), Math.round(wz + 5.5));
 const groundY = (wx, wz) => { const t = tileAtWorld(wx, wz); return t ? t.top : 0; };
@@ -338,7 +355,7 @@ const waterMat = new T.MeshStandardMaterial({ color: C('#3D93BD'), flatShading: 
 const waterMesh = instanced(new T.BoxGeometry(1, 0.3, 1), waterMat, waterItems, { cast: false });
 
 // ---------- Fluss: Schaumstreifen, die mit der Strömung treiben ----------
-const riverPath = [[-0.7, 2], [2, 2], [2, 7], [7, 7], [7, 11.55]].map(([x, z]) => V(x - 5.5, WATER_Y + 0.012, z - 5.5));
+const riverPath = [[-0.7, 2], [2, 2], [2, 7], [7, 7], [7, 21.55]].map(([x, z]) => V(x - 5.5, WATER_Y + 0.012, z - 5.5));
 const segLen = []; let riverLen = 0;
 for (let i = 1; i < riverPath.length; i++) { const l = riverPath[i].distanceTo(riverPath[i - 1]); segLen.push(l); riverLen += l; }
 function riverAt(s, out, dir) {
@@ -382,12 +399,12 @@ function stripeTexture() {
 }
 const fallTex = stripeTexture();
 const fallBack = new T.Mesh(new T.PlaneGeometry(0.92, 3.4), new T.MeshBasicMaterial({ color: C('#5fb6dc'), transparent: true, opacity: 0.8, depthWrite: false }));
-fallBack.position.set(7 - 5.5, WATER_Y - 1.7, 11 - 5.5 + 0.505);
+fallBack.position.set(7 - 5.5, WATER_Y - 1.7, 21 - 5.5 + 0.505);
 const fall = new T.Mesh(new T.PlaneGeometry(0.92, 3.4), new T.MeshBasicMaterial({ map: fallTex, transparent: true, depthWrite: false, fog: true }));
 fall.position.copy(fallBack.position); fall.position.z += 0.01;
 scene.add(fallBack, fall);
 const lip = new T.Mesh(new T.BoxGeometry(0.94, 0.07, 0.12), new T.MeshBasicMaterial({ color: C('#f2fbff') }));
-lip.position.set(7 - 5.5, WATER_Y - 0.01, 11 - 5.5 + 0.47); scene.add(lip);
+lip.position.set(7 - 5.5, WATER_Y - 0.01, 21 - 5.5 + 0.47); scene.add(lip);
 
 // ---------- Bäume, Felsen, Büsche, Blumen ----------
 const coniferGeo = merge([
@@ -403,7 +420,7 @@ const leafGeo = merge([
 ]);
 const trunkGeo = new T.CylinderGeometry(0.045, 0.065, 0.5, 5); trunkGeo.translate(0, 0.25, 0);
 // Bäume wachsen, werden gefällt und gepflanzt: jeder Baum ist ein Eintrag, die Meshes werden daraus neu geschrieben
-const MAXT = 260;
+const MAXT = 720;
 const trees = [];
 let treesDirty = true;
 function addTree(t, ox, oz, kind, o) {
@@ -453,18 +470,18 @@ function updateTrees(dt) {
   if (treesDirty && treeTimer > 0.12) { treeTimer = 0; rebuildTrees(); }
 }
 const treesOn = t => trees.reduce((n, tr) => n + (tr.tile === t && !tr.fell ? 1 : 0), 0);
-const reach = t => t.ch !== 'w' && !t.fog && (((t.x >= 3 || t.z <= 1) && t.z <= 6) || t.open); // Seite des Lagers, ohne Flussufer gegenüber
+const reach = t => t.ch !== 'w' && !t.fog && (t.home || t.open); // Seite des Lagers, ohne Flussufer gegenüber
 
 // Felsen
 const rockGeo = new T.DodecahedronGeometry(0.22, 0);
 const rockItems = [];
 tiles.forEach(t => {
-  if (t.ch === 'r') for (let i = 0; i < 3; i++) rockItems.push({ p: V(t.wx + R(-0.28, 0.28), t.top + 0.08, t.wz + R(-0.28, 0.28)), s: V(R(0.8, 1.6), R(0.7, 1.4), R(0.8, 1.5)), ry: R(0, 6), tint: R(0.88, 1.1) });
+  if (t.ch === 'r') for (let i = 0; i < 3; i++) rockItems.push({ p: V(t.wx + R(-0.28, 0.28), t.top + 0.08, t.wz + R(-0.28, 0.28)), s: V(R(0.8, 1.6), R(0.7, 1.4), R(0.8, 1.5)), ry: R(0, 6), tint: R(0.88, 1.1), nw: !!t.zone, first: i === 0 });
   if (t.ch !== 'w' && t.ch !== 'r' && nb4(t).some(n => n && n.ch === 'w') && rnd() < 0.35 && !(t.x === 3 && t.z === 5)) rockItems.push({ p: V(t.wx + R(-0.35, 0.35), t.top + 0.05, t.wz + R(-0.35, 0.35)), s: R(0.5, 0.9), ry: R(0, 6), tint: R(0.9, 1.1) });
 });
 // Erzfelsen mit dunklen Adern (Eisen) auf dem Felshügel
 instanced(rockGeo, M('#968E82'), rockItems);
-const oreItems = rockItems.filter((_, i) => i < 9 && i % 3 === 0).map(r => ({ p: r.p.clone().add(V(0.05, 0.12, 0.08)), s: 0.32, ry: r.ry }));
+const oreItems = rockItems.filter(r => !r.nw).filter((_, i) => i < 9 && i % 3 === 0).concat(rockItems.filter(r => r.nw && r.first)).map(r => ({ p: r.p.clone().add(V(0.05, 0.12, 0.08)), s: 0.32, ry: r.ry }));
 instanced(new T.OctahedronGeometry(0.16, 0), M('#444B55', { roughness: 0.5, metalness: 0.3 }), oreItems);
 
 // Büsche mit Beeren
@@ -514,14 +531,14 @@ instanced(new T.CylinderGeometry(0.075, 0.075, 0.012, 7), M('#ffffff'), padItems
 
 // ---------- Wolkenmeer rund um die Insel ----------
 const cloudItems = [];
-for (let i = 0; i < 46; i++) { const a = R(0, 6.283), r = R(8.2, 14); cloudItems.push({ p: V(Math.cos(a) * r, R(-3.4, -1.2), Math.sin(a) * r), s: V(R(1.3, 2.8), R(0.8, 1.4), R(1.3, 2.6)), ry: R(0, 6), tint: R(0.94, 1.04) }); }
-for (let i = 0; i < 16; i++) { const a = R(0, 6.283), r = R(0, 6.5); cloudItems.push({ p: V(Math.cos(a) * r, R(-5.6, -4), Math.sin(a) * r), s: V(R(1.6, 2.8), R(0.8, 1.2), R(1.6, 2.8)), ry: R(0, 6), tint: R(0.92, 1.02) }); }
-for (let i = 0; i < 26; i++) { const a = R(0, 6.283), r = R(15, 23); cloudItems.push({ p: V(Math.cos(a) * r, R(-2.4, 0.6), Math.sin(a) * r), s: V(R(2.4, 4.2), R(1.1, 1.9), R(2.4, 4)), ry: R(0, 6), tint: R(0.95, 1.03) }); }
+for (let i = 0; i < 90; i++) { const a = R(0, 6.283), r = R(12, 22); cloudItems.push({ p: V(5.5 + Math.cos(a) * r, R(-3.4, -1.2), 5.5 + Math.sin(a) * r), s: V(R(1.3, 2.8), R(0.8, 1.4), R(1.3, 2.6)), ry: R(0, 6), tint: R(0.94, 1.04) }); }
+for (let i = 0; i < 34; i++) { const a = R(0, 6.283), r = R(0, 13); cloudItems.push({ p: V(5.5 + Math.cos(a) * r, R(-5.6, -4), 5.5 + Math.sin(a) * r), s: V(R(1.6, 2.8), R(0.8, 1.2), R(1.6, 2.8)), ry: R(0, 6), tint: R(0.92, 1.02) }); }
+for (let i = 0; i < 40; i++) { const a = R(0, 6.283), r = R(24, 34); cloudItems.push({ p: V(5.5 + Math.cos(a) * r, R(-2.4, 0.6), 5.5 + Math.sin(a) * r), s: V(R(2.4, 4.2), R(1.1, 1.9), R(2.4, 4)), ry: R(0, 6), tint: R(0.95, 1.03) }); }
 const cloudMat = new T.MeshStandardMaterial({ color: C('#ffffff'), emissive: C('#b4c3cf'), emissiveIntensity: 0.55, flatShading: true, roughness: 1 });
 const clouds = instanced(new T.IcosahedronGeometry(1, 1), cloudMat, cloudItems, { cast: false, receive: false });
 const cloudGroup = new T.Group(); scene.remove(clouds); cloudGroup.add(clouds); scene.add(cloudGroup);
 // Gischt-Wolken am Wasserfall
-const mist = instanced(new T.IcosahedronGeometry(0.5, 1), new T.MeshStandardMaterial({ color: C('#ffffff'), emissive: C('#c8d6e0'), emissiveIntensity: 0.6, flatShading: true, transparent: true, opacity: 0.85 }), [0, 1, 2, 3].map(i => ({ p: V(1.5 + R(-0.4, 0.4), -2.9 + i * 0.05, 6.3 + R(-0.2, 0.4)), s: R(0.8, 1.3) })), { cast: false, receive: false });
+const mist = instanced(new T.IcosahedronGeometry(0.5, 1), new T.MeshStandardMaterial({ color: C('#ffffff'), emissive: C('#c8d6e0'), emissiveIntensity: 0.6, flatShading: true, transparent: true, opacity: 0.85 }), [0, 1, 2, 3].map(i => ({ p: V(1.5 + R(-0.4, 0.4), -2.9 + i * 0.05, 16.3 + R(-0.2, 0.4)), s: R(0.8, 1.3) })), { cast: false, receive: false });
 
 // ---------- Bauten des Lagers ----------
 const W = (x, z) => V(x - 5.5, tileAt(x, z).top, z - 5.5);
@@ -796,9 +813,10 @@ function plantPlan() {
   ];
 }
 // Steinmetz: am Felsen klopfen, Stein zum Lager tragen
-const rocks = tiles.filter(t => t.ch === 'r').map(t => V(t.wx, t.top, t.wz));
+const rockTiles = tiles.filter(t => t.ch === 'r');
 function stonePlan(a) {
-  const r = pick(rocks);
+  const cand = rockTiles.filter(reach); if (!cand.length) return [{ t: 'wait', d: 3 }];
+  const rt = pick(cand), r = V(rt.wx, rt.top, rt.wz);
   const drop = V(stonePos.x - 0.34, 0, stonePos.z + R(-0.08, 0.08));
   return [
     { t: 'walk', to: near(villageCenter, r, 0.4) },
@@ -812,7 +830,7 @@ function stonePlan(a) {
 // Sammlerin: Beeren pflücken, zum Vorrat bringen
 function gathererPlan(a) {
   if (!SEASONS[seasonI].food) return [{ t: 'walk', to: V(firePos.x + R(-0.8, 0.8), 0, firePos.z + R(0.35, 0.9)) }, { t: 'wait', d: R(3, 6) }];
-  const b = pick(bushes.filter(b => !b.tile.fog && ((b.tile.x >= 3 && b.tile.z <= 6) || b.tile.open)));
+  const b = pick(bushes.filter(b => reach(b.tile)));
   const spot = near(villageCenter, b.p, 0.28);
   return [
     { t: 'walk', to: spot },
@@ -872,30 +890,37 @@ const builder = person({ ...look(), shirt: '#B07A45', sash: '#2F9C95', tool: 'ha
 const scout = person({ ...look(), shirt: '#E6CC9E', cloak: '#E07A3A', tool: 'staff', scarf: '#2F9C95' }, scoutPlan, patrol[0].x, patrol[0].z, { name: 'Späher', speed: 0.62 });
 
 // ---------- Nebel: unentdecktes Land, der Späher deckt es auf ----------
-const zones = [{ id: 'sued', name: 'Südland', cost: 10, fog: true, busy: false, go: V(9.6 - 5.5 + 0.5, 0, 9 - 5.5), tiles: tiles.filter(t => t.x >= 8 && t.z >= 7), puffs: [] }];
+const zones = [
+  { id: 'ost', name: 'Ostland', cost: 10, go: V(19 - 5.5, 0, 7 - 5.5) },
+  { id: 'sued', name: 'Südland', cost: 15, go: V(14 - 5.5, 0, 19 - 5.5) }
+].map(z => Object.assign(z, { fog: true, busy: false, tiles: tiles.filter(t => t.zone === z.id), puffs: [] }));
+const FOGMAX = zones.reduce((n, z) => n + z.tiles.length * 2, 0);
 const fogMat = new T.MeshStandardMaterial({ color: C('#ffffff'), emissive: C('#b4c3cf'), emissiveIntensity: 0.55, flatShading: true, roughness: 1 });
-const fogGeo = new T.IcosahedronGeometry(0.8, 1);
-const fading = [];
+const fogMesh = new T.InstancedMesh(new T.IcosahedronGeometry(0.8, 1), fogMat, FOGMAX); fogMesh.frustumCulled = false; scene.add(fogMesh);
+function setPuff(d, k, lift) { dummy.position.set(d.p.x, d.p.y + lift, d.p.z); dummy.rotation.set(0, d.ry, 0); dummy.scale.set(d.s.x * k, d.s.y * k, d.s.z * k); dummy.updateMatrix(); fogMesh.setMatrixAt(d.i, dummy.matrix); }
+let fogN = 0;
 zones.forEach(z => z.tiles.forEach(t => {
-  t.fog = true; t.zone = z.id;
-  for (let k = 0; k < 2; k++) {
-    const m = new T.Mesh(fogGeo, fogMat); m.position.set(t.wx + R(-0.25, 0.25), t.top + 0.5 + R(0, 0.25), t.wz + R(-0.25, 0.25));
-    m.scale.set(R(0.9, 1.25), R(0.8, 1.05), R(0.9, 1.25)); m.rotation.y = R(0, 6); scene.add(m); z.puffs.push(m);
-  }
+  t.fog = true;
+  for (let k = 0; k < 2; k++) { const d = { p: V(t.wx + R(-0.25, 0.25), t.top + 0.5 + R(0, 0.25), t.wz + R(-0.25, 0.25)), s: V(R(0.9, 1.25), R(0.8, 1.05), R(0.9, 1.25)), ry: R(0, 6), i: fogN++ }; z.puffs.push(d); setPuff(d, 1, 0); }
 }));
+fogMesh.instanceMatrix.needsUpdate = true;
+const fading = [];
 function openZone(z, instant) {
   z.fog = false; z.busy = false;
   z.tiles.forEach(t => { t.fog = false; t.open = true; });
-  z.puffs.forEach(m => { if (instant) scene.remove(m); else fading.push({ m, t: -R(0, 0.5), s: m.scale.clone(), y: m.position.y }); });
+  z.puffs.forEach(d => { if (instant) setPuff(d, 0, 0); else fading.push({ d, t: -R(0, 0.5) }); });
+  fogMesh.instanceMatrix.needsUpdate = true;
   z.puffs = [];
 }
 function updateFog(dt) {
+  if (!fading.length) return;
   for (let i = fading.length - 1; i >= 0; i--) {
     const f = fading[i]; f.t += dt; if (f.t < 0) continue;
     const k = Math.min(1, f.t / 1.3), e = 1 - (1 - k) * (1 - k);
-    f.m.scale.copy(f.s).multiplyScalar(1 - e); f.m.position.y = f.y + e * 0.6;
-    if (k >= 1) { scene.remove(f.m); fading.splice(i, 1); }
+    setPuff(f.d, 1 - e, e * 0.6);
+    if (k >= 1) fading.splice(i, 1);
   }
+  fogMesh.instanceMatrix.needsUpdate = true;
 }
 function explore(id) {
   const z = zones.find(q => q.id === id); if (!z || z.busy || !z.fog) return;
@@ -959,20 +984,22 @@ const BUILD = {
   foerster: { name: 'Förster', info: 'pflanzt Bäume nach', cost: { wood: 10, stone: 2 } },
   stein: { name: 'Steinbruch', info: 'bricht Stein', cost: { wood: 12 } },
   sammler: { name: 'Sammler', info: 'Beeren und Kräuter', cost: { wood: 8 } },
-  farm: { name: 'Bauernhof', info: 'Getreide, nicht im Winter', cost: { wood: 14, stone: 4 } }
+  farm: { name: 'Bauernhof', info: 'Getreide, nicht im Winter', cost: { wood: 14, stone: 4 } },
+  bruecke: { name: 'Brücke', info: 'führt ans Westufer', cost: { wood: 25, stone: 6 } }
 };
 const KINDS = Object.keys(BUILD);
 const RES = { wood: 'Holz', stone: 'Stein', food: 'Nahrung' };
 const lacking = cost => Object.entries(cost).filter(([r, n]) => state[r] < n).map(([r, n]) => (n - state[r]) + ' ' + RES[r]).join(', ');
 const pay = cost => { for (const r in cost) state[r] -= cost[r]; };
-const buildable = t => t.ch === 'g' && !t.occ && !t.fog && ((t.x >= 3 && t.x <= 11 && t.z >= 2 && t.z <= 6 && !(t.x === 3 && t.z === 2)) || t.open) && treesOn(t) === 0;
+const buildable = t => t.ch === 'g' && !t.occ && !t.fog && ((t.x >= 3 && t.x <= 11 && t.z >= 2 && t.z <= 6 && !(t.x === 3 && t.z === 2)) || (t.x >= 8 && t.x <= 11 && t.z >= 7 && t.z <= 11) || (t.nw && t.home) || t.open) && treesOn(t) === 0;
+const canBuild = (t, k) => k === 'bruecke' ? (t.x === 4 && t.z === 7 && !t.occ) : buildable(t);
 const hlMat = new T.MeshBasicMaterial({ color: C('#c8ffd4'), transparent: true, opacity: 0.6, depthWrite: false });
 const hlGeo = new T.BoxGeometry(0.86, 0.02, 0.86);
-const highlight = new T.InstancedMesh(hlGeo, hlMat, 64); highlight.frustumCulled = false; highlight.count = 0; scene.add(highlight);
+const highlight = new T.InstancedMesh(hlGeo, hlMat, 500); highlight.frustumCulled = false; highlight.count = 0; scene.add(highlight);
 const hlTiles = [];
 function showBuildable(on) {
   hlTiles.length = 0;
-  if (on) tiles.filter(buildable).forEach(t => { dummy.position.set(t.wx, t.top + 0.012, t.wz); dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(1); dummy.updateMatrix(); highlight.setMatrixAt(hlTiles.length, dummy.matrix); hlTiles.push(t); });
+  if (on) tiles.filter(t => canBuild(t, buildKind)).forEach(t => { dummy.position.set(t.wx, t.top + 0.012, t.wz); dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(1); dummy.updateMatrix(); highlight.setMatrixAt(hlTiles.length, dummy.matrix); hlTiles.push(t); });
   highlight.count = hlTiles.length; highlight.instanceMatrix.needsUpdate = true;
 }
 // Hütten: Wand und Dach je nach Art, dazu ein Erkennungszeichen davor
@@ -1003,8 +1030,28 @@ function makeHut(kind) {
   return g;
 }
 const built = [];
+function placeBridge(x, z, pop) {
+  const t = tileAt(x, z), g = new T.Group(); g.position.copy(W(x, z));
+  const plank = M('#B07A45'), dark = M('#8C5A31');
+  for (let i = 0; i < 7; i++) { const b = new T.Mesh(new T.BoxGeometry(0.46, 0.04, 0.11), plank); b.position.set(0, 0.21, -0.45 + i * 0.15); g.add(b); }
+  for (const sx of [-0.25, 0.25]) {
+    const r = new T.Mesh(new T.BoxGeometry(0.03, 0.03, 1.0), dark); r.position.set(sx, 0.38, 0); g.add(r);
+    for (const zz of [-0.45, 0, 0.45]) { const q = new T.Mesh(new T.BoxGeometry(0.035, 0.2, 0.035), dark); q.position.set(sx, 0.29, zz); g.add(q); }
+    for (const zz of [-0.3, 0.3]) { const q = new T.Mesh(new T.BoxGeometry(0.06, 0.5, 0.06), dark); q.position.set(sx, 0.0, zz); g.add(q); }
+  }
+  g.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+  g.scale.setScalar(1.18); scene.add(g); t.occ = 'bruecke';
+  if (pop) { g.scale.setScalar(0.001); popIns.push({ obj: g, t: 0 }); }
+  return g;
+}
+let bridgeOpen = false;
+function openWest(instant) {
+  bridgeOpen = true; tiles.forEach(t => { if (t.west) t.open = true; });
+  if (!instant) toast('Die Brücke steht', 'Das Westufer ist erreichbar');
+}
 function placeBuilding(kind, x, z, pop) {
   if (kind === 'tent') return placeTent(x, z, pop);
+  if (kind === 'bruecke') return placeBridge(x, z, pop);
   const t = tileAt(x, z), p = W(x, z);
   const g = makeHut(kind); g.position.copy(p); g.rotation.y = Math.round(facing(p, firePos) / (Math.PI / 2)) * (Math.PI / 2);
   g.scale.setScalar(1.18); scene.add(g); t.occ = kind;
@@ -1041,6 +1088,7 @@ function finishSite(s) {
   const g = placeBuilding(s.kind, s.tile.x, s.tile.z, true);
   built.push({ kind: s.kind, x: s.tile.x, z: s.tile.z, lvl: 1, g });
   dust(s.p, 14); sound('done');
+  if (s.kind === 'bruecke') { openWest(); sound('done'); save(); return; }
   if (s.kind === 'tent') { state.cap += 4; updateHud('pPop'); toast('Neues Zelt', '+4 Wohnplätze'); arrivalT = 8; }
   else { spawnWorker(s.kind, s.tile.x, s.tile.z); toast(BUILD[s.kind].name + ' fertig', BUILD[s.kind].info); updateHud(); }
   save();
@@ -1213,7 +1261,7 @@ const selGeo = merge([[new T.BoxGeometry(0.96, 0.025, 0.05), mtx(0, 0, 0.455)], 
 const sel = new T.Mesh(selGeo, new T.MeshBasicMaterial({ color: C('#FFF6E6') })); sel.visible = false; scene.add(sel);
 let selT = 0;
 
-const OCC = { tent: 'Zelt · 4 Wohnplätze', fire: 'Feuerstelle · Wärme und Licht', flag: 'Banner der Turi', logs: 'Lager · Holz und Stein', store: 'Vorräte · Beeren, Fisch und Getreide', pier: 'Steg · hier angelt der Fischer', bush: 'Beerenstrauch · Nahrung', site: 'Baustelle', holz: 'Holzfäller-Hütte · fällt Bäume', foerster: 'Förster-Hütte · pflanzt Bäume nach', stein: 'Steinbruch · bricht Stein am Felsen', sammler: 'Sammlerhütte · Beeren und Kräuter', farm: 'Bauernhof · Getreide, nicht im Winter' };
+const OCC = { tent: 'Zelt · 4 Wohnplätze', fire: 'Feuerstelle · Wärme und Licht', flag: 'Banner der Turi', logs: 'Lager · Holz und Stein', store: 'Vorräte · Beeren, Fisch und Getreide', pier: 'Steg · hier angelt der Fischer', bush: 'Beerenstrauch · Nahrung', site: 'Baustelle', holz: 'Holzfäller-Hütte · fällt Bäume', foerster: 'Förster-Hütte · pflanzt Bäume nach', stein: 'Steinbruch · bricht Stein am Felsen', sammler: 'Sammlerhütte · Beeren und Kräuter', farm: 'Bauernhof · Getreide, nicht im Winter', bruecke: 'Brücke · führt ans Westufer' };
 function tileInfo(t) {
   let txt = `<b>${t.type.name}</b> · ${t.type.res}`;
   if (t.occ === 'logs') txt = `<b>Lager</b> · ${state.wood} Holz · ${state.stone} Stein`;
@@ -1232,6 +1280,7 @@ function updateCamera(dt) {
   const d = 40, t = camS.target;
   cam.position.set(t.x + d * Math.cos(camS.el) * Math.sin(camS.az), t.y + d * Math.sin(camS.el), t.z + d * Math.cos(camS.el) * Math.cos(camS.az));
   cam.lookAt(t);
+  sun.target.position.set(t.x, 0, t.z); sun.position.set(t.x - 11, 16, t.z + 3);
   const h = viewHeight(), a = innerWidth / innerHeight;
   cam.left = -h * a / 2; cam.right = h * a / 2; cam.top = h / 2; cam.bottom = -h / 2;
   cam.zoom = camS.zoom; cam.updateProjectionMatrix();
@@ -1257,10 +1306,10 @@ canvas.addEventListener('pointermove', e => {
     const rx = Math.cos(camS.az), rz = -Math.sin(camS.az), fx = -Math.sin(camS.az), fz = -Math.cos(camS.az);
     camS.target.x += -rx * dx * u + fx * dy * u / Math.sin(camS.el);
     camS.target.z += -rz * dx * u + fz * dy * u / Math.sin(camS.el);
-    const l = Math.hypot(camS.target.x, camS.target.z); if (l > 6.5) { camS.target.x *= 6.5 / l; camS.target.z *= 6.5 / l; }
+    camS.target.x = clamp(camS.target.x, -6, 16); camS.target.z = clamp(camS.target.z, -6, 16);
   } else if (pointers.size === 2) {
     const [a, b] = [...pointers.values()]; const d = Math.hypot(a.x - b.x, a.y - b.y);
-    if (pinch0 > 0) camS.zoomT = clamp(zoom0 * d / pinch0, 0.75, 3.2);
+    if (pinch0 > 0) camS.zoomT = clamp(zoom0 * d / pinch0, 0.5, 3.2);
   }
 });
 const endPointer = e => {
@@ -1271,7 +1320,7 @@ const endPointer = e => {
 };
 canvas.addEventListener('pointerup', endPointer);
 canvas.addEventListener('pointercancel', endPointer);
-canvas.addEventListener('wheel', e => { e.preventDefault(); camS.zoomT = clamp(camS.zoomT * Math.exp(-e.deltaY * 0.0015), 0.75, 3.2); hideHint(); }, { passive: false });
+canvas.addEventListener('wheel', e => { e.preventDefault(); camS.zoomT = clamp(camS.zoomT * Math.exp(-e.deltaY * 0.0015), 0.5, 3.2); hideHint(); }, { passive: false });
 addEventListener('keydown', e => {
   if (e.key === 'q' || e.key === 'Q') rotate(-1);
   if (e.key === 'e' || e.key === 'E') rotate(1);
@@ -1297,7 +1346,7 @@ function onTap(x, y) {
   if (!sheet.hidden) { closeSheet(); return; }
   const t = pickTile(x, y);
   if (buildMode) {
-    if (t && buildable(t)) startSite(t);
+    if (t && canBuild(t, buildKind)) startSite(t);
     else { toast('Hier geht es nicht', 'Wähle ein grün markiertes Feld'); }
     return;
   }
@@ -1305,7 +1354,7 @@ function onTap(x, y) {
   sel.position.set(t.wx, t.top + 0.015, t.wz); sel.visible = true; selT = 0;
   if (t.fog) { sel.visible = false; chip(fogChip(t), 8000); sound('tap'); return; }
   const bb = t.occ && t.occ !== 'site' ? builtAt(t.x, t.z) : null;
-  if (bb) chip(upChip(bb), 8000); else chip(tileInfo(t));
+  if (bb && bb.kind !== 'bruecke') chip(upChip(bb), 8000); else chip(tileInfo(t));
   sound('tap');
 }
 
@@ -1313,8 +1362,10 @@ function onTap(x, y) {
 let buildMode = false, buildKind = 'tent';
 const sheet = $('#sheet'), buildBtn = $('#build');
 const ICON = { wood: $('#pWood svg').outerHTML, stone: $('#pStone svg').outerHTML, food: $('#pFood svg').outerHTML };
-const HUTC = { holz: '#8C5A31', foerster: '#4E8B45', stein: '#6F6A62', sammler: '#C0612B', farm: '#C9A33A' };
-const hutIcon = k => k === 'tent'
+const HUTC = { holz: '#8C5A31', foerster: '#4E8B45', stein: '#6F6A62', sammler: '#C0612B', farm: '#C9A33A', bruecke: '#8C5A31' };
+const hutIcon = k => k === 'bruecke'
+  ? '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><path d="M3 22h38v4H3z" fill="#B07A45"/><path d="M6 12v10M16 12v10M28 12v10M38 12v10M5 12h34" stroke="#8C5A31" stroke-width="2.4" stroke-linecap="round"/></svg>'
+  : k === 'tent'
   ? '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><path d="M4 27 22 4l18 23z" fill="#E6CC9E" stroke="#8C5A31" stroke-width="2" stroke-linejoin="round"/><path d="M17 27l5-11 5 11z" fill="#4A3020"/></svg>'
   : '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><rect x="8" y="14" width="28" height="13" rx="2" fill="#E6CC9E"/><path d="M3 15 22 3l19 12z" fill="' + HUTC[k] + '"/><rect x="19" y="18" width="6" height="9" fill="#4A3020"/></svg>';
 const costHtml = k => Object.entries(BUILD[k].cost).map(([r, n]) => '<span class="' + (state[r] < n ? 'lack' : '') + '">' + ICON[r] + n + '</span>').join('');
@@ -1348,7 +1399,8 @@ function pickKind(k) {
     toast('Es fehlen ' + miss, 'Die Arbeiter bringen Nachschub');
     return;
   }
-  if (!tiles.some(buildable)) { toast('Kein Platz mehr', 'Später wächst das Lager zum Dorf'); return; }
+  if (k === 'bruecke' && bridgeOpen) { toast('Die Brücke steht schon', 'Das Westufer ist offen'); return; }
+  if (!tiles.some(t => canBuild(t, k))) { toast('Kein Platz mehr', 'Erkunde neues Land im Nebel'); return; }
   closeSheet(); enterBuild(k);
 }
 sheet.addEventListener('click', e => { const c = e.target.closest('.card'); if (c) pickKind(c.dataset.k); });
@@ -1382,7 +1434,7 @@ function save() {
   try {
     const f2 = v => Math.round(v * 100) / 100;
     localStorage.setItem(KEY, JSON.stringify({
-      v: 1, wood: state.wood, stone: state.stone, food: state.food, pop: state.pop, cap: state.cap, m: Math.round(meal.t), h: meal.hungry, z: zones.filter(z => !z.fog).map(z => z.id),
+      v: 1, map: 2, wood: state.wood, stone: state.stone, food: state.food, pop: state.pop, cap: state.cap, m: Math.round(meal.t), h: meal.hungry, z: zones.filter(z => !z.fog).map(z => z.id),
       b: built.map(b => [b.kind, b.x, b.z, b.lvl]),
       s: sites.filter(s => !s.done).map(s => [s.kind, s.tile.x, s.tile.z]),
       t: trees.filter(tr => !tr.fell).map(tr => [tr.tile.x, tr.tile.z, f2(tr.ox), f2(tr.oz), tr.kind === 'c' ? 0 : 1, f2(tr.s), f2(tr.ry), f2(tr.g), f2(tr.tint)])
@@ -1402,21 +1454,21 @@ function load() {
   if (Number.isFinite(o.m)) meal.t = clamp(o.m, 1, MEAL_SEC); if (Number.isFinite(o.h)) meal.hungry = clamp(Math.round(o.h), 0, 9);
   if (Array.isArray(o.t)) {
     const ok = o.t.filter(r => Array.isArray(r) && r.length >= 9 && r.every(Number.isFinite)).slice(0, MAXT - 6);
-    trees.length = 0;
+    if (o.map === 2) trees.length = 0; else for (let i = trees.length - 1; i >= 0; i--) if (!trees[i].tile.nw) trees.splice(i, 1);
     for (const r of ok) { const t = tileAt(r[0], r[1]); if (t && t.ch !== 'w') addTree(t, clamp(r[2], -0.45, 0.45), clamp(r[3], -0.45, 0.45), r[4] ? 'l' : 'c', { s: clamp(r[5], 0.5, 1.6), ry: r[6], g: clamp(r[7], 0, 1), tint: clamp(r[8], 0.7, 1.2) }); }
   }
   for (const r of Array.isArray(o.b) ? o.b : []) {
     if (!Array.isArray(r)) continue;
     const [k, x, z] = r, t = tileAt(x, z);
-    if (!KINDS.includes(k) || !t || t.ch !== 'g' || t.occ) continue;
+    if (!KINDS.includes(k) || !t || (t.ch !== 'g' && !(k === 'bruecke' && t.ch === 'w')) || t.occ) continue;
     const g = placeBuilding(k, x, z, false), lvl = clamp(Math.round(r[3]) || 1, 1, UPG_MAX);
-    built.push({ kind: k, x, z, lvl, g }); g.scale.setScalar(lvlScale(lvl));
-    if (k !== 'tent') for (let i = 0; i < lvl; i++) spawnWorker(k, x, z);
+    built.push({ kind: k, x, z, lvl, g }); g.scale.setScalar(lvlScale(lvl)); if (k === 'bruecke') openWest(true);
+    if (k !== 'tent' && k !== 'bruecke') for (let i = 0; i < lvl; i++) spawnWorker(k, x, z);
   }
   for (const r of Array.isArray(o.s) ? o.s : []) {
     if (!Array.isArray(r)) continue;
     const [k, x, z] = r, t = tileAt(x, z);
-    if (!KINDS.includes(k) || !t || t.ch !== 'g' || t.occ) continue;
+    if (!KINDS.includes(k) || !t || (t.ch !== 'g' && !(k === 'bruecke' && t.ch === 'w')) || t.occ) continue;
     t.occ = 'site'; sites.push(makeSite(t, k));
   }
   for (let i = 0; i < Math.min(10, state.pop - 12); i++) person({ ...look(), shirt: pick(['#E6CC9E', '#C9A876', '#E07A3A']), sash: pick(['#2F9C95', '#E07A3A']), tool: 'basket' }, gathererPlan, firePos.x + R(-0.8, 0.8), firePos.z + R(0.4, 1.0), { name: 'Bewohner' }).res = true;
@@ -1487,7 +1539,7 @@ function degrade() {
   if (quality === 0) { renderer.shadowMap.type = T.PCFShadowMap; sun.shadow.mapSize.set(1024, 1024); sun.shadow.map && sun.shadow.map.dispose(); sun.shadow.map = null; pixelRatio = 1; renderer.setPixelRatio(1); resize(); }
 }
 
-if (/[?&]test\b/.test(location.search)) window.__sv = { state, tiles, trees, built, BUILD, setSeason, seasons: SEASONS, seasonNow, save, buildNow: (k, x, z) => { const t = tileAt(x, z); t.occ = 'site'; const st = makeSite(t, k); st.progress = 1; finishSite(st); }, screenOf: (x, z) => { const t = tileAt(x, z); const v = V(t.wx, t.top, t.wz).project(cam); return [(v.x * 0.5 + 0.5) * innerWidth, (-v.y * 0.5 + 0.5) * innerHeight]; }, cam: camS, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length }) };
+if (/[?&]test\b/.test(location.search)) window.__sv = { zones, openZone, state, tiles, trees, built, BUILD, setSeason, seasons: SEASONS, seasonNow, save, buildNow: (k, x, z) => { const t = tileAt(x, z); t.occ = 'site'; const st = makeSite(t, k); st.progress = 1; finishSite(st); }, screenOf: (x, z) => { const t = tileAt(x, z); const v = V(t.wx, t.top, t.wz).project(cam); return [(v.x * 0.5 + 0.5) * innerWidth, (-v.y * 0.5 + 0.5) * innerHeight]; }, cam: camS, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length }) };
 load();
 rebuildTrees();
 setSeason(seasonNow(), true);
