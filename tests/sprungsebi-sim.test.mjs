@@ -1,7 +1,7 @@
 import{test}from'node:test';
 import assert from'node:assert/strict';
 import{readFileSync}from'node:fs';
-import{LEVEL_COUNT,WORLD_NAMES,makeLevel,freshSave,sanitizeSave,totalStars,completedLevels,recordLevel,challengeText}from'../public/spiele/sprungsebi/engine.js';
+import{LEVEL_COUNT,WORLD_NAMES,makeLevel,hitsUnderside,freshSave,sanitizeSave,totalStars,completedLevels,recordLevel,challengeText}from'../public/spiele/sprungsebi/engine.js';
 import worker from'../src/worker.js';
 import{renderSebiPreview}from'../src/vorschau.js';
 
@@ -17,9 +17,17 @@ test('30 portrait levels climb through six worlds above rising water',()=>{
       const lower=l.route[i-1],upper=l.route[i];
       assert.ok(upper.y<lower.y,'route always climbs');
       assert.ok(lower.y-upper.y<=145,'vertical jump stays reachable');
-      assert.ok(Math.abs((lower.x+lower.w/2)-(upper.x+upper.w/2))<330,'horizontal jump stays reachable');
+      assert.ok(Math.abs((lower.x+lower.w/2)-(upper.x+upper.w/2))<350,'horizontal jump stays reachable');
+      assert.ok(lower.x+lower.w<upper.x||upper.x+upper.w<lower.x,'solid platforms leave a clear route around their underside');
     }
   }
+});
+
+test('solid platform undersides stop Sebis head',()=>{
+  const platform={x:300,y:500,w:220,h:34};
+  assert.equal(hitsUnderside({x:360,y:520,w:62,h:82,vy:-500},550,platform),true);
+  assert.equal(hitsUnderside({x:40,y:520,w:62,h:82,vy:-500},550,platform),false);
+  assert.equal(hitsUnderside({x:360,y:520,w:62,h:82,vy:500},550,platform),false);
 });
 
 test('the flood accelerates and mechanics are introduced gradually',()=>{
