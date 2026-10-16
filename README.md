@@ -46,4 +46,4 @@ Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `bausaal.v
 
 `public/impressum.html` und `public/datenschutz.html` sind Vorlagen mit markierten Platzhaltern.
 
-BauSaal: Drei räumliche Baugruben (Schacht, Kamin, L-Zimmer), sechs Betonformen, jede zweimal pro zufälligem Lieferstapel. Keine Zeitautomatik, keine Löschung voller Ebenen. Drei Teile pro Runde aussortierbar. Regeln ohne DOM, perspektivische Canvas-Ansicht mit vier Blickwinkeln. Zielhilfe standardmäßig aus. Lokale Bestwerte je Baugrube.
+BauSaal: Drei räumliche Baugruben (Schacht, Kamin, L-Zimmer), sechs Betonformen, jede zweimal pro zufälligem Lieferstapel. Keine Zeitautomatik, keine Löschung voller Ebenen. Drei Teile pro Runde aussortierbar. Regeln ohne DOM, perspektivische Canvas-Ansicht mit vier Blickwinkeln. Gelbe Zielhilfe standardmäßig an, abschaltbar. Zweireihige Steuerung mit einzelnen Pfeiltasten in der Mitte. Lokale Bestwerte je Baugrube.
