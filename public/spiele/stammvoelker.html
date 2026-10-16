@@ -38,6 +38,8 @@ body{background:linear-gradient(180deg,#8ccaf0 0%,#c8e6f5 38%,#e9f2f2 62%,#f6efe
 .pill{display:flex;align-items:center;gap:4px;height:32px;padding:0 9px 0 5px;background:var(--paper);border-radius:999px;box-shadow:0 3px 0 rgba(58,46,37,.18),0 8px 18px rgba(58,46,37,.12);font:700 16px/1 var(--font);font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
 .pill svg{width:22px;height:22px;flex:none}
 .pill small{font-weight:500;font-size:14px;color:var(--ink-2)}
+.pill[hidden]{display:none}
+@media (max-width:430px){.hud{gap:4px;padding-right:6px;justify-content:flex-start;padding-left:62px}.pill{font-size:14.5px;padding:0 7px 0 4px;gap:3px}.pill svg{width:19px;height:19px}.pill small{font-size:12.5px}}
 .bump{animation:bump .3s ease-out}
 @keyframes bump{0%{transform:scale(1.18)}100%{transform:scale(1)}}
 
@@ -99,6 +101,7 @@ body{background:linear-gradient(180deg,#8ccaf0 0%,#c8e6f5 38%,#e9f2f2 62%,#f6efe
 .float{position:absolute;left:0;top:0;padding:3px 9px;border-radius:999px;background:rgba(255,246,230,.95);font:700 15px/1 var(--font);color:var(--ink);white-space:nowrap;box-shadow:0 2px 0 rgba(58,46,37,.18);will-change:transform,opacity}
 .float.wood{color:#8C5A31}
 .float.stone{color:#5c6470}
+.float.iron{color:#3d4a5c}
 .float.food{color:#b8452a}
 .hint{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 134px);transform:translateX(-50%);padding:7px 14px;border-radius:999px;background:rgba(58,46,37,.78);color:var(--paper);font:500 14px/1.2 var(--font);white-space:nowrap;pointer-events:none;transition:opacity .6s}
 .hint.out{opacity:0}
@@ -129,6 +132,7 @@ body{background:linear-gradient(180deg,#8ccaf0 0%,#c8e6f5 38%,#e9f2f2 62%,#f6efe
   <div class="hud" aria-live="polite">
     <div class="pill" id="pWood" title="Holz"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="15" width="22" height="9" rx="4.5" fill="#B07A45"/><circle cx="24.5" cy="19.5" r="4.5" fill="#E6CC9E" stroke="#8C5A31" stroke-width="1.6"/><rect x="6" y="6" width="20" height="9" rx="4.5" fill="#8C5A31"/><circle cx="25.5" cy="10.5" r="4.5" fill="#E6CC9E" stroke="#65401F" stroke-width="1.6"/></svg><span id="vWood">0</span></div>
     <div class="pill" id="pStone" title="Stein"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M4 23l5-12 9-4 8 7 3 9-4 4H8z" fill="#968E82"/><path d="M9 11l9-4 8 7-9 3z" fill="#B9B2A6"/><path d="M17 17l9-3 3 9-4 4h-8z" fill="#7C766C"/></svg><span id="vStone">0</span></div>
+    <div class="pill" id="pIron" title="Eisen" hidden><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 21l4-8h14l4 8z" fill="#6B7787"/><path d="M9 13l3-4h8l3 4z" fill="#9AA6B5"/><path d="M5 21h22v3H5z" fill="#444B55"/></svg><span id="vIron">0</span></div>
     <div class="pill" id="pFood" title="Nahrung"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 17c0-6 5-9 11-9s11 3 11 9c0 5-4 8-11 8S5 22 5 17Z" fill="#D4AF4F"/><path d="M9 14c3-2 11-2 14 0" stroke="#B08E36" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="11" cy="22" r="4" fill="#D2553F"/><circle cx="17" cy="23.5" r="4" fill="#E06A50"/><path d="M14 18l2-4" stroke="#46803F" stroke-width="2" stroke-linecap="round"/></svg><span id="vFood">0</span></div>
     <div class="pill" id="pPop" title="Einwohner / Wohnplätze"><svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="9" r="5" fill="#E6CC9E" stroke="#8C5A31" stroke-width="1.5"/><path d="M7 27c0-6 4-10 9-10s9 4 9 10Z" fill="#E07A3A"/><path d="M11 21h10" stroke="#2F9C95" stroke-width="2.4" stroke-linecap="round"/></svg><span id="vPop">0</span><small id="vCap">/0</small></div>
   </div>
@@ -841,6 +845,20 @@ function gathererPlan(a) {
     { t: 'wait', d: R(6, 10) }
   ];
 }
+// Bergmann: am Stollen schlagen, Eisenerz zum Lager tragen
+function minePlan(a) {
+  const mine = built.filter(b => b.kind === 'mine'), b = mine.length ? pick(mine) : null;
+  if (!b) return [{ t: 'wait', d: 3 }];
+  const hp = W(b.x, b.z), gate = near(villageCenter, V(hp.x, 0, hp.z), 0.45), drop = V(stonePos.x + 0.22, 0, stonePos.z + R(-0.08, 0.08));
+  return [
+    { t: 'walk', to: gate },
+    { t: 'work', d: R(4, 6), anim: 'hammer', face: V(hp.x, 0, hp.z) },
+    { t: 'do', fn: () => { a.o.userData.carryS.visible = true; dust(V(hp.x, hp.y, hp.z), 4, '#8a8f98'); } },
+    { t: 'walk', to: drop, anim: 'carry', speed: 0.6 },
+    { t: 'do', fn: () => { a.o.userData.carryS.visible = false; addRes('iron', 1, a.o.position); } },
+    { t: 'wait', d: R(1, 3) }
+  ];
+}
 // Bauer: Feld bestellen und ernten (nicht im Winter)
 function farmPlan(a) {
   const mine = built.filter(b => b.kind === 'farm'), b = mine.length ? pick(mine) : null, hp = b ? W(b.x, b.z) : villageCenter;
@@ -985,25 +1003,27 @@ const BUILD = {
   stein: { name: 'Steinbruch', info: 'bricht Stein', cost: { wood: 12 } },
   sammler: { name: 'Sammler', info: 'Beeren und Kräuter', cost: { wood: 8 } },
   farm: { name: 'Bauernhof', info: 'Getreide, nicht im Winter', cost: { wood: 14, stone: 4 } },
+  mine: { name: 'Bergwerk', info: 'fördert Eisen am Fels', cost: { wood: 20, stone: 10 } },
   bruecke: { name: 'Brücke', info: 'führt ans Westufer', cost: { wood: 25, stone: 6 } }
 };
 const KINDS = Object.keys(BUILD);
-const RES = { wood: 'Holz', stone: 'Stein', food: 'Nahrung' };
+const RES = { wood: 'Holz', stone: 'Stein', food: 'Nahrung', iron: 'Eisen' };
 const lacking = cost => Object.entries(cost).filter(([r, n]) => state[r] < n).map(([r, n]) => (n - state[r]) + ' ' + RES[r]).join(', ');
 const pay = cost => { for (const r in cost) state[r] -= cost[r]; };
 const buildable = t => t.ch === 'g' && !t.occ && !t.fog && ((t.x >= 3 && t.x <= 11 && t.z >= 2 && t.z <= 6 && !(t.x === 3 && t.z === 2)) || (t.x >= 8 && t.x <= 11 && t.z >= 7 && t.z <= 11) || (t.nw && t.home) || t.open) && treesOn(t) === 0;
-const canBuild = (t, k) => k === 'bruecke' ? (t.x === 4 && t.z === 7 && !t.occ) : buildable(t);
+const canBuild = (t, k) => k === 'bruecke' ? (t.x === 4 && t.z === 7 && !t.occ) : k === 'mine' ? (t.ch === 'r' && !t.occ && reach(t)) : buildable(t);
+const okTile = (k, t) => k === 'bruecke' ? t.ch === 'w' : k === 'mine' ? t.ch === 'r' : t.ch === 'g';
 const hlMat = new T.MeshBasicMaterial({ color: C('#c8ffd4'), transparent: true, opacity: 0.6, depthWrite: false });
 const hlGeo = new T.BoxGeometry(0.86, 0.02, 0.86);
 const highlight = new T.InstancedMesh(hlGeo, hlMat, 500); highlight.frustumCulled = false; highlight.count = 0; scene.add(highlight);
 const hlTiles = [];
 function showBuildable(on) {
   hlTiles.length = 0;
-  if (on) tiles.filter(t => canBuild(t, buildKind)).forEach(t => { dummy.position.set(t.wx, t.top + 0.012, t.wz); dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(1); dummy.updateMatrix(); highlight.setMatrixAt(hlTiles.length, dummy.matrix); hlTiles.push(t); });
+  if (on) tiles.filter(t => canBuild(t, buildKind)).forEach(t => { dummy.position.set(t.wx, t.top + (buildKind === 'mine' ? 0.3 : 0.012), t.wz); dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(1); dummy.updateMatrix(); highlight.setMatrixAt(hlTiles.length, dummy.matrix); hlTiles.push(t); });
   highlight.count = hlTiles.length; highlight.instanceMatrix.needsUpdate = true;
 }
 // Hütten: Wand und Dach je nach Art, dazu ein Erkennungszeichen davor
-const HUT = { holz: ['#C9A876', '#8C5A31'], foerster: ['#C9A876', '#4E8B45'], stein: ['#B9B2A6', '#6F6A62'], sammler: ['#E6CC9E', '#C0612B'], farm: ['#E6CC9E', '#C9A33A'] };
+const HUT = { holz: ['#C9A876', '#8C5A31'], foerster: ['#C9A876', '#4E8B45'], stein: ['#B9B2A6', '#6F6A62'], sammler: ['#E6CC9E', '#C0612B'], farm: ['#E6CC9E', '#C9A33A'], mine: ['#9A9186', '#4A4F58'] };
 function makeHut(kind) {
   const g = new T.Group(), [wall, roofC] = HUT[kind];
   const walls = new T.Mesh(new T.BoxGeometry(0.5, 0.3, 0.44), M(wall)); walls.position.y = 0.15; g.add(walls);
@@ -1017,6 +1037,12 @@ function makeHut(kind) {
   }
   if (kind === 'stein') {
     for (const [x, z, r] of [[0.37, 0.05, 0.09], [0.3, -0.1, 0.07], [0.42, -0.06, 0.06]]) { const k = new T.Mesh(new T.DodecahedronGeometry(r, 0), M('#968E82')); k.position.set(x, r * 0.6, z); g.add(k); }
+  }
+  if (kind === 'mine') {
+    door.scale.set(1.5, 1.15, 1); const bm = M('#8C5A31');
+    for (const sx of [-0.1, 0.1]) { const q = new T.Mesh(new T.BoxGeometry(0.03, 0.2, 0.03), bm); q.position.set(sx, 0.1, 0.235); g.add(q); }
+    const beam = new T.Mesh(new T.BoxGeometry(0.26, 0.03, 0.03), bm); beam.position.set(0, 0.21, 0.235); g.add(beam);
+    for (const [x, z, r] of [[0.38, 0.08, 0.05], [0.32, -0.08, 0.04]]) { const o = new T.Mesh(new T.OctahedronGeometry(r, 0), M('#444B55', { roughness: 0.5, metalness: 0.3 })); o.position.set(x, r * 0.8, z); g.add(o); }
   }
   if (kind === 'farm') {
     const soil = new T.Mesh(new T.BoxGeometry(0.34, 0.03, 0.4), M('#8A6540')); soil.position.set(0.5, 0.015, 0); g.add(soil);
@@ -1064,6 +1090,7 @@ const WORKER = {
   foerster: [{ shirt: '#7DBA55', sash: '#2F9C95', tool: 'basket', hat: '#5A9A4E' }, plantPlan, 'Förster'],
   stein: [{ shirt: '#C9A876', sash: '#7C8592', tool: 'hammer', pants: '#5E4632', hat: '#968E82' }, stonePlan, 'Steinmetz'],
   sammler: [{ shirt: '#E6CC9E', sash: '#C0612B', tool: 'basket' }, gathererPlan, 'Sammlerin'],
+  mine: [{ shirt: '#7C8592', sash: '#E07A3A', tool: 'hammer', pants: '#4A3A2A', hat: '#968E82' }, minePlan, 'Bergmann'],
   farm: [{ shirt: '#D9B440', sash: '#8C5A31', tool: 'basket', hat: '#C9A876' }, farmPlan, 'Bauer']
 };
 function spawnWorker(kind, x, z) {
@@ -1205,9 +1232,9 @@ function updatePrecip(dt, time) {
 }
 
 // ---------- Spielstand ----------
-const state = { wood: 6, stone: 0, food: 18, pop: 12, cap: 12 };
+const state = { wood: 6, stone: 0, food: 18, iron: 0, pop: 12, cap: 12 };
 function updateHud(bumpId) {
-  $('#vWood').textContent = state.wood; $('#vStone').textContent = state.stone; $('#vFood').textContent = state.food;
+  $('#vWood').textContent = state.wood; $('#vStone').textContent = state.stone; $('#vFood').textContent = state.food; $('#vIron').textContent = state.iron; $('#pIron').hidden = !(state.iron > 0 || built.some(b => b.kind === 'mine'));
   $('#vPop').textContent = state.pop; $('#vCap').textContent = '/' + state.cap;
   logMesh.count = Math.min(state.wood, logSlots.length);
   stoneMesh.count = Math.min(state.stone, stoneSlots.length);
@@ -1215,7 +1242,8 @@ function updateHud(bumpId) {
   if (bumpId) { const el = document.getElementById(bumpId); el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
 }
 function addRes(kind, n, pos) {
-  state[kind] += n; updateHud({ wood: 'pWood', stone: 'pStone', food: 'pFood' }[kind]);
+  state[kind] += n; updateHud({ wood: 'pWood', stone: 'pStone', food: 'pFood', iron: 'pIron' }[kind]);
+  if (kind === 'iron') hintOnce('iron', '<b>Eisen!</b> Ab Stufe 3 brauchen Ausbauten Eisen', 600000);
   floatText(pos, '+' + n + ' ' + RES[kind], kind);
   sound(kind);
 }
@@ -1261,7 +1289,7 @@ const selGeo = merge([[new T.BoxGeometry(0.96, 0.025, 0.05), mtx(0, 0, 0.455)], 
 const sel = new T.Mesh(selGeo, new T.MeshBasicMaterial({ color: C('#FFF6E6') })); sel.visible = false; scene.add(sel);
 let selT = 0;
 
-const OCC = { tent: 'Zelt · 4 Wohnplätze', fire: 'Feuerstelle · Wärme und Licht', flag: 'Banner der Turi', logs: 'Lager · Holz und Stein', store: 'Vorräte · Beeren, Fisch und Getreide', pier: 'Steg · hier angelt der Fischer', bush: 'Beerenstrauch · Nahrung', site: 'Baustelle', holz: 'Holzfäller-Hütte · fällt Bäume', foerster: 'Förster-Hütte · pflanzt Bäume nach', stein: 'Steinbruch · bricht Stein am Felsen', sammler: 'Sammlerhütte · Beeren und Kräuter', farm: 'Bauernhof · Getreide, nicht im Winter', bruecke: 'Brücke · führt ans Westufer' };
+const OCC = { tent: 'Zelt · 4 Wohnplätze', fire: 'Feuerstelle · Wärme und Licht', flag: 'Banner der Turi', logs: 'Lager · Holz und Stein', store: 'Vorräte · Beeren, Fisch und Getreide', pier: 'Steg · hier angelt der Fischer', bush: 'Beerenstrauch · Nahrung', site: 'Baustelle', holz: 'Holzfäller-Hütte · fällt Bäume', foerster: 'Förster-Hütte · pflanzt Bäume nach', stein: 'Steinbruch · bricht Stein am Felsen', sammler: 'Sammlerhütte · Beeren und Kräuter', farm: 'Bauernhof · Getreide, nicht im Winter', bruecke: 'Brücke · führt ans Westufer', mine: 'Bergwerk · fördert Eisen' };
 function tileInfo(t) {
   let txt = `<b>${t.type.name}</b> · ${t.type.res}`;
   if (t.occ === 'logs') txt = `<b>Lager</b> · ${state.wood} Holz · ${state.stone} Stein`;
@@ -1361,9 +1389,11 @@ function onTap(x, y) {
 // ---------- Bauen ----------
 let buildMode = false, buildKind = 'tent';
 const sheet = $('#sheet'), buildBtn = $('#build');
-const ICON = { wood: $('#pWood svg').outerHTML, stone: $('#pStone svg').outerHTML, food: $('#pFood svg').outerHTML };
+const ICON = { wood: $('#pWood svg').outerHTML, stone: $('#pStone svg').outerHTML, food: $('#pFood svg').outerHTML, iron: $('#pIron svg').outerHTML };
 const HUTC = { holz: '#8C5A31', foerster: '#4E8B45', stein: '#6F6A62', sammler: '#C0612B', farm: '#C9A33A', bruecke: '#8C5A31' };
-const hutIcon = k => k === 'bruecke'
+const hutIcon = k => k === 'mine'
+  ? '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><path d="M3 27 16 7l8 8 6-5 11 17z" fill="#8A8378"/><path d="M16 27v-9a5 5 0 0 1 10 0v9z" fill="#2A2420"/><path d="M14 27V17h14v10" fill="none" stroke="#8C5A31" stroke-width="2.4"/></svg>'
+  : k === 'bruecke'
   ? '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><path d="M3 22h38v4H3z" fill="#B07A45"/><path d="M6 12v10M16 12v10M28 12v10M38 12v10M5 12h34" stroke="#8C5A31" stroke-width="2.4" stroke-linecap="round"/></svg>'
   : k === 'tent'
   ? '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><path d="M4 27 22 4l18 23z" fill="#E6CC9E" stroke="#8C5A31" stroke-width="2" stroke-linejoin="round"/><path d="M17 27l5-11 5 11z" fill="#4A3020"/></svg>'
@@ -1399,6 +1429,7 @@ function pickKind(k) {
     toast('Es fehlen ' + miss, 'Die Arbeiter bringen Nachschub');
     return;
   }
+  if (k === 'mine' && !tiles.some(t => canBuild(t, k))) { toast('Kein freier Fels', 'Bergwerke stehen auf Felsen in Reichweite'); return; }
   if (k === 'bruecke' && bridgeOpen) { toast('Die Brücke steht schon', 'Das Westufer ist offen'); return; }
   if (!tiles.some(t => canBuild(t, k))) { toast('Kein Platz mehr', 'Erkunde neues Land im Nebel'); return; }
   closeSheet(); enterBuild(k);
@@ -1408,7 +1439,7 @@ buildBtn.addEventListener('click', () => { if (buildMode) { exitBuild(); return;
 
 // ---------- Ausbauen: Antippen eines Gebäudes ----------
 const UPG_MAX = 3;
-const upCost = b => ({ wood: Math.ceil(BUILD[b.kind].cost.wood * 1.5 * b.lvl), stone: 3 * b.lvl });
+const upCost = b => Object.assign({ wood: Math.ceil(BUILD[b.kind].cost.wood * 1.5 * b.lvl), stone: 3 * b.lvl }, b.lvl >= 2 ? { iron: 3 * (b.lvl - 1) } : {});
 const lvlScale = l => 1.18 * (1 + 0.1 * (l - 1));
 const builtAt = (x, z) => built.find(b => b.x === x && b.z === z);
 function upChip(b) {
@@ -1434,7 +1465,7 @@ function save() {
   try {
     const f2 = v => Math.round(v * 100) / 100;
     localStorage.setItem(KEY, JSON.stringify({
-      v: 1, map: 2, wood: state.wood, stone: state.stone, food: state.food, pop: state.pop, cap: state.cap, m: Math.round(meal.t), h: meal.hungry, z: zones.filter(z => !z.fog).map(z => z.id),
+      v: 1, map: 2, wood: state.wood, stone: state.stone, food: state.food, iron: state.iron, pop: state.pop, cap: state.cap, m: Math.round(meal.t), h: meal.hungry, z: zones.filter(z => !z.fog).map(z => z.id),
       b: built.map(b => [b.kind, b.x, b.z, b.lvl]),
       s: sites.filter(s => !s.done).map(s => [s.kind, s.tile.x, s.tile.z]),
       t: trees.filter(tr => !tr.fell).map(tr => [tr.tile.x, tr.tile.z, f2(tr.ox), f2(tr.oz), tr.kind === 'c' ? 0 : 1, f2(tr.s), f2(tr.ry), f2(tr.g), f2(tr.tint)])
@@ -1447,7 +1478,7 @@ function load() {
   try { o = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) { return; }
   if (!o || o.v !== 1) return;
   const num = (v, d) => Number.isFinite(v) ? Math.max(0, Math.min(99999, Math.round(v))) : d;
-  state.wood = num(o.wood, state.wood); state.stone = num(o.stone, state.stone); state.food = num(o.food, state.food);
+  state.wood = num(o.wood, state.wood); state.stone = num(o.stone, state.stone); state.food = num(o.food, state.food); state.iron = num(o.iron, 0);
   state.pop = Math.max(1, num(o.pop, state.pop)); state.cap = Math.max(state.pop, num(o.cap, state.cap));
   for (const id of Array.isArray(o.z) ? o.z : []) { const z = zones.find(q => q.id === id); if (z && z.fog) openZone(z, true); }
   state.food = Math.min(state.food, Math.max(60, state.pop * 8));
@@ -1460,7 +1491,7 @@ function load() {
   for (const r of Array.isArray(o.b) ? o.b : []) {
     if (!Array.isArray(r)) continue;
     const [k, x, z] = r, t = tileAt(x, z);
-    if (!KINDS.includes(k) || !t || (t.ch !== 'g' && !(k === 'bruecke' && t.ch === 'w')) || t.occ) continue;
+    if (!KINDS.includes(k) || !t || !okTile(k, t) || t.occ) continue;
     const g = placeBuilding(k, x, z, false), lvl = clamp(Math.round(r[3]) || 1, 1, UPG_MAX);
     built.push({ kind: k, x, z, lvl, g }); g.scale.setScalar(lvlScale(lvl)); if (k === 'bruecke') openWest(true);
     if (k !== 'tent' && k !== 'bruecke') for (let i = 0; i < lvl; i++) spawnWorker(k, x, z);
@@ -1468,7 +1499,7 @@ function load() {
   for (const r of Array.isArray(o.s) ? o.s : []) {
     if (!Array.isArray(r)) continue;
     const [k, x, z] = r, t = tileAt(x, z);
-    if (!KINDS.includes(k) || !t || (t.ch !== 'g' && !(k === 'bruecke' && t.ch === 'w')) || t.occ) continue;
+    if (!KINDS.includes(k) || !t || !okTile(k, t) || t.occ) continue;
     t.occ = 'site'; sites.push(makeSite(t, k));
   }
   for (let i = 0; i < Math.min(10, state.pop - 12); i++) person({ ...look(), shirt: pick(['#E6CC9E', '#C9A876', '#E07A3A']), sash: pick(['#2F9C95', '#E07A3A']), tool: 'basket' }, gathererPlan, firePos.x + R(-0.8, 0.8), firePos.z + R(0.4, 1.0), { name: 'Bewohner' }).res = true;
