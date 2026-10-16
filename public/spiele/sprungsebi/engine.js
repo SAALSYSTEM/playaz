@@ -23,7 +23,7 @@ export function makeLevel(number){
     const seg=500+Math.floor(rnd()*330); top=groundY-(rnd()<.28?Math.floor(rnd()*2)*55:0);
     platforms.push(ledge(x,top,Math.min(seg,width-x),'ground'));
     if(x>650&&rnd()<.75)platforms.push(ledge(x+150,top-150-Math.floor(rnd()*70),190+Math.floor(rnd()*130),n>=6&&rnd()<.22?'crumble':'solid'));
-    coinLine(items,x+130,top-70,Math.max(3,Math.floor((seg-180)/70)),62);
+    coinLine(items,x+185,top-70,Math.max(3,Math.floor((seg-220)/70)),62);
     if(x>400&&rnd()<.62)enemies.push({x:x+260+rnd()*Math.max(60,seg-360),y:top-54,type:n>=13&&rnd()<.25?'hopper':'walker'});
     const gap=n<3?70:90+Math.floor(rnd()*Math.min(105,35+n*2));
     x+=seg+gap;
