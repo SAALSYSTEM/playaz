@@ -13,10 +13,12 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PUB = join(ROOT, 'public');
+const SPIELDATEIEN = readdirSync(join(PUB, 'spiele')).filter((f) => f.endsWith('.html')).sort();
 const html = ['index.html', 'impressum.html', 'datenschutz.html', '404.html', 'umzug.html',
-  ...readdirSync(join(PUB, 'spiele')).filter((f) => f.endsWith('.html')).map((f) => 'spiele/' + f)];
-// Seiten, die in die Sitemap gehören (ohne .html, so wie der Worker sie ausliefert)
-const SITEMAP = ['/', ...readdirSync(join(PUB, 'spiele')).filter((f) => f.endsWith('.html')).sort().map((f) => '/spiele/' + f.replace(/\.html$/, '')), '/impressum', '/datenschutz'];
+  ...SPIELDATEIEN.map((f) => 'spiele/' + f)];
+// Seiten, die in die Sitemap gehören. Private/noindex-Prototypen bleiben direkt erreichbar, aber unsichtbar.
+const SITEMAP = ['/', ...SPIELDATEIEN.filter((f) => !/<meta name="robots" content="[^"]*noindex/i.test(readFileSync(join(PUB, 'spiele', f), 'utf8')))
+  .map((f) => '/spiele/' + f.replace(/\.html$/, '')), '/impressum', '/datenschutz'];
 
 const read = (f) => readFileSync(join(PUB, f), 'utf8');
 const canonicalOf = (s) => (s.match(/<link rel="canonical" href="(https:\/\/[^/"]+)/) || [])[1];

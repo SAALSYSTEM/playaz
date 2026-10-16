@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { spawn, execSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { createServer } from 'node:http';
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,7 +18,9 @@ const ALT = `http://127.0.0.1:${PORT}`;
 const NEU = `http://localhost:${PORT}`;
 const BOESE_PORT = PORT + 1;
 const BOESE = `http://127.0.0.1:${BOESE_PORT}`;
-const SPIELE = readdirSync(join(ROOT, 'public/spiele')).filter((f) => f.endsWith('.html')).map((f) => f.replace('.html', ''));
+const SPIELDATEIEN = readdirSync(join(ROOT, 'public/spiele')).filter((f) => f.endsWith('.html'));
+const SPIELE = SPIELDATEIEN.map((f) => f.replace('.html', ''));
+const OEFFENTLICHE_SPIELE = SPIELDATEIEN.filter((f) => !/<meta name="robots" content="[^"]*noindex/i.test(readFileSync(join(ROOT, 'public/spiele', f), 'utf8'))).map((f) => f.replace('.html', ''));
 
 function ladePlaywright() {
   const req = createRequire(import.meta.url);
@@ -170,7 +172,8 @@ test('Startseite: feste Kopfzeile mit Icons, Neu/Top nacheinander, jede Kachel f
   for (const id of ['hot', 'neu']) { const n = await page.locator(`#${id} .kachel`).count(); assert.ok(n >= 1 && n <= 20, id + ' ' + n); }
   // Jedes Spiel kommt mindestens einmal vor, jede Kachel führt auf eine echte Route
   const links = await page.$$eval('.kachel a', (as) => as.map((a) => a.getAttribute('href')));
-  for (const s of SPIELE) assert.ok(links.includes('/spiele/' + s), s + ' fehlt auf der Startseite');
+  for (const s of OEFFENTLICHE_SPIELE) assert.ok(links.includes('/spiele/' + s), s + ' fehlt auf der Startseite');
+  for (const s of SPIELE.filter((x) => !OEFFENTLICHE_SPIELE.includes(x))) assert.ok(!links.includes('/spiele/' + s), s + ' ist noindex und darf nicht auf der Startseite stehen');
   for (const h of new Set(links)) assert.equal((await fetch(ALT + h)).status, 200, h);
   // Anker aus anderen Seiten
   for (const id of ['spiele', 'hot', 'neu']) assert.equal(await page.locator('#' + id).count(), 1, '#' + id);
@@ -212,8 +215,8 @@ test('Startseite: Suche mit Live-Treffern (Name, Art, Kategorie), Leermeldung, E
   assert.ok(await page.isVisible('#sucheLeer')); assert.match(await page.textContent('#sucheLeer'), /Kein Spiel/);
   // Art-Knopf füllt die Suche
   await page.click('#sucheTags button:text-is("Puzzle")');
-  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Stellwerk']);
-  await page.click('#sucheListe a'); await page.waitForURL(/\/spiele\/stellwerk/);
+  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Stellwerk', 'Sanduhrblock']);
+  await page.click('#sucheListe a[href="/spiele/sanduhrblock"]'); await page.waitForURL(/\/spiele\/sanduhrblock/);
   await page.goBack(); await page.click('#sucheBtn'); await page.keyboard.press('Escape');
   assert.ok(await page.isHidden('#suche'));
   await ctx.close();

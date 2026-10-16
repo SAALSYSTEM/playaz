@@ -1,5 +1,5 @@
 {
-  // Cloudflare Worker "playaz" (technischer Name bleibt, Marke ist PlaySaal): statische Dateien aus ./public; nur BlockSaal-Herausforderungen laufen zuerst durch das Skript.
+  // Cloudflare Worker "playaz" (technischer Name bleibt, Marke ist PlaySaal): statische Dateien aus ./public; teilbare Herausforderungen laufen zuerst durch das Skript.
   // Name NICHT umbenennen: er bestimmt die alte Adresse playaz.cf-922.workers.dev, auf der die Spielstände der Spieler liegen.
   "name": "playaz",
   "main": "./src/worker.js",
@@ -8,7 +8,7 @@
     "directory": "./public",
     "not_found_handling": "404-page",
     "binding": "ASSETS",
-    "run_worker_first": ["/spiele/blocksaal", "/og/blocksaal/*"]
+    "run_worker_first": ["/spiele/blocksaal", "/og/blocksaal/*", "/spiele/sanduhrblock", "/og/sanduhrblock/*"]
   },
   // Ausdrücklich an: Sobald "routes" (z. B. Custom Domain playsaal.com) eingetragen werden,
   // würde Wrangler workers.dev sonst automatisch abschalten – und damit den Spielstand-Umzug unmöglich machen.

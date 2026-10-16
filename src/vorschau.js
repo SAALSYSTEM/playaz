@@ -46,3 +46,22 @@ export function renderPreview(lines=null){
   const plte=Uint8Array.from(palette.flat());
   return join([Uint8Array.from([137,80,78,71,13,10,26,10]),chunk('IHDR',Uint8Array.from([...be(W),...be(H),8,3,0,0,0])),chunk('PLTE',plte),chunk('IDAT',deflate(raw)),chunk('IEND',new Uint8Array())]);
 }
+
+export function renderSanduhrPreview(cores=null){
+  const px=new Uint8Array(W*H);px.fill(0);
+  function rect(x,y,w,h,color){for(let yy=Math.max(0,Math.floor(y));yy<Math.min(H,y+h);yy++)px.fill(color,yy*W+Math.max(0,Math.floor(x)),yy*W+Math.min(W,x+w));}
+  function write(str,x,y,scale,color){let xx=x;for(const ch of str){const g=font[ch]||font[' '];for(let row=0;row<7;row++)for(let col=0;col<5;col++)if(g[row][col]==='1')rect(xx+col*scale,y+row*scale,scale,scale,color);xx+=6*scale;}}
+  function centerIn(str,left,width,y,scale,color){write(str,Math.round(left+(width-(str.length*6-1)*scale)/2),y,scale,color);}
+  rect(0,0,W,12,4);rect(45,42,1110,546,1);rect(72,68,1056,494,0);
+  const widths=[9,9,7,5,3,3,5,7,9,9],cell=30,mid=326;
+  widths.forEach((width,row)=>{const x=mid-width*cell/2,y=78+row*36;for(let col=0;col<width;col++){const color=[6,5,8,7][(row+col)%4];rect(x+col*cell+2,y+2,cell-4,cell-4,color);}});
+  // Magnetbahnen und der zurückkehrende Kernwürfel.
+  for(let i=0;i<10;i++){const width=widths[i],y=80+i*36;rect(mid-width*cell/2-15,y,5,26,6);rect(mid+width*cell/2+10,y,5,26,8);}
+  rect(105,210,38,38,4);rect(505,354,38,38,4);
+  write('SANDUHR',620,92,10,3);write('BLOCK',620,177,10,4);
+  if(cores===null){centerIn('WIE VIELE',585,525,315,7,3);centerIn('KERNE?',585,525,385,9,4);centerIn('SCHAFFST DU MEHR?',585,525,500,5,5);}
+  else{const num=String(cores),scale=num.length>3?13:num.length>2?16:20;centerIn(num,585,525,286,scale,4);centerIn(cores===1?'KERN':'KERNE',585,525,440,8,3);centerIn('SCHAFFST DU MEHR?',585,525,520,5,5);}
+  const raw=new Uint8Array(H*(W+1));for(let y=0;y<H;y++)raw.set(px.subarray(y*W,(y+1)*W),y*(W+1)+1);
+  const plte=Uint8Array.from(palette.flat());
+  return join([Uint8Array.from([137,80,78,71,13,10,26,10]),chunk('IHDR',Uint8Array.from([...be(W),...be(H),8,3,0,0,0])),chunk('PLTE',plte),chunk('IDAT',deflate(raw)),chunk('IEND',new Uint8Array())]);
+}
