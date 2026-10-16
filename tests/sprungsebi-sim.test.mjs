@@ -1,7 +1,7 @@
 import{test}from'node:test';
 import assert from'node:assert/strict';
 import{readFileSync}from'node:fs';
-import{LEVEL_COUNT,WORLD_NAMES,makeLevel,hitsUnderside,waterPosition,advanceWater,freshSave,sanitizeSave,totalStars,completedLevels,recordLevel,challengeText}from'../public/spiele/sprungsebi/engine.js';
+import{LEVEL_COUNT,WORLD_NAMES,makeLevel,hitsUnderside,advanceWater,freshSave,sanitizeSave,totalStars,completedLevels,recordLevel,challengeText}from'../public/spiele/sprungsebi/engine.js';
 import worker from'../src/worker.js';
 import{renderSebiPreview}from'../src/vorschau.js';
 
@@ -31,11 +31,34 @@ test('solid platform undersides stop Sebis head',()=>{
 });
 
 test('the flood keeps rising and follows Sebi up the tower',()=>{
-  const level=makeLevel(1),start=waterPosition(level,0,0);
-  assert.ok(waterPosition(level,5,0)<start,'time always raises the water');
-  assert.equal(waterPosition(level,0,1000),start-780,'climbing pulls the visible flood upward');
-  const climbed=advanceWater(start,level,2,800);assert.ok(advanceWater(climbed,level,3,100)<=climbed,'falling never makes the flood recede');
+  const level=makeLevel(1),start=level.water.startY;
+  assert.equal(advanceWater(start,level,1,4000),start-level.water.speed,'time always raises the water');
+  assert.equal(advanceWater(start,level,1,1000),1520,'the flood follows within 520 units');
+  const climbed=advanceWater(start,level,1,1000);assert.ok(advanceWater(climbed,level,1,3000)<climbed,'falling never makes the flood recede');
   assert.ok(level.platforms.every(p=>p.type!=='crumble'),'mandatory platforms never disappear');
+});
+
+function canJump(lower,upper){
+  const direction=(upper.x+upper.w/2)>(lower.x+lower.w/2)?1:-1,starts=[];
+  for(let x=lower.x;x<=lower.x+lower.w-62;x+=20)starts.push(x);
+  for(const startX of starts)for(const turnAt of [99,.25,.35,.45,.55,.65]){
+    const body={x:startX,y:lower.y-82,w:62,h:82,vx:direction*345,vy:-880};
+    for(let frame=0;frame<180;frame++){
+      const time=frame/120,oldY=body.y,oldBottom=body.y+body.h,target=(time>turnAt?-direction:direction)*345;
+      body.vx+=(target-body.vx)*Math.min(1,6/120);body.vy+=2050/120;body.x+=body.vx/120;body.y+=body.vy/120;
+      if(hitsUnderside(body,oldY,upper)){body.y=upper.y+upper.h;body.vy=30;}
+      if(body.vy>=0&&body.x+body.w>upper.x+7&&body.x<upper.x+upper.w-7&&oldBottom<=upper.y+12&&body.y+body.h>=upper.y)return true;
+      if(body.y>lower.y+300)break;
+    }
+  }
+  return false;
+}
+
+test('the real jump physics can reach every mandatory platform in all 30 levels',()=>{
+  for(let number=1;number<=30;number++){
+    const level=makeLevel(number),path=[level.platforms[0],...level.route];
+    for(let i=1;i<path.length;i++)assert.ok(canJump(path[i-1],path[i]),`level ${number}, jump ${i}`);
+  }
 });
 
 test('the flood accelerates and mechanics are introduced gradually',()=>{

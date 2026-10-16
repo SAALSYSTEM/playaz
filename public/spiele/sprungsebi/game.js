@@ -33,7 +33,7 @@ function step(dt){if(state!=='play')return;elapsed=(performance.now()-started)/1
   for(const p of level.platforms){if(p.type==='moving')p.x=clamp(p.baseX+Math.sin(elapsed*p.speed+p.phase)*p.range,25,level.width-p.w-25);if(hitsUnderside(player,oldTop,p)){player.y=p.y+p.h;player.vy=30;tone(125,.035,'square',.014)}else if(player.vy>=0&&player.x+player.w>p.x+7&&player.x<p.x+p.w-7&&oldBottom<=p.y+12&&player.y+player.h>=p.y){player.y=p.y-player.h;player.vy=0;player.on=true;}}
   for(const it of level.items){if(it.taken)continue;const b={x:it.x-24,y:it.y-28,w:48,h:52};if(!overlap(player,b))continue;if(it.type==='coin'){it.taken=true;coins++;tone(720,.04,'sine',.018)}else if(it.type==='star'){it.taken=true;stars.add(it.id);tone(940,.1,'triangle');puff(it.x,it.y,'#ffe33d',12)}else if(it.type==='jetpack'){it.taken=true;player.jet=5;tone(500,.13,'triangle');puff(it.x,it.y,'#ffb13c',12)}else if(it.type==='spring'&&player.vy>=0){player.vy=-1080;player.on=false;tone(350,.12,'square');puff(it.x,it.y,'#68e7ff',8)}}
   for(let i=0;i<level.hazards.length;i++){const h=level.hazards[i],x=h.x+Math.sin(elapsed*1.45+h.phase)*h.range,b={x:x-36,y:h.y-22,w:72,h:44};if(player.inv<=0&&overlap(player,b)){player.vy=390;player.vx+=(player.x<x?-260:260);player.inv=1.2;tone(155,.13,'square');puff(x,h.y,'#f66b61',8)}}
-  waterY=advanceWater(waterY,level,elapsed,level.spawn.y-player.y);
+  waterY=advanceWater(waterY,level,dt,player.y+player.h);
   if(player.y+player.h>waterY)return fail();
   if(player.y>level.height+160)return fail('Du bist zu tief gefallen.');
   if(overlap(player,level.goal))return complete();
