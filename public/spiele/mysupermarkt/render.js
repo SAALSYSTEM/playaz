@@ -27,6 +27,11 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
   // Bevels expand the extrusion; normalize so declared furniture dimensions
   // match both the visible mesh and its collision box.
   geos.soft.computeBoundingBox();const softSize=geos.soft.boundingBox.getSize(new T.Vector3());geos.soft.scale(1/softSize.x,1/softSize.y,1/softSize.z);
+  // Texturen der Grafik-Pakete; ohne Browser (Tests) oder bei Ladefehlern bleibt die Szene einfarbig.
+  const loader=new T.TextureLoader(),texCache=new Map();
+  function texture(file){if(!texCache.has(file)){let t=null;try{t=loader.load(new URL('img/'+file,import.meta.url).href);t.encoding=T.sRGBEncoding;t.anisotropy=4;t.wrapS=t.wrapT=T.RepeatWrapping}catch{t=null}texCache.set(file,t)}return texCache.get(file)}
+  const props=new T.Group(),floorMat=new T.MeshStandardMaterial({color:new T.Color(0xf1e8cc).convertSRGBToLinear(),roughness:.85}),floor=new T.Mesh(new T.PlaneGeometry(1,1),floorMat),posterGeo=new T.PlaneGeometry(1,1);
+  floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor,props);
   const materials=new Map(),batches=new Map(),labels=new Map(),dynamicLabels=new Map(),colors=new Map(),poses=new Map();
   const temp=new T.Object3D(),turn=new T.Quaternion(),axis=new T.Vector3(0,1,0);let phase='static',generation=0,lastLayout='',width=1,height=1,basis=null,frameDelta=0;
   const mat=geo=>{if(!materials.has(geo))materials.set(geo,new T.MeshStandardMaterial({color:0xffffff,roughness:geo==='portrait'?.55:.7,metalness:.02}));return materials.get(geo);};
@@ -70,14 +75,14 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
     for(let x=-12;x<38;x+=6)box(0x6fb184,x+1,.03,31.1,2.4,.2,.9);
     for(let x=-12;x<38;x+=3)box(0xfdf4d5,x,.035,24,1.4,.02,.13);
     box(0xb4ccbd,w/2,-.12,10.6,w+.5,.4,21.2);
-    for(let z=1;z<21;z+=2)for(let x=1;x<w;x+=2)box((x+z)%4===0?0xf6ebc9:0xcfe3cf,x,.065,z,1.97,.04,1.97);
+    floor.scale.set(w,20,1);floor.position.set(w/2,.088,10);
+    const ft=texture('boden.webp');if(ft){ft.repeat.set(w/9,20/9);floorMat.map=ft;floorMat.color.setRGB(.82,.82,.82)}else floorMat.map=null;floorMat.needsUpdate=true;
     // Cutaway architecture: only a low back/left wall, never a roof in front of play.
-    box(0x17635d,w/2,.5,.05,w,.9,.22);box(0x83bba6,.05,.5,10,.22,.9,20);
-    box(0xf9f4df,w/2,.98,.05,w,.12,.27);
-    // Back-wall awning and timber trim, outside the navigable interior.
-    for(let x=.75;x<w;x+=1.5){box(0xd6a46b,x,.65,-.07,.07,1.1,.27);box(Math.floor(x/1.5)%2?0xffd054:0xfff3d9,x,2.45,-.45,1.48,.12,1.3,-.01);}
-    box(0x17635d,w/2,2.35,-1,w,.25,.2);
-    label('brand','MY SUPERMARKT',w/2,2.25,.5,{size:6,bg:'#246b58',color:'#fff4cc'});
+    box(0xf1e6c8,w/2,1.45,.05,w,2.9,.22);box(0x17635d,w/2,.22,.15,w,.44,.06);box(0x83bba6,.05,.5,10,.22,.9,20);
+    box(0x17635d,w/2,2.96,.05,w,.14,.27);
+    while(props.children.length){const m=props.children[0];props.remove(m);m.material.dispose()}
+    for(let i=0,x=2.2;x<w-1;i++,x+=2.7){const t=texture('plakat-'+(i%8+1)+'.webp');if(!t)break;const m=new T.Mesh(posterGeo,new T.MeshBasicMaterial({map:t,transparent:true,alphaTest:.05,color:0xeeeeee}));m.scale.set(1.35,2.025,1);m.position.set(x,1.72,.2);props.add(m)}
+    label('brand','MY SUPERMARKT',w/2,3.55,.5,{size:6,bg:'#246b58',color:'#fff4cc'});
     for(const [x,z]of [[-1,2],[-1,10],[w+1,2],[w+1,12],[w+1,19]])tree(x,z);
     box(0xe2d8bf,-4.3,-.08,10,1.8,.3,46);box(0xe2d8bf,w+4.3,-.08,10,1.8,.3,46);
     for(const x of [-9,-3,6,15,24,32]){box(0x3f5457,x,1.2,30.8,.12,2.4,.12);box(0xfff0b0,x,2.5,30.8,.4,.22,.4);}
