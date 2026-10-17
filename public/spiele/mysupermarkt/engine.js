@@ -61,7 +61,7 @@ export function buyUpgrade(s,id){
   const u=UPGRADES[id];if(!u||s.milestone<u.unlock||s.upgrades[id]>=u.max)return false;
   if(id==='empire'&&s.shelves.length<12)return false;
   if(!spend(s,priceUpgrade(s,id),'investment',12))return false;
-  s.upgrades[id]++;if(['checkout','floor','online','shipping'].includes(id))repairLayout(s);event(s,u.name,'build',LOCATIONS.build);updateProgress(s);return true;
+  s.upgrades[id]++;if(['checkout','floor','online','shipping','truck','warehouseXL'].includes(id))repairLayout(s);event(s,u.name,'build',LOCATIONS.build);updateProgress(s);return true;
 }
 export function hire(s,role){
   const def=STAFF[role];if(!def||s.milestone<def.unlock||s.staff.some(e=>e.role===role))return false;

@@ -112,6 +112,10 @@ test('LKW aller Größen und Postauto sind solide, Abholpositionen bleiben errei
   }
   const s=createGame();s.upgrades.floor=1;s.upgrades.online=1;s.mail.phase='loading';s.mail.progress=1;
   assert.equal(walkable(s,19,23),false);assert.equal(walkable(s,19,20),true);
+  const upgraded=createGame();grant(upgraded,10000);upgraded.milestone=19;
+  Object.assign(upgraded.deliveries[0],{phase:'unloading',progress:1});upgraded.player.x=3.5;upgraded.player.z=23;
+  assert.equal(walkable(upgraded,3.5,23),true);assert.equal(buyUpgrade(upgraded,'truck'),true);
+  assert.equal(walkable(upgraded,upgraded.player.x,upgraded.player.z),true,'Larger truck does not trap a nearby player');
 });
 test('Ankommende Fahrzeuge warten auf Figuren statt sie zu durchfahren',()=>{
   const s=createGame();s.player.x=2;s.player.z=23;
