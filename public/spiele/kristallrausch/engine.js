@@ -109,6 +109,16 @@ export function tick(g,dt=.2) {
   g.falling=nextFalling;
   return g;
 }
+// Kamera zeigt einen größeren Ausschnitt der Höhle. Ganzes Spielfeld bleibt logisch unverändert.
+export function cameraOrigin(player,columns=WIDTH,rows=HEIGHT) {
+  const c=Math.max(1,Math.min(WIDTH,Math.floor(columns)||WIDTH));
+  const r=Math.max(1,Math.min(HEIGHT,Math.floor(rows)||HEIGHT));
+  return {
+    x:Math.max(0,Math.min(WIDTH-c,Math.floor(player.x-c/2))),
+    y:Math.max(0,Math.min(HEIGHT-r,Math.floor(player.y-r/2))),
+    columns:c,rows:r
+  };
+}
 export function progress(g) {return Math.min(1,g.collected/g.needed);}
 export function freshSave() {return {unlocked:1,best:0,levels:{}};}
 export function sanitizeSave(obj) {
