@@ -1,4 +1,4 @@
-import {renderPreview,renderBauPreview,renderSebiPreview} from './vorschau.js';
+import {renderPreview,renderBauPreview,renderSebiPreview,renderKristallPreview} from './vorschau.js';
 
 const BASE='/spiele/blocksaal';
 const BAU='/spiele/bausaal';
@@ -11,6 +11,14 @@ function replaceMeta(html,key,value){
 export default {
   async fetch(request,env){
     const url=new URL(request.url);
+    if(url.pathname==='/og/kristallrausch/start.png'){
+      const image=renderKristallPreview();
+      return new Response(image,{headers:{
+        'Content-Type':'image/png',
+        'Cache-Control':'public, max-age=86400',
+        'X-Content-Type-Options':'nosniff'
+      }});
+    }
     if(url.pathname.startsWith('/og/blocksaal/')){
       const m=url.pathname.match(/^\/og\/blocksaal\/(start|0|[1-9]\d{0,3})\.png$/);
       if(!m)return new Response('Not found',{status:404});
