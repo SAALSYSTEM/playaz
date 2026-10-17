@@ -18,11 +18,17 @@ export function makeLevel(number){
     let type='ghost';
     if(number>=7&&i%7===4)type='spider';
     if(number>=10&&i%8===6)type='witch';
+    if(number>=12&&i%6===3)type='bat';
     if(i===n-1&&number%5===0)type=number===20?'boss':'big';
-    entries.push({type,x:lane,d,hp:type==='witch'?2:type==='big'?3:type==='boss'?5:1,speed:type==='spider'?0.8:type==='boss'?0.52:0.5});
+    entries.push({type,x:lane,d,hp:type==='witch'?2:type==='big'?3:type==='boss'?5:1,speed:type==='spider'?0.8:type==='bat'?0.95:type==='boss'?0.52:0.5});
+    // Geisterwellen (Level 5 und 15): drei Geister nebeneinander, vorher gibt es zusätzlich Knoblauch.
+    if((number===5&&i===2)||(number===15&&(i===5||i===11))){
+      entries.push({type:'garlic',x:lanes[(lanes.indexOf(lane)+2)%3],d:d-4.6,value:4});
+      for(const x of lanes)if(x!==lane)entries.push({type:'ghost',x,d,hp:1,speed:0.5});
+    }
   }
   return {number,name:LEVELS[number-1],entries,length:19+(n-1)*5.6+12,startGarlic:8};
 }
-export function hitValue(type,combo){return (type==='boss'?1200:type==='big'?550:type==='witch'?280:type==='spider'?170:120)*clamp(1+Math.floor(combo/3),1,5);}
+export function hitValue(type,combo){return (type==='boss'?1200:type==='big'?550:type==='witch'?280:type==='spider'?170:type==='bat'?150:120)*clamp(1+Math.floor(combo/3),1,5);}
 export function finishBonus(garlic,hearts,pumpkins){return garlic*25+hearts*150+pumpkins*75;}
 export function shareText(level,score){return `Ich habe Level ${level}/20 im Geisterschloss geschafft und ${score.toLocaleString('de-DE')} Punkte geholt. Kommst du weiter?`}
