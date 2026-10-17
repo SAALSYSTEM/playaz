@@ -1,6 +1,7 @@
 import {PRODUCTS,PRODUCT,LOCATIONS,STAFF,sumStock,shelfCapacity} from './data.js';
 import {nextHint} from './engine.js';
 import {drawCharacter} from './characters.js';
+import {vehiclePose} from './world.js';
 
 // Real Three.js scene; all models are built here from our own geometry.
 // Geometry/material caches + instanced batches bound draw calls as the shop grows.
@@ -23,6 +24,9 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
     torso:new T.LatheGeometry([[0,0],[.32,0],[.46,.10],[.49,.30],[.44,.65],[.40,.83],[.29,.97],[0,1]].map(([x,y])=>new T.Vector2(x,y)),18)};
   const shape=new T.Shape();shape.moveTo(-.42,-.5);shape.lineTo(.42,-.5);shape.quadraticCurveTo(.5,-.5,.5,-.42);shape.lineTo(.5,.42);shape.quadraticCurveTo(.5,.5,.42,.5);shape.lineTo(-.42,.5);shape.quadraticCurveTo(-.5,.5,-.5,.42);shape.lineTo(-.5,-.42);shape.quadraticCurveTo(-.5,-.5,-.42,-.5);
   geos.soft=new T.ExtrudeGeometry(shape,{depth:.84,bevelEnabled:true,bevelSegments:2,steps:1,bevelSize:.05,bevelThickness:.08,curveSegments:3});geos.soft.translate(0,0,-.42);
+  // Bevels expand the extrusion; normalize so declared furniture dimensions
+  // match both the visible mesh and its collision box.
+  geos.soft.computeBoundingBox();const softSize=geos.soft.boundingBox.getSize(new T.Vector3());geos.soft.scale(1/softSize.x,1/softSize.y,1/softSize.z);
   const materials=new Map(),batches=new Map(),labels=new Map(),dynamicLabels=new Map(),colors=new Map(),poses=new Map();
   const temp=new T.Object3D(),turn=new T.Quaternion(),axis=new T.Vector3(0,1,0);let phase='static',generation=0,lastLayout='',width=1,height=1,basis=null,frameDelta=0;
   const mat=geo=>{if(!materials.has(geo))materials.set(geo,new T.MeshStandardMaterial({color:0xffffff,roughness:geo==='portrait'?.55:.7,metalness:.02}));return materials.get(geo);};
@@ -73,10 +77,9 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
     for(let x=.75;x<w;x+=1.5){box(0xd6a46b,x,.65,-.07,.07,1.1,.27);box(Math.floor(x/1.5)%2?0xffd054:0xfff3d9,x,2.45,-.45,1.48,.12,1.3,-.01);}
     box(0x17635d,w/2,2.35,-1,w,.25,.2);
     label('brand','MY SUPERMARKT',w/2,2.25,.5,{size:6,bg:'#246b58',color:'#fff4cc'});
-    for(let x=5;x<w;x+=3){box(0xf4c176,x,.75,20.6,1.45,.12,.2);box(0xf4c176,x-.7,.4,20.6,.1,.8,.1);}
     for(const [x,z]of [[-1,2],[-1,10],[w+1,2],[w+1,12],[w+1,19]])tree(x,z);
     // Delivery, warehouse and workstation furniture remains out of walking cells.
-    box(0xb99365,1.9,.16,13.2,1.3,.25,1.1);zone(2,13,0x58b9a1,1.6);
+    box(0xb99365,.95,.16,12.7,1.3,.25,1.6);zone(2,13,0x58b9a1,1.6);
     label('storage','LAGER',2,2,13,{size:2.1});
     box(0x375c61,.8,.55,10,1,1.1,.7);box(0x263e4a,.8,1.35,10,.82,.6,.12);box(0x92e3c0,.8,1.36,10+.07,.65,.43,.02);
     zone(2,10,0x79cebb);label('terminal','EINKAUF',1.4,2.1,10,{size:2});
@@ -84,7 +87,7 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
     zone(12,12,0xffd21c,1.4);label('build','AUSBAU',12,1.5,12,{size:1.7});
     checkout(8,17,0);if(s.upgrades.checkout)checkout(13,17,1);
     if(s.upgrades.online){
-      box(0x55b8ae,1,.65,4,1.8,1.3,.85);box(0xf6e9c9,1,1.35,4,2,.12,1);
+      box(0x55b8ae,.7,.65,4,1.3,1.3,.85);box(0xf6e9c9,.7,1.35,4,1.4,.12,1);
       box(0x264557,.6,1.7,4,.65,.5,.1);zone(2,4,0x5dbac5);
       label('pack','PACKTISCH',2,2.3,4,{size:2.3});
       zone(19,20,0xffc953,1.7);label('parcel','POSTABHOLUNG',19,2,20,{size:2.6});
@@ -152,7 +155,7 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
     box(0x558b99,x,1.62,z+1.58*scale,1.5*scale,.55,.07);
     box(0xf4df94,x-.6*scale,.75,z+1.83*scale,.35,.2,.05);box(0xf4df94,x+.6*scale,.75,z+1.83*scale,.35,.2,.05);
     for(const side of [-1,1])for(const dz of [-1.05,1.05])part('cylinder',0x354b52,x+side*.92*scale,.4,z+dz*scale,.58,.23,.58,0,0,Math.PI/2);
-    if(doors){box(0x4b645d,x,.64,z-1.1*scale,1.5*scale,.06,1.4);box(color,x-1.1*scale,1.2,z-1.9*scale,.1,1.4,1);box(color,x+1.1*scale,1.2,z-1.9*scale,.1,1.4,1);}
+    if(doors){box(0x4b645d,x,.64,z-1.1*scale,1.5*scale,.06,1.4);box(color,x-1.1*scale,1.2,z-1.9*scale,.1,1.4,scale);box(color,x+1.1*scale,1.2,z-1.9*scale,.1,1.4,scale);}
     else box(0xf4f1df,x,1.1,z-1.8*scale,1.6*scale,1,.08);
     basis=null;
   }
@@ -209,13 +212,12 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
       }
       label('stock'+r.id,r.stock+'/'+shelfCapacity(r),r.x,.4,r.z+1,{size:1.1,dynamic:true,bg:r.stock?'#ffffff':'#ffe2c0'});
     }
-    for(let i=0;i<Math.min(16,Math.ceil(sumStock(s.storage)/4));i++)carton(1+(i%3)*.5,.45+Math.floor(i/6)*.48,12+(Math.floor(i/3)%2)*.5,.45);
+    for(let i=0;i<Math.min(16,Math.ceil(sumStock(s.storage)/4));i++)carton(.55+(i%3)*.4,.45+Math.floor(i/6)*.48,12.3+(Math.floor(i/3)%2)*.5,.38);
     const d=s.deliveries[0];if(d){
-      const scale=s.upgrades.warehouseXL?1.35:s.upgrades.truck?1.15:1;
-      const x=2+(1-d.progress)*20,angle=(d.phase==='leaving'?1:-1)*Math.PI/2*Math.min(1,(1-d.progress)*5);vehicle(x,23,0x77bba5,d.phase==='unloading',scale,angle);
+      const v=vehiclePose(s,'delivery');vehicle(v.x,v.z,0x77bba5,v.doors,v.scale,v.angle);
       if(d.phase==='unloading')for(let i=0;i<Math.min(9,Math.ceil(sumStock(d.items)/2));i++)carton(1.5+i%3*.48,.65+Math.floor(i/3)*.45,21.6,.44);
     }
-    if(s.upgrades.online&&s.mail.phase!=='away')vehicle(19+(1-s.mail.progress)*18,23,0xf8c543,s.mail.phase==='loading',.85,(s.mail.phase==='leaving'?1:-1)*Math.PI/2*Math.min(1,(1-s.mail.progress)*5));
+    const mail=vehiclePose(s,'mail');if(mail)vehicle(mail.x,mail.z,0xf8c543,mail.doors,mail.scale,mail.angle);
     let parcelIndex=0;
     for(const o of s.orders){
       if(o.state==='ready'){const i=parcelIndex++;carton(18.5+i%2*.65,.4+Math.floor(i/4)*.55,19.4+Math.floor(i/2)%2*.6,.58);}

@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {createGame,tick,audit,inventory,orderGoods,buyShelf,buyUpgrade,hire,upgradeShelf,upgradeStaff,settleWage,rescue,holdOrder,createOnlineOrder,reserveOrders,serialize,deserialize,interactPlayer,updateProgress,capacity,claimTask,totalRevenue} from '../public/spiele/mysupermarkt/engine.js';
+import {createGame,tick,audit,inventory,orderGoods,buyShelf,buyUpgrade,hire,upgradeShelf,upgradeStaff,settleWage,rescue,holdOrder,createOnlineOrder,reserveOrders,serialize,deserialize,interactPlayer,updateProgress,capacity,claimTask,totalRevenue,movePlayer} from '../public/spiele/mysupermarkt/engine.js';
+import {vehicleBounds,vehiclePose,contains,furnitureBounds} from '../public/spiele/mysupermarkt/world.js';
 import {PRODUCTS,PRODUCT,UPGRADES,STAFF,LOCATIONS,MILESTONES,AWARDS,emptyStock,sumStock,shelfCapacity,shelfCost} from '../public/spiele/mysupermarkt/data.js';
 import {moveActor,pathTo,walkable,near,servicePoint,obstacles,queuePoint} from '../public/spiele/mysupermarkt/navigation.js';
 import {shareText,shareURL,challengeFrom} from '../public/spiele/mysupermarkt/share.js';
@@ -63,13 +64,71 @@ test('Speicherdateien mit HTML in Statistik oder doppelten Regalen werden abgele
 });
 test('Wegfindung: alle Arbeitsplätze mit allen 12 Regalen erreichbar',()=>{
   const s=createGame();unlock(s);
-  const targets=[...Object.values(LOCATIONS),...s.shelves.map(servicePoint),...Array.from({length:10},(_,i)=>queuePoint(0,i)),...Array.from({length:10},(_,i)=>queuePoint(1,i))];
+  const targets=[...Object.values(LOCATIONS),...s.shelves.map(servicePoint),...Array.from({length:24},(_,i)=>queuePoint(0,i)),...Array.from({length:24},(_,i)=>queuePoint(1,i))];
   for(const target of targets){const path=pathTo(s,{x:12,z:25},target);assert.ok(path?.length,JSON.stringify(target));for(const p of path)assert.equal(walkable(s,p.x,p.z),true);}
   for(const b of obstacles(s))assert.equal(walkable(s,b.x,b.z),false);
 });
 test('Kunden verlassen einen unbedienten Laden, Ware bleibt erhalten',()=>{
   const s=createGame();advance(s,4);at(s,LOCATIONS.delivery,1.2);at(s,servicePoint(s.shelves[0]),1.3);
   advance(s,110);assert.ok(s.stats.lost>0);assert.equal(s.finance.storeRevenue,0);assertClean(s);
+});
+test('Bau unter einer Figur und alte feststeckende Spielstände werden sicher entklemmt',()=>{
+  const s=createGame();grant(s,10000);s.milestone=19;s.player.x=10;s.player.z=5;
+  assert.equal(buyShelf(s,'water'),true);assert.equal(walkable(s,s.player.x,s.player.z),true);
+  const before={x:s.player.x,z:s.player.z};movePlayer(s,0,-1,.05);
+  assert.notDeepEqual({x:s.player.x,z:s.player.z},before);
+  s.player.x=6;s.player.z=5;const repaired=deserialize(serialize(s));
+  assert.equal(walkable(repaired,repaired.player.x,repaired.player.z),true);assertClean(repaired);
+});
+test('Zweite Kasse invalidiert auch bereits geplante Wege',()=>{
+  const s=createGame();grant(s,10000);s.milestone=19;
+  const a={x:13,z:20,routeKey:''},target={x:13,z:15};moveActor(s,a,target,0);
+  const old=a.routeKey;assert.equal(buyUpgrade(s,'checkout'),true);
+  for(let i=0;i<200&&!near(a,target,.1);i++){
+    moveActor(s,a,target,.05,3);assert.equal(walkable(s,a.x,a.z),true,JSON.stringify(a));
+  }
+  assert.notEqual(a.routeKey,old);assert.ok(near(a,target,.1));
+});
+test('Alle 24 Plätze beider Kassenschlangen bleiben eindeutig und begehbar',()=>{
+  const s=createGame();unlock(s);const points=[];
+  for(const index of [0,1])for(let i=0;i<24;i++){
+    const p=queuePoint(index,i);assert.ok(walkable(s,p.x,p.z),JSON.stringify(p));
+    const route=pathTo(s,LOCATIONS.entrance,p);assert.ok(route?.length);assert.ok(near(route.at(-1),p,.26));
+    points.push(p.x+','+p.z);
+  }
+  assert.equal(new Set(points).size,48);
+});
+test('LKW aller Größen und Postauto sind solide, Abholpositionen bleiben erreichbar',()=>{
+  for(const level of [0,1,2]){
+    const s=createGame();s.upgrades.truck=level>0?1:0;s.upgrades.warehouseXL=level===2?1:0;
+    const d=s.deliveries[0];Object.assign(d,{phase:'unloading',progress:1,timer:0});
+    const b=vehicleBounds(s,'delivery');assert.equal(walkable(s,b.x,b.z),false);
+    s.player.x=5;s.player.z=23;
+    for(let i=0;i<80;i++){movePlayer(s,-1,0,.05);assert.equal(contains(b,s.player.x,s.player.z),false);}
+    assert.ok(s.player.x>b.x+b.w/2);
+    assert.ok(walkable(s,LOCATIONS.delivery.x,LOCATIONS.delivery.z));
+    at(s,LOCATIONS.delivery,1.2);assert.equal(sumStock(s.player.cargo),4);assertClean(s);
+    s.deliveries=[];assert.equal(walkable(s,b.x,b.z),true,'No invisible vehicle remains');
+  }
+  const s=createGame();s.upgrades.floor=1;s.upgrades.online=1;s.mail.phase='loading';s.mail.progress=1;
+  assert.equal(walkable(s,19,23),false);assert.equal(walkable(s,19,20),true);
+});
+test('Ankommende Fahrzeuge warten auf Figuren statt sie zu durchfahren',()=>{
+  const s=createGame();s.player.x=2;s.player.z=23;
+  for(let i=0;i<100;i++){
+    tick(s,.05,{interact:false});const b=vehicleBounds(s,'delivery');assert.ok(!contains(b,s.player.x,s.player.z));
+  }
+  assert.equal(s.deliveries[0].blocked,true);assert.equal(s.deliveries[0].phase,'enroute');
+  s.player.x=5;s.player.z=20;advance(s,5);assert.equal(s.deliveries[0].phase,'unloading');
+  assert.equal(s.deliveries[0].blocked,false);assertClean(s);
+});
+test('Lager, Einkaufsterminal und Packtische sind solide ohne blockierte Serviceplätze',()=>{
+  const s=createGame();unlock(s);
+  for(const b of furnitureBounds(s))assert.equal(walkable(s,b.x,b.z),false);
+  for(const key of ['storage','terminal','pack','pack2','cashier','cashier2','delivery','parcels']){
+    const p=LOCATIONS[key];assert.ok(walkable(s,p.x,p.z),key);
+    const route=pathTo(s,LOCATIONS.entrance,p);assert.ok(route?.length);assert.ok(near(route.at(-1),p,.26),key);
+  }
 });
 test('Mitarbeiter bewegen echte Ware; Löhne korrekt, Pausen kosten nichts',()=>{
   const s=createGame();unlock(s);s.orderTimer=9999;hire(s,'loader');hire(s,'stocker');hire(s,'cashier');
@@ -125,7 +184,9 @@ export function botStep(s,dt=.1){
   for(const t of dailyTasksForBot(s))claimTask(s,t);
   // Reserve replenishment money before investments.
   for(const r of s.shelves){
-    const id=r.product,held=inventory(s)[id];
+    // Online goods on the packing table cannot restock the shop. Counting them
+    // as available caused the bot to stop ordering while partial orders waited.
+    const id=r.product,online=s.orders.reduce((n,o)=>n+o.reserved[id]+o.staged[id]+o.packed[id],0)+[s.player,...s.staff].filter(a=>a.orderId).reduce((n,a)=>n+a.cargo[id],0),held=inventory(s)[id]-online;
     if(held<6&&s.deliveries.length<4&&s.cash>=PRODUCT[id].buy*12+12)orderGoods(s,id,12);
   }
   if(s.cash>100){
@@ -165,7 +226,7 @@ test('Langlauf: 20 Meilensteine ohne Geld-Cheats erreichbar, Inventur bleibt kor
   for(let i=0;i<180000&&s.milestone<20;i++){
     botStep(s);if(i%1000===0)assertClean(s);maxStage=Math.max(maxStage,s.milestone);
   }
-  assertClean(s);assert.equal(s.milestone,20,JSON.stringify({stage:maxStage,cash:s.cash,time:s.time,stock:inventory(s),staff:s.staff.map(e=>[e.role,e.status]),player:s.player.status}));
+  assertClean(s);assert.equal(s.milestone,20,JSON.stringify({stage:maxStage,cash:s.cash,time:s.time,stock:inventory(s),staff:s.staff.map(e=>[e.role,e.status]),player:[s.player.status,s.player.x,s.player.z],deliveries:s.deliveries,orders:s.orders.map(o=>({state:o.state,hold:o.hold,required:o.required,reserved:o.reserved,staged:o.staged}))}));
   assert.equal(s.finance.initial,120);assert.ok(s.stats.orders>0);assert.equal(s.shelves.length,12);assert.ok(totalRevenue(s)>5000);
   t.diagnostic(`Imperium nach ${(s.time/60).toFixed(1)} simulierten Minuten; ${s.stats.customers} Kunden, ${s.stats.orders} Pakete, ${totalRevenue(s)} € Umsatz.`);
   for(let i=0;i<6000;i++)botStep(s);assertClean(s);assert.ok(s.stats.customers>100);

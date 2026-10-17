@@ -4,6 +4,16 @@ Stand: Implementierung einschließlich neuer 3D-Figuren, Cover und 360°-Ansicht
 
 ## Grafiküberarbeitung
 
+### Kollisionskorrektur nach Spielerrückmeldung (17.10.2026)
+
+- Fahrzeugpositionen werden von Darstellung und Kollision gemeinsam aus `world.js` gelesen. Lieferwagen aller Größen und Postauto einschließlich offener Hecktüren sind für den Spieler solide.
+- Anfahrt auf der Straße außerhalb der Spielfläche, anschließend in die Bucht. Fahrzeuge warten auf Figuren in der Zufahrt; der Hinweis nennt die blockierte Zufahrt. NPC-Wege halten die Parkbuchten frei.
+- Lagerpalette, Einkaufsterminal und Packtische erhalten Kollisionsflächen. Palette und erster Packtisch wurden neben ihre Arbeitsposition gesetzt, damit die Tätigkeiten erreichbar bleiben. Die über die Laufwege verteilten dekorativen Frontgeländer wurden entfernt.
+- Abgerundete Möbelgeometrie ist auf ihre angegebenen Abmessungen normalisiert, damit sichtbare Kanten und Kollisionsflächen übereinstimmen.
+- Neue Möbel versetzen darin stehende Figuren auf die nächste freie Position. Auch beim Laden werden bereits eingeklemmte Figuren befreit. Wege werden bei Kassen-/Lagerausbau neu geplant.
+- Kassenschlangen falten sich innerhalb der Karte statt über deren Rand hinauszulaufen. Je Kasse sind 24 eindeutige Plätze berücksichtigt.
+- **40 MySupermarkt-Tests bestanden**, darunter sechs neue Regressionstests für diese Fehler und die vollständigen Warenketten. Der Testspieler zählt bereits für Onlineaufträge entnommene Ware nicht länger als frei verfügbaren Nachfüllbestand. Neuer Langlauf: 120,5 simulierte Minuten, 1.247 Kunden, 52 Pakete, 13.908 € Umsatz bis zum Imperium. Das ist weiterhin kein menschlicher Spiel- oder Browsernachweis.
+
 - Marktleiterin, Mitarbeiter und Kunden sind echte volumetrische Modelle: Gesicht mit Augen, Nase und Mund, Frisuren/Dutt, Mütze, Brille, Schürze mit vorderer Tasche und hinteren Bändern, Hände und Schuhe.
 - Gemeinsames Modell in Spiel und `/spiele/mysupermarkt/figuren.html`. Die 360°-Ansicht erlaubt Drehen mit Drag/Regler, Vorder-/Seiten-/Rückansicht, Kleiderfarben sowie Stehen, Gehen, Tragen und Arbeiten. Keine Änderung des Spielstands.
 - Arme bewegen sich abhängig von Tätigkeit und Tragezustand; Gehen bleibt zwischen 30-Hz-Simulationsschritten kontinuierlich. Körper und Kartons verwenden denselben räumlichen Drehursprung.
@@ -44,6 +54,7 @@ Stand: Implementierung einschließlich neuer 3D-Figuren, Cover und 360°-Ansicht
 | `mysupermarkt/navigation.js` | Kollisionen, gecachte Distanzfelder und Wege |
 | `mysupermarkt/render.js` | Eigene 3D-Modelle, Instanzen, Kamera, Animationen |
 | `mysupermarkt/characters.js` | Gemeinsame rundum modellierte Figuren und Posen |
+| `mysupermarkt/world.js` | Gemeinsame Möbel-/Fahrzeugmaße, Fahrzeugbewegung und Kollision |
 | `mysupermarkt/figuren.html`, `figuren.js` | Interaktive 360°-Modellansicht ohne Spielstandänderung |
 | `mysupermarkt/game.js` | DOM, Eingaben, Pause, Menüs, Ton, lokaler Speicher |
 | `mysupermarkt/share.js` | Teilen, Herausforderungslink und Bild |
@@ -72,7 +83,7 @@ node tools/domain.mjs
 git diff --check
 ```
 
-Die neue Testsuite umfasst **34 Tests**:
+Die neue Testsuite umfasst nach dem Kollisionshotfix **40 Tests**:
 
 Vor der Grafiküberarbeitung wurden zusammen mit den bestehenden Simulationstests **106 Tests bestanden**. Die Grafiküberarbeitung ergänzt drei gezielte Tests für 360°-Drehungen einschließlich Fracht, vollständige Instanzseiten bei vielen Figuren und unterschiedliche Bewegung/Trageposen. Das ersetzt die unten aufgeführte offene Browserabnahme nicht.
 

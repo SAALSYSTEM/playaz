@@ -1,5 +1,6 @@
 import {PRODUCTS,PRODUCT,STAFF,UPGRADES,MILESTONES,AWARDS,SHELF_POSITIONS,LOCATIONS,SAVE_VERSION,emptyStock,sumStock,shelfCapacity,shelfCost} from './data.js';
-import {near,walkable,moveActor,servicePoint,cashierPoint,queuePoint} from './navigation.js';
+import {near,walkable,moveActor,servicePoint,cashierPoint,queuePoint,repairLayout} from './navigation.js';
+import {vehicleBlocked} from './world.js';
 
 export const capacity=s=>4+(s.upgrades.cart?6:0)+s.upgrades.capacity*2;
 export const storageCapacity=s=>s.upgrades.warehouseXL?600:s.upgrades.warehouse?240:80;
@@ -48,6 +49,7 @@ export function buyShelf(s,id){
   if(slot>=6&&!s.upgrades.floor)return false;
   if(!spend(s,shelfCost(id),'investment',12))return false;
   const [x,z]=SHELF_POSITIONS[slot];s.shelves.push({id:'s'+slot,product:id,x,z,stock:0,level:0,builtAt:s.time});
+  repairLayout(s);
   event(s,`${PRODUCT[id].name}: neues ${PRODUCT[id].kind==='fridge'?'Kühlregal':'Regal'}!`,'build',{x,z});updateProgress(s);return true;
 }
 export function upgradeShelf(s,id){
@@ -59,7 +61,7 @@ export function buyUpgrade(s,id){
   const u=UPGRADES[id];if(!u||s.milestone<u.unlock||s.upgrades[id]>=u.max)return false;
   if(id==='empire'&&s.shelves.length<12)return false;
   if(!spend(s,priceUpgrade(s,id),'investment',12))return false;
-  s.upgrades[id]++;event(s,u.name,'build',LOCATIONS.build);updateProgress(s);return true;
+  s.upgrades[id]++;if(['checkout','floor','online','shipping'].includes(id))repairLayout(s);event(s,u.name,'build',LOCATIONS.build);updateProgress(s);return true;
 }
 export function hire(s,role){
   const def=STAFF[role];if(!def||s.milestone<def.unlock||s.staff.some(e=>e.role===role))return false;
@@ -313,15 +315,28 @@ function customerTick(s,c,dt){
 }
 function deliveryTick(s,dt){
   const d=s.deliveries[0];if(!d)return;
-  if(d.phase==='enroute'){d.timer-=dt;d.progress=Math.min(1,1-d.timer/(d.duration||10));if(d.timer<=0){d.phase='unloading';d.progress=1;event(s,'Lieferung ist da!','delivery',LOCATIONS.delivery);}}
+  const oldTimer=d.timer,oldProgress=d.progress;
+  if(d.phase==='enroute'){
+    d.timer-=dt;d.progress=Math.min(1,1-d.timer/(d.duration||10));
+    if(vehicleBlocked(s,'delivery')){d.timer=oldTimer;d.progress=oldProgress;d.blocked=true;return;}d.blocked=false;
+    if(d.timer<=0){d.phase='unloading';d.progress=1;event(s,'Lieferung ist da!','delivery',LOCATIONS.delivery);}
+  }
   else if(d.phase==='unloading'&&sumStock(d.items)===0){d.phase='leaving';d.timer=3;}
-  else if(d.phase==='leaving'){d.timer-=dt;d.progress=Math.max(0,d.timer/3);if(d.timer<=0)s.deliveries.shift();}
+  else if(d.phase==='leaving'){
+    d.timer-=dt;d.progress=Math.max(0,d.timer/3);
+    if(vehicleBlocked(s,'delivery')){d.timer=oldTimer;d.progress=oldProgress;d.blocked=true;return;}d.blocked=false;
+    if(d.timer<=0)s.deliveries.shift();
+  }
 }
 function mailTick(s,dt){
   if(!s.upgrades.online)return;
-  const m=s.mail;m.timer-=dt;
+  const m=s.mail,oldTimer=m.timer,oldProgress=m.progress;m.timer-=dt;
   if(m.phase==='away'&&m.timer<=0){m.phase='arriving';m.timer=3;}
-  else if(m.phase==='arriving'){m.progress=1-Math.max(0,m.timer)/3;if(m.timer<=0){m.phase='loading';m.timer=.8;}}
+  else if(m.phase==='arriving'){
+    m.progress=1-Math.max(0,m.timer)/3;
+    if(vehicleBlocked(s,'mail')){m.timer=oldTimer;m.progress=oldProgress;m.blocked=true;return;}m.blocked=false;
+    if(m.timer<=0){m.phase='loading';m.timer=.8;}
+  }
   else if(m.phase==='loading'&&m.timer<=0){
     const o=s.orders.find(o=>o.state==='ready');
     if(o){
@@ -329,7 +344,11 @@ function mailTick(s,dt){
       const amount=o.price+(o.express&&s.time<=o.deadline?o.bonus:0);earn(s,amount,'onlineRevenue');s.stats.units+=units;s.stats.orders++;
       s.orders=s.orders.filter(x=>x!==o);event(s,`Paket abgeholt · +${amount} €`,'money',LOCATIONS.post);m.timer=.8;
     }else{m.phase='leaving';m.timer=3;}
-  }else if(m.phase==='leaving'){m.progress=Math.max(0,m.timer/3);if(m.timer<=0){m.phase='away';m.timer=35/(1+s.upgrades.pickup*.35);m.progress=0;}}
+  }else if(m.phase==='leaving'){
+    m.progress=Math.max(0,m.timer/3);
+    if(vehicleBlocked(s,'mail')){m.timer=oldTimer;m.progress=oldProgress;m.blocked=true;return;}m.blocked=false;
+    if(m.timer<=0){m.phase='away';m.timer=35/(1+s.upgrades.pickup*.35);m.progress=0;}
+  }
 }
 export function updateProgress(s){
   while(s.milestone<20&&MILESTONES[s.milestone][1](s)){s.milestone++;event(s,`Meilenstein ${s.milestone}: ${MILESTONES[s.milestone-1][0]}`,'milestone');}
@@ -418,10 +437,11 @@ export function deserialize(json){
   if(s.shelves.some(r=>!PRODUCT[r.product]||!finiteInt(r.level)||r.level>4||r.x!==SHELF_POSITIONS[PRODUCTS.findIndex(p=>p.id===r.product)][0]||r.z!==SHELF_POSITIONS[PRODUCTS.findIndex(p=>p.id===r.product)][1])||new Set(s.shelves.map(r=>r.product)).size!==s.shelves.length)throw new Error('Ungültiges Regal.');
   if(s.staff.some(a=>!STAFF[a.role]||!finiteInt(a.level)||a.level>3||!finiteInt(a.arrears)||!Number.isFinite(a.workTime))||new Set(s.staff.map(a=>a.role)).size!==s.staff.length)throw new Error('Ungültiger Mitarbeiter.');
   if(s.customers.some(a=>!['shopping','queue','exit'].includes(a.state)||!PRODUCT[a.product]||!finiteInt(a.ticket)||!Number.isFinite(a.wait)))throw new Error('Ungültiger Kunde.');
-  s.events=[];const errors=audit(s);if(errors.length)throw new Error(errors.join(', '));return s;
+  s.events=[];const errors=audit(s);if(errors.length)throw new Error(errors.join(', '));repairLayout(s);return s;
 }
 export function nextHint(s){
   const a=s.player;
+  if(s.deliveries[0]?.blocked||s.mail.blocked)return {text:'Fahrzeug wartet: Bitte die Zufahrt freimachen.',target:LOCATIONS.delivery};
   if(a.parcel)return {text:'Paket zur gelben Abholzone tragen',target:LOCATIONS.parcels};
   if(a.orderId){const o=s.orders.find(o=>o.id===a.orderId);return o?.hold?{text:'Zurückgestellte Ware ins Lager zurückbringen',target:LOCATIONS.storage}:{text:'Onlineware zum Packtisch bringen',target:packPoint(o||{station:0})};}
   if(count(a)){

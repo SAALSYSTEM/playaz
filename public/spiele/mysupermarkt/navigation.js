@@ -1,24 +1,39 @@
 // Deterministic grid paths shared by customers, employees and simulation tests.
 import {LOCATIONS} from './data.js';
-export const RADIUS=.28, CELL=.5;
+import {ACTOR_RADIUS,furnitureBounds,vehicleObstacles,parkingReservations,contains} from './world.js';
+export const RADIUS=ACTOR_RADIUS, CELL=.5;
 export function worldWidth(s){return s.upgrades.floor?24:14;}
 export function obstacles(s){
-  const boxes=s.shelves.map(r=>({x:r.x,z:r.z,w:2.2,d:1.1}));
-  boxes.push({x:8,z:17,w:2.4,d:1.2});
-  if(s.upgrades.checkout)boxes.push({x:13,z:17,w:2.4,d:1.2});
-  return boxes;
+  return [...furnitureBounds(s),...vehicleObstacles(s)];
 }
 export function walkable(s,x,z,boxes=obstacles(s)){
   return x>=.5&&x<=worldWidth(s)-.5&&z>=.5&&z<=26&&
-    !boxes.some(b=>Math.abs(x-b.x)<b.w/2+RADIUS&&Math.abs(z-b.z)<b.d/2+RADIUS);
+    !boxes.some(b=>contains(b,x,z));
 }
 let cacheKey='', grid=null;
+const layoutKey=s=>s.shelves.map(r=>`${r.id}:${r.x}:${r.z}`).join(',')+'/'+s.upgrades.floor+'/'+s.upgrades.checkout+'/'+s.upgrades.online+'/'+s.upgrades.shipping;
 function nav(s){
-  const key=s.shelves.map(r=>r.id).join(',')+'/'+s.upgrades.floor+'/'+s.upgrades.checkout;
+  const key=layoutKey(s);
   if(key===cacheKey&&grid)return grid;
-  const w=worldWidth(s)*2+1,h=53,free=new Uint8Array(w*h),boxes=obstacles(s);
+  const w=worldWidth(s)*2+1,h=53,free=new Uint8Array(w*h),boxes=[...furnitureBounds(s),...parkingReservations()];
   for(let z=1;z<h;z++)for(let x=1;x<w;x++)free[z*w+x]=walkable(s,x/2,z/2,boxes)?1:0;
   cacheKey=key;grid={w,h,free,fields:new Map()};return grid;
+}
+// A purchase can place furniture underneath a person. Move only intersecting
+// actors to the closest free cell and invalidate paths for the changed layout.
+export function repairLayout(s){
+  const g=nav(s);
+  for(const a of [s.player,...s.staff,...s.customers]){
+    if(!walkable(s,a.x,a.z)){
+      let best=null,distance=Infinity;
+      for(let i=0;i<g.free.length;i++)if(g.free[i]){
+        const x=(i%g.w)/2,z=Math.floor(i/g.w)/2,d=(x-a.x)**2+(z-a.z)**2;
+        if(d<distance){distance=d;best={x,z};}
+      }
+      if(best){a.x=best.x;a.z=best.z;}
+    }
+    a.routeKey='';a.route=[];a.action='';a.progress=0;
+  }
 }
 export function pathTo(s,start,target){
   const g=nav(s),{w,h,free}=g;
@@ -55,7 +70,7 @@ export function pathTo(s,start,target){
 }
 export const near=(a,b,r=1.2)=>Math.hypot(a.x-b.x,a.z-b.z)<r;
 export function moveActor(s,a,target,dt,speed=2.6){
-  const key=`${target.x},${target.z},${s.shelves.length},${s.upgrades.floor}`;
+  const key=`${target.x},${target.z},${layoutKey(s)}`;
   if(a.routeKey!==key){a.route=pathTo(s,a,target);a.routeKey=key;}
   if(!a.route){a.status='Weg blockiert';a.routeKey='';return false;}
   let distance=speed*dt;
@@ -69,4 +84,9 @@ export function moveActor(s,a,target,dt,speed=2.6){
 }
 export const servicePoint=r=>({x:r.x,z:r.z+1.5});
 export const cashierPoint=index=>index?LOCATIONS.cashier2:LOCATIONS.cashier;
-export const queuePoint=(index,place)=>({x:index?13:8,z:18.5+place*.75});
+// Fold each line into three columns instead of sending its tail off the map.
+// Both tills have distinct, reachable positions for the full 24-customer cap.
+export const queuePoint=(index,place)=>{
+  const n=Math.max(0,Math.min(23,place)),column=Math.floor(n/8),row=n%8;
+  return {x:(index?13:8)-column*1.5,z:18.5+(column%2?7-row:row)*.75};
+};
