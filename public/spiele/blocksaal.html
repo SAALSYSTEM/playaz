@@ -1,0 +1,233 @@
+<!doctype html><html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>BlockSaal · Blockpuzzle · PlaySaal</title>
+<link rel="canonical" href="https://playsaal.com/spiele/blocksaal">
+<meta name="description" content="BlockSaal: Fallende Blöcke zu vollen Reihen ordnen, Stufe für Stufe schneller. Kostenlos, ohne Anmeldung und ohne Werbung. Fordere deine Freunde heraus.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="BlockSaal · PlaySaal"><meta property="og:description" content="Fallende Blöcke, volle Reihen, immer schneller: BlockSaal kostenlos auf PlaySaal spielen."><meta property="og:url" content="https://playsaal.com/spiele/blocksaal"><meta property="og:image" content="https://playsaal.com/og-playsaal-1200x630.jpg"><meta property="og:image:type" content="image/jpeg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="PlaySaal: Browserspiele ohne Anmeldung"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="BlockSaal · PlaySaal"><meta name="twitter:description" content="Fallende Blöcke, volle Reihen, immer schneller: BlockSaal kostenlos auf PlaySaal spielen."><meta name="twitter:image" content="https://playsaal.com/twitter-playsaal-1200x600.jpg">
+<meta name="theme-color" content="#11121A">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="stylesheet" href="/assets/fonts.css">
+<script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'blocksaal',t:Date.now()}))}catch(e){}</script>
+<style>
+/* BLOCKSAAL. Farbrollen wie im Portal: Anthrazit = Bühne, Orange = Marke, Gelb = Aktionen (Hauptknöpfe).
+   Die sieben Spielsteine haben eigene Farben (Spielwelt), siehe COLORS in blocksaal/engine.js. */
+:root{
+  --basis:#11121A;--marke:#FF9200;--aktion:#FFD21C;--aktion-hover:#FFDD4D;
+  --flaeche:#1a1b26;--flaeche-hell:#232534;--text:#f6f7f9;--leise:#b6b9c8;--linie:rgba(246,247,249,.14);
+  --f-display:"Dela Gothic One","Arial Black",Impact,sans-serif;
+  --f-text:"Barlow","Segoe UI",system-ui,sans-serif;
+  --f-zahl:"Pixelify Sans","Barlow",monospace;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--basis);color:var(--text);font:16px/1.4 var(--f-text);overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--aktion);outline-offset:2px;border-radius:6px}
+.sr{position:absolute;top:0;left:0;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.app{height:100vh;height:100dvh;max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:8px;
+  padding:calc(env(safe-area-inset-top,0px) + 8px) max(12px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 10px) max(12px,env(safe-area-inset-left,0px))}
+
+/* Kopfzeile: links bleibt Platz für den PlaySaal-Knopf "Alle Spiele" (fest oben links) */
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding-left:46px;flex:0 0 auto}
+.brand{font-family:var(--f-display);font-size:22px;line-height:1;letter-spacing:.01em;white-space:nowrap}
+.brand span{color:var(--marke)}
+.tools{display:flex;gap:6px}
+.tool{width:44px;height:44px;display:grid;place-items:center;border-radius:12px;border:1px solid var(--linie);background:var(--flaeche);padding:0}
+.tool:hover{background:var(--flaeche-hell)}
+.tool svg{width:22px;height:22px}
+
+/* Spielfeld links, Anzeigen rechts */
+.field{flex:1 1 auto;min-height:0;display:flex;gap:10px}
+.boardwrap{position:relative;flex:1 1 auto;min-width:0;min-height:0}
+#board{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:block;border-radius:10px;border:2px solid var(--flaeche-hell);background:#0b0c12;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.toast{position:absolute;left:50%;top:14%;transform:translateX(-50%);z-index:2;padding:8px 16px;border-radius:999px;background:var(--marke);color:var(--basis);font:700 17px/1 var(--f-text);white-space:nowrap;pointer-events:none;animation:toast 1.5s ease-out forwards}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,8px)}12%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-6px)}}
+
+.side{flex:0 0 clamp(84px,24%,140px);display:flex;flex-direction:column;gap:8px;min-height:0}
+.box{background:var(--flaeche);border:1px solid var(--linie);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.lbl{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--leise)}
+.box b{font-family:var(--f-zahl);font-weight:600;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:clip;white-space:nowrap}
+.box b.long{font-size:19px}
+.next{align-items:center}
+.next .lbl{align-self:flex-start}
+#next{width:64px;height:40px;display:block}
+.goal{border-color:var(--marke)}
+.goal .lbl{color:var(--marke)}
+.goal.done b{color:var(--marke)}
+.box.best b{color:var(--leise)}
+
+/* Steuerung am Handy: vier große Knöpfe */
+.controls{flex:0 0 auto;display:grid;grid-template-columns:1fr 1fr 10px 1fr 1fr;gap:10px;touch-action:none}
+.controls i{display:block}
+.ctl{height:clamp(72px,11.5dvh,100px);border-radius:20px;border:1px solid var(--linie);background:var(--flaeche-hell);color:var(--text);display:grid;place-items:center;padding:0;touch-action:none;-webkit-touch-callout:none;transition:transform .06s,filter .06s}
+.ctl svg{width:38px;height:38px;pointer-events:none}
+.ctl.main{background:var(--aktion);border-color:var(--aktion);color:var(--basis)}
+.ctl.main:hover{background:var(--aktion-hover)}
+.ctl.is-down{transform:scale(.95);filter:brightness(1.18)}
+.keys{display:none;margin:0;text-align:center;font-size:14px;color:var(--leise)}
+@media (hover:hover) and (pointer:fine) and (min-width:700px){
+  .controls{display:none}
+  .keys{display:block}
+}
+@media (max-height:640px){
+  .box.best,.brand{display:none}
+  .box b{font-size:22px}
+  .ctl{height:68px}
+}
+
+/* Overlays: Start, Pause, Spielende */
+.overlay{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 52px) 16px calc(env(safe-area-inset-bottom,0px) + 16px);background:rgba(10,11,17,.8);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);animation:ein .18s ease-out}
+@keyframes ein{from{opacity:0}}
+.card{width:100%;max-width:420px;max-height:100%;overflow:auto;background:var(--flaeche);border:1px solid var(--linie);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.5)}
+.stripe{height:10px;background:repeating-linear-gradient(-45deg,var(--marke) 0 10px,var(--basis) 10px 20px)}
+.card-body{padding:18px 18px 16px;display:flex;flex-direction:column;gap:14px}
+.logo{margin:0;font-family:var(--f-display);font-weight:400;font-size:clamp(40px,13vw,60px);line-height:.95}
+.logo span{color:var(--marke)}
+.card h2{margin:0;font-family:var(--f-display);font-weight:400;font-size:30px;line-height:1}
+.lede{margin:0;font-size:18px;line-height:1.35;font-weight:500}
+.hint,.fine{margin:0;font-size:14px;color:var(--leise)}
+.challenge{margin:0;display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:2px solid var(--marke);border-radius:12px;background:rgba(255,146,0,.08)}
+.challenge .chip{align-self:flex-start;font:700 12px/1 var(--f-text);letter-spacing:.12em;text-transform:uppercase;color:var(--basis);background:var(--marke);padding:4px 8px 3px;border-radius:4px}
+.challenge strong{font-size:21px;line-height:1.2}
+.challenge small{font-size:13px;color:var(--leise)}
+.btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 20px;border-radius:999px;border:1px solid var(--linie);background:var(--flaeche-hell);color:var(--text);font:700 18px/1 var(--f-text);text-align:center}
+.btn:hover{background:#2b2d3e}
+.btn.primary{background:var(--aktion);border-color:var(--aktion);color:var(--basis)}
+.btn.primary:hover{background:var(--aktion-hover)}
+.btn.big{min-height:60px;font-size:20px}
+.btn svg{width:24px;height:24px;flex:none}
+.btn:disabled{opacity:.6;cursor:default}
+.head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.stamp{font:700 13px/1 var(--f-text);letter-spacing:.08em;text-transform:uppercase;color:var(--marke);border:2px solid var(--marke);padding:5px 8px 4px;border-radius:4px;transform:rotate(-5deg);white-space:nowrap}
+.stats{margin:0;display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+.stats div{display:flex;flex-direction:column;gap:2px;border-top:1px solid var(--linie);padding-top:8px;min-width:0}
+.stats dt{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--leise)}
+.stats dd{margin:0;font-family:var(--f-zahl);font-weight:600;font-size:26px;font-variant-numeric:tabular-nums}
+.result{margin:0;font-size:17px;font-weight:600;line-height:1.35}
+.result strong{color:var(--marke)}
+.shareMsg{margin:0;min-height:1.4em;font-size:15px;font-weight:600;color:var(--text)}
+.shareField{width:100%;font:inherit;font-size:15px;padding:10px;border-radius:8px;border:1px solid var(--linie);background:rgba(0,0,0,.3);color:var(--text);-webkit-user-select:text;user-select:text}
+.actions{display:flex;flex-direction:column;gap:10px}
+@media (prefers-reduced-motion:reduce){.overlay,.toast{animation:none}.toast{opacity:1}.ctl{transition:none}}
+</style>
+</head><body>
+<div class="app" id="app">
+  <header class="top">
+    <div class="brand" aria-label="BlockSaal">Block<span>Saal</span></div>
+    <div class="tools">
+      <button class="tool" id="btnPause" type="button" aria-label="Pause">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>
+      </button>
+      <button class="tool" id="btnRestart" type="button" aria-label="Neustart">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4.8h4.8"/></svg>
+      </button>
+      <button class="tool" id="btnMute" type="button" aria-label="Ton ausschalten" aria-pressed="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3.5 9.5h4l5-4v13l-5-4h-4z" fill="currentColor" stroke="none"/>
+          <g id="icoOn"><path d="M16 9a4.5 4.5 0 0 1 0 6"/><path d="M18.6 6.4a8.2 8.2 0 0 1 0 11.2"/></g>
+          <g id="icoOff" hidden><path d="M16 9.5l5 5M21 9.5l-5 5"/></g>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="field" id="field">
+    <div class="boardwrap" id="boardwrap">
+      <canvas id="board" aria-label="Spielfeld mit fallenden Blöcken"></canvas>
+    </div>
+    <aside class="side" aria-label="Spielstand">
+      <div class="box next"><span class="lbl">Nächstes</span><canvas id="next" aria-label="Nächstes Teil"></canvas></div>
+      <div class="box"><span class="lbl">Punkte</span><b id="vScore">0</b></div>
+      <div class="box"><span class="lbl">Reihen</span><b id="vLines">0</b></div>
+      <div class="box"><span class="lbl">Stufe</span><b id="vLevel">1</b></div>
+      <div class="box best"><span class="lbl">Bestwert</span><b id="vBest">0</b></div>
+      <div class="box goal" id="boxGoal" hidden><span class="lbl">Ziel</span><b id="vGoal"></b></div>
+    </aside>
+  </main>
+
+  <nav class="controls" id="controls" aria-label="Steuerung">
+    <button class="ctl" id="cLeft" type="button" aria-label="Nach links">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <button class="ctl" id="cRight" type="button" aria-label="Nach rechts">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+    <i aria-hidden="true"></i>
+    <button class="ctl main" id="cRotate" type="button" aria-label="Drehen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg>
+    </button>
+    <button class="ctl" id="cDrop" type="button" aria-label="Sofort fallen lassen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M6.5 10.5L12 16l5.5-5.5"/><path d="M5 20h14"/></svg>
+    </button>
+  </nav>
+  <p class="keys" id="keys">← → bewegen · ↑ drehen · ↓ schneller · Leertaste lässt fallen · P Pause · M Ton</p>
+</div>
+
+<div class="sr" id="live" role="status" aria-live="polite"></div>
+
+<div class="overlay" id="startOv">
+  <section class="card" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+    <div class="stripe"></div>
+    <div class="card-body">
+      <h1 class="logo" id="startTitle">Block<span>Saal</span></h1>
+      <p class="challenge" id="challengeBox" hidden>
+        <span class="chip">Herausforderung</span>
+        <strong id="challengeText"></strong>
+        <small>Eine freundschaftliche Herausforderung, kein verifizierter Rekord.</small>
+      </p>
+      <p class="lede">Ordne die fallenden Blöcke zu vollen Reihen. Volle Reihen verschwinden, und mit jeder geschafften Reihe wird es schneller.</p>
+      <button class="btn primary big" id="btnStart" type="button">Spiel starten</button>
+      <p class="hint" id="startHint">Am Rechner: Pfeiltasten und Leertaste. Kein Konto, keine Werbung.</p>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" id="pauseOv" hidden>
+  <section class="card" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+    <div class="stripe"></div>
+    <div class="card-body">
+      <h2 id="pauseTitle">Pause</h2>
+      <p class="lede" id="pauseText">Das Spiel ist angehalten.</p>
+      <div class="actions">
+        <button class="btn primary big" id="btnResume" type="button">Weiter</button>
+        <button class="btn" id="btnNew" type="button">Neustart</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" id="overOv" hidden>
+  <section class="card" role="dialog" aria-modal="true" aria-labelledby="overTitle">
+    <div class="stripe"></div>
+    <div class="card-body">
+      <div class="head"><h2 id="overTitle">Spielende</h2><span class="stamp" id="stamp" hidden>Neuer Bestwert</span></div>
+      <dl class="stats">
+        <div><dt>Reihen</dt><dd id="oLines">0</dd></div>
+        <div><dt>Punkte</dt><dd id="oScore">0</dd></div>
+        <div><dt>Stufe</dt><dd id="oLevel">1</dd></div>
+        <div><dt>Bestwert</dt><dd id="oBest">0</dd></div>
+      </dl>
+      <p class="result" id="oResult" hidden></p>
+      <div class="actions">
+        <button class="btn primary big" id="btnShare" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><path d="M8.3 10.8l7.4-4.4M8.3 13.2l7.4 4.4"/></svg>
+          <span id="shareLabel">Freunde herausfordern</span>
+        </button>
+        <button class="btn" id="btnAgain" type="button">Nochmal spielen</button>
+      </div>
+      <input class="shareField" id="shareField" type="text" readonly hidden aria-label="Text und Link zum Kopieren">
+      <p class="shareMsg" id="shareMsg"></p>
+      <p class="fine">Der geteilte Wert ist eine freundschaftliche Herausforderung, kein verifizierter Ranglistenrekord.</p>
+    </div>
+  </section>
+</div>
+
+<script src="/spiele/blocksaal/engine.js"></script>
+<script src="/spiele/blocksaal/game.js"></script>
+<a class="pz-home" href="../" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a><style>.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 12px);left:12px;width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(23,18,42,.66);color:#f6f2ff;border:1px solid rgba(246,242,255,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}.pz-home:focus-visible{outline:3px solid #ffcc3d;outline-offset:2px}</style><style>*{touch-action:pan-x pan-y}html,body{overscroll-behavior:none;-webkit-touch-callout:none;-webkit-text-size-adjust:100%}</style><script>(function(){var stop=function(e){e.preventDefault()};['gesturestart','gesturechange','gestureend'].forEach(function(t){document.addEventListener(t,stop,{passive:false})});document.addEventListener('touchmove',function(e){if(e.touches.length>1||(e.scale&&e.scale!==1))e.preventDefault()},{passive:false});var last=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-last<350&&!(e.target.closest&&e.target.closest('button,a,input,select,textarea,label')))e.preventDefault();last=now},{passive:false});document.addEventListener('dblclick',stop,{passive:false});var vv=window.visualViewport,m=document.querySelector('meta[name=viewport]');if(vv&&m){var base=m.getAttribute('content'),t=0;vv.addEventListener('resize',function(){if(vv.scale<1.02)return;clearTimeout(t);t=setTimeout(function(){m.setAttribute('content',base.replace('maximum-scale=1','maximum-scale=1.0'));setTimeout(function(){m.setAttribute('content',base)},60)},120)})}})();</script></body></html>

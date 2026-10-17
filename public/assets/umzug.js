@@ -44,6 +44,8 @@
       info: (g) => { const b = Number(J(g['schwindelfrei.best'])) || 0; return { text: 'Rekord ' + zahl(b), wert: b }; } },
     { id: 'hochstapler', name: 'Hochstapler', prefix: 'hochstapler.', haupt: ['hochstapler.best', 'hochstapler.bestFloors'],
       info: (g) => { const b = Number(J(g['hochstapler.best'])) || 0; return { text: 'Rekord ' + zahl(b), wert: b }; } },
+    { id: 'blocksaal', name: 'BlockSaal', prefix: 'blocksaal.', haupt: ['blocksaal.v1'],
+      info: (g) => { const d = J(g['blocksaal.v1']) || {}; return { text: 'Rekord ' + zahl(d.score) + ' · ' + zahl(d.lines) + ' Reihen', wert: (d.score || 0) + (d.lines || 0) * 10 }; } },
     { id: 'richtfest', name: 'Richtfest', prefix: 'richtfest.', haupt: ['richtfest.save.v1'],
       info: (g) => { const d = J(g['richtfest.save.v1']) || {}; const c = Array.isArray(d.caught) ? d.caught.length : Object.keys(d.caught || {}).filter((k) => d.caught[k]).length; return { text: c + ' von 6 Baumonstern', wert: c * 100 + (Array.isArray(d.team) ? d.team.length : 0) }; } }
   ];
