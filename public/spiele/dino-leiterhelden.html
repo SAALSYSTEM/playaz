@@ -1,0 +1,143 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Dino-Leiterhelden · Kletterspiel für Kinder</title><meta name="description" content="Hilf dem kleinen Dino, seine drei Freunde einzusammeln und über Leitern ins Baumhaus zu bringen. 30 Level für Kinder ab 4 Jahren, ohne Anmeldung."><link rel="canonical" href="https://playsaal.com/spiele/dino-leiterhelden"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Dino-Leiterhelden · Kletterspiel für Kinder"><meta property="og:description" content="Drei Dino-Freunde, viele Leitern und ein Baumhaus. Schaffst du es schneller?"><meta property="og:url" content="https://playsaal.com/spiele/dino-leiterhelden"><meta property="og:image" content="https://playsaal.com/bilder/dino-leiterhelden-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Dino-Leiterhelden · Kletterspiel für Kinder"><meta name="twitter:description" content="Drei Dino-Freunde, viele Leitern und ein Baumhaus. Schaffst du es schneller?"><meta name="twitter:image" content="https://playsaal.com/bilder/dino-leiterhelden-og.jpg"><meta name="theme-color" content="#24521f"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/fonts.css"><style>
+:root{color-scheme:light;--wood:#7a4a24;--wood2:#5a3416;--cream:#fff6e2;--leaf:#5dbb3f;--leaf2:#2f7a2a;--sun:#ffc23a;--sun2:#f39a12;--ink:#3f2611;font-family:"Barlow",system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#1d3d1b;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+body{background:radial-gradient(circle at 50% 30%,#3c7a32,#14290f 75%)}
+button,a{font:inherit;-webkit-tap-highlight-color:transparent}
+.app{position:fixed;left:50%;top:0;transform:translateX(-50%);width:min(100vw,calc(100dvh * .62));height:100dvh;overflow:hidden;background:#8fd8f2;box-shadow:0 0 80px rgba(0,0,0,.6);touch-action:none}
+#game{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 12px);left:calc(env(safe-area-inset-left,0px) + 12px);width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(17,18,26,.72);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}
+.pz-home:focus-visible{outline:3px solid #FFD21C;outline-offset:2px}
+/* HUD */
+#hud{position:absolute;z-index:8;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;gap:6px;padding:calc(env(safe-area-inset-top,0px) + 12px) 10px 0 calc(env(safe-area-inset-left,0px) + 60px);pointer-events:none}
+.hud-l,.hud-r{display:flex;gap:6px;align-items:center}
+.hud-r{pointer-events:auto}
+.pill{height:40px;display:flex;align-items:center;gap:6px;padding:0 11px;border-radius:14px;background:rgba(58,33,12,.82);border:2px solid rgba(255,226,160,.45);color:#fff;font:700 17px/1 "Fredoka",sans-serif;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+.pill svg{width:18px;height:18px;flex:none}
+.friends{gap:3px;padding:0 8px}
+.friends i{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.18);border:2px dashed rgba(255,255,255,.45);transition:transform .25s}
+.friends i.on{border:2px solid #fff;transform:scale(1.12)}
+.friends i.on:nth-child(1){background:#3fc9bd}.friends i.on:nth-child(2){background:#ff8fa8}.friends i.on:nth-child(3){background:#ffd23f}
+.icon{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;border:2px solid rgba(255,226,160,.45);background:rgba(58,33,12,.82);color:#fff;cursor:pointer;padding:0;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+.icon svg{width:22px;height:22px}
+.icon:active{transform:scale(.93)}
+/* Tipp-Blase */
+#tip{position:absolute;z-index:7;left:0;right:0;top:38%;margin:0 auto;width:max-content;max-width:calc(100% - 32px);display:flex;align-items:center;gap:12px;padding:12px 20px 12px 14px;border-radius:22px;background:var(--cream);border:4px solid var(--wood);color:var(--ink);font:600 21px/1.2 "Fredoka",sans-serif;box-shadow:0 6px 0 var(--wood2),0 14px 34px rgba(0,0,0,.3);pointer-events:none;transition:opacity .35s,transform .35s}
+#tip b{font-size:42px;line-height:1;animation:wob 1.2s ease-in-out infinite}
+#tip.away{opacity:0;transform:scale(.85)}
+#tip small{display:block;font:700 12px/1 "Barlow";letter-spacing:.06em;text-transform:uppercase;color:#9a6a3c;margin-bottom:3px}
+@keyframes wob{50%{transform:scale(1.15) rotate(-6deg)}}
+/* Joystick */
+#stick{position:absolute;z-index:6;width:124px;height:124px;margin:-62px 0 0 -62px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(255,255,255,.16);box-shadow:0 0 0 2px rgba(0,0,0,.08),inset 0 0 20px rgba(255,255,255,.2);pointer-events:none;opacity:0;transition:opacity .12s}
+#stick.on{opacity:1}
+#knob{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.78);box-shadow:0 4px 12px rgba(0,0,0,.25)}
+/* Bildschirme */
+.screen{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 62px) 14px calc(env(safe-area-inset-bottom,0px) + 14px);overflow:auto;touch-action:pan-y;background:linear-gradient(180deg,rgba(20,40,14,.15),rgba(20,40,14,.6))}
+.card{width:100%;max-width:440px;padding:20px 18px;border-radius:28px;background:var(--cream);border:4px solid var(--wood);box-shadow:0 8px 0 var(--wood2),0 20px 50px rgba(0,0,0,.35);color:var(--ink);text-align:center}
+.logo{margin:0 0 6px;font:700 clamp(36px,11vw,52px)/.95 "Fredoka",sans-serif;color:#3d8f2c;letter-spacing:-.02em;text-shadow:0 3px 0 #fff,0 5px 0 rgba(90,52,22,.35)}
+.logo span{display:block;color:var(--sun2)}
+.lead{margin:6px 0 14px;font:600 17px/1.3 "Fredoka";color:#6b4422}
+.goal{display:flex;justify-content:center;align-items:center;gap:8px;margin:0 0 16px;font-size:30px}
+.goal i{font-style:normal;color:#b07a44;font-size:22px}
+.goal .dots{display:flex;gap:4px}.goal .dots span{width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.challenge{margin:0 0 14px;padding:12px;border-radius:18px;background:#ffe7a6;border:3px dashed var(--sun2);font:600 16px/1.3 "Fredoka"}
+.challenge b{display:block;font-size:24px;color:#a2560a}
+.btns{display:flex;flex-wrap:wrap;justify-content:center;gap:9px}
+.btn{min-height:52px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:18px;border:3px solid var(--wood);background:#fff;color:var(--ink);font:700 18px/1 "Fredoka";cursor:pointer;box-shadow:0 4px 0 var(--wood2);text-decoration:none}
+.btn svg{width:22px;height:22px;flex:none}
+.btn.primary{min-width:180px;background:var(--sun);border-color:#b8650d;box-shadow:0 5px 0 #8f4b07;font-size:22px}
+.btn.green{background:#8fd66a;border-color:#3d8f2c;box-shadow:0 4px 0 #2a6a1e}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--wood2)}
+.btn.sq{width:56px;padding:0}
+.ph{margin:12px 0 0;font-size:11px;color:#a07a55}
+h2{margin:0 0 10px;font:700 30px/1 "Fredoka";color:#3d8f2c}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:0 0 14px}
+.grid button{aspect-ratio:1;display:grid;place-items:center;align-content:center;gap:2px;border-radius:16px;border:3px solid var(--wood);background:#fff;color:var(--ink);font:700 21px/1 "Fredoka";box-shadow:0 3px 0 var(--wood2);cursor:pointer;padding:2px}
+.grid button small{font:700 10px/1 "Barlow";color:#3d8f2c}
+.grid button.done{background:#dff3c9}
+.grid button.next{background:var(--sun);animation:wob 1.6s ease-in-out infinite}
+.grid button:disabled{opacity:.45;background:#eadfca;box-shadow:none}
+.done-friends{display:flex;justify-content:center;gap:10px;margin:4px 0 12px}
+.done-friends span{width:54px;height:54px;border-radius:50%;border:3px solid #fff;box-shadow:0 3px 0 rgba(0,0,0,.2);animation:pop .5s backwards}
+.done-friends span:nth-child(2){animation-delay:.15s}.done-friends span:nth-child(3){animation-delay:.3s}
+@keyframes pop{from{transform:scale(0)}70%{transform:scale(1.2)}}
+.stats{display:flex;justify-content:center;gap:8px;margin:0 0 12px}
+.stat{flex:1;max-width:150px;padding:8px 6px;border-radius:16px;background:#fff;border:2px solid #e2c99e;font:600 13px/1.2 "Barlow";color:#8a6440}
+.stat b{display:flex;justify-content:center;align-items:center;gap:5px;font:700 24px/1.1 "Fredoka";color:var(--ink)}
+.stat b svg{width:20px;height:20px}
+.badge{display:inline-block;margin:0 0 10px;padding:6px 12px;border-radius:999px;background:#3d8f2c;color:#fff;font:700 15px/1 "Fredoka"}
+.result{margin:0 0 12px;padding:10px;border-radius:16px;font:700 18px/1.3 "Fredoka"}
+.result.win{background:#c9f0b0;color:#21641a}.result.lose{background:#ffe0c2;color:#9a4b08}
+.nexttip{margin:0 0 14px;font:600 15px/1.3 "Fredoka";color:#8a6440}
+#toast{position:absolute;z-index:40;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateX(-50%);max-width:90%;padding:12px 18px;border-radius:16px;background:rgba(40,24,8,.92);color:#fff;font:600 16px/1.3 "Fredoka";text-align:center}
+#rotate{position:fixed;inset:0;z-index:2147483001;display:none;place-items:center;align-content:center;gap:12px;background:#24521f;color:#fff;font:700 22px/1.3 "Fredoka";text-align:center;padding:20px}
+#rotate b{font-size:60px;animation:wob 1.4s infinite}
+@media (orientation:landscape) and (pointer:coarse) and (max-height:520px){#rotate{display:grid}}
+@media (max-height:640px){.card{padding:14px}.logo{font-size:34px}.lead{margin-bottom:8px}.goal{margin-bottom:10px}.btn{min-height:46px}.grid{gap:6px}.grid button{font-size:18px;border-radius:12px}}
+@media (max-width:370px){#hud{gap:4px;padding-left:calc(env(safe-area-inset-left,0px) + 58px);padding-right:6px}.hud-l{gap:4px}.pill{height:38px;padding:0 7px;font-size:15px;border-radius:12px}.pill svg{width:15px;height:15px}.friends i{width:15px;height:15px}.icon{width:38px;height:38px}#tip{font-size:18px}#tip b{font-size:34px}}
+[hidden]{display:none!important}
+</style></head><body><a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
+<main class="app" id="app">
+<canvas id="game" aria-label="Dino-Leiterhelden: Spielfeld"></canvas>
+<div id="hud" hidden>
+  <div class="hud-l"><span class="pill" id="lvl" aria-label="Level">1</span><span class="pill friends" id="hudFriends" aria-label="Freunde"><i></i><i></i><i></i></span><span class="pill" aria-label="Zeit"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M12 9v4l2.5 2M9.5 2.5h5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><span id="clock">0</span></span></div>
+  <div class="hud-r"><button class="icon" id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/></svg></button></div>
+</div>
+<div id="tip" hidden><b id="tipIcon"></b><span><small id="tipLevel"></small><span id="tipText"></span></span></div>
+<div id="stick"><div id="knob"></div></div>
+
+<section id="menu" class="screen"><div class="card">
+  <h1 class="logo">Dino-<span>Leiterhelden</span></h1>
+  <p class="lead">Hol deine 3 Freunde ins Baumhaus!</p>
+  <div class="goal" aria-hidden="true">🦖<i>+</i><span class="dots"><span style="background:#3fc9bd"></span><span style="background:#ff8fa8"></span><span style="background:#ffd23f"></span></span><i>→</i>🏠</div>
+  <div id="challengeBox" class="challenge" hidden></div>
+  <div class="btns">
+    <button class="btn primary" id="playBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg><span id="playLabel">Spielen</span></button>
+  </div>
+  <div class="btns" style="margin-top:10px">
+    <button class="btn green" id="levelsBtn" aria-label="Level wählen"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></g></svg>Level</button>
+    <button class="btn sq" id="muteBtn" aria-label="Ton an oder aus"></button>
+  </div>
+  <p class="ph" id="phNote">Vorläufige Grafik · Bilder folgen</p>
+</div></section>
+
+<section id="levels" class="screen" hidden><div class="card">
+  <h2>Level</h2><div class="grid" id="grid"></div>
+  <div class="btns"><button class="btn" id="levelsBack" aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Zurück</button></div>
+</div></section>
+
+<section id="pause" class="screen" hidden><div class="card">
+  <h2>Pause</h2>
+  <div class="btns">
+    <button class="btn primary" id="resumeBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>Weiter</button>
+  </div>
+  <div class="btns" style="margin-top:10px">
+    <button class="btn sq" id="restartBtn" aria-label="Level neu starten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="btn sq" id="muteBtn2" aria-label="Ton an oder aus"></button>
+    <button class="btn sq" id="pauseLevels" aria-label="Level wählen"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></g></svg></button>
+    <a class="btn sq" href="/" aria-label="Zurück zu PlaySaal"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#f39a12"/></svg></a>
+  </div>
+</div></section>
+
+<section id="done" class="screen" hidden><div class="card">
+  <h2 id="doneTitle">Geschafft!</h2>
+  <div class="done-friends" aria-label="Alle 3 Freunde gerettet"><span style="background:#3fc9bd"></span><span style="background:#ff8fa8"></span><span style="background:#ffd23f"></span></div>
+  <div id="record" class="badge" hidden>★ Neue Bestzeit!</div>
+  <div class="stats">
+    <div class="stat"><b><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2.6"/><path d="M12 9v4l2.5 2M9.5 2.5h5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></svg><span id="doneTime"></span></b>Zeit</div>
+    <div class="stat"><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="doneResets"></span></b>Rücksetzer</div>
+  </div>
+  <div id="result" class="result" hidden></div>
+  <p id="nextTip" class="nexttip"></p>
+  <div class="btns"><button class="btn primary" id="nextBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>Weiter</button></div>
+  <div class="btns" style="margin-top:10px">
+    <button class="btn sq" id="retryBtn" aria-label="Nochmal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="btn green" id="shareBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Herausfordern</button>
+    <button class="btn sq" id="doneLevels" aria-label="Level wählen"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></g></svg></button>
+  </div>
+</div></section>
+<div id="toast" role="status" hidden></div>
+</main>
+<div id="rotate"><b>📱</b>Bitte Handy hochkant drehen</div>
+<script type="module" src="./dino-leiterhelden/game.js"></script>
+</body></html>

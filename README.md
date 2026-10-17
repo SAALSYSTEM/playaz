@@ -1,5 +1,7 @@
 # PlaySaal
 
+**Dino-Leiterhelden:** 2D-Kletterspiel im Hochformat für Kinder ab 4: 30 handgebaute Level, drei Dino-Freunde einsammeln und über Leitern ins Baumhaus bringen. Schlafmonster (Frucht bringen), Hebel (versteckte Leiter) und fallende Kokosnüsse (kurzer „Bonk“, zurück zum letzten Leiterende). Schwebender Joystick dort, wo der Finger aufsetzt; Pfeiltasten/WASD am Rechner. Fester 60-Hz-Takt, damit Herausforderungs-Links (`?l=Level&t=Hundertstel&r=Rücksetzer`) überall gleich zählen. Regeln, Level-Prüfung, Löser und Bot: `public/spiele/dino-leiterhelden/engine.js`, Level: `levels.js`, Oberfläche: `game.js`. Bilder kommen nach `dino-leiterhelden/img/` und werden in `game.js` (`IMAGES`) eingetragen; bis dahin zeichnet das Spiel Platzhalter. Test: `node --test tests/dino-leiterhelden-sim.test.mjs`.
+
 **Geisterschloss:** 3D-Halloween-Spiel in Ich-Perspektive mit 20 festen Fluren, Knoblauchwürfen, drei Gegnertypen, Bossfluren, Punkte- und Serienwertung, lokalem Fortschritt und teilbaren Level-Ergebnissen. Regeln in `public/spiele/geisterschloss/engine.js`, Grafik und Steuerung in `game.js`.
 
 **Kristallrausch:** eigenständiges Höhlen-Arcade mit 20 deterministischen und erreichbaren Höhlen, Kristallquote, fallenden und schiebbaren Felsen, Timer, Sternen, Handy-Wisch- und Steuerkreuzbedienung. Engine: `public/spiele/kristallrausch/engine.js`; Oberfläche: `public/spiele/kristallrausch/game.js`; Test: `node --test tests/kristallrausch-sim.test.mjs`.
@@ -40,12 +42,13 @@ node --test tests/schraeglage-sim.test.mjs              # nur SCHRÄGLAGE-Physik
 node --test tests/zahlensturm-sim.test.mjs              # nur ZAHLENSTURM-Rechnen, Tore, Kämpfe und alle 20 Level, ohne Browser (schnell)
 node --test tests/kakerlake-sim.test.mjs                # nur HAU DIE KAKERLAKE!: Level, Logik, Bot-Durchläufe, ohne Browser (schnell)
 node --test tests/sprungsebi-sim.test.mjs           # SPRUNGSEBI: 30 Level, Fortschritt, Teilen-Text und Vorschau
+node --test tests/dino-leiterhelden-sim.test.mjs    # DINO-LEITERHELDEN: 30 Level lösbar (Löser + Bot), Regeln, Spielstand, Herausforderung
 node tools/domain.mjs                                   # Canonical/Sitemap/robots konsistent?
 ```
 
 ## Spielstände
 
-Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Kein Backend, keine Cookies, kein Tracking.
+Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Kein Backend, keine Cookies, kein Tracking.
 `localStorage` hängt an der Adresse: Ein neues Spiel mit eigenem Schlüssel-Präfix muss in `public/assets/umzug.js` (Liste `SPIELE`) eingetragen werden, sonst wird es beim Umzug nicht mitgenommen.
 
 ## Vor dem Livegang

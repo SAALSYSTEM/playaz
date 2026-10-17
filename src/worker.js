@@ -30,6 +30,19 @@ export default {
       const image=m[1]==='start'?renderSebiPreview():renderSebiPreview(Number(m[2]),Number(m[3]));
       return new Response(image,{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=86400','X-Content-Type-Options':'nosniff'}});
     }
+    if(url.pathname==='/spiele/dino-leiterhelden'){
+      // Herausforderungs-Link ?l=Level&t=Hundertstel&r=Rücksetzer: nur Vorschautext anpassen, das Spiel liest die Werte selbst
+      const level=Number(url.searchParams.get('l')),cs=Number(url.searchParams.get('t')),resets=Number(url.searchParams.get('r')??0);
+      if(!Number.isInteger(level)||level<1||level>30||!Number.isInteger(cs)||cs<100||cs>360000||!Number.isInteger(resets)||resets<0||resets>999)return env.ASSETS.fetch(request);
+      const asset=await env.ASSETS.fetch(new Request(new URL('/spiele/dino-leiterhelden',url.origin),request));if(!asset.ok)return asset;
+      let html=await asset.text();const sec=Math.floor(cs/100),time=(sec>=60?Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'):String(sec))+','+String(cs%100).padStart(2,'0')+' s';
+      const title=`Dino-Leiterhelden Level ${level}: ${time} – schaffst du es schneller?`;
+      const description=`Ich habe alle 3 Dino-Freunde in ${time} ins Baumhaus gebracht. Schlag meine Zeit!`;
+      for(const key of ['og:title','twitter:title'])html=replaceMeta(html,key,title);
+      for(const key of ['og:description','twitter:description'])html=replaceMeta(html,key,description);
+      html=replaceMeta(html,'og:url',`${url.origin}/spiele/dino-leiterhelden?l=${level}&amp;t=${cs}&amp;r=${resets}`);
+      const headers=new Headers(asset.headers);headers.set('Content-Type','text/html; charset=utf-8');headers.set('Cache-Control','public, max-age=300');headers.delete('Content-Length');headers.delete('ETag');return new Response(html,{status:200,headers});
+    }
     if(url.pathname==='/spiele/geisterschloss'){
       const level=Number(url.searchParams.get('l')),points=Number(url.searchParams.get('p'));
       if(!Number.isInteger(level)||level<1||level>20||!Number.isInteger(points)||points<0||points>999999)return env.ASSETS.fetch(request);

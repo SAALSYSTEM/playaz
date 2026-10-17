@@ -8,7 +8,7 @@
     "directory": "./public",
     "not_found_handling": "404-page",
     "binding": "ASSETS",
-    "run_worker_first": ["/spiele/blocksaal", "/og/blocksaal/*", "/spiele/sprungsebi", "/spiele/geisterschloss", "/og/sprungsebi/*", "/og/kristallrausch/*"]
+    "run_worker_first": ["/spiele/blocksaal", "/og/blocksaal/*", "/spiele/sprungsebi", "/spiele/geisterschloss", "/spiele/dino-leiterhelden", "/og/sprungsebi/*", "/og/kristallrausch/*"]
   },
   // Ausdrücklich an: Sobald "routes" (z. B. Custom Domain playsaal.com) eingetragen werden,
   // würde Wrangler workers.dev sonst automatisch abschalten – und damit den Spielstand-Umzug unmöglich machen.
