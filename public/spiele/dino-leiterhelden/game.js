@@ -8,11 +8,13 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
 // ---------- Bilder ----------
 // Nur tatsächlich gelieferte Dateien eintragen; alles andere zeichnet der Code als Platzhalter (keine 404-Anfragen).
-const IMAGES = [];
+// Hintergründe lädt das Spiel erst, wenn ein Level sie braucht.
+const IMAGES = ['dino-held', 'freund-tuerkis', 'freund-rosa', 'freund-gelb', 'schlafmonster', 'frucht', 'kokosnuss', 'hebel', 'baumhaus', 'tuer', 'plattform', 'plattform-ende', 'leiter', 'gelaender', 'effekte'];
+const LAZY = ['hintergrund-1', 'hintergrund-2', 'hintergrund-3'];
 const IMG = {};
-for (const f of IMAGES) { const i = new Image(); i.decoding = 'async'; i.src = new URL('img/' + f, import.meta.url).href; IMG[f.replace(/\.\w+$/, '')] = i; }
+function load(k) { if (IMG[k]) return; const i = new Image(); i.decoding = 'async'; i.onload = () => { if (/^(hintergrund|plattform|gelaender)/.test(k)) buildStatic(); }; i.src = new URL('img/' + k + '.webp', import.meta.url).href; IMG[k] = i; }
+IMAGES.forEach(load);
 const pic = (k) => { const i = IMG[k]; return i && i.complete && i.naturalWidth ? i : null; };
-$('phNote').hidden = ['dino-held', 'baumhaus', 'plattform', 'hintergrund-1'].every((k) => IMG[k]);
 
 const FRIEND = [
   { body: '#3fc9bd', belly: '#c9f4ec', dark: '#23968c', sheet: 'freund-tuerkis' },
@@ -265,8 +267,9 @@ function buildStatic() {
   staticCv.width = cv.width; staticCv.height = cv.height;
   const c = staticCv.getContext('2d');
   c.setTransform(1, 0, 0, 1, 0, 0);
-  const bgIdx = Math.min(3, Math.floor((levelNo - 1) / 10) + 1), bg = pic('hintergrund-' + bgIdx) || pic('hintergrund-1');
-  if (bg) { const k = Math.max(cv.width / bg.width, cv.height / bg.height); c.drawImage(bg, (cv.width - bg.width * k) / 2, (cv.height - bg.height * k) / 2, bg.width * k, bg.height * k); world(c); }
+  const bgIdx = Math.min(3, Math.floor((levelNo - 1) / 10) + 1); load(LAZY[bgIdx - 1]);
+  const bg = pic(LAZY[bgIdx - 1]);
+  if (bg) { const k = Math.max(cv.width / bg.width, cv.height / bg.height); c.drawImage(bg, (cv.width - bg.width * k) / 2, (cv.height - bg.height * k) / 2, bg.width * k, bg.height * k); c.fillStyle = bgIdx === 3 ? 'rgba(20,10,50,.18)' : 'rgba(255,250,235,.16)'; c.fillRect(0, 0, cv.width, cv.height); world(c); }
   else { world(c); paintBackdrop(c); }
   for (let f = 0; f < lv.floors.length; f++) for (const [a, b] of lv.floors[f]) paintPlatform(c, a, b, L.ys[f], f);
 }
@@ -296,7 +299,9 @@ function paintPlatform(c, a, b, y, f) {
   if (img) {
     const h = 54, tw = img.width * h / img.height;
     for (let x = a; x < b; x += tw) { const w = Math.min(tw, b - x); c.drawImage(img, 0, 0, img.width * w / tw, img.height, x, y - 12, w, h); }
-    if (end) { c.drawImage(end, a - 30, y - 12, 54, 54); c.save(); c.translate(b + 30, 0); c.scale(-1, 1); c.drawImage(end, 0, y - 12, 54, 54); c.restore(); }
+    if (end) { c.drawImage(end, a - 34, y - 12, 54, 54); c.save(); c.translate(b + 34, 0); c.scale(-1, 1); c.drawImage(end, 0, y - 12, 54, 54); c.restore(); }
+    const fence = pic('gelaender');
+    if (fence) for (const [fx, dir] of [[a, 1], [b, -1]]) { c.save(); c.translate(fx, 0); c.scale(dir, 1); c.drawImage(fence, 0, 0, 100, 64, -4, y - 46, 70, 45); c.restore(); }
     return;
   }
   // Platzhalter: Holzbrett mit Moos, Geländerpfosten an den Enden
@@ -336,7 +341,9 @@ function draw(dt) {
   for (const p of fx) {
     p.vy += 600 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
     const a = 1 - p.life / p.max; ctx.globalAlpha = a; ctx.fillStyle = p.color;
-    if (p.kind === 'heart') heart(p.x, p.y, 10 + p.r);
+    const fxImg = pic('effekte');
+    if (fxImg && (p.kind === 'heart' || p.kind === 'star')) { const z = 26 + p.r * 2; ctx.drawImage(fxImg, (p.kind === 'heart' ? 2 : 3) * 128, 0, 128, 128, p.x - z / 2, p.y - z / 2, z, z); }
+    else if (p.kind === 'heart') heart(p.x, p.y, 10 + p.r);
     else if (p.kind === 'star') star(p.x, p.y, 9 + p.r, p.life * 6);
     else if (p.kind === 'conf') { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.life * 9 + p.r); ctx.fillRect(-7, -4, 14, 8); ctx.restore(); }
     else { ctx.beginPath(); ctx.arc(p.x, p.y, 5 + p.r / 2, 0, Math.PI * 2); ctx.fill(); }
@@ -380,11 +387,11 @@ function drawFruit(x, y, s) {
   ctx.strokeStyle = '#6b3d17'; ctx.lineWidth = 3 * s; ctx.beginPath(); ctx.moveTo(x, y - 18 * s); ctx.lineTo(x + 2 * s, y - 26 * s); ctx.stroke();
 }
 function drawNut(n, t) {
-  const y = L.ys[n.f], hy = y - Math.min(L.gap - 60, 230), ph = nutPhase(n, st.clock), P = n.period, img = pic('kokosnuss');
+  const y = L.ys[n.f], hy = y - L.gap + 76, ph = nutPhase(n, st.clock), P = n.period, img = pic('kokosnuss');
   const ball = (x, yy, r = 22) => { if (img) ctx.drawImage(img, x - r * 1.35, yy - r * 1.35, r * 2.7, r * 2.7); else { ctx.fillStyle = '#7a4a24'; ctx.strokeStyle = '#fff1cf'; ctx.lineWidth = 5; ctx.beginPath(); ctx.arc(x, yy, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#a36a39'; ctx.beginPath(); ctx.arc(x - 6, yy - 7, 7, 0, Math.PI * 2); ctx.fill(); } };
-  // Ast mit Blättern
-  ctx.strokeStyle = '#6b3d17'; ctx.lineWidth = 10; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(n.x - 60, hy - 30); ctx.quadraticCurveTo(n.x, hy - 10, n.x + 50, hy - 34); ctx.stroke();
-  ctx.fillStyle = '#4fae45'; for (const dx of [-52, 46]) { ctx.beginPath(); ctx.ellipse(n.x + dx, hy - 40, 26, 11, dx < 0 ? 0.4 : -0.4, 0, Math.PI * 2); ctx.fill(); }
+  // Nuss hängt an einer kurzen Ranke unter der Plattform darüber
+  ctx.strokeStyle = '#3f8f2e'; ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(n.x, hy - 46); ctx.quadraticCurveTo(n.x + 8, hy - 34, n.x, hy - 20); ctx.stroke();
+  ctx.fillStyle = '#5cbf3c'; ctx.beginPath(); ctx.ellipse(n.x + 10, hy - 36, 10, 5, -0.5, 0, Math.PI * 2); ctx.fill();
   const warnStart = P - C.warn, fallStart = P - C.fall;
   if (ph >= warnStart) { const q = (ph - warnStart) / C.warn; ctx.fillStyle = `rgba(40,20,0,${0.15 + q * 0.35})`; ctx.beginPath(); ctx.ellipse(n.x, y - 2, 14 + q * 34, 5 + q * 6, 0, 0, Math.PI * 2); ctx.fill(); }
   if (ph >= fallStart) { const q = (ph - fallStart) / C.fall; ball(n.x, hy + (y - 22 - hy) * q * q); }
@@ -397,7 +404,7 @@ function drawMonster(m, i, t) {
   const x = m.x + (fed ? (fedSide[i] || 1) * 70 * q : 0), bumped = !fed && t - (bump[i] ?? -9) < 1.6, s = 1 - 0.15 * q;
   const img = pic('schlafmonster');
   ctx.save(); ctx.translate(x + (bumped && t - bump[i] < 0.4 ? Math.sin(t * 50) * 4 : 0), y); ctx.scale(s, s * (fed ? 1 : 1 + Math.sin(t * 2) * 0.03));
-  if (img) { const fw = img.width / 4, fr = fed ? 3 : bumped ? 2 : Math.floor(t * 1.2) % 2; ctx.drawImage(img, fr * fw, 0, fw, img.height, -115, -150, 230, 153); }
+  if (img) { const fw = img.width / 4, fr = fed ? 3 : bumped ? 2 : Math.floor(t * 1.2) % 2; ctx.drawImage(img, fr * fw, 0, fw, img.height, -130, -173 * 240 / 256, 260, 173); }
   else {
     ctx.fillStyle = 'rgba(0,0,0,.15)'; ctx.beginPath(); ctx.ellipse(0, 2, 100, 12, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = '#a57ee6'; ctx.beginPath(); ctx.ellipse(10, -50, 98, 50, 0, 0, Math.PI * 2); ctx.fill();
@@ -425,7 +432,7 @@ function drawMonster(m, i, t) {
 }
 function drawHouse(t, f) {
   const y = L.ys[f], dx = lv.door.x, hx = clamp(dx, 175, 725), open = gotAll(st), img = pic('baumhaus');
-  if (img) ctx.drawImage(img, hx - 170, y - 255, 340, 255);
+  if (img) { const k = 380 / 640; ctx.save(); ctx.beginPath(); ctx.rect(dx - 200, y - 300, 400, 304); ctx.clip(); ctx.drawImage(img, dx - 320 * k, y - 388 * k, 640 * k, 480 * k); ctx.restore(); }
   else {
     ctx.fillStyle = '#b77a3f'; rr(ctx, hx - 150, y - 200, 300, 200, 14); ctx.fill();
     ctx.strokeStyle = 'rgba(90,50,20,.4)'; ctx.lineWidth = 3; for (let yy = y - 170; yy < y; yy += 32) { ctx.beginPath(); ctx.moveTo(hx - 148, yy); ctx.lineTo(hx + 148, yy); ctx.stroke(); }
@@ -436,18 +443,20 @@ function drawHouse(t, f) {
   }
   // Tür
   const shake = t - lockedAt < 0.6 ? Math.sin(t * 60) * 5 : 0, doorImg = pic('tuer');
-  if (doorImg) { const fw = doorImg.width / 2; ctx.drawImage(doorImg, open ? fw : 0, 0, fw, doorImg.height, dx - 45 + shake, y - 126, 90, 126); }
+  if (doorImg) { const fw = doorImg.width / 2, w = 84, h = w * doorImg.height / fw; ctx.drawImage(doorImg, open ? fw : 0, 0, fw, doorImg.height, dx - w / 2 + shake, y - h + 3, w, h); }
   else {
     ctx.fillStyle = open ? '#ffd56a' : '#6b3d17'; rr(ctx, dx - 44 + shake, y - 124, 88, 124, 40); ctx.fill();
     if (open) { const g = ctx.createRadialGradient(dx, y - 60, 5, dx, y - 60, 90); g.addColorStop(0, 'rgba(255,240,170,.9)'); g.addColorStop(1, 'rgba(255,200,80,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(dx, y - 60, 90, 0, Math.PI * 2); ctx.fill(); }
     else { ctx.fillStyle = '#8a5326'; rr(ctx, dx - 34 + shake, y - 112, 68, 108, 30); ctx.fill(); ctx.fillStyle = '#ffcf4a'; ctx.beginPath(); ctx.arc(dx + 22 + shake, y - 56, 6, 0, Math.PI * 2); ctx.fill(); }
   }
   // Plätze für die drei Freunde über der Tür
+  const sy = pic('baumhaus') ? y - 252 : y - 150;
+  if (pic('baumhaus')) { ctx.fillStyle = 'rgba(70,38,14,.9)'; rr(ctx, dx - 56, sy - 20, 112, 40, 20); ctx.fill(); ctx.strokeStyle = '#d9a35f'; ctx.lineWidth = 3; ctx.stroke(); }
   for (let k = 0; k < 3; k++) {
-    const cx = dx - 34 + k * 34, cy = y - 150, on = st.got[k];
+    const cx = dx - 32 + k * 32, cy = sy, on = st.got[k];
     ctx.fillStyle = on ? FRIEND[k].body : 'rgba(255,255,255,.35)'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
     if (!on) ctx.setLineDash([5, 4]);
-    ctx.beginPath(); ctx.arc(cx, cy, 13 * (t - lockedAt < 0.6 && !on ? 1.25 : 1), 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(cx, cy, 12 * (t - lockedAt < 0.6 && !on ? 1.25 : 1), 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
   }
 }
 function drawFlag(x, y, t) { ctx.strokeStyle = '#6b3d17'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - 80); ctx.stroke(); ctx.fillStyle = '#ffcf4a'; ctx.beginPath(); ctx.moveTo(x, y - 80); ctx.lineTo(x + 40, y - 70 + Math.sin(t * 8) * 4); ctx.lineTo(x, y - 58); ctx.fill(); }
@@ -462,13 +471,13 @@ function drawHero(t) {
   if (st.carry >= 0 && !p.climb) drawFruit(p.x, p.y - 150 + Math.sin(t * 6) * 3, 0.95);
   else if (st.carry >= 0) drawFruit(p.x + 34, p.y - 70, 0.8);
   if (stun) { ctx.font = '700 34px Fredoka, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#5a3416'; ctx.strokeText('Bonk!', p.x, p.y - 175); ctx.fillStyle = '#fff'; ctx.fillText('Bonk!', p.x, p.y - 175); }
-  if (stun) for (let k = 0; k < 3; k++) { const a = t * 6 + k * 2.1; ctx.fillStyle = '#ffe14d'; star(p.x + Math.cos(a) * 40, p.y - 140 + Math.sin(a) * 12, 10, a); }
+  if (stun && !pic('dino-held')) for (let k = 0; k < 3; k++) { const a = t * 6 + k * 2.1; ctx.fillStyle = '#ffe14d'; star(p.x + Math.cos(a) * 40, p.y - 140 + Math.sin(a) * 12, 10, a); }
   ctx.globalAlpha = 1;
 }
 function drawWaiting(i, t) {
   const o = lv.friends[i], y = L.ys[o.f];
   dino(o.x, y, { c: FRIEND[i], face: st.x < o.x && st.f === o.f ? -1 : 1, pose: 'wave', ph: t + i, s: 0.72 });
-  ctx.globalAlpha = 0.85 + Math.sin(t * 4 + i) * 0.15; ctx.fillStyle = '#ff6f91'; heart(o.x, y - 128 + Math.sin(t * 3 + i) * 6, 14); ctx.globalAlpha = 1;
+  ctx.globalAlpha = 0.85 + Math.sin(t * 4 + i) * 0.15; const hy = y - 140 + Math.sin(t * 3 + i) * 6, fxi = pic('effekte'); if (fxi) ctx.drawImage(fxi, 256, 0, 128, 128, o.x - 15, hy - 15, 30, 30); else { ctx.fillStyle = '#ff6f91'; heart(o.x, hy, 14); } ctx.globalAlpha = 1;
 }
 function drawFollower(i, k, t) {
   const idx = trail.length - 1 - (k + 1) * 11, p = trail[Math.max(0, idx)] || playerPos();
@@ -488,8 +497,8 @@ function dino(x, y, o) {
   const img = pic(o.c.sheet);
   if (img) {
     const hero = o.c === HERO, cols = hero ? 8 : 4, cell = img.width / cols, list = FRAMES[hero ? 'hero' : 'friend'][o.pose] || [0];
-    const speed = o.pose === 'walk' ? 10 : o.pose === 'climb' ? 1 : 2.5, f = list[Math.floor(Math.abs(o.ph) * speed) % list.length];
-    const size = 160 * (hero ? 1 : 1 / 0.72) * o.s, foot = size * 240 / 256;
+    const speed = o.pose === 'walk' ? (hero ? 10 : 6) : o.pose === 'climb' ? 1 : 2.5, f = list[Math.floor(Math.abs(o.ph) * speed) % list.length];
+    const size = 196 * (hero ? 1 : 1 / 0.72) * o.s, foot = size * 240 / 256;
     ctx.save(); ctx.translate(x, y); if (o.face < 0 && o.pose !== 'climb') ctx.scale(-1, 1);
     ctx.drawImage(img, (f % cols) * cell, Math.floor(f / cols) * cell, cell, cell, -size / 2, -foot, size, size); ctx.restore(); return;
   }
