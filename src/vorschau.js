@@ -49,23 +49,6 @@ export function renderPreview(lines=null){
   return join([Uint8Array.from([137,80,78,71,13,10,26,10]),chunk('IHDR',Uint8Array.from([...be(W),...be(H),8,3,0,0,0])),chunk('PLTE',plte),chunk('IDAT',deflate(raw)),chunk('IEND',new Uint8Array())]);
 }
 
-export function renderBauPreview(score=null){
-  const px=new Uint8Array(W*H);px.fill(0);
-  function rect(x,y,w,h,color){for(let yy=Math.max(0,Math.floor(y));yy<Math.min(H,y+h);yy++)px.fill(color,yy*W+Math.max(0,Math.floor(x)),yy*W+Math.min(W,x+w));}
-  function write(str,x,y,scale,color){let xx=x;for(const ch of str){const g=font[ch]||font[' '];for(let row=0;row<7;row++)for(let col=0;col<5;col++)if(g[row][col]==='1')rect(xx+col*scale,y+row*scale,scale,scale,color);xx+=6*scale;}}
-  function poly(points,color){const minY=Math.max(0,Math.floor(Math.min(...points.map(p=>p[1])))),maxY=Math.min(H,Math.ceil(Math.max(...points.map(p=>p[1]))));for(let y=minY;y<maxY;y++){const xs=[];for(let i=0;i<points.length;i++){const a=points[i],b=points[(i+1)%points.length];if((a[1]<=y&&b[1]>y)||(b[1]<=y&&a[1]>y))xs.push(a[0]+(y-a[1])/(b[1]-a[1])*(b[0]-a[0]));}xs.sort((a,b)=>a-b);for(let i=0;i<xs.length;i+=2)rect(Math.floor(xs[i]),y,Math.ceil(xs[i+1]-xs[i]),1,color);}}
-  rect(0,0,W,12,4);rect(45,42,1110,546,1);rect(72,68,1056,494,0);
-  const p=(x,y,z)=>[310+(x-y)*34,260+(x+y)*17-z*33];
-  poly([p(0,0,0),p(5,0,0),p(5,0,5),p(0,0,5)],2);poly([p(0,0,0),p(0,5,0),p(0,5,5),p(0,0,5)],1);
-  for(let x=0;x<5;x++)for(let y=0;y<5;y++){const h=1+(x*3+y)%4;for(let z=0;z<h;z++){poly([p(x,y,z),p(x+1,y,z),p(x+1,y,z+1),p(x,y,z+1)],2);poly([p(x+1,y,z),p(x+1,y+1,z),p(x+1,y+1,z+1),p(x+1,y,z+1)],1);poly([p(x,y,z+1),p(x+1,y,z+1),p(x+1,y+1,z+1),p(x,y+1,z+1)],3);}}
-  rect(100,85,15,360,5);rect(100,85,400,13,4);rect(388,98,3,62,3);rect(375,155,28,24,4);
-  write('BAU',625,95,15,3);write('SAAL',625,215,15,4);
-  write(score===null?'WIE VIEL PASST?':String(score)+' PUNKTE',590,365,score!==null&&score>999?6:5,3);
-  write('SCHAFFST DU MEHR?',590,475,5,4);
-  const raw=new Uint8Array(H*(W+1));for(let y=0;y<H;y++)raw.set(px.subarray(y*W,(y+1)*W),y*(W+1)+1);
-  return join([Uint8Array.from([137,80,78,71,13,10,26,10]),chunk('IHDR',Uint8Array.from([...be(W),...be(H),8,3,0,0,0])),chunk('PLTE',Uint8Array.from(palette.flat())),chunk('IDAT',deflate(raw)),chunk('IEND',new Uint8Array())]);
-}
-
 export function renderSebiPreview(level=null,stars=0){
   const px=new Uint8Array(W*H);px.fill(0);
   function rect(x,y,w,h,color){for(let yy=Math.max(0,Math.floor(y));yy<Math.min(H,y+h);yy++)px.fill(color,yy*W+Math.max(0,Math.floor(x)),yy*W+Math.min(W,x+w));}

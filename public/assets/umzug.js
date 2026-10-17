@@ -42,8 +42,6 @@
       info: (g) => { const d = J(g['kakerlake.v1']) || {}; const st = Object.values(d.stars || {}).reduce((a, b) => a + (Number(b) || 0), 0); const lv = Object.keys(d.stars || {}).length; return { text: lv + ' von 30 Level · ' + st + ' ★', wert: st * 1000 + lv * 100 + ((d.endless && d.endless.score) || 0) / 1000 }; } },
     { id: 'blocksaal', name: 'BlockSaal', prefix: 'blocksaal.', haupt: ['blocksaal.v1'],
       info: (g) => { const d = J(g['blocksaal.v1']) || {}; return { text: zahl(d.lines) + ' Reihen · ' + zahl(d.score) + ' Punkte', wert: Number(d.score) || 0 }; } },
-    { id: 'bausaal', name: 'BauSaal', prefix: 'bausaal.', haupt: ['bausaal.v1'],
-      info: (g) => { const d = J(g['bausaal.v1']) || {}; const top = Math.max(0, ...Object.values(d).map(v => Number(v && v.score) || 0)); return { text: zahl(top) + ' Punkte', wert: top }; } },
     { id: 'sprungsebi', name: 'SprungSebi', prefix: 'sprungssebi.', haupt: ['sprungssebi.v1'],
       info: (g) => { const d = J(g['sprungssebi.v1']) || {}; const lv = Object.values(d.levels || {}).filter((x) => x && x.time).length; const st = Object.values(d.levels || {}).reduce((a, x) => a + ((x && x.stars) || 0), 0); return { text: lv + ' von 30 Level · ' + st + ' Sterne', wert: lv * 1000 + st * 10 }; } },
     { id: 'stellwerk', name: 'Stellwerk', prefix: 'stellwerk.', haupt: ['stellwerk.v1'],
