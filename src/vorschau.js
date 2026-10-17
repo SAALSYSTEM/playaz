@@ -88,3 +88,95 @@ export function renderSebiPreview(level=null,stars=0){
   const raw=new Uint8Array(H*(W+1));for(let y=0;y<H;y++)raw.set(px.subarray(y*W,(y+1)*W),y*(W+1)+1);
   return join([Uint8Array.from([137,80,78,71,13,10,26,10]),chunk('IHDR',Uint8Array.from([...be(W),...be(H),8,3,0,0,0])),chunk('PLTE',Uint8Array.from(palette.flat())),chunk('IDAT',deflate(raw)),chunk('IEND',new Uint8Array())]);
 }
+
+
+/** Social sharing card for Kristallrausch. Native indexed PNG, no external fonts or CDN. */
+export function renderKristallPreview(){
+  const pal=[...palette,[39,213,222],[184,255,255],[125,83,58],[156,110,74],[70,87,105],[17,48,68],[255,230,113],[59,149,175],[31,40,53]];
+  const px=new Uint8Array(W*H);px.fill(0);
+  function rect(x,y,w,h,color){
+    const x0=Math.max(0,Math.floor(x)),x1=Math.min(W,Math.ceil(x+w));
+    for(let yy=Math.max(0,Math.floor(y));yy<Math.min(H,Math.ceil(y+h));yy++)px.fill(color,yy*W+x0,yy*W+x1);
+  }
+  function poly(points,color){
+    const min=Math.max(0,Math.floor(Math.min(...points.map(p=>p[1]))));
+    const max=Math.min(H,Math.ceil(Math.max(...points.map(p=>p[1]))));
+    for(let y=min;y<max;y++){
+      const xs=[];
+      for(let i=0;i<points.length;i++){
+        const a=points[i],b=points[(i+1)%points.length];
+        if((a[1]<=y&&b[1]>y)||(b[1]<=y&&a[1]>y))xs.push(a[0]+(y-a[1])/(b[1]-a[1])*(b[0]-a[0]));
+      }
+      xs.sort((a,b)=>a-b);
+      for(let i=0;i+1<xs.length;i+=2)rect(xs[i],y,xs[i+1]-xs[i],1,color);
+    }
+  }
+  function write(str,x,y,scale,color){
+    let xx=x;
+    for(const ch of str){
+      const glyph=font[ch]||font[' '];
+      for(let row=0;row<7;row++)for(let col=0;col<5;col++)
+        if(glyph[row][col]==='1')rect(xx+col*scale,y+row*scale,scale,scale,color);
+      xx+=6*scale;
+    }
+  }
+  function center(str,y,scale,color){
+    write(str,Math.round((W-(str.length*6-1)*scale)/2),y,scale,color);
+  }
+  function gem(x,y,size){
+    poly([[x,y-size],[x+size*.7,y-size*.2],[x+size*.5,y+size],[x,y+size*1.3],[x-size*.6,y+size*.4],[x-size*.7,y-size*.2]],9);
+    poly([[x,y-size],[x+size*.7,y-size*.2],[x,y+size*.18],[x-size*.7,y-size*.2]],10);
+    poly([[x,y+size*.18],[x+size*.5,y+size],[x,y+size*1.3]],15);
+    rect(x-size*.15,y-size*.64,size*.3,size*.2,3);
+  }
+  function rock(x,y,size){
+    poly([[x-size,y-size*.2],[x-size*.65,y-size*.9],[x+size*.35,y-size],[x+size,y-size*.3],[x+size*.95,y+size*.72],[x-size*.65,y+size]],13);
+    poly([[x-size,y-size*.2],[x-size*.65,y-size*.9],[x+size*.35,y-size],[x+size*.05,y-size*.15]],2);
+    rect(x-size*.55,y-size*.52,size*.4,size*.15,10);
+  }
+  // Brand colors, illuminated cave and pixel-cut rock formations.
+  rect(0,0,1200,630,0);
+  rect(0,0,1200,12,5);
+  rect(0,260,1200,370,14);
+  for(let y=268;y<572;y+=56)for(let x=22;x<1200;x+=58){
+    const r=(x*17+y*13)%17;
+    if(r>7){rect(x,y,54,52,r>12?11:12);rect(x,y,54,6,12);rect(x+8,y+23,5,5,3);}
+    else if(r<3){rect(x,y,55,53,13);rect(x+5,y+5,45,6,2);}
+  }
+  rect(45,275,1110,280,14);
+  // Decorative cave platforms, crystals and boulders.
+  for(let x=70;x<=1100;x+=64){
+    if(x<395||x>845){rect(x,475,58,54,11);rect(x,475,58,8,12);}
+  }
+  for(let y=325;y<475;y+=60){
+    for(const x of [90,154,1000,1064]){
+      rect(x,y,58,54,11);rect(x,y,58,7,12);
+    }
+  }
+  gem(290,399,48);gem(875,380,53);gem(740,484,33);gem(185,472,28);
+  rock(388,448,45);rock(967,489,38);
+  // Explorer wearing yellow mining helmet; kept distinct from retro reference artwork.
+  rect(550,455,105,85,5);rect(554,448,97,23,4); // shirt and belt
+  rect(571,520,30,44,13);rect(608,520,30,44,13);
+  rect(554,543,48,17,2);rect(612,543,48,17,2);
+  rect(563,374,88,92,15); // face
+  rect(553,345,108,47,4);rect(541,383,129,15,5);
+  rect(573,343,72,23,3);rect(592,332,32,30,3);rect(602,340,12,12,10);
+  rect(584,419,10,13,17);rect(624,419,10,13,17);
+  rect(600,446,18,8,12);
+  // Title and punchy caption use existing self-contained bitmap font.
+  rect(45,44,1110,194,1);
+  center('KRISTALLRAUSCH',70,12,3);
+  center('20 LEVEL',180,9,4);
+  rect(0,566,1200,64,1);
+  center('GRABEN  SAMMELN  ENTKOMMEN',582,5,3);
+  const raw=new Uint8Array(H*(W+1));
+  for(let y=0;y<H;y++)raw.set(px.subarray(y*W,(y+1)*W),y*(W+1)+1);
+  return join([
+    Uint8Array.from([137,80,78,71,13,10,26,10]),
+    chunk('IHDR',Uint8Array.from([...be(W),...be(H),8,3,0,0,0])),
+    chunk('PLTE',Uint8Array.from(pal.flat())),
+    chunk('IDAT',deflate(raw)),
+    chunk('IEND',new Uint8Array())
+  ]);
+}
