@@ -1,6 +1,8 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {WIDTH,HEIGHT,LEVEL_COUNT,TILE,makeLevel,createGame,move,tick,recordWin,starsFor,freshSave,sanitizeSave} from '../public/spiele/kristallrausch/engine.js';
+import {readFileSync} from 'node:fs';
+import {renderKristallPreview} from '../src/vorschau.js';
+import {WIDTH,HEIGHT,LEVEL_COUNT,TILE,makeLevel,createGame,move,tick,recordWin,starsFor,freshSave,sanitizeSave,cameraOrigin} from '../public/spiele/kristallrausch/engine.js';
 test('20 deterministic, safe-start caves with enough gems and an accessible exit',()=>{
   assert.equal(LEVEL_COUNT,20);
   for(let i=1;i<=LEVEL_COUNT;i++){
@@ -71,4 +73,36 @@ test('malformed saves are clamped and cannot unlock nonexisting caves',()=>{
   assert.equal(s.unlocked,LEVEL_COUNT);
   assert.equal(s.best,0);
   assert.deepEqual(s.levels[1],{score:0,stars:3});
+});
+
+test('mobile camera stays within the cave and includes the player',()=>{
+  for(const columns of [10,18])for(const rows of [12,14])for(let y=0;y<HEIGHT;y++)for(let x=0;x<WIDTH;x++){
+    const v=cameraOrigin({x,y},columns,rows);
+    assert.ok(v.x>=0&&v.y>=0);
+    assert.ok(v.x+v.columns<=WIDTH&&v.y+v.rows<=HEIGHT);
+    assert.ok(x>=v.x&&x<v.x+v.columns,'x '+x);
+    assert.ok(y>=v.y&&y<v.y+v.rows,'y '+y);
+  }
+  assert.deepEqual(cameraOrigin({x:1,y:1},10,12),{x:0,y:0,columns:10,rows:12});
+  assert.deepEqual(cameraOrigin({x:16,y:12},10,12),{x:8,y:2,columns:10,rows:12});
+});
+test('social preview is a correctly sized 1200x630 PNG',()=>{
+  const image=renderKristallPreview();
+  assert.deepEqual(Array.from(image.subarray(0,8)),[137,80,78,71,13,10,26,10]);
+  const dimensions=new DataView(image.buffer,image.byteOffset,image.byteLength);
+  assert.equal(dimensions.getUint32(16),1200);
+  assert.equal(dimensions.getUint32(20),630);
+  assert.ok(image.byteLength>10000);
+});
+test('the share endpoint, structured data and mobile controls are wired',()=>{
+  const html=readFileSync(new URL('../public/spiele/kristallrausch.html',import.meta.url),'utf8');
+  const game=readFileSync(new URL('../public/spiele/kristallrausch/game.js',import.meta.url),'utf8');
+  const worker=readFileSync(new URL('../src/worker.js',import.meta.url),'utf8');
+  assert.match(html,/application\/ld\+json/);
+  assert.match(html,/og\/kristallrausch\/start\.png/);
+  assert.match(html,/id="map"/);
+  assert.match(html,/id="share"/);
+  assert.match(game,/navigator\.share\(data\)/);
+  assert.match(game,/viewCols=zoomed\?10:WIDTH/);
+  assert.match(worker,/renderKristallPreview\(\)/);
 });
