@@ -1,10 +1,44 @@
-import {WIDTH,HEIGHT,LEVEL_COUNT,TILE,createGame,move,tick,progress,freshSave,sanitizeSave,recordWin,starsFor} from './engine.js';
+import {WIDTH,HEIGHT,LEVEL_COUNT,TILE,createGame,move,tick,progress,freshSave,sanitizeSave,recordWin,starsFor,cameraOrigin} from './engine.js';
 const $=s=>document.querySelector(s),canvas=$('#board'),ctx=canvas.getContext('2d'),CELL=40;
 const KEY='kristallrausch.v1';
 let save=freshSave();
 try{save=sanitizeSave(JSON.parse(localStorage.getItem(KEY)));}catch{}
 let g=createGame(1),running=false,sound=false,audio=null,mode='intro',lastMove=0,gesture=null,holdTimer=null;
 let toast='Sammle Kristalle!',toastUntil=0;
+const mobileQuery=window.matchMedia('(max-width: 790px)');
+const SHARE_URL='https://playsaal.com/spiele/kristallrausch';
+let overview=false,viewCols=WIDTH,viewRows=HEIGHT,cameraX=0,cameraY=0;
+function configureBoard() {
+  const zoomed=mobileQuery.matches&&!overview;
+  viewCols=zoomed?10:WIDTH;
+  viewRows=zoomed?12:HEIGHT;
+  canvas.width=viewCols*CELL;
+  canvas.height=viewRows*CELL;
+  const start=cameraOrigin(g.player,viewCols,viewRows);
+  cameraX=start.x;cameraY=start.y;
+  $('#map').hidden=!mobileQuery.matches;
+  $('#map').textContent=overview?'⊕ Vergrößern':'▦ Gesamtkarte';
+  $('#map').setAttribute('aria-pressed',String(overview));
+  $('#map').setAttribute('aria-label',overview?'Höhle vergrößern':'Gesamte Höhle anzeigen');
+}
+mobileQuery.addEventListener?.('change',configureBoard);
+window.addEventListener('resize',configureBoard);
+function shareText(){
+  const count=Object.keys(save.levels).length;
+  return count?'Ich habe '+count+' von 20 Höhlen in Kristallrausch geschafft! 💎 Schaffst du mehr?':'💎 Kristallrausch auf PlaySaal: 20 Höhlen, Kristalle und fallende Felsen. Spiel kostenlos mit!';
+}
+async function shareGame(){
+  const data={title:'Kristallrausch · PlaySaal',text:shareText(),url:SHARE_URL};
+  if(navigator.share){
+    try{await navigator.share(data);return;}catch(e){if(e?.name==='AbortError')return;}
+  }
+  try{
+    await navigator.clipboard.writeText(SHARE_URL);
+    notify('Spiel-Link kopiert! Jetzt teilen.');
+  }catch{
+    window.prompt('Link zum Kopieren:',SHARE_URL);
+  }
+}
 const notify=(s)=>{toast=s;toastUntil=performance.now()+1700;$('#notice').textContent=s;};
 function persist(){try{localStorage.setItem(KEY,JSON.stringify(save));}catch{}}
 function beep(kind){
@@ -50,7 +84,7 @@ function showOverlay(kind){
     kicker.textContent='Kurze Pause';title.textContent='Verschnaufpause';
     description.textContent='Die Zeit und alle Felsen stehen still. Dein aktueller Versuch bleibt erhalten.';
     primary.textContent='Weiterspielen';primary.onclick=hideOverlay;
-    secondary.hidden=false;secondary.textContent='Höhle neu starten';secondary.onclick=()=>start(g.number);
+    secondary.hidden=false;secondary.textContent='Höhle wählen';secondary.onclick=()=>showOverlay('intro');
   } else if(kind==='won'){
     kicker.textContent='Höhle geschafft!';title.textContent='Kristall-Profi! 💎';
     const stars=starsFor(g);
@@ -66,7 +100,7 @@ function showOverlay(kind){
     beep('dead');
   }
 }
-function start(level){try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'kristallrausch'}));}catch{}g=createGame(level);toastUntil=0;notify('Viel Erfolg in Höhle '+level+'!');hideOverlay();}
+function start(level){try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'kristallrausch'}));}catch{}g=createGame(level);configureBoard();toastUntil=0;notify('Viel Erfolg in Höhle '+level+'!');hideOverlay();}
 function act(dx,dy){
   if(!running||g.status!=='playing')return;
   const now=performance.now();if(now-lastMove<83)return;lastMove=now;
@@ -110,6 +144,8 @@ canvas.addEventListener('pointerup',e=>{
   gesture=null;
 });
 canvas.addEventListener('pointercancel',()=>gesture=null);
+$('#map').onclick=()=>{overview=!overview;configureBoard();};
+$('#share').onclick=shareGame;
 $('#pause').onclick=()=>running?showOverlay('pause'):mode==='pause'?hideOverlay():showOverlay('intro');
 $('#restart').onclick=()=>start(g.number);
 $('#sound').onclick=()=>{
@@ -158,8 +194,12 @@ function miner(t){
 }
 function draw(timestamp){
   const t=timestamp*.001;
-  ctx.clearRect(0,0,720,560);
-  ctx.fillStyle='#0b1b28';ctx.fillRect(0,0,720,560);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#0b1b28';ctx.fillRect(0,0,canvas.width,canvas.height);
+  const target=cameraOrigin(g.player,viewCols,viewRows);
+  cameraX+=(target.x-cameraX)*.22;
+  cameraY+=(target.y-cameraY)*.22;
+  ctx.save();ctx.translate(-cameraX*CELL,-cameraY*CELL);
   for(let y=0;y<HEIGHT;y++)for(let x=0;x<WIDTH;x++){
     const px=x*CELL,py=y*CELL,v=g.grid[y][x],r=rnd(x,y);
     ctx.fillStyle=(x+y)%2?'#10202b':'#0d1b27';ctx.fillRect(px,py,40,40);
@@ -191,8 +231,10 @@ function draw(timestamp){
     const ex=g.exit.x*CELL+20,ey=g.exit.y*CELL+20;
     ctx.strokeStyle='#ffe56b';ctx.lineWidth=2+Math.sin(t*5);ctx.globalAlpha=.4+.3*Math.sin(t*3)**2;ctx.beginPath();ctx.arc(ex,ey,24+Math.sin(t*3)*2,0,6.283);ctx.stroke();ctx.globalAlpha=1;
   }
+  ctx.restore();
   requestAnimationFrame(draw);
 }
+configureBoard();
 requestAnimationFrame(draw);
 showOverlay('intro');
 sync();
