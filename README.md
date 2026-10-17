@@ -1,5 +1,7 @@
 # PlaySaal
 
+**Turmschicht:** Retro-Arcade für Erwachsene im Hochformat (Pixelgrafik): aus einem Stahlturm ausbrechen, Hebel schalten Leitern zwischen zwei festen Stellen um (gestrichelt = Zielposition), Patrouillen und Jäger mit „!“-Ankündigung und Wegsuche über nutzbare Leitern, 3 Herzen, Rückstoß und 1,5 s Schutz. Zwei Bestzeit-Modi (Schneller Ausbruch / Perfekter Lauf mit allen 3 Sternen), Herausforderung per Link `?l=Level&m=s|p&t=Hundertstel`. Regeln, Löser und Bot: `public/spiele/turmschicht/engine.js`; Level 1–6 von Hand (`tools/turmschicht-tutorial.mjs`), 7–30 vom Generator `tools/turmschicht-levels.mjs` geprüft und fest in `levels.js` gespeichert; Oberfläche `game.js`. Test: `node --test tests/turmschicht-sim.test.mjs`.
+
 **Dino-Leiterhelden:** 2D-Kletterspiel im Hochformat für Kinder ab 4: 30 handgebaute Level, drei Dino-Freunde einsammeln und über Leitern ins Baumhaus bringen. Schlafmonster (Frucht bringen), Hebel (versteckte Leiter) und fallende Kokosnüsse (kurzer „Bonk“, zurück zum letzten Leiterende). Schwebender Joystick dort, wo der Finger aufsetzt; Pfeiltasten/WASD am Rechner. Fester 60-Hz-Takt, damit Herausforderungs-Links (`?l=Level&t=Hundertstel&r=Rücksetzer`) überall gleich zählen. Regeln, Level-Prüfung, Löser und Bot: `public/spiele/dino-leiterhelden/engine.js`, Level: `levels.js`, Oberfläche: `game.js`. Grafiken: Originale von ChatGPT in `design/dino-leiterhelden/`, als WebP in `dino-leiterhelden/img/` (Liste `IMAGES` in `game.js`; Hintergründe werden pro Level nachgeladen). Fehlt ein Bild, zeichnet das Spiel einen Platzhalter. Test: `node --test tests/dino-leiterhelden-sim.test.mjs`.
 
 **Geisterschloss:** 3D-Halloween-Spiel in Ich-Perspektive mit 20 festen Fluren, Knoblauchwürfen, drei Gegnertypen, Bossfluren, Punkte- und Serienwertung, lokalem Fortschritt und teilbaren Level-Ergebnissen. Regeln in `public/spiele/geisterschloss/engine.js`, Grafik und Steuerung in `game.js`.
@@ -42,13 +44,14 @@ node --test tests/schraeglage-sim.test.mjs              # nur SCHRÄGLAGE-Physik
 node --test tests/zahlensturm-sim.test.mjs              # nur ZAHLENSTURM-Rechnen, Tore, Kämpfe und alle 20 Level, ohne Browser (schnell)
 node --test tests/kakerlake-sim.test.mjs                # nur HAU DIE KAKERLAKE!: Level, Logik, Bot-Durchläufe, ohne Browser (schnell)
 node --test tests/sprungsebi-sim.test.mjs           # SPRUNGSEBI: 30 Level, Fortschritt, Teilen-Text und Vorschau
+node --test tests/turmschicht-sim.test.mjs          # TURMSCHICHT: 30 Level beide Modi lösbar (Löser + Bot), Hebel, Jäger, Herzen, Herausforderung
 node --test tests/dino-leiterhelden-sim.test.mjs    # DINO-LEITERHELDEN: 30 Level lösbar (Löser + Bot), Regeln, Spielstand, Herausforderung
 node tools/domain.mjs                                   # Canonical/Sitemap/robots konsistent?
 ```
 
 ## Spielstände
 
-Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Kein Backend, keine Cookies, kein Tracking.
+Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Kein Backend, keine Cookies, kein Tracking.
 `localStorage` hängt an der Adresse: Ein neues Spiel mit eigenem Schlüssel-Präfix muss in `public/assets/umzug.js` (Liste `SPIELE`) eingetragen werden, sonst wird es beim Umzug nicht mitgenommen.
 
 ## Vor dem Livegang

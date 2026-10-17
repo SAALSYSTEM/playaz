@@ -1,0 +1,117 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Turmschicht · Retro-Kletterspiel</title><meta name="description" content="Retro-Arcade im Hochformat: Leitern, Hebel und Monster, die dich jagen. 30 Level, zwei Bestzeit-Modi, Herausforderung per Link – ohne Anmeldung."><link rel="canonical" href="https://playsaal.com/spiele/turmschicht"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Turmschicht · Retro-Kletterspiel"><meta property="og:description" content="Hebel umlegen, Monster abhängen, raus aus dem Turm. Schaffst du meine Zeit?"><meta property="og:url" content="https://playsaal.com/spiele/turmschicht"><meta property="og:image" content="https://playsaal.com/bilder/turmschicht-og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Turmschicht · Retro-Kletterspiel"><meta name="twitter:description" content="Hebel umlegen, Monster abhängen, raus aus dem Turm. Schaffst du meine Zeit?"><meta name="twitter:image" content="https://playsaal.com/bilder/turmschicht-og.png"><meta name="theme-color" content="#0a1330"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/fonts.css"><style>
+:root{color-scheme:dark;--navy:#0a1330;--navy2:#111d45;--orange:#ff6a1f;--sky:#58b8ff;--cream:#fff4d6;--yellow:#ffd23f;--red:#ff4a3d;--px:"Pixelify Sans",ui-monospace,monospace}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#060b1e;color:var(--cream);font-family:var(--px);touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+button,a{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+.app{position:fixed;left:50%;top:0;transform:translateX(-50%);width:min(100vw,calc(100dvh * .62));height:100dvh;overflow:hidden;background:var(--navy);touch-action:none}
+#game{position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 10px);left:calc(env(safe-area-inset-left,0px) + 10px);width:36px;height:36px;display:grid;place-items:center;background:#0a1330;color:var(--cream);border:2px solid var(--sky);text-decoration:none}
+.pz-home:focus-visible{outline:3px solid var(--yellow)}
+/* HUD */
+#hud{position:absolute;z-index:8;left:0;right:0;top:0;display:flex;align-items:center;gap:6px;padding:calc(env(safe-area-inset-top,0px) + 10px) 8px 6px calc(env(safe-area-inset-left,0px) + 54px);pointer-events:none;font-size:15px;line-height:1;text-shadow:2px 2px 0 #000}
+#hud .lv{color:var(--cream)}#hud .hearts{color:var(--red);letter-spacing:1px}#hud .stars{color:var(--yellow)}#hud .time{color:var(--yellow);margin-left:auto;font-variant-numeric:tabular-nums}
+#hud .mode{display:block;font-size:10px;color:var(--sky);margin-top:3px}
+.hb{pointer-events:auto;width:36px;height:36px;display:grid;place-items:center;background:var(--navy);border:2px solid var(--sky);padding:0;cursor:pointer}
+.hb svg{width:18px;height:18px}
+.hb:active,.btn:active,.act:active{transform:translate(1px,1px)}
+/* Aktionstaste */
+.act{position:absolute;z-index:9;right:calc(env(safe-area-inset-right,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);width:66px;height:66px;display:grid;place-items:center;background:rgba(22,35,79,.82);border:3px solid var(--orange);box-shadow:4px 4px 0 #000;cursor:pointer;padding:0}
+.act svg{width:44px;height:44px}
+.act.pulse{animation:pulse .6s steps(2) infinite}
+@keyframes pulse{50%{border-color:var(--yellow)}}
+/* Joystick */
+#stick{position:absolute;z-index:6;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:3px solid rgba(88,184,255,.6);background:rgba(88,184,255,.1);pointer-events:none;opacity:0}
+#stick.on{opacity:1}
+#knob{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;background:rgba(160,210,255,.7)}
+/* Hinweis & Meldungen */
+#tip{position:absolute;z-index:7;left:0;right:0;top:40%;margin:0 auto;width:max-content;max-width:calc(100% - 28px);padding:12px 14px;background:var(--navy);border:3px solid var(--orange);box-shadow:5px 5px 0 #000;font-size:17px;line-height:1.3;text-align:center;pointer-events:none}
+#tip small{display:block;color:var(--sky);font-size:12px;margin-bottom:6px;letter-spacing:.08em}
+#tip.away{display:none}
+#flash{position:absolute;z-index:7;left:0;right:0;top:46%;text-align:center;font-size:28px;color:var(--red);text-shadow:3px 3px 0 #000;pointer-events:none}
+/* Bildschirme */
+.screen{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 56px) 14px calc(env(safe-area-inset-bottom,0px) + 14px);overflow:auto;touch-action:pan-y;background:rgba(6,11,30,.82)}
+.card{width:100%;max-width:420px;padding:18px 16px;background:var(--navy);border:3px solid var(--sky);box-shadow:6px 6px 0 #000;text-align:center}
+.logo{margin:0 0 4px;font-size:clamp(36px,11vw,50px);font-weight:600;letter-spacing:.04em;color:var(--cream);text-shadow:3px 3px 0 #b8420c}
+.bar{height:4px;width:60%;margin:0 auto 12px;background:var(--orange)}
+.lead{margin:0 0 14px;font-size:15px;line-height:1.35;color:#c7d6f5}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px}
+.mode-btn{padding:10px 6px;background:var(--navy2);border:2px solid #2d4180;cursor:pointer;font-size:14px;line-height:1.2}
+.mode-btn b{display:block;font-size:16px;margin-bottom:3px}
+.mode-btn[aria-pressed="true"]{border-color:var(--yellow);background:#1c2c60;color:var(--yellow)}
+.btns{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.btn{min-height:50px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 16px;background:var(--navy2);border:2px solid var(--sky);box-shadow:4px 4px 0 #000;cursor:pointer;font-size:18px;text-decoration:none}
+.btn.primary{background:var(--orange);border-color:#ffb27a;color:#1a0d05;min-width:170px;font-size:21px}
+.btn svg{width:20px;height:20px}
+.challenge{margin:0 0 12px;padding:10px;border:2px dashed var(--yellow);font-size:15px;line-height:1.35}
+.challenge b{display:block;font-size:24px;color:var(--yellow)}
+h2{margin:0 0 10px;font-size:28px;color:var(--yellow);text-shadow:3px 3px 0 #000}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:0 0 12px}
+.grid button{aspect-ratio:1;display:grid;place-items:center;align-content:center;gap:2px;background:var(--navy2);border:2px solid #2d4180;cursor:pointer;font-size:19px;padding:2px}
+.grid button small{font-size:9px;color:var(--yellow)}
+.grid button.done{border-color:var(--sky)}.grid button.next{border-color:var(--orange);color:var(--orange)}
+.grid button:disabled{opacity:.35}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 0 12px}
+.stat{padding:8px 4px;background:var(--navy2);border:2px solid #2d4180;font-size:12px;color:#9fb3e0}
+.stat b{display:block;font-size:21px;color:var(--cream);margin-bottom:2px}
+.badge{display:inline-block;margin:0 0 10px;padding:5px 10px;background:var(--yellow);color:#1a0d05;font-size:15px}
+.result{margin:0 0 12px;padding:9px;font-size:16px;line-height:1.3}
+.result.win{background:#163d22;color:#8ff0a0;border:2px solid #4fd04a}.result.lose{background:#3d1a16;color:#ffb3a8;border:2px solid var(--red)}
+.note{margin:0 0 12px;font-size:13px;color:#9fb3e0}
+#toast{position:absolute;z-index:40;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);max-width:90%;padding:10px 14px;background:#000;border:2px solid var(--yellow);font-size:15px;text-align:center}
+#rotate{position:fixed;inset:0;z-index:2147483001;display:none;place-items:center;align-content:center;background:var(--navy);font-size:22px;text-align:center;padding:20px}
+@media (orientation:landscape) and (pointer:coarse) and (max-height:520px){#rotate{display:grid}}
+@media (max-width:360px){#hud{font-size:13px;gap:5px}.hb{width:32px;height:32px}}
+[hidden]{display:none!important}
+</style></head><body><a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" fill="currentColor"/><rect x="11" y="2" width="7" height="7" fill="currentColor"/><rect x="2" y="11" width="7" height="7" fill="currentColor"/><rect x="11" y="11" width="7" height="7" fill="#FFD21C"/></svg></a>
+<main class="app" id="app">
+<canvas id="game" aria-label="Turmschicht: Spielfeld"></canvas>
+<div id="hud" hidden>
+  <span class="lv"><span id="hudLv">LV 01</span><span class="mode" id="hudMode"></span></span>
+  <span class="hearts" id="hudHearts" aria-label="Herzen">♥♥♥</span>
+  <span class="stars" id="hudStars" aria-label="Sterne">★0/3</span>
+  <span class="time" id="hudTime">0:00</span>
+  <button class="hb" id="restartHud" aria-label="Level neu starten"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3 3h6v2H5v6h6V8H9V6h4v7H3z"/><path fill="currentColor" d="M9 1l4 3-4 3z"/></svg></button>
+  <button class="hb" id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3 2h3v12H3zM10 2h3v12h-3z"/></svg></button>
+</div>
+<div id="tip" class="away"><small id="tipLv"></small><span id="tipText"></span></div>
+<div id="flash" hidden></div>
+<div id="stick"><div id="knob"></div></div>
+<button class="act" id="actBtn" hidden aria-label="Hebel umlegen"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="#9fb3e0" d="M3 12h10v3H3z"/><path fill="#ff6a1f" d="M7 6h2v6H7z"/><path fill="#ff4a3d" d="M6 3h4v4H6z"/></svg></button>
+
+<section id="menu" class="screen"><div class="card">
+  <h1 class="logo">TURMSCHICHT</h1><div class="bar"></div>
+  <p class="lead">Raus aus dem Turm. Leitern umlegen, Monster abhängen, Bestzeit holen.</p>
+  <div id="challengeBox" class="challenge" hidden></div>
+  <div class="modes" role="group" aria-label="Modus">
+    <button class="mode-btn" data-mode="s" aria-pressed="true"><b>Schneller Ausbruch</b>Nur raus – Sterne egal</button>
+    <button class="mode-btn" data-mode="p" aria-pressed="false"><b>Perfekter Lauf</b>Erst alle 3 ★, dann raus</button>
+  </div>
+  <div class="btns"><button class="btn primary" id="playBtn">▶ <span id="playLabel">Spielen</span></button></div>
+  <div class="btns" style="margin-top:10px"><button class="btn" id="levelsBtn">Level</button><button class="btn" id="muteBtn" aria-label="Ton an oder aus"></button></div>
+  <p class="note" style="margin:12px 0 0">Rekorde bleiben auf diesem Gerät · keine Online-Rangliste</p>
+</div></section>
+
+<section id="levels" class="screen" hidden><div class="card">
+  <h2>LEVEL</h2><p class="note" id="levelsMode"></p><div class="grid" id="grid"></div>
+  <div class="btns"><button class="btn" id="levelsBack">Zurück</button></div>
+</div></section>
+
+<section id="pause" class="screen" hidden><div class="card">
+  <h2>PAUSE</h2>
+  <div class="btns"><button class="btn primary" id="resumeBtn">▶ Weiter</button></div>
+  <div class="btns" style="margin-top:10px"><button class="btn" id="restartBtn">Neustart</button><button class="btn" id="muteBtn2" aria-label="Ton an oder aus"></button><button class="btn" id="pauseLevels">Level</button><a class="btn" href="/">PlaySaal</a></div>
+</div></section>
+
+<section id="done" class="screen" hidden><div class="card">
+  <h2 id="doneTitle">AUSGEBROCHEN!</h2><p class="note" id="doneMode"></p>
+  <div id="record" class="badge" hidden>NEUER REKORD</div>
+  <div class="stats"><div class="stat"><b id="doneTime"></b>Zeit</div><div class="stat"><b id="doneStars"></b>Sterne</div><div class="stat"><b id="doneHits"></b>Treffer</div></div>
+  <div id="result" class="result" hidden></div>
+  <div class="btns"><button class="btn primary" id="nextBtn">▶ Nächstes Level</button></div>
+  <div class="btns" style="margin-top:10px"><button class="btn" id="retryBtn">Nochmal</button><button class="btn" id="shareBtn">Herausfordern</button><button class="btn" id="doneLevels">Level</button></div>
+</div></section>
+<div id="toast" role="status" hidden></div>
+</main>
+<div id="rotate">Bitte hochkant drehen</div>
+<script type="module" src="./turmschicht/game.js"></script>
+</body></html>
