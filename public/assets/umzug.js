@@ -22,6 +22,8 @@
   // "haupt" = Schlüssel, die echten Fortschritt enthalten (Ton an/aus zählt nicht als Spielstand).
   // Neues Spiel mit eigenem Präfix? Hier eintragen, sonst wird es nicht mit umgezogen.
   const SPIELE = [
+    { id: 'mysupermarkt', name: 'MySupermarkt', prefix: 'mysupermarkt.', haupt: ['mysupermarkt.v1'],
+      info: (g) => { const d = J(g['mysupermarkt.v1']) || {}; return { text: zahl(d.stats && d.stats.customers) + ' Kunden · ' + zahl(d.milestone) + '/20 Meilensteine', wert: (d.milestone || 0) * 10000 + ((d.stats && d.stats.customers) || 0) }; } },
     { id: 'zahlensturm', name: 'Zahlensturm', prefix: 'zahlensturm.', haupt: ['zahlensturm.v1'],
       info: (g) => { const d = J(g['zahlensturm.v1']) || {}; const lv = Object.values(d.levels || {}).filter((l) => l && l.done); const st = lv.reduce((a, l) => a + (l.stars || 0), 0); return { text: lv.length + ' von 20 Level · ' + st + ' Sterne', wert: lv.length * 100 + st * 10 + Object.keys(d.awards || {}).length }; } },
     { id: 'schraeglage', name: 'Schräglage', prefix: 'schraeglage.', haupt: ['schraeglage.v1'],
