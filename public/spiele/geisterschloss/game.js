@@ -8,36 +8,19 @@ let renderer,scene,camera,ray,level,objects=[],decor=[],rightHand,run=null,phase
 const T=window.THREE;
 // three.js r13x rechnet Hex-Farben nicht selbst in den linearen Raum um; ohne dies wirkt alles ausgewaschen.
 const lin=c=>new T.Color(c).convertSRGBToLinear();
+const loader=new T.TextureLoader(),texCache={};
+function tex(name,rx=1,ry=1,repeat=true){const key=name+rx+'/'+ry;if(!texCache[key]){const t=loader.load(new URL('img/'+name,import.meta.url).href);t.encoding=T.sRGBEncoding;t.anisotropy=4;if(repeat){t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(rx,ry)}texCache[key]=t}return texCache[key]}
 const colors={stone:0x302b4a,trim:0x554b71,gold:0xffae4d,blue:0x4b79c7};
 const mat=(c,opts={})=>new T.MeshStandardMaterial({color:lin(c),roughness:.72,...opts,...(opts.emissive!==undefined?{emissive:lin(opts.emissive)}:{})});
 const stone=mat(colors.stone),trim=mat(colors.trim),wood=mat(0x2b1b3d),gold=mat(colors.gold,{emissive:0x9b4810,emissiveIntensity:.75}),glow=mat(0xffd15b,{emissive:0xffb03c,emissiveIntensity:.32}),dark=mat(0x1c1135),black=mat(0x261343),white=mat(0xfff7e5),purple=mat(0x9c55df,{emissive:0x411c81,emissiveIntensity:.3});
 const box=(w,h,d,m)=>new T.Mesh(new T.BoxGeometry(w,h,d),m);
 const ball=(r,m)=>new T.Mesh(new T.SphereGeometry(r,16,12),m);
 function addBox(parent,x,y,z,w,h,d,m){const b=box(w,h,d,m);b.position.set(x,y,z);parent.add(b);return b}
+function addBoxM(parent,x,y,z,w,h,d,mats){const b=new T.Mesh(new T.BoxGeometry(w,h,d),mats);b.position.set(x,y,z);parent.add(b);return b}
 function addBall(parent,x,y,z,r,m){const b=ball(r,m);b.position.set(x,y,z);parent.add(b);return b}
-function ghost(size=1,angry=false){const g=new T.Group();
- const tint=angry?0xd9c4ff:0xfff3c4,glowC=angry?0x7d4bd6:0xffd56a;
- const bodyMat=new T.MeshStandardMaterial({color:lin(tint),emissive:lin(glowC),emissiveIntensity:angry?.6:.8,roughness:.55,transparent:true,opacity:.94});
- // Tuch-Geist: runder Kopf, weich fallender Körper, wellig auslaufender Saum
- const pts=[[0,0],[.52,0],[.6,.08],[.54,.16],[.64,.34],[.66,.62],[.62,.92],[.5,1.2],[.28,1.38],[0,1.43]].map(([x,y])=>new T.Vector2(x,y));
- const b=new T.Mesh(new T.LatheGeometry(pts,28),bodyMat);b.position.y=-.7;g.add(b);
- for(let i=0;i<6;i++){const a=i/6*Math.PI*2,r=.5,p=addBall(g,Math.cos(a)*r,-.7,Math.sin(a)*r,.16,bodyMat);p.scale.set(1,1.15,1)}
- for(const s of [-1,1]){const arm=addBall(g,s*.7,-.12,.12,.2,bodyMat);arm.scale.set(.85,1.25,.9);arm.rotation.z=s*.5}
- const eyeM=mat(0x140a26,{roughness:.3});
- for(const s of [-1,1]){const e=addBall(g,s*.21,.22,.58,.1,eyeM);e.scale.set(.85,1.35,.5);
-  addBall(g,s*.19,.27,.62,.028,white);
-  if(angry){const brow=addBox(g,s*.22,.43,.6,.3,.06,.06,eyeM);brow.rotation.z=-s*.42}}
- const mouth=addBall(g,0,-.07,.6,.085,eyeM);mouth.scale.set(1,angry?.55:1.2,.5);
- const halo=new T.Mesh(new T.SphereGeometry(.95,16,12),new T.MeshBasicMaterial({color:lin(glowC),transparent:true,opacity:.1,depthWrite:false}));halo.userData.noHit=true;halo.position.y=.1;g.add(halo);
- g.scale.setScalar(size);return g}
-function bat(){const g=new T.Group();const m=mat(0x6b45a6,{emissive:0x3a1f6e,emissiveIntensity:.8});
- const body=addBall(g,0,0,0,.26,m);body.scale.set(.8,1,.9);addBall(g,0,.22,.1,.17,m);
- for(const s of [-1,1]){addBox(g,s*.1,.34,.1,.07,.17,.05,m).rotation.z=s*.1;addBall(g,s*.07,.24,.25,.035,mat(0xff4a5a,{emissive:0xff2a3a,emissiveIntensity:1.5}));
-  const wing=new T.Group();wing.position.set(s*.2,.05,0);const w1=addBox(wing,s*.38,.0,0,.76,.05,.5,m);const w2=addBox(wing,s*.78,-.08,.05,.5,.05,.34,m);wing.userData.side=s;g.add(wing);(g.userData.wings??=[]).push(wing)}
- g.scale.setScalar(1.25);return g}
-
-function spider(){const g=new T.Group();addBall(g,0,0,0,.43,purple);addBall(g,0,.12,.34,.26,dark);for(const s of [-1,1]){addBall(g,s*.15,.14,.56,.07,mat(0xff4a5a,{emissive:0xff2a3a,emissiveIntensity:1.6}));for(let i=0;i<4;i++){const a=addBox(g,s*(.42+i*.03),-.17,.26-i*.21,.65,.055,.055,black);a.rotation.z=s*(.45+i*.12)}}return g}
-function witch(big=false){const g=new T.Group();addBall(g,0,.35,0,.39,mat(big?0xa867e4:0x8c54cb));addBall(g,0,.92,.08,.25,mat(0xe1ad82));addBall(g,-.1,.96,.3,.035,black);addBall(g,.1,.96,.3,.035,black);const brim=new T.Mesh(new T.CylinderGeometry(.5,.55,.07,16),dark);brim.position.y=1.15;g.add(brim);const hat=new T.Mesh(new T.ConeGeometry(.37,.64,16),dark);hat.position.y=1.48;hat.rotation.z=.16;g.add(hat);addBox(g,0,.17,.32,.68,.055,.09,wood).rotation.z=-.15;if(big)g.scale.setScalar(1.48);return g}
+function creature(img,w,h,hitW,hitH,{tint=0xffffff,lift=0}={}){const g=new T.Group();
+ const vis=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:tex(img,1,1,false),color:lin(tint),transparent:true,alphaTest:.06}));vis.userData.noHit=true;vis.position.y=lift;g.add(vis);g.userData.visual=vis;
+ const hit=new T.Mesh(new T.BoxGeometry(hitW,hitH,.5),new T.MeshBasicMaterial({visible:false}));g.add(hit);return g}
 function bulb(){const g=new T.Group();const m=mat(0xfff4db);addBall(g,0,0,0,.28,m);addBall(g,-.17,-.05,.04,.14,m);addBall(g,.17,-.05,.04,.14,m);const stalk=new T.Mesh(new T.ConeGeometry(.09,.25,7),mat(0xc9c18b));stalk.position.y=.29;g.add(stalk);return g}
 function pumpkin(){const g=new T.Group();const m=mat(0xff8732,{emissive:0x98330b,emissiveIntensity:.36});for(let x of [-.18,0,.18])addBall(g,x,0,0,.27,m);addBox(g,0,.27,0,.1,.15,.1,mat(0x426b35));addBall(g,-.1,.04,.25,.045,dark);addBall(g,.1,.04,.25,.045,dark);return g}
 function makeHands(){
@@ -53,34 +36,32 @@ function makeHands(){
  }
 }
 const THEMES=[
- {name:'Eingangshalle',wall:0x4a3a72,trim:0x8a6bb8,floor:0x2a2145,carpet:0x5a1228,win:0x4a74c9,torch:0xffa24a,fog:0x1a1236,fogD:.036,gate:0xffae4d},
- {name:'Mondgang',wall:0x34406e,trim:0x6f84c8,floor:0x1e2848,carpet:0x1c3566,win:0x9cc3ff,torch:0x9fc4ff,fog:0x0e1832,fogD:.04,gate:0xcfe0ff},
- {name:'Verlies',wall:0x28504a,trim:0x4f8c78,floor:0x16292b,carpet:0x2a4020,win:0x4fffa0,torch:0x7dffb0,fog:0x0b1f1f,fogD:.05,gate:0x9dffc8},
- {name:'Turm',wall:0x5a2a52,trim:0xb4507c,floor:0x2c1530,carpet:0x6a1220,win:0xff7a6a,torch:0xff6b4a,fog:0x240d22,fogD:.045,gate:0xff9a7a},
- {name:'Hexenhalle',wall:0x3c2858,trim:0xd7a937,floor:0x1c1230,carpet:0x40186a,win:0xc77dff,torch:0xd37dff,fog:0x180c2c,fogD:.055,gate:0xd7a937}
+ {name:'Eingangshalle',wall:0x4a3a72,trim:0x8a6bb8,floor:0x2a2145,carpet:0x5a1228,win:0x4a74c9,torch:0xffa24a,fog:0x1a1236,fogD:.036,gate:0xffae4d,tint:0xffffff,carpetTint:0xffffff},
+ {name:'Mondgang',wall:0x34406e,trim:0x6f84c8,floor:0x1e2848,carpet:0x1c3566,win:0x9cc3ff,torch:0x9fc4ff,fog:0x0e1832,fogD:.04,gate:0xcfe0ff,tint:0xa8c4ff,carpetTint:0x7fa6ff},
+ {name:'Verlies',wall:0x28504a,trim:0x4f8c78,floor:0x16292b,carpet:0x2a4020,win:0x4fffa0,torch:0x7dffb0,fog:0x0b1f1f,fogD:.05,gate:0x9dffc8,tint:0x9fffd0,carpetTint:0x9fe07a},
+ {name:'Turm',wall:0x5a2a52,trim:0xb4507c,floor:0x2c1530,carpet:0x6a1220,win:0xff7a6a,torch:0xff6b4a,fog:0x240d22,fogD:.045,gate:0xff9a7a,tint:0xffa8c0,carpetTint:0xffffff},
+ {name:'Hexenhalle',wall:0x3c2858,trim:0xd7a937,floor:0x1c1230,carpet:0x40186a,win:0xc77dff,torch:0xd37dff,fog:0x180c2c,fogD:.055,gate:0xd7a937,tint:0xd8a8ff,carpetTint:0xb88aff}
 ];
-let TH=null,webTexture=null,fx=[],torchLight=null,moonLight=null;
+let TH=null,fx=[],torchLight=null,moonLight=null;
 function makeTheme(num){const t=THEMES[num===20?4:Math.min(3,Math.floor((num-1)/5))];
+ const tm=(name,rx,ry,tint)=>new T.MeshStandardMaterial({map:tex(name,rx,ry),color:lin(tint),roughness:.85});
  return {...t,stone:mat(t.wall),trim:mat(t.trim),floor:mat(t.floor),carpet:mat(t.carpet),ceil:mat(t.floor),
+  wallTex:tm('wand.webp',2,1.25,t.tint),floorTex:tm('boden.webp',1.5,2,t.tint),carpetTex:tm('teppich.webp',1,2,t.carpetTint),
   window:mat(t.win,{emissive:t.win,emissiveIntensity:.7}),flame:mat(t.torch,{emissive:t.torch,emissiveIntensity:2.2}),banner:mat(t.carpet)}}
-function webMaterial(){if(!webTexture){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.strokeStyle='rgba(255,255,255,.9)';x.lineWidth=2;
-  for(let i=0;i<=6;i++){const a=i/6*Math.PI/2;x.beginPath();x.moveTo(0,0);x.lineTo(Math.cos(a)*128,Math.sin(a)*128);x.stroke()}
-  for(let r=22;r<=124;r+=20){x.beginPath();for(let i=0;i<=6;i++){const a=i/6*Math.PI/2,rr=r*(i%2?.9:1);x[i?'lineTo':'moveTo'](Math.cos(a)*rr,Math.sin(a)*rr)}x.stroke()}
-  webTexture=new T.CanvasTexture(c)}
- return new T.MeshBasicMaterial({map:webTexture,transparent:true,opacity:.5,depthWrite:false,side:T.DoubleSide})}
+function webMaterial(){return new T.MeshBasicMaterial({map:tex('spinnweb.webp',1,1,false),transparent:true,opacity:.8,alphaTest:.05,depthWrite:false,side:T.DoubleSide})}
 function corridorSegment(z,index){const g=new T.Group();g.position.z=z;
- addBox(g,0,-.13,0,6.2,.26,8,TH.floor);addBox(g,0,.012,0,1.9,.024,8,TH.carpet);addBox(g,-.99,.014,0,.08,.028,8,gold);addBox(g,.99,.014,0,.08,.028,8,gold);addBox(g,0,5,0,6.2,.22,8,TH.ceil);
- for(const side of [-1,1]){addBox(g,side*3.12,2.4,0,.25,5,8,TH.stone);addBox(g,side*2.95,.32,0,.35,.64,8,TH.trim);addBox(g,side*2.95,4.85,0,.36,.3,8,TH.trim);
+ addBoxM(g,0,-.13,0,6.2,.26,8,[TH.floor,TH.floor,TH.floorTex,TH.floor,TH.floor,TH.floor]);addBoxM(g,0,.012,0,1.9,.024,8,[TH.carpet,TH.carpet,TH.carpetTex,TH.carpet,TH.carpet,TH.carpet]);addBox(g,0,5,0,6.2,.22,8,TH.ceil);
+ for(const side of [-1,1]){const inner=side<0?[TH.wallTex,TH.stone]:[TH.stone,TH.wallTex];addBoxM(g,side*3.12,2.4,0,.25,5,8,[...inner,TH.stone,TH.stone,TH.stone,TH.stone]);addBox(g,side*2.95,.32,0,.35,.64,8,TH.trim);addBox(g,side*2.95,4.85,0,.36,.3,8,TH.trim);
  for(const zz of [-3.7,3.7]){addBox(g,side*2.84,2.45,zz,.47,4.8,.48,TH.trim);addBox(g,side*2.83,3.95,zz,.62,.18,.62,gold)}
  addBox(g,side*3.012,2.75,0,.045,2.25,1.25,TH.window);
  addBox(g,side*2.96,2.75,0,.09,2.25,.1,TH.trim);addBox(g,side*2.96,2.72,0,.1,.1,1.26,TH.trim);addBox(g,side*2.95,1.58,0,.2,.1,1.5,TH.trim);
- if(index%2===0){addBox(g,side*2.74,2.05,2,.2,.4,.18,wood);addBall(g,side*2.67,2.35,2,.14,gold)}
+ if(index%2===0){const pic=new T.Mesh(new T.PlaneGeometry(1.4,2.1),new T.MeshBasicMaterial({map:tex('bild-'+((index*2+(side>0?1:0))%6+1)+'.webp',1,1,false),color:0xd8d8d8,transparent:true,alphaTest:.05,side:T.DoubleSide}));pic.position.set(side*2.985,2.75,2.2);pic.rotation.y=side<0?Math.PI/2:-Math.PI/2;g.add(pic)}
  // Fackel
  if(index%2===1){addBox(g,side*2.78,2.2,-2,.12,.5,.12,wood);addBall(g,side*2.74,2.58,-2,.17,TH.flame);const f=new T.Mesh(new T.ConeGeometry(.12,.34,7),TH.flame);f.position.set(side*2.74,2.84,-2);f.userData.flame=true;g.add(f)}
  // Banner
  if(index%4===3){addBox(g,side*2.9,3.3,1.8,.06,1.5,.8,TH.banner);addBox(g,side*2.86,3.3,1.8,.04,.8,.12,gold)}
  // Spinnweben in den Deckenecken
- if(index%3===1){const web=new T.Mesh(new T.PlaneGeometry(1.6,1.6),webMaterial());web.position.set(side*2.62,4.45,3.4);web.rotation.set(0,-side*Math.PI/2.8,0);web.rotation.z=side*.3;g.add(web)}}
+ if(index%3===1){const web=new T.Mesh(new T.PlaneGeometry(1.5,1.5),webMaterial());web.position.set(side*2.975,4.0,-2.7);web.rotation.y=Math.PI/2;if(side>0)web.scale.x=-1;g.add(web)}}
  for(let zz=-4;zz<=4;zz+=2)addBox(g,0,-.005,zz,6.03,.012,.035,TH.trim);
  return g}
 function makeWorld(){scene=new T.Scene();scene.background=lin(0x10102a);scene.fog=new T.FogExp2(lin(0x14112e),.035);camera=new T.PerspectiveCamera(73,1,.05,90);scene.add(camera);scene.add(new T.HemisphereLight(lin(0x788cd3),lin(0x362144),.62));makeHands();torchLight=new T.PointLight(lin(0xffa954),3,22,1.8);torchLight.position.set(0,3.2,-6);scene.add(torchLight);moonLight=new T.PointLight(lin(0x629bff),2.2,40,1.4);moonLight.position.set(-1,4,-27);scene.add(moonLight);ray=new T.Raycaster();renderer=new T.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.outputEncoding=T.sRGBEncoding;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;resize();window.addEventListener('resize',resize)}
@@ -89,7 +70,8 @@ function clearLevel(){for(const x of [...objects,...decor,...fx])scene.remove(x.
 function buildLevel(num){clearLevel();level=makeLevel(num);TH=makeTheme(num);
  scene.background=lin(TH.fog);scene.fog=new T.FogExp2(lin(TH.fog),TH.fogD);torchLight.color.copy(lin(TH.torch));moonLight.color.copy(lin(TH.win));
  for(let i=0;i<Math.ceil((level.length+16)/8);i++){const seg=corridorSegment(-i*8-4,i);scene.add(seg);decor.push(seg)}
- for(const e of level.entries){const mesh=e.type==='ghost'||e.type==='big'?ghost(e.type==='big'?1.65:1,e.type==='big'):e.type==='spider'?spider():e.type==='bat'?bat():e.type==='witch'||e.type==='boss'?witch(e.type==='boss'):e.type==='garlic'?bulb():pumpkin();
+ for(const e of level.entries){const mesh=e.type==='ghost'?creature('geist.webp',1.7,1.7,.95,1.2):e.type==='big'?creature('geist.webp',1.7,1.7,.95,1.2,{tint:0xd9c4ff}):e.type==='spider'?creature('spinne.webp',1.35,1.35,1,.75,{lift:.12}):e.type==='bat'?creature('fledermaus.webp',1.5,1.5,1.1,.7):e.type==='witch'||e.type==='boss'?creature('hexe.webp',2.1,2.1,.9,1.7,{tint:e.type==='boss'?0xffd0ff:0xffffff}):e.type==='garlic'?bulb():pumpkin();
+  if(e.type==='big')mesh.scale.setScalar(1.65);if(e.type==='boss')mesh.scale.setScalar(1.48);
   const y=e.type==='spider'?.58:e.type==='garlic'?.7:e.type==='pumpkin'?.52:e.type==='boss'?1.8:e.type==='bat'?1.9:1.55;
   mesh.position.set(e.x,y,-e.d);scene.add(mesh);
   const amp=e.type==='bat'?.55:e.type==='ghost'&&num>=3?Math.min(.5,.12+num*.02):0;
@@ -99,7 +81,7 @@ function buildLevel(num){clearLevel();level=makeLevel(num);TH=makeTheme(num);
 function sound(freq=440,duration=.09,type='sine'){try{audio??=new(window.AudioContext||window.webkitAudioContext)();const o=audio.createOscillator(),v=audio.createGain();o.type=type;o.frequency.setValueAtTime(freq,audio.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(80,freq*.5),audio.currentTime+duration);v.gain.setValueAtTime(.075,audio.currentTime);v.gain.exponentialRampToValueAtTime(.001,audio.currentTime+duration);o.connect(v).connect(audio.destination);o.start();o.stop(audio.currentTime+duration)}catch{}}
 function toast(t){$('toast').textContent=t;$('toast').classList.add('on');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('on'),1050)}
 function setPanel(eyebrow,title,msg,summary,buttons,showLevels=false){$('eyebrow').textContent=eyebrow;$('title').textContent=title;$('message').textContent=msg;$('summary').textContent=summary||'';$('buttons').replaceChildren();for(const [label,fn,primary] of buttons){const b=document.createElement('button');b.textContent=label;if(primary)b.className='primary';b.onclick=fn;$('buttons').append(b)}$('levels').replaceChildren();if(showLevels)for(let i=1;i<=20;i++){const b=document.createElement('button');b.textContent=i;b.title=LEVELS[i-1]+(saved.best[i-1]?' · Rekord '+fmt(saved.best[i-1]):'');b.disabled=i>saved.unlocked;b.className=i===saved.unlocked?'selected':'';b.onclick=()=>start(i);$('levels').append(b)}overlay.hidden=false;hud.hidden=true;$('home').hidden=false}
-function menu(){phase='menu';setPanel('PlaySaal · Halloween-Abenteuer','Geisterschloss','20 Flure. Gelbe Geister. Verzauberter Knoblauch. Weiche aus und wirf gezielt, bevor sie dich erreichen.',`Freigeschaltet: ${saved.unlocked} / 20 · Gesamtbestwert: ${fmt(saved.best.reduce((a,b)=>a+b,0))}`,[[saved.unlocked>1?'Weiter bei Level '+saved.unlocked:'Spiel starten',()=>start(saved.unlocked),true]],true)}
+function menu(){phase='menu';setPanel('PlaySaal · Halloween-Abenteuer','Geisterschloss','20 Flure. Leuchtende Geister. Verzauberter Knoblauch. Weiche aus und wirf gezielt, bevor sie dich erreichen.',`Freigeschaltet: ${saved.unlocked} / 20 · Gesamtbestwert: ${fmt(saved.best.reduce((a,b)=>a+b,0))}`,[[saved.unlocked>1?'Weiter bei Level '+saved.unlocked:'Spiel starten',()=>start(saved.unlocked),true]],true)}
 function start(num){buildLevel(num);run={level:num,progress:0,x:0,hearts:3,ammo:level.startGarlic,score:0,combo:0,pumpkins:0,throwTime:0,damageTime:0,elapsed:0};phase='playing';overlay.hidden=true;hud.hidden=false;$('home').hidden=true;aim={x:0,y:0};updateReticle();updateHud();canvas.focus();last=performance.now()}
 function updateHud(){$('level').textContent=String(run.level).padStart(2,'0')+' / 20';$('hearts').textContent='♥ '.repeat(run.hearts).trim()||'♡';$('ammo').textContent=run.ammo;$('score').textContent=fmt(run.score);$('pumpkins').textContent=run.pumpkins;$('combo').textContent=run.combo>=3?'· ×'+clamp(1+Math.floor(run.combo/3),1,5):'';$('bar').style.width=(run.progress/level.length*100).toFixed(1)+'%'}
 function damage(){if(run.damageTime>0)return;run.hearts--;run.combo=0;run.damageTime=1.5;const f=$('flash');f.classList.add('on');setTimeout(()=>f.classList.remove('on'),110);sound(145,.22,'sawtooth');toast(run.hearts?'Achtung!':'Erwischt!');updateHud();if(!run.hearts)finish(false)}
@@ -116,7 +98,7 @@ function update(dt,t){if(phase!=='playing')return;run.elapsed+=dt;run.throwTime=
  camera.position.set(run.x,1.72+Math.sin(t*9)*.034,playerZ+1.1);camera.rotation.set(0,0,-move*.022);camera.lookAt(run.x+aim.x*.8,1.66+aim.y*.58,playerZ-8);if(rightHand)rightHand.rotation.x=-throwTimer*3.4+Math.sin(t*9)*.018;
  for(const obj of objects){if(!obj.alive)continue;const mesh=obj.mesh;const enemy=!['garlic','pumpkin'].includes(obj.type);if(enemy){mesh.position.z=Math.min(playerZ+1,obj.baseZ+run.elapsed*obj.speed);mesh.position.y=obj.baseY+Math.sin(t*(obj.type==='bat'?5:2.2)+obj.d)*(obj.type==='bat'?.22:.11);mesh.rotation.y=Math.sin(t*1.6+obj.d)*.08;
   if(obj.amp)mesh.position.x=obj.x+Math.sin(t*1.3+obj.d*.7)*obj.amp;
-  if(obj.type==='bat'&&mesh.userData.wings)for(const w of mesh.userData.wings)w.rotation.z=w.userData.side*Math.sin(t*16+obj.d)*.7;
+  if(obj.type==='bat'&&mesh.userData.visual)mesh.userData.visual.scale.set(1+Math.sin(t*16+obj.d)*.1,1-Math.sin(t*16+obj.d)*.12,1);
   if(obj.flash>0){obj.flash=Math.max(0,obj.flash-dt);const k=(obj.s0??1)*(1+obj.flash*.9);mesh.scale.setScalar(k)}}else{mesh.rotation.y+=dt*1.3;mesh.position.y=obj.baseY+Math.sin(t*2.2+obj.d)*.12}
  const delta=mesh.position.z-playerZ;if(delta>=-.7){obj.alive=false;scene.remove(mesh);if(Math.abs(run.x-mesh.position.x)<(obj.type==='big'||obj.type==='boss'?1.35:obj.type==='garlic'||obj.type==='pumpkin'?1.05:.95)){if(obj.type==='garlic'){run.ammo=Math.min(30,run.ammo+obj.value);run.score+=25;toast('+4 Knoblauch');sound(780,.13)}else if(obj.type==='pumpkin'){run.pumpkins++;run.score+=75;toast('+75 Kürbis');sound(620,.12)}else {damage();if((obj.type==='boss'||obj.type==='big')&&phase==='playing')finish(false)}}}
  }
