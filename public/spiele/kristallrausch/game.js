@@ -66,7 +66,7 @@ function showOverlay(kind){
     beep('dead');
   }
 }
-function start(level){g=createGame(level);toastUntil=0;notify('Viel Erfolg in Höhle '+level+'!');hideOverlay();}
+function start(level){try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'kristallrausch'}));}catch{}g=createGame(level);toastUntil=0;notify('Viel Erfolg in Höhle '+level+'!');hideOverlay();}
 function act(dx,dy){
   if(!running||g.status!=='playing')return;
   const now=performance.now();if(now-lastMove<83)return;lastMove=now;
