@@ -27,7 +27,7 @@
 button,select,a{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}a{color:inherit;text-decoration:none}
 .shell{max-width:1020px;margin:0 auto;padding:12px 14px max(20px,env(safe-area-inset-bottom))}
 header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:3px 0 12px}
-.back{display:inline-flex;align-items:center;gap:8px;padding:10px 13px;border:1px solid var(--edge);border-radius:13px;background:#1a202d;font-weight:700}
+.back{white-space:nowrap;display:inline-flex;align-items:center;gap:8px;padding:10px 13px;border:1px solid var(--edge);border-radius:13px;background:#1a202d;font-weight:700}
 .brand{font-family:Fredoka,system-ui,sans-serif;font-weight:700;font-size:clamp(23px,4.5vw,35px);line-height:1.1;letter-spacing:-.045em}
 .brand b{color:var(--gold)}.actions{display:flex;gap:7px}
 .small-btn{min-width:40px;height:40px;padding:0 10px;border:1px solid var(--edge);border-radius:12px;background:#222b3b;color:white;font-size:19px;font-weight:700}
@@ -72,6 +72,34 @@ canvas{display:block;width:100%;height:auto;aspect-ratio:auto;touch-action:none;
 @media(max-width:490px){.stat{padding:7px 6px}.stat small{font-size:9px}.stats{gap:5px}.stat strong{font-size:16px}.board-frame{border-width:2px;border-radius:12px}.brand{font-size:23px}.back{font-size:12px;padding:9px}.small-btn{min-width:36px;height:37px;font-size:16px}}
 @media(max-height:720px) and (max-width:790px){.quick-tools{margin-top:5px}.quick-tools button{min-height:32px}.pad{width:165px;margin-top:4px;gap:5px}.pad button{height:42px}.tip{margin-top:4px}.footer{display:none}.stats{margin-bottom:5px}.bar{margin-bottom:6px}.notice{display:none}}
 @media(prefers-reduced-motion:reduce){.bar span{transition:none}}
+/* Handy: alles passt in einen Bildschirm, Spielfeld nimmt den Rest, Steuerkreuz bleibt unten sichtbar */
+@media(max-width:790px){
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+.shell{height:100vh;height:100dvh;display:flex;flex-direction:column;padding-top:max(8px,env(safe-area-inset-top));padding-bottom:max(10px,env(safe-area-inset-bottom))}
+header,.stats,.bar{flex:0 0 auto}
+.layout{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+.board-frame{flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;border:0;background:none;box-shadow:none;overflow:visible}
+.board-frame canvas{width:auto;height:auto;max-width:100%;max-height:100%;min-height:0;border:2px solid #53647b;border-radius:12px;background:#08131c;box-shadow:0 12px 36px #0008,0 0 20px #44c9da22}
+.side{flex:0 0 auto}
+.side .play-controls{max-width:none;width:auto;display:flex;flex-direction:column;align-items:center}
+.pad{width:min(228px,62vw);margin-top:2px}
+.pad button{height:clamp(46px,7.4dvh,60px)}
+.tip,.footer{display:none}
+.quick-tools{margin-top:6px}.quick-tools button{min-height:36px}
+.notice{display:none}
+}
+@media(max-width:790px) and (min-height:760px){.notice{display:block}}
+/* Handy quer: Spielfeld links, Steuerkreuz rechts, kein Scrollen */
+@media(max-height:520px) and (orientation:landscape){
+html,body{height:100%;overflow:hidden}
+.shell{height:100vh;height:100dvh;display:flex;flex-direction:column;padding:6px 14px max(6px,env(safe-area-inset-bottom))}
+header{padding:0 0 4px}.stats{margin-bottom:4px}.bar{margin-bottom:5px}
+.layout{flex:1 1 auto;min-height:0;display:grid;gap:12px;grid-template-columns:minmax(0,1fr) 200px;align-items:stretch}
+.board-frame{display:flex;align-items:center;justify-content:center;min-height:0;justify-self:center;max-width:100%}
+.board-frame canvas{width:auto;height:auto;max-width:100%;max-height:100%}
+.side-card,.tip,.footer{display:none}.side{align-self:center}
+.pad button{height:48px}
+}
 </style>
 </head>
 <body>
