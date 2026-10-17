@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kristallrausch – kostenloses Höhlen-Abenteuer | PlaySaal</title>
+<meta name="description" content="Grabe dich durch 20 funkelnde Höhlen, sammle Kristalle und entkomme fallenden Felsbrocken. Kristallrausch kostenlos am Handy oder PC spielen, ohne Anmeldung.">
+<link rel="canonical" href="https://playsaal.com/spiele/kristallrausch">
+<meta name="theme-color" content="#11121a">
+<meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal">
+<meta property="og:title" content="Kristallrausch · Ein funkelndes Höhlen-Abenteuer">
+<meta property="og:description" content="20 Höhlen. Fallende Felsen. Funkelnde Kristalle. Schaffst du es zum Ausgang?">
+<meta property="og:url" content="https://playsaal.com/spiele/kristallrausch">
+<meta property="og:image" content="https://playsaal.com/bilder/kristallrausch.svg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/fonts.css">
+<style>
+:root{color-scheme:dark;--bg:#11121a;--panel:#1b2130;--edge:#354358;--text:#f9f9fc;--muted:#a9b7c6;--gold:#ffdc4a;--orange:#fb8541;--cyan:#59eaf3;font-family:Barlow,system-ui,sans-serif}
+*{box-sizing:border-box}html,body{min-height:100%;margin:0;background:radial-gradient(ellipse at 50% -30%,#283d52,#11121a 60%);color:var(--text)}
+button,select,a{font:inherit}button{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}a{color:inherit;text-decoration:none}
+.shell{max-width:1020px;margin:0 auto;padding:12px 14px max(20px,env(safe-area-inset-bottom))}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:3px 0 12px}
+.back{display:inline-flex;align-items:center;gap:8px;padding:10px 13px;border:1px solid var(--edge);border-radius:13px;background:#1a202d;font-weight:700}
+.brand{font-family:Fredoka,system-ui,sans-serif;font-weight:700;font-size:clamp(23px,4.5vw,35px);line-height:1.1;letter-spacing:-.045em}
+.brand b{color:var(--gold)}.actions{display:flex;gap:7px}
+.small-btn{min-width:40px;height:40px;padding:0 10px;border:1px solid var(--edge);border-radius:12px;background:#222b3b;color:white;font-size:19px;font-weight:700}
+.small-btn:focus-visible,.pad button:focus-visible,.primary:focus-visible,.secondary:focus-visible{outline:3px solid var(--cyan);outline-offset:2px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:0 0 10px}
+.stat{background:linear-gradient(145deg,#222e3f,#171e2d);border:1px solid var(--edge);padding:8px 12px;border-radius:14px;min-width:0}
+.stat small{display:block;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.stat strong{display:block;font-family:Fredoka,system-ui,sans-serif;font-size:clamp(17px,3vw,25px);font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat.gems strong{color:var(--cyan)}.stat.time strong{color:var(--gold)}
+.bar{height:7px;overflow:hidden;background:#324052;border-radius:99px;margin:0 0 11px}
+.bar span{display:block;height:100%;width:0%;background:linear-gradient(90deg,#4de1e6,#bdf9f6);border-radius:99px;transition:width .18s}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;align-items:start;gap:14px}
+.board-frame{position:relative;border:3px solid #53647b;background:#08131c;border-radius:18px;overflow:hidden;box-shadow:0 20px 60px #0009,0 0 24px #44c9da22;isolation:isolate}
+canvas{display:block;width:100%;height:auto;aspect-ratio:18 / 14;touch-action:none;user-select:none;-webkit-user-select:none}
+.side{display:grid;gap:10px}.side-card{border:1px solid var(--edge);border-radius:18px;background:var(--panel);padding:15px}
+.side h2{margin:0 0 10px;font:700 18px Fredoka,system-ui,sans-serif}
+.side p{color:var(--muted);font-size:14px;line-height:1.45;margin:0 0 8px}
+.side p:last-child{margin-bottom:0}.side strong{color:#fff}.notice{color:var(--gold);min-height:20px;font-size:13px;text-align:center;font-weight:700}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;width:192px;max-width:100%;margin:8px auto 0}
+.pad button{height:56px;border:1px solid #536780;border-radius:15px;color:#fff;background:linear-gradient(#344862,#233245);box-shadow:inset 0 1px #ffffff24,0 3px 0 #0d141f;font-size:27px;font-weight:800;touch-action:none}
+.pad button:active,.pad button.pressed{background:linear-gradient(#426c83,#2b5166);transform:translateY(2px);box-shadow:0 1px #0d141f}
+.pad .up{grid-column:2}.pad .left{grid-column:1;grid-row:2}.pad .down{grid-column:2;grid-row:2}.pad .right{grid-column:3;grid-row:2}
+.tip{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:10px;color:var(--muted);font-size:12px;text-align:center}
+.tip span{color:var(--gold)}.footer{text-align:center;color:#8c9cac;font-size:12px;padding-top:14px}
+.overlay{position:fixed;z-index:30;inset:0;display:grid;place-items:center;padding:16px;background:#080f19d9;backdrop-filter:blur(8px);overflow:auto}
+.overlay[hidden]{display:none}.modal{width:min(100%,460px);padding:clamp(18px,4vw,30px);background:linear-gradient(165deg,#24394b,#172131 65%);border:2px solid #5c768c;border-radius:26px;box-shadow:0 25px 100px #000b;text-align:center}
+.emblem{display:grid;place-items:center;margin:0 auto 12px;width:90px;height:90px;border-radius:25px;background:radial-gradient(circle at 30% 20%,#7ffaf4,#216b8b 65%,#22374f);box-shadow:0 0 36px #40d6db55;font-size:51px}
+.kicker{font-size:12px;letter-spacing:.14em;font-weight:800;color:var(--gold);text-transform:uppercase}
+.modal h1{font:700 clamp(28px,7vw,43px)/1.04 Fredoka,system-ui,sans-serif;margin:7px 0 12px;letter-spacing:-.035em}
+.modal h1 b{color:var(--gold)}.modal p{font-size:16px;line-height:1.45;color:#c7d5df;margin:0 0 17px}
+.modal .outcome{font-size:18px;color:#fff;font-weight:800}.primary,.secondary{width:100%;min-height:52px;border:0;border-radius:15px;font-weight:800;font-size:17px}
+.primary{color:#1d2230;background:linear-gradient(#ffe879,#ffc933);box-shadow:0 4px 0 #bd8622}.secondary{background:#2c3b4e;color:#f6f8fb;border:1px solid #586e82;margin-top:11px}
+.choose{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:15px}
+.choose label{font-weight:700;color:var(--muted)}.choose select{height:43px;max-width:170px;padding:0 12px;border:1px solid #678598;border-radius:12px;background:#152637;color:white;font-weight:700}
+.modal .keys{font-size:12px;color:#a9bac9;margin:15px 0 0}
+@media(max-width:790px){.layout{grid-template-columns:1fr}.side{display:flex;justify-content:center;gap:12px;align-items:center}.side-card{display:none}.side .play-controls{width:100%;max-width:320px}.pad{width:210px}.pad button{height:54px}.shell{padding:10px 9px max(12px,env(safe-area-inset-bottom))}header{padding-bottom:9px}}
+@media(max-width:490px){.stat{padding:7px 6px}.stat small{font-size:9px}.stats{gap:5px}.stat strong{font-size:16px}.board-frame{border-width:2px;border-radius:12px}.brand{font-size:23px}.back{font-size:12px;padding:9px}.small-btn{min-width:36px;height:37px;font-size:16px}}
+@media(max-height:720px) and (max-width:790px){.pad{width:165px;margin-top:4px;gap:5px}.pad button{height:42px}.tip{margin-top:4px}.footer{display:none}.stats{margin-bottom:5px}.bar{margin-bottom:6px}.notice{display:none}}
+@media(prefers-reduced-motion:reduce){.bar span{transition:none}}
+</style>
+</head>
+<body>
+<main class="shell">
+<header><a class="back" href="../" aria-label="Zurück zu allen Spielen">‹ PlaySaal</a><div class="brand">Kristall<b>rausch</b></div><div class="actions"><button class="small-btn" id="sound" aria-label="Ton einschalten" title="Ton">♪̸</button><button class="small-btn" id="pause" aria-label="Spiel pausieren" title="Pause">Ⅱ</button><button class="small-btn" id="restart" aria-label="Level neu starten" title="Neustart">↺</button></div></header>
+<section class="stats" aria-label="Spielstand"><div class="stat"><small>Höhle</small><strong id="level">1 / 20</strong></div><div class="stat gems"><small>Kristalle</small><strong id="gems">0 / 8</strong></div><div class="stat time"><small>Zeit</small><strong id="time">155 s</strong></div><div class="stat"><small>Punkte</small><strong id="score">0</strong></div></section>
+<div class="bar" aria-label="Kristallfortschritt"><span id="progress"></span></div>
+<div class="layout"><div class="board-frame"><canvas id="board" width="720" height="560" aria-label="Kristallrausch-Spielfeld: Grabe, sammle Kristalle und weiche Steinen aus. Nutze Pfeile oder WASD." role="img"></canvas></div>
+<aside class="side"><div class="side-card"><h2>Die Mission</h2><p><strong>Grabe</strong> durch die Erde und sammele leuchtende Kristalle.</p><p><strong>Vorsicht:</strong> Steine fallen in freie Gänge. Seitlich kannst du sie schieben.</p><p><strong>Flucht:</strong> Erreiche die goldene Tür, sobald genügend Kristalle gesammelt sind.</p><p>20 eigene Höhlen, kein Login, kein Zeitdruck beim Pausieren.</p></div>
+<div class="play-controls"><div class="notice" id="notice" role="status" aria-live="polite">Sammle Kristalle!</div><div class="pad" role="group" aria-label="Bewegung"><button class="up" data-dx="0" data-dy="-1" aria-label="Nach oben">↑</button><button class="left" data-dx="-1" data-dy="0" aria-label="Nach links">←</button><button class="down" data-dx="0" data-dy="1" aria-label="Nach unten">↓</button><button class="right" data-dx="1" data-dy="0" aria-label="Nach rechts">→</button></div><div class="tip"><span>↔</span> Pfeiltasten / WASD / Wischen</div></div></aside></div>
+<div class="footer">PlaySaal · Eigenständiges Höhlen-Puzzlespiel · Fortschritt bleibt lokal im Browser</div>
+</main>
+<div id="overlay" class="overlay"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+<div class="emblem" aria-hidden="true">💎</div><div class="kicker" id="dialogKicker">20 Höhlen voller Schätze</div><h1 id="dialogTitle">Kristall<b>rausch</b></h1><p id="dialogText">Grabe Tunnel, sammle Kristalle und entkomme fallenden Steinen. Sobald genug Kristalle gesammelt sind, öffnet sich die goldene Tür.</p><div class="choose" id="choose"><label for="chooseLevel">Höhle</label><select id="chooseLevel"></select></div>
+<button class="primary" id="primary">Abenteuer starten</button><button class="secondary" id="secondary" hidden>Zurück zum Spiel</button><p class="keys">Pfeile oder WASD · Auf dem Handy wischen oder Steuerkreuz nutzen · P/Esc Pause</p>
+</section></div>
+<script type="module" src="./kristallrausch/game.js"></script>
+</body></html>
