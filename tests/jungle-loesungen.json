@@ -1,0 +1,182 @@
+{
+ "1": {
+  "route": "ckR.dcL.dkR.doL.eoR.i4L.icL.ikR.uwL.v4R.v8L.vwR.w4L.w8R.x0L.x8R.xcL.17kR.17sL.17wR.1esR.1fgL.1foR.1fsL.1gwR.1s8L.1sgL.1soR.1swR.1xwL.1y4R.1y8L.1ywL.1z4R.1z8L.200R.208L.20cR.23sL.240R.244L.2ncR.2nkL.2noR.2ocL.2okR.2ooL.2pgR.2poL.2psR.2t8L.2tgR.2tkL.34wR.354L.358R.3c0R.3csL.3d0R.3d4L.3dsL.3e0R.3e4L",
+  "muenzRoute": "csR.d0L.d4R.dgL.f0R.f8L.uwL.v4R.v8L.vkR.voL.vwR.w0U.w4L.w8D.wcR.woL.wsR.x4L.17wR.184L.18cR.18kL.18oR.1ewR.1fgU.1fkL.1foR.1fsD.1fwL.1g8L.1ggR.1goR.1s8L.1scL.1sgU.1ssR.1t0R.1t4D.1y0L.1y8L.1ygR.1yoR.1ywL.1z4L.1zcR.1zgL.1zsR.200L.208R.20gR.20oL.20wL.2nkR.2nsL.2o0R.2o8L.2ogR.2ooL.2owR.2p4L.2pcR.2pgL.2poR.2psU.2q4D.2q8L.354R.35cL.35kR.35sL.360R.3c8R.3cgL.3ckR.3cwL.3e0L.3e8R.3ecL.3eoR.3ikL.3isR.3iwL.3j8R.3jcL.3jgL.3joR.3jsU.3jwD.3k0L.3k8R.3kcL",
+  "muenzMax": 177,
+  "aktAbstand": 0.2
+ },
+ "2": {
+  "route": "boL.bwR.c0L.coR.cwL.d0R.doL.dwR.e0L.i8U.xkR.xsR.y0L.y8L.ygR.ykU.yoR.ysD.ywU.z0L.z8L.zcD.zgR.12sL.130R.134L.13sR.140L.144R.154R.15sL.160R.164L.1goU.1q4L.1qcR.1qkL.1qsU.1qwR.1r4D.1r8L.1rgR.1u8R.1ugU.1ukL.1usD.1uwR.1v0U.1v8L.1vgD.1vkR.1vsL.20kR.218L.21gR.21kL.22kR.26sU.2g8L.2gcL.2ggU.2goR.2gsD.2gwL.2l4R.2lcR.2qgL.2qoL.2qwR.2r0L.2w0U.318R.31gL.31kR.32kR.338L.33gR.33kL.374L.37cR.37oL.37sU.380R.38cL.38gD.38oR.3ikU.3mkR.3mwL.3n0R.3ncU.3ngL.3nkR.3noD.3nwL.3wsL.3x0R.3x4L.3xgR.3xkL.3xoU.3xwR.3ycL.3ygD.3yoR",
+  "muenzRoute": "bsL.c0R.c4L.cgR.ckL.cwR.dwL.e4R.e8L.ekR.hoL.hwR.i4L.i8U.icR.ikL.isR.iwL.j8R.mwL.n4R.n8L.nkR.noL.nwR.o0U.o4L.o8D.ocR.ogU.okD.scL.skR.soL.t0R.t4L.tgR.toL.twR.u0L.ucR.ugL.usR.xsR.y0L.y8L.ygR.ykU.yoR.ysD.z0L.z8L.zgR.zoR.12kL.12oL.12sU.130R.134D.138L.13gR.13kL.13oL.13wR.144U.148R.14cD.14kL.154R.15wL.164L.16cR.16kR.1a8L.1agL.1aoR.1awR.1b8L.1bgL.1boR.1bwR.1c8L.1cgL.1coR.1cwR.1fkL.1foL.1fsU.1g0R.1g4D.1g8R.1gkL.1goU.1gsL.1h0R.1h8R.1hgL.1hoR.1l0L.1l8L.1lgR.1loL.1lwR.1m4R.1mgL.1pwL.1q4R.1q8L.1qkU.1qoR.1qsL.1qwD.1r8R.1rgL.1u8R.1ugR.1uoL.1usR.1uwU.1v8L.1vgD.1vkR.1vsL.1w0L.1zgR.1zoL.1zwR.204L.208R.20kR.20sL.20wR.218L.21gR.21kL.22kR.26sU.2ggL.2gkL.2goU.2gwR.2h0D.2h4L.2hcR.2hkL.2m0U.2w0U.31gR.31oR.31wL.324L.32gR.32oR.32wL.330R.334R.33cL.33kU.33oL.33sD.340R.370L.374U.37cR.37kD.37oL.37sU.380R.38cL.38gD.38oR.38wL.3c0R.3c8L.3ccR.3coL.3csR.3d4L.3d8R.3dkL.3dsR.3e0L.3e4R.3egL.3ekR.3ewL.3i0R.3i8L.3igR.3ikU.3ioL.3iwR.3j4L.3j8R.3jkL.3mgR.3moR.3mwL.3n4R.3n8U.3ncL.3ngR.3nkD.3nsL.3o0L.3rcR.3rkL.3roR.3s0L.3s8R.3sgL.3skR.3wwL.3x4R.3x8L.3xkR.3xsL.3xwU.3y0R.3y8L.3ycD.3ygR.3yoL.43wR.444L.448R.44kL.44sR.450L.454R.45gL.45kR",
+  "muenzMax": 211,
+  "aktAbstand": 0.2
+ },
+ "3": {
+  "route": "bcL.bkR.boL.ccR.ckL.coR.dkR.hsD.x8D.120L.128R.12cL.138R.13wL.144R.148L.178L.17gR.17kL.180R.188D.18cL.18gR.18oL.190R.1igU.1mwD.1roL.1rwR.1s0L.1soR.1swL.1t0R.1tkL.1tsR.1twL.1x0R.1x4R.1x8R.1xgL.1xoL.1y0U.1y8R.1ygR.1ykD.21sL.21wL.220U.228R.22cD.22gL.2ckR.2csR.2d0L.2d8L.2dgD.2dkR.2doL.2e0R.2e4L.2hoU.2moR.2mwL.2n0R.2nwR.2okL.2osR.2owL.2t4D.324L.32cR.32gL.36gR.36kR.36oR.36wL.374L.37kD.3awR.3b4L.3b8R.3bkL.3boR.3bsU.3c0L.3c4R.3c8D.3cgL.3ewR.3f4R.3fsU.3fwL.3g4L.3gcD.3ggR.3goL.3ksR.3l0L.3l4R.3loL.3lwR.3m0L.3moR.3mwL.3n0R.3r8D.418U.44sL.44wR.450U.454L.458D.45cR.45kL.45oD.45wR.460L.46cR",
+  "muenzRoute": "bcL.bkR.boL.ckR.csL.d0R.doR.dwL.e0R.hsD.x8D.120L.128R.12cL.12oL.12wR.134R.140L.148L.14gR.14oR.16wU.17kL.17sL.184R.188L.18cD.18kR.18sL.190R.198R.1c0L.1c4L.1c8U.1cgR.1ckD.1coR.1d0L.1d8L.1dgR.1doR.1e0L.1igU.1mwD.1rsL.1s0R.1s4L.1soR.1swL.1t0R.1tkL.1tsR.1twL.1x0R.1x4R.1x8R.1xgL.1xkL.1y0U.2ckR.2csR.2d0L.2d8L.2dkD.2hoU.2n8R.2ngL.2noR.2nwR.2p4L.2pcR.2skL.2ssL.2t0R.2t4D.2t8R.2tgL.2toR.2x4L.2xcL.2xkR.2xsR.2y0L.2y8L.2ygR.2yoR.2ywL.328L.32gR.32kL.32wR.338L.36gR.36kR.36oR.36wL.374L.37kD.3b4R.3b8L.3bcL.3bkR.3bsU.3c0L.3c4D.3c8R.3cgL.3f4R.3fcR.3foL.3fsU.3fwR.3g0D.3g4U.3g8L.3ggL.3gkD.3l0R.3l8R.3lgL.3loL.3lsR.3m4L.3moR.3mwL.3n0R.3r8D.418U.44sL.44wR.450U.454L.458D.45cR.45kD.45oL.45wR.460L.46cR",
+  "muenzMax": 238,
+  "aktAbstand": 0.2
+ },
+ "4": {
+  "route": "58L.5gR.5kL.64R.6cL.6gR.7gR.fsL.fwL.g0U.g8R.gcD.ggL.gsR.gwU.h0R.h8L.hcL.hgD.kkR.ksR.l8D.lcL.lkL.lsR.p4R.poL.pwR.q0L.qkL.qsR.qwL.rkR.rsL.rwR.10wR.114L.11kD.11wR.120U.124D.128L.12cD.14gL.14oR.14sL.1a8R.1agL.1akR.1bgR.1c0L.1c8R.1ccL.1l8R.1lkL.1lsR.1lwL.1m0D.1m8R.1mgL.1mkR.1owL.1p0L.1p4U.1pcR.1pgD.1pkL.1psR.1q0L.1q4U.1q8R.1qcL.1qgD.1qoR.1zcL.1zkR.1zsL.1zwD.208R.20cU.20gL.20kD.20oR.20sD.20wL.23kR.23sL.23wR.24gL.24oR.24sL.25cR.25kL.25oR.26kR.2agU.2eoD.2n0L.2n4L.2n8U.2ngR.2nkD.2noL.2swR.2t4L.2t8R.2tsL.2u0R.2u4L.2uoR.2uwL.2v0R.2ygR.2yoL.2ywR.2z0D.2zcL.2zgU.2zkR.2zoD.2zsL.2zwD.300R.32sL.330L.338R.37sL.380R.384L.38gR.38kL.38sU.38wR.394L.398D.39cR.39kL.3ccR.3ckL.3csD.3cwR.3d4L.3dcR.3dkL.3gkR.3gsL.3gwR.3lwD.3osL.3p0R.3p4L.3yoR.3ysL.3ywL.3z4R.3z8R.3zoD.408L.40gL.40oR.40wR.434L.438L.43cU.43kR.43oD.43sL.448R.44gL.44kR.45kR.464L.46cR.46gL.49gL.49oR.49sL.4a4R.4acL.4agU.4akR.4aoL.4asD.4b0R.4dkR.4hgL.4hoL.4hwR.4i0R.4i4R.4icL.4igD.4ikL.4iwR.4j4L.4m8R.4mgR",
+  "muenzRoute": "58L.5gR.5kL.5wR.60L.64L.6cR.6gU.6oL.6sD.6wR.7gR.g0L.g8L.gcU.goR.gsD.gwL.h0U.hcD.hkD.hoR.hsR.hwR.i4U.i8D.k4L.kcL.kkR.ksR.l8D.q0L.q8R.qgL.qwL.r4R.rcL.roR.rwL.s0R.scL.vkR.vsL.vwR.w8L.wgR.woL.wsR.10cL.10kR.10oR.10sR.110L.114R.11cL.11kD.11wR.120U.124D.128L.12cD.14kL.14sR.14wL.150L.158R.15cU.15gD.15kL.1acR.1akL.1aoR.1b0L.1b8R.1bgR.1bwL.1c8R.1ccL.1lgR.1lsL.1lwR.1m0D.1m4L.1mcR.1moL.1p4L.1pcR.1pgL.1psR.1pwU.1q4L.1q8D.1qkR.1qsL.1u4R.1ucL.1ugR.1uwL.1v4R.1zcL.1zkR.1zsL.1zwD.208R.20cU.20gL.20kD.20oR.20sD.20wL.23kR.23sL.23wR.248L.24cR.24oL.25cR.25kL.25oR.26kR.26sL.270R.2agU.2eoD.2n4L.2n8L.2ncU.2nkR.2noD.2nsL.2o0R.2o8L.2swR.2t4L.2t8R.2tkL.2toR.2u0L.2v0R.2v8L.2vgR.2ygR.2yoL.2ywR.2z0D.2zcL.2zgU.2zkR.2zoD.2zsL.2zwD.300R.32sL.330L.338R.33gL.33oR.33wR.344L.37sL.380R.384L.38gR.38kL.38sU.38wR.394L.398D.39cR.39kL.3ccR.3ckL.3csD.3cwR.3d0L.3d4R.3dcU.3dgD.3dkL.3goR.3gwL.3h0R.3hgL.3hsR.3i0L.3i8R.3lwD.3owL.3p4R.3p8L.3pkR.3psL.3yoR.3ysL.3ywL.3z4R.3z8R.3zoD.404U.408L.40cL.40gD.44gR.44oL.44sR.454L.45cR.45kR.45sL.45wR.460R.468L.49cL.49kR.49oL.4a0R.4a4L.4acU.4agR.4aoL.4asD.4awR.4b4L.4dkR.4dsR.4e4L.4ecR.4hgL.4hoL.4hwR.4i4R.4igD",
+  "muenzMax": 292,
+  "aktAbstand": 0.2
+ },
+ "5": {
+  "route": "agL.aoR.asL.awL.b4R.b8L.bcU.bgR.bkD.boL.bsU.bwR.c0D.c8R.ccL.cgU.coR.csD.fcL.fkL.fsR.13cL.13kR.13oL.148R.14gL.14kR.154L.15cR.15gL.188R.18gR.18wL.190U.194L.19cR.19gR.19kD.1g8L.1ggL.1goR.1lwL.1m4R.1m8L.1moR.1mwL.1n0R.1nwR.1qoL.1qwL.1r4R.1rcR.1roD.1rsL.1s0R.1s8L.1vgR.23wL.244L.24cR.280L.288R.28cL.2dgR.2doL.2dsR.2ekR.2f4L.2fcR.2fgL.2m0L.2m8R.2mcL.2r4U.33cR.33kL.33oR.37sR.380L.388R.38cL.38gD.38kR.38sU.38wL.390D.394R.3c0L.3c8L.3cgR.3d8R.3doL.3dwR.3e0L.3ewR.3l8L.3lgL.3loR.3v0L.3v8R.3vcL.3voR.3vsU.3vwL.3w4R.3w8L.3wcD.3wkR.42wL.434R.438L",
+  "muenzRoute": "agL.aoR.asL.awL.b4R.b8L.bgR.boL.bsU.c0R.c4D.c8R.ccL.cgU.coR.csD.fgL.foL.fwR.g4R.gcL.13oL.13wR.144L.14cR.14gL.14oR.154L.15cR.15gL.190U.1ggR.1goL.1gwR.1h4L.1h8R.1mgL.1mkU.1msR.1mwD.1n0L.1n4R.1nwR.1qoL.1qwL.1r4R.1rcR.1roD.240L.248L.24gR.24oR.250L.284L.28cR.28gL.28sR.290L.2dsR.2e0L.2e4R.2eoR.2f8L.2fgR.2fkL.2fwR.2lwL.2m0L.2m4U.2mcR.2mgD.2mkL.2mwR.2n4L.2nwR.2o4R.2qcL.2qkL.2qsR.2r0L.2r4U.2rgR.2rkL.2roD.2rsR.2rwU.2s0R.2s4D.2ugL.2ukL.2uoU.2uwR.2v0D.2v4L.2vcR.2vkL.2vwR.2w4L.2wcR.2wkL.2wsR.2x0L.2x8R.37gL.37kR.37oU.37sR.37wR.384D.388L.38gR.38kL.38oD.38sR.394L.3dcR.3doL.3dwR.3e4L.3ecL.3ekR.3esR.3lkL.3lsR.3m0L.3m8L.3mgR.3v0L.3v8R.3vcL.3voR.3vsU.3vwL.3w4R.3w8L.3wcD.3wkR.3wsL",
+  "muenzMax": 204,
+  "aktAbstand": 0.2
+ },
+ "6": {
+  "route": "58L.5gR.5kL.60R.68L.6cR.6sL.70R.74L.fkR.fsL.fwD.g8R.gcU.ggL.gkD.goR.gsD.gwL.mgR.moL.msR.qoR.qwL.r0U.r8R.rcD.rkU.roL.rsR.rwD.s4L.ugR.uoL.uwR.v0L.v4D.vgR.voL.xoL.xwR.y0L.12sR.130L.134R.13kL.13sR.13wL.14gR.14oL.14sR.1l0U.1owD.1s4L.1scR.1sgD.1ssL.1swU.1t0R.1t4D.1t8L.1tcD.1tgR.288L.28gR.28kL.2c8R.2cgR.2hcL.2hkR.2hoL.2i4L.2icR.2igL.2iwR.2j4L.2j8R.2lsL.2lwR.2m0U.2m4R.2m8R.2mgD.2mkL.2msR.2mwL.2n0D.2n4R.2n8U.2ncD.2ngL.2pgL.2poR.2psL.2q4R.2q8L.2qkU.2qoR.2qsL.2qwD.2r4R.2tcL.2tkR.2toL.2u8D.2ugR.2ukU.2uoD.2usL.2uwD.2xgR.2xoL.2xsR.35kL.35sR.35wL.3akD.3e0U.3ewD.3gsR.3h0R.3lwL.3m4R.3m8L.3n0R.3ngL.3noR.3nsL.3vsL.3w0R.3w4L.3wkD.3wwR.3x0U.3x4L.3x8D.3xcR.42kL.42sR.42wL.46oR.46wR.4asL.4b0L.4bcD.4dsR.4e0L.4e4R.4q0L.4q8R.4qcL.4u4R.4u8L.4ucL.4ukR.4uoR.4v4D.4y4L.4y8L.4ycU.4ykR.4yoD.4ysL.4z4R.4zcL.4zgR.500L.508R.50cL.50sR.510L.514R.54sD.588U.594D",
+  "muenzRoute": "5sL.5wU.64R.68D.6cL.6gR.6sL.70R.74L.fkR.fsL.fwD.g8R.gcU.ggL.gkD.goR.gsD.gwL.moR.mwR.n4L.ncL.ngR.qoR.qwL.r8R.rcU.rgL.roR.rsD.rwL.s4R.ukL.usR.v0L.v4D.v8R.vcU.vgL.vkD.voR.xsL.y0L.y8R.ygL.12sR.130L.134R.13cU.13oD.13sL.14gR.14oL.14sR.158L.180R.188L.18cR.18oR.18sU.190L.194D.198L.19kR.1l0U.1owD.1s4L.1scR.1sgD.1ssL.1swU.1t0R.1t4D.1t8L.1tcD.1tgR.28cL.28kR.28oL.290R.29cL.2cgR.2ckR.2coR.2cwL.2d4R.2hkL.2hsL.2i0R.2i8L.2igR.2ioL.2j0R.2j8L.2jgR.2joR.2mkL.2msR.2mwD.2n0L.2n4R.2n8U.2ncD.2ngL.2noR.2p8L.2pcL.2pgU.2poR.2psD.2pwL.2q4R.2q8L.2qcU.2qoR.2qsL.2qwD.2r4R.2toL.2twR.2u0L.2u8D.2ugR.2ukU.2uoD.2usL.2uwD.2xkR.2xsL.2xwR.2y8L.2ygR.2ykU.2ywD.2z0L.2z8R.2zgL.2zkR.35oL.35wR.360L.36cR.36kL.3akD.3e0U.3ewD.3h0R.3h4R.3h8R.3hgL.3hoR.3lwL.3m4R.3m8L.3n0R.3nkL.3nsR.3nwL.3ocR.3r4L.3rcL.3rkR.3rsR.3s4L.3sgL.3soR.3swR.3t8L.3tgR.3vsL.3w0L.3w8R.3wgL.3wkD.3wwR.3x0U.3x4L.3x8D.3xcR.42oL.42wR.430L.43gR.43oL.47gU.4acR.4akR.4asL.4b0L.4bcD.4dwR.4e4L.4e8R.4ekL.4esR.4q4L.4qcR.4qgL.4qsR.4r4L.4u4R.4u8L.4ucL.4ukR.4uoR.4v4D.4vgL.4vkU.4voL.4vsD.4ycR.4ygL.4ykL.4ysR.4ywL.4z0U.4z4R.4z8D.4zcL.4zgU.4zkR.4zoD.500L.508R.50cL.50sR.510L.514R.54sD.588U.594D",
+  "muenzMax": 312,
+  "aktAbstand": 0.2
+ },
+ "7": {
+  "route": "awR.bcL.bkR.boL.c8L.cgR.ckL.fwR.g4L.g8R.toL.twR.u0R.u4R.ucL.ugR.ukU.uoL.usD.uwR.v0U.v4L.v8D.vgL.vkR.voU.vwR.w0D.zcU.130L.138L.13gR.1g0R.1g8L.1ggR.1gkU.1goL.1gsR.1gwD.1h4L.1k8U.1koD.1l0U.1ugL.1uoR.1usL.1vcR.1vkL.1voR.1w4L.1wcR.1wgL.1z4R.1zcR.1zkL.1zsL.204D.23kR.23sL.23wR.2fwL.2g4R.2g8L.2l4R.2lcL.2lgR.2m0L.2m8R.2mcL.2mwR.2n4L.2n8R.2qoU.2qwD.2rkU.2ugL.2uoR.2usL.2v4R.2v8U.2vgL.2vkD.2vsR.2vwL.2ycR.2ykL.2yoR.2z0D.2z4L.2zgR.2zkL.32gR.32oL.32sR.3gsR.3hcL.3hkR.3hoL.3i4L.3icR.3igL.3lwU.3poU.3pwD.3qkU.3yoR.3ywR.3z4L.3zcL.3zkD.404R.40cR.40kL.40sL",
+  "muenzRoute": "b0R.bcL.boR.bsL.c8L.cgR.csL.d0R.d8R.g0L.g8L.ggR.gsR.h0L.toL.twR.u0R.u4R.ucL.ugR.uoL.uwR.v0U.v8L.vcD.vgL.vkR.voU.vwR.w0D.zcU.134L.13cL.13kR.13wR.144L.1g0R.1g8L.1ggR.1gkU.1goL.1gsR.1gwD.1h4L.1hcR.1jkL.1joU.1jwL.1k4R.1k8D.1kcR.1kkL.1l0U.1ukL.1usR.1uwL.1v4U.1vcR.1vgD.1vkL.1voR.1w4L.1wcR.1wgL.1z4R.1zcR.1zkL.1zsL.204D.23sR.240R.248L.24gL.24oR.2g0L.2g8R.2gcL.2goR.2gwL.2l4R.2lcL.2lgR.2lsL.2lwR.2m8L.2mwR.2n4L.2n8R.2qoU.2qwD.2rkU.2ugL.2uoR.2usL.2v4R.2v8U.2vgL.2vkD.2vsR.2w0L.2ycR.2ykL.2yoR.2z0D.2z4L.2z8U.2zcD.2zgR.2zoL.32kR.32sL.32wR.33cL.33kR.3g8L.3ggR.3gkR.3goR.3gwL.3h0R.3h8L.3hgR.3hkU.3hsL.3hwD.3i4L.3icR.3igL.3lwU.3poU.3pwD.3qkU.3yoR.3ywR.3z4L.3zcL.3zkD.404R.40cR.40kL.40sL",
+  "muenzMax": 246,
+  "aktAbstand": 0.2
+ },
+ "8": {
+  "route": "okR.p0L.p8R.pcL.q8R.skL.soL.ssU.t0R.t4D.t8L.wwR.x4R.xgD.xkL.xsL.y0R.11kL.11oU.11sR.11wR.120R.128D.12cL.12gU.12kR.1egL.1eoL.1ewR.1k0R.1kgL.1koR.1ksL.1lkR.1p0U.20oL.20wL.214R.2dgR.2doU.2dsL.2e8R.2ecD.2egL.2i0L.2i8R.2icL.2isR.2j0L.2j4R.2jwR.2v0L.2v4L.2v8U.2vgR.2vkD.2voL.2zkR.2zsR.300L.308R.344L.34cL.34kR.34sR.354D.3goL.3gwL.3h4R.3rcR.3rsL.3s0R.3s4L.3swR",
+  "muenzRoute": "ooR.osU.p4D.p8L.q8R.qgL.qkR.toU.ukD.wgL.wkL.woL.wwR.x4R.xgD.1ekL.1esL.1f0R.1f8R.1fgL.1k4R.1k8U.1kkL.1koD.1ksR.1kwL.1loR.1p0U.20sL.210L.218R.21kR.21sL.2dkR.2doU.2dsL.2e8R.2ecD.2egL.2ekD.2eoR.2h4L.2hcL.2hkR.2hsL.2i0R.2i4L.2i8L.2igR.2isL.2j0R.2jwR.2w4U.2x0D.344L.34cL.34kR.34sR.354D.3h0L.3h8L.3hgR.3rcR.3rkL.3roR.3s0L.3swR",
+  "muenzMax": 244,
+  "aktAbstand": 0.2
+ },
+ "9": {
+  "route": "a4L.acR.agL.awR.b4L.b8R.bkR.bsL.bwR.f8U.fgD.g0U.uoU.vkD.y4U.ycD.z0U.12wL.134R.138L.13oL.13wR.140L.14gR.14oL.14sR.17kR.17sL.180R.184L.188D.18kR.18sL.1gkU.1gwD.1h8U.1jsL.1k0R.1k4L.1kgR.1kkL.1ksU.1kwR.1l0L.1l4D.1lcR.278L.27gR.27kL.280R.288L.28cR.28sL.290R.294L.2ckU.2cwD.2d8U.2foR.2fwL.2g0R.2k4U.2l0D.2nkU.2nsD.2ogU.2x8L.2xgR.2xkL.2y0R.2y8L.2ycR.2ysL.2z0R.2z4L.314U.320R.32cL.32kD.32sR.32wU.330D.334L.338D.35wU.364D.36sU.3foR.3fwR.3g4L.3gcL.3goD.3o0R.3o4L.3o8L.3ogR.3osU.3owL.3p0D.3p4R.3p8L.3pgR.3soL.3swR.3t0L.3tgR.3toL.3tsR.3u8L.3ugR.3ukL.3v0R.3v8L.3vcR.3xwL.3y4R.3y8L.3ysU.3ywR.3z0L.3z4D.3zcR.424U.42cD.42wU.45gL.45oR.45sL.468R.46gD.46kL.46oU.46sR.46wD.470L.49oR.49wL.4a0R.4m8U.4mkD.4mwU",
+  "muenzRoute": "a4L.acR.agL.awR.b4L.b8R.bgR.bkU.bsL.bwD.c0R.f8U.fgD.g0U.uoU.vkD.y4U.ycD.z0U.130L.138R.13cL.13sL.140R.148L.14kR.14oL.150R.158L.178R.17cR.17gR.17oL.180R.184L.188D.18kR.18sL.190L.1b8R.1bgL.1bkR.1bsU.1c4D.1c8L.1cgR.1ckU.1cwD.1d0L.1dcR.1dkL.1g0R.1g8L.1ggR.1gkU.1goD.1gwL.1h4R.1h8U.1jsL.1k0R.1k4L.1kgR.1kkL.1l8R.1lgL.1o4R.1ocL.1ogR.1owL.1p4R.278L.27gR.27kL.27sU.284D.288R.28wL.294R.298L.29kR.2boL.2bwR.2c0L.2c4L.2ccR.2cgU.2ckL.2coD.2cwR.2d4L.2d8U.2fsR.2g0L.2g4R.2ggR.2goL.2k4U.2l0D.2nkU.2nsD.2ogU.2x8L.2xgR.2xkL.2xsU.2y4D.2y8R.2ywL.2z4R.2z8L.31sR.320L.324R.32gL.32kD.32sR.32wU.330D.334L.338D.35wU.364D.36sU.3foR.3fwR.3g4L.3gcL.3goD.3o8R.3ogL.3okR.3ooU.3owL.3p0D.3p4R.3p8U.3pcL.3pgD.3pkR.3soL.3swR.3t0L.3t8U.3tkD.3toR.3ucL.3ukR.3uoL.3v4R.3vcL.3vgR.3vsL.3y4R.3ycL.3ysU.3ywR.3z0L.3z4D.3zcR.3zkL.41kR.41sR.420L.424U.42cD.42kL.42sR.42wU.45gL.45oR.45sL.464R.468L.46gR.46kD.46oL.470R.4m8U.4mcD.4mwU",
+  "muenzMax": 282,
+  "aktAbstand": 0.2
+ },
+ "10": {
+  "route": "a8R.aoL.awR.b0L.bgL.boR.bsL.nwR.o4R.s4L.s8L.scU.skR.soD.ssL.w4R.wcR.wkL.wsL.x0D.15wR.164L.16cR.16gL.16kU.16wD.170R.178L.17cR.1ewR.1noU.1ogD.27gL.27oR.27sL.28gR.28wL.294R.298L.2coD.2k8R.2kgL.2kkR.2ksU.2kwL.2l0R.2l4D.2lcL.2skR.2ssL.2swU.2t0R.2tcL.2tgD.2tkR.2toD.2tsL.2xsR.30oL.30wR.310L.31cD.31oR.31wL.3f0R.3fgL.3foR.3fsL.3gkR",
+  "muenzRoute": "acR.agU.asD.awL.bgL.boR.bsL.c8R.fcL.fkR.foL.fsL.g0R.g4L.gkR.jkL.jsR.jwL.k0L.k8R.kcL.kkU.kwD.l0R.l8L.okU.pgD.w4R.wcR.wkL.wsL.x0D.15wR.164L.16cR.16kL.174R.17cL.17gR.17sL.1b8R.1bgL.1boR.1bwD.1c0L.1esR.1ewR.1f0R.1f8L.1fgR.1noU.1ogD.27sL.280L.288R.28gR.290L.298R.29cL.29oR.2bwL.2c4L.2ccR.2ckD.2coR.2cwL.2d4R.2g8L.2ggL.2goR.2gwR.2h4L.2h8R.2hcD.2k0L.2k8R.2kcL.2koR.2ksU.2kwL.2l0R.2l4D.2lcL.2lkR.2o0L.2o8L.2ogR.2ooR.2owL.2p4U.2pgD.2pkR.2psL.2sgR.2soL.2t4D.2tcR.2tgU.2tkL.2toD.2tsD.2xsR.30oL.30wR.310L.318R.31cD.31gU.31kD.31oL.31wR.34gL.34oL.34wR.354U.35gD.35kR.35wL.3f4R.3f8U.3fkD.3foL.3ggR.3goL.3gwR",
+  "muenzMax": 207,
+  "aktAbstand": 0.2
+ },
+ "11": {
+  "route": "egL.eoR.esL.f8R.fgL.fkR.g8L.isR.j0R.ncL.ngL.nkU.nsR.nwD.o0L.rwR.s4L.s8R.t0R.tgL.toR.tsL.1d0L.1d8R.1dcL.1dkR.1dwD.1e8L.1egR.1m0U.1m8D.1msU.1qoL.1qwR.1r0L.1rgR.1roL.1rsR.1s8L.1sgR.1skL.208U.214D.27kR.27sL.27wR.2c8L.2cgR.2ckL.2coU.2d0D.2d4R.2dcL.2dgR.2e8R.2lwU.2msD.37oL.37wL.384R.3d4R.3dkL.3dsR.3dwL.3e8L.3egR.3ekL.3mkR.3msL.3mwR.3xsL.3y0R.3ycL.3ygU.3ykR.3yoL.3ysD.3z0R.41gR.41kL.41wD.428R.42gL.4eoU.4f0D.4fcU.4jkR.4k8L.4koL.4kwR.4l0L.4nkR.4nsR.4o0L.4o4R.4o8U.4p4D.4s4L.4s8L.4scU.4skR.4soD.4ssL",
+  "muenzRoute": "esL.f0R.f8L.fgR.fwL.g4R.g8L.jgU.kcD.s8R.sgL.soR.t0R.t8L.tgR.tkL.toU.u0D.u4R.x4L.xcL.xkR.xsR.y0L.1d8L.1dgR.1dsL.1dwR.1e0D.1e4L.1egR.1m0U.1m8D.1msU.1qsL.1r0R.1r4L.1rsR.1s0L.1s8R.1scL.1sgU.1ssD.1swR.1wgL.1woR.1wsL.1x8R.1xcL.1xoR.1zkL.1zsR.1zwL.208U.20gR.20sL.20wD.210R.23gL.23oR.23sL.23wL.244R.248L.24gU.24sD.24wR.254L.27oR.27wL.280R.28cL.28kR.2csL.2d0R.2d4L.2dgR.2e8R.2lwU.2msD.37sL.380L.388R.38gR.38oL.3d4R.3dcL.3dkR.3doL.3dsU.3e4D.3e8R.3ekL.3esL.3f0R.3hwL.3i4R.3icL.3ikR.3ioL.3isL.3j0R.3j4L.3jcU.3joD.3jsR.3xsL.3y0R.3ycL.3ygU.3ykR.3yoL.3ysD.3z0R.3z8L.410R.418R.41gL.41kR.41oR.41wL.420D.428R.42gL.42oL.45wR.464L.468R.46oL.46sR.474L.49kR.49sL.49wR.4a8L.4agR.4aoU.4b0D.4b4L.4bcR.4eoU.4esD.4fcU.4jkR.4jsL.4k0R.4k8L.4koL.4kwR.4l0L.4ogD",
+  "muenzMax": 275,
+  "aktAbstand": 0.2
+ },
+ "12": {
+  "route": "a0R.aoL.bgR.ecL.ekL.esR.xkU.xsD.ycU.17kU.18gD.1akR.1aoL.1b0D.1b4R.1bcL.1bgR.1e0L.1e8L.1egR.1t8D.1tgR.1tkU.1toD.1wcL.1wkL.1wsR.1xcR.1xsL.1y0R.1y4L.1ygL.1yoR.1ysL.220U.22cD.22oU.25wU.26oD.28cR.28kL.28oR.2ckU.2cwD.2d8U.2gwL.2h4R.2h8L.2hwR.2icL.2ikR.2ioL.31oD.340R.348R.34gL.34oR.350U.354L.358D.35cR.37oL.37wL.388D.3b8U.3bgD.3c0U.3f8U.3g4D.3yoD.41wU.428D.42kU.468R.46gL.46kR.46sR.46wU.474L.478D.47cR.47wL",
+  "muenzRoute": "a0R.a8L.agR.aoL.bkR.bwL.xkU.xsD.ycU.17kU.18gD.1akR.1asL.1awD.1b0R.1b8L.1bgR.1boL.1t8D.1tgR.1tkU.1toD.1woL.1wwR.1x4L.1xcR.1xsL.1y0R.1y4L.1ykL.1ysR.1ywL.220U.224D.22oU.25wU.26oD.28cR.28kL.28oR.290L.298R.2ckU.2coD.2d8U.2h8L.2hgR.2hoL.2hwR.2icL.2ikR.2ioL.31oD.340R.344R.348U.34kL.34sL.358D.35cU.35oD.378R.37cR.37gR.37oL.37wL.388D.3b8U.3bgD.3c0U.3f8U.3g4D.3yoD.41wU.420D.42kU.468R.46gL.46kR.46wR.474L.478R.47cR.47kL.47wR.480L.48cR.4bkL.4boL.4bsU.4c0R.4c4R.4c8D.4cgU.4ckL",
+  "muenzMax": 266,
+  "aktAbstand": 0.2
+ },
+ "13": {
+  "route": "agR.awL.b4R.b8L.bwR.f4L.f8L.fcU.fkR.foD.fsL.psR.q0L.q4R.qwR.r8L.rgR.rkL.ugR.uoL.v0R.v4U.v8L.vcR.vgD.voL.z0R.12gL.12kL.12oU.12wR.130D.134L.1bcR.1bkR.1bsL.1c0L.1c8D.1fsR.1g0R.1g8L.1ggR.1l4L.1lcR.1lgL.1m8R.1moL.1mwR.1n0L.1v4R.1vkD.1vsL.1vwU.1w0R.1w4D.1w8D.2fsL.2g0R.2g4L.2gwR.2hcL.2hkR.2hoL.2lgR.2p8L.2pcL.2pgU.2psD.2pwR.2q0U.2q4L.2qgD.2ssR.2swL.2t0L.2t8R.2tcR.2tsD.2u0L.2u4U.2u8L.2ucD.374U.380D.3awR.3b4R.3l8L.3lgR.3lkL.3lwL.3m4R.3m8L.3moR.3mwL.3n0R.3qsR",
+  "muenzRoute": "agR.aoL.awR.b4L.bwR.f8L.fcL.fgU.foR.fsD.fwL.g4R.gcL.psR.q0L.q4R.qkL.qsR.r0R.rcL.rkR.rsL.s0L.u8R.ugR.uoL.uwR.v0U.v8L.vcR.vgD.voL.vwL.ysR.z0R.z8L.zgR.12oL.12sL.12wL.134R.13gL.1bcR.1bkR.1bsL.1c0L.1c8D.1g0R.1g4R.1g8R.1ggL.1goR.1l4L.1lcR.1lgL.1loU.1m0D.1m4R.1mgL.1moR.1msL.1mwU.1n8D.1ncR.1qgL.1qoR.1qwL.1r4U.1rgD.1rkR.1rsL.1v0R.1v8L.1vcR.1vkD.1vsL.1vwU.1w0R.1w4D.1w8D.2g4L.2gcR.2gkL.2gsR.2hoL.2hwL.2i4R.2l4L.2lcR.2lgR.2lkR.2lsL.2lwR.2q0U.2qwD.2tsD.2x4L.2x8L.2xcU.2xkR.2xoD.2xsL.2y0R.2y8L.374U.380D.3b4R.3bcR.3bkL.3bsR.3l8L.3lgR.3lkL.3lwL.3m4R.3mcL.3moR.3mwL.3n0R.3qwR.3r8L.3rgR",
+  "muenzMax": 228,
+  "aktAbstand": 0.2
+ },
+ "14": {
+  "route": "a4L.akR.asL.awR.b8R.bgL.bkR.hwL.i4L.icR.pcL.pkR.poL.s0R.s8R.voL.vsL.vwU.w4R.w8D.wcL.13kR.13sL.13wR.17gL.17oR.17sL.180R.18cD.18gL.18oR.18sL.1bcR.1bkL.1boR.1bwR.1c0U.1c8L.1ccD.1cgR.1csL.1d0R.1d4L.1dsR.1joL.1jwL.1k4R.1nsR.1u8L.1ugL.1uoR.23cL.23kR.23wD.24cL.24kR.2egL.2eoR.2esL.2lgR.2loL.2lsR.2pcL.2pkR.2poL.2q0R.2q8L.2qcR.2r0R.2u8U.2v4D.304L.30cL.30kR.34wD.3m0L.3m8R.3mcL.3ogR.3ooL.3osR.3tkR.3twL.3u4R.3u8L.3uwL",
+  "muenzRoute": "9wL.a4R.a8L.akR.asL.b0R.bsR.hwL.i4L.icR.ikR.iwL.pgL.poR.psL.q4R.qcL.soU.tkD.13oR.13wL.140R.14cL.14kR.17gL.17oR.17sL.184R.188D.18cL.18kR.18sL.190R.1ccR.1ckL.1csR.1d4L.1d8U.1dkD.1doR.1jsL.1k0L.1k8R.1kgR.1koL.1nsR.1o0L.1o8R.1ucL.1ukL.1usR.1v0R.1v8L.23cL.23kR.23wD.24cL.24kR.2ekL.2esR.2ewL.2f8R.2fgL.2lkR.2lsL.2lwR.2m8L.2mgR.2pcL.2pkR.2poL.2q0R.2q8L.2qgR.2r8R.2u8U.2v4D.304L.30cL.30kR.30sR.310L.34wD.3m4L.3mcR.3mgL.3msR.3n0L.3osR.3p0L.3p8R.3tkR.3toU.3u0D.3u4L.3uwL",
+  "muenzMax": 199,
+  "aktAbstand": 0.2
+ },
+ "15": {
+  "route": "9wL.akR.b8R.foD.i4L.icL.ikR.isR.j0D.v8D.yoL.ywR.z0L.zoL.10cR.17gR.17oL.17wR.180L.184D.188R.18kL.1awL.1b0R.1b4U.1bcL.1bgD.1bkR.1soL.1swR.1t0L.1tgD.1tsR.1twU.1u0L.1u4D.1u8D.1vsU.1woR.1x0L.1x8R.1xcL.1y0R.1yoR.230D.268U.270D.28gL.28kL.28oU.28wR.290D.294L.2ckR.2csR.2kwL.2l4L.2lcR.2lkL.2pcR.2pkL.2poR.2qcL.2r0R.2u8D.39cR.39gL.39sD.3a0R.3a8L.3dkR.3e8L.3ewR.3p4D.3skD",
+  "muenzRoute": "9wL.a4R.acL.akR.bcR.foD.i4L.icL.ikR.isR.j0D.v8D.ysL.z0R.z4L.zcL.zgU.zoR.zsD.zwL.10cR.17gR.17oL.17wR.180L.184D.188R.18kL.1aoL.1awR.1b4U.1bcL.1bgD.1bkR.1bsL.1egR.1eoL.1ewR.1f4L.1fcR.1fkL.1fsR.1swL.1t4R.1t8L.1tgD.1tsR.1twU.1u0L.1u4D.1u8D.1wkR.1wsR.1x0L.1x8L.1y0R.1yoR.1ywL.1z4R.230D.268U.270D.29oD.2koL.2ksL.2kwU.2l4R.2l8D.2lcL.2lkR.2lsL.2poR.2pwL.2q4R.2qcL.2qsR.2r0L.2r4R.2u8D.39cR.39kL.39sD.3a0R.3a8L.3dsR.3e0L.3e8R.3egL.3f4R.3p4D.3skD",
+  "muenzMax": 234,
+  "aktAbstand": 0.2
+ },
+ "16": {
+  "route": "9wL.akR.b8L.egR.eoR.iwL.j4L.jcR.s8R.x4L.xsR.ygL.11kL.11sR.11wL.168R.16gR.1l0L.1l8L.1lgR.1pwR.1ukL.1usR.1uwL.1vkR.1vwL.1w4R.1w8L.1ycL.1ygR.1ykU.1yoR.1ysR.1z0D.1z4L.1zcR.1zgD.1zoL.1zsU.1zwR.200D.204D.228L.22gL.22oR.270L.278R.27cL.2boR.2bwR.2f0L.2f4L.2f8U.2fgR.2fkD.2foL.2k0R.2koL.2lcR.2ogL.2ooR.2osL.2t0R.2t8L.2tcR.2xgU.2y8D.358L.35gR.35kL.390R.398R.39gL.39oL.39wD.3a4R.3a8U.3acR.3agD.3cwL.3d4L.3dcR.3m0L.3m8R.3mcL.3qwR.3r4L.3r8R.3rwR.3skL.3voL.3vwR.3w0L",
+  "muenzRoute": "9wL.a4R.acL.akR.b0L.b8R.bcL.ekR.eoR.esR.f0L.f8R.iwL.j4L.jcR.jkR.jsL.rwL.s4R.s8R.scR.skL.soR.x4L.xcR.xkL.xsR.y8L.ygR.ykL.ywR.11kL.11oL.11sL.120R.12cL.13gR.13oR.1l4L.1lcL.1lkR.1lsR.1m0L.1pwR.1q4L.1qcR.1uwL.1v0U.1vcD.1vgR.1vwL.1w4R.1w8L.1ycL.1ygR.1ykU.1yoR.1ysR.1z0D.1z4L.1zcR.1zgD.1zoL.1zsU.1zwR.200D.204D.22kL.22sR.230L.238R.23gL.23oR.23wL.270L.278R.27cL.27gL.27oR.27sL.2bsR.2bwR.2c0R.2c8L.2cgR.2f8L.2fcL.2fgL.2foR.2g0L.2k0R.2k8L.2kgR.2koL.2lcR.2ogL.2ooR.2osL.2owL.2p4R.2p8L.2t0R.2t8L.2tcR.2toR.2twL.2xgU.2y8D.358L.35gR.35kL.35oL.35wR.360L.390R.398R.39gL.39oL.39wD.3d0R.3d8L.3dcR.3doL.3dwR.3m0L.3m8R.3mcL.3moR.3mwL.3r8R.3rgL.3roR.3rwR.3s4L.3scR.3skL.3voL.3vwR.3w0L.3w4L.3wcR.3wgL",
+  "muenzMax": 252,
+  "aktAbstand": 0.2
+ },
+ "17": {
+  "route": "9sL.agR.b4R.e0L.e8L.egR.n0L.n8R.ncL.r0R.r8R.ugL.ukL.uoU.uwR.v0D.v4L.vcR.vkL.voR.w8L.wwR.zsL.100R.104L.15cR.15kR.194L.19cL.19kR.1o8R.1ukL.1usR.1uwL.1vkR.1w4L.1yoR.228L.22gL.22oR.2b8L.2bgR.2bkL.2hcU.2i4D.2lgR.2lkR.2loU.2lwL.2m0D.2m4R.2moL.2pkL.2psR.2pwL.2ucD.2xcR.2xkL.2xoR.37sL.380R.384L.3cwR.3d4L.3d8R.3dsL.3egR.3hcL.3hkR.3hoL.3mwR.3n4R.3q8L.3qcL.3qgU.3qoR.3qsD.3qwL",
+  "muenzRoute": "9kL.9sR.9wL.a8R.agL.aoR.b8R.ecL.ekR.esL.f0R.f8L.ncL.nkR.nsL.o0R.o8L.roU.sgD.vkR.vsL.w0R.w8L.woR.wwL.x0R.104L.10cR.10kL.10sR.110L.168D.19cR.19kL.19sR.1a0L.1a8R.1ogR.1ooL.1owR.1p4L.1pcR.1pkL.1qoL.1u4R.1ucR.1ukL.1usR.1v0L.1v8L.1vgR.1voR.1vwL.1w4R.1wcL.1wkL.1ygR.1yoR.1ywL.1z4R.22kL.22sR.230L.238R.23gL.2bkL.2bsR.2c0L.2c8R.2cgL.2hcU.2i4D.2kcR.2kgL.2kkL.2ksR.2kwL.2l0L.2l4R.2lcL.2lgD.2lkR.2lsR.2lwR.2m4U.2mcL.2mgD.2mkR.2moL.2pwL.2q4R.2qcL.2qkR.2qsL.2ucD.2xkR.2xsL.2y0R.2y8L.2ygR.37kL.37sR.37wL.380L.388R.38cL.38sR.390L.3d4R.3dcL.3dkR.3dsL.3e8R.3egL.3ekR.3ewL.3nsD",
+  "muenzMax": 219,
+  "aktAbstand": 0.2
+ },
+ "18": {
+  "route": "5cL.60R.6cL.6kR.6oL.ksR.l0R.t4L.tcL.tkR.10oU.114D.1boL.1bwR.1c0L.1fwR.1g4L.1g8R.1ooD.1rcL.1rkR.1roL.1v4R.1vcR.1ykL.1yoL.1ysU.1z0R.1z4D.1z8L.2b4D.2e0U.2esD.2h0R.2h8L.2hcR.2noL.2o0R.2o8L.2ocR.2owL.2xkR.2xsR.340L.348L.34gR.3c0R.3c8L.3cgR.3ckU.3coL.3csR.3cwD.3d4L.3esL.3f0R.3f4L.3fgR.3foD.3fwL.3g4R.3icL.3ikR.3ioL.3mwR.3n4R.3ncL.3nkR.3tgL.3toL.3twR.3ysD.3ywL.3z0U.3z4D.44sR.450L.454R.4bgL.4c4R.4cgL.4coR.4csL",
+  "muenzRoute": "54L.5cR.5gL.5sR.60L.64R.6kL.6sR.70L.koR.ksR.kwR.l4L.lcR.tcL.tkR.tsL.u0R.u8L.10oU.110D.1boL.1bwR.1c0L.1g8R.1ggL.1goR.1ooD.1roL.1rwR.1s4L.1scR.1skL.1v4R.1vcR.1vkL.1vsR.1ywL.1z4L.1zcR.1zkL.2b4D.2e0U.2esD.2h8R.2hgL.2hoR.2hwL.2i4R.2ngL.2noR.2nsL.2o8R.2ooL.2owR.2p0L.2pcR.2swL.2t4R.2t8L.2tkR.2tsL.2u0R.2u8L.2ugR.2x8L.2xgR.2xkR.2xoR.2xwL.2y0R.340L.348L.34gR.34oR.34wL.3c0R.3c8L.3cgR.3ckU.3coL.3csR.3cwD.3d4L.3dcR.3ekL.3eoL.3esU.3f0R.3f4D.3f8L.3fgR.3fkL.3foD.3fwR.3g4L.3gcR.3gkR.3igL.3ioL.3iwR.3j4L.3jcR.3jkL.3k0R.3k8R.3tgL.3toL.3twR.3u4R.3ucL.3ysD.3ywL.3z0U.3z4D.454R.45cL.45kR.45sL.460R.4bgL.4boR.4bwL.4c4R.4coL.4cwR.4d4L",
+  "muenzMax": 239,
+  "aktAbstand": 0.2
+ },
+ "19": {
+  "route": "a8L.awR.bkR.poL.qcR.qsL.r0R.r4L.u0L.u8R.ugL.ukU.uoR.usL.uwD.v4R.z8L.12oR.12wL.130R.13cD.13kL.13sR.1hgR.1i4L.1isL.1lcR.1lkL.1loR.260U.26sD.2f4L.2fcR.2fgL.2g4R.2gsR.2ocL.2okL.2osR.2owL.2p0U.2psD.2s8R.2sgR.2x0L.2x8L.2xgR.2xoR.2xwD.3c0L.3coR.3dcL",
+  "muenzRoute": "a8L.agR.aoL.awR.boR.poL.pwR.q4L.qcR.qsL.r0R.r4L.u0L.u8R.ugL.ukU.uoR.usL.uwD.v4R.vcL.xgR.xoL.xsR.y4R.ycL.ykL.12oR.12wL.130R.138L.13cD.13gU.13kR.13oD.13sL.16sR.170L.178R.17gL.17oR.17wL.184R.1hgR.1hoL.1hwR.1i4L.1ikL.1isR.1iwL.1lcR.1lkL.1loR.1m0R.1m8L.260U.26sD.2f8L.2fgR.2fkL.2fwR.2g4L.2g8R.2gsR.2p4D.2x0L.2x8L.2xgR.2xoR.2xwD.3c0L.3c8R.3cgL.3coR.3d4L.3dcR.3dgL.3dsR.3i8L.3igL.3ioR.3iwU.3j8D.3jcR.3joL",
+  "muenzMax": 191,
+  "aktAbstand": 0.2
+ },
+ "20": {
+  "route": "9oL.9wR.a0L.acR.akL.aoR.b0L.b8R.bcL.psR.q0R.q8L.qgR.ucL.ukL.usR.uwU.v0L.w8R.wgL.wkR.124R.12cL.12kR.12oL.12sD.12wR.138L.1noL.1nwR.1o0L.1scR.1skL.1soR.1t8R.1twL.1zsR.25sU.268D.26gU.26sD.2kwL.2l4R.2l8U.2lcL.2loR.2lsD.2lwL.2m0D.2m4R.2nwL.2o0L.2o4L.2ocR.2okR.2osD.2ucL.2ukR.2uoL.3jsR.3k4L.3kcR.3kgL.3ksL.3l0R.3l4L.3pgR.3u4L.3vkR.3vsL.3vwR",
+  "muenzRoute": "9gR.9kL.9oL.9sL.a4R.a8L.aoR.b0L.b8R.bcL.qgU.r8D.w8R.wgL.wkR.124R.12cL.12kR.12oL.12sD.12wR.138L.1o0L.1o8R.1ogL.1scR.1skL.1soR.1t0L.1t8R.1tgR.1toL.1twR.1u4L.1zsR.25sU.268D.26gU.26sD.2kcL.2kgL.2kkU.2ksR.2kwD.2l0R.2l8U.2lcL.2loR.2lsD.2lwL.2m0D.2m4R.2nwL.2o0L.2o4L.2ocR.2okR.2osD.2ucL.2ukR.2uoL.3jwR.3kcL.3ksL.3l0R.3l4L.3lkR.3nkL.3nsR.3nwL.3o0L.3o8R.3ocL.3osR.3tsL.3twR.3u0U.3u4L.3u8D.3ucR.3ugD.3ukU.3uoL.3vgD.3vkR.3vsL.3vwR",
+  "muenzMax": 246,
+  "aktAbstand": 0.2
+ },
+ "21": {
+  "route": "9wR.a8L.agR.akL.b4R.i0L.i8L.igR.qsL.r0R.r8L.rcU.rgR.rkL.roD.rwR.y0L.y8R.ycL.120R.128R.15sL.15wL.160L.168R.16gL.16kR.16oR.16wU.170L.174D.178L.17cU.17gD.180R.1egL.1eoR.1esL.1ocR.1okL.1ooR.1vkL.1vsR.1vwL.20cU.210D.2bcR.2bkL.2boR.2fgL.2foR.2fsL.2g8D.2ggR.2gkU.2goL.2gsD.2gwD.2j4R.2jcL.2jgR.2k4R.2kgL.2koR.2ksL.2lcR.2rgL.2roL.2rwR.2wcD.32cL.32kR.32oL.3awR.3b4R.3hoL.3hwL.3i4R.3n4R.3ngL.3noR.3nsL.3ocL",
+  "muenzRoute": "a0R.agL.bcR.bkL.qsL.r0R.r8L.rcU.rgR.rkL.roD.rwR.y0L.y8R.ycL.yoR.ywL.12wD.16oR.16wL.174R.17cL.184R.1egL.1eoR.1esL.1ewL.1f4R.1f8L.1ocR.1okL.1ooR.1p0R.1p8L.1voL.1vwR.1w0L.1wcR.1wkL.20cU.210D.2bcR.2bkL.2boR.2c0L.2c8R.2foL.2fwR.2g0L.2g8D.2ggR.2gkU.2goL.2gsD.2gwD.2jgR.2joL.2jwR.2k8R.2ksL.2lkR.2rkL.2rsL.2s0R.2s8R.2sgL.2wcD.32cL.32kR.32oL.32sL.330R.334L.3bkU.3c8D.3i0R.3i8L.3igR.3n8R.3noL.3o4L.3ocR.3ogL.3osR.3t0L.3t8R.3tcL.3toR.3twL.3u4R.3ucL.3ukR",
+  "muenzMax": 184,
+  "aktAbstand": 0.2
+ },
+ "22": {
+  "route": "54L.5gR.5kU.5oL.60D.6gU.6oR.6sD.6wL.7kR.7oU.7sL.84D.bcR.bkL.boR.jsL.k0R.k4L.qkR.qsL.qwR.18sL.1bwR.1c4R.1c8L.1cgD.1ckR.1csL.1fgU.1g8D.1ioL.1iwR.1j0L.1jcR.1jgU.1jkL.1k0D.1kgR.1kkU.1koL.1l0D.1lkR.1loU.1lsL.1m4D.1poR.1pwR.1wgL.1woL.1wwR.220L.250R.258L.25cR.25oD.25wL.260U.264D.268R.26cD.27wL.284R.288L.2i8R.2igL.2ikR.2u4L.2ucR.2ugL.2usR.2uwU.2v0L.2vcD.2vwR.2w0U.2w4L.2wgD.2x0R.2x4U.2x8L.2xkD.30kR.30sL.30wR.324L.32cD.3bsR.3c0R.3ioL.3isL.3iwU.3j4R.3j8D.3jcL",
+  "muenzRoute": "5cU.5gL.5sR.5wD.60L.64U.6gR.6oL.6sR.6wD.74L.7kU.7sR.7wD.80L.bgR.boL.bsR.c8L.cgR.coL.cwR.k4L.kcR.kkL.qkR.qsL.qwR.r8R.rgL.18sL.1bwR.1c4R.1ccL.1cgD.1ckR.1csL.1d0L.1ewR.1f4L.1f8R.1fgU.1fkL.1fsR.1g0D.1g4L.1igR.1ioL.1isR.1j0U.1j4L.1jsR.1jwD.1k0L.1kgU.1koR.1ksD.1kwL.1l4R.1lcL.1lgU.1lwD.1m4R.1pwR.1q4L.1qcR.1wkL.1wsL.1x0R.1x8R.1xgL.220L.254R.25cL.25gR.25oD.25wL.260U.264D.268R.26cD.288L.28gR.28oL.298R.29gL.29oR.29wR.2boL.2bwL.2c4R.2ccL.2coR.2cwL.2d4R.2dcL.2dkR.2dsR.2gkU.2goL.2gsL.2gwL.2h4D.2h8R.2hcU.2hgL.2i8R.2igL.2ikR.2ucL.2ugR.2ukU.2uoL.2usL.2v0R.2v4L.2v8D.2vwU.2w4R.2w8D.2wcL.2wkR.2wsL.2wwR.2x0U.2x8L.2xcD.2xkR.324L.32cD.3ccU.3d4D.3foD",
+  "muenzMax": 215,
+  "aktAbstand": 0.2
+ },
+ "23": {
+  "route": "fsU.g0D.gcU.1b0U.1bgD.1boU.1c0D.1e8U.1egD.1f0U.1hcL.1hkR.1hoL.1t4R.1tcL.1tgR.240D.270U.278D.27sU.2aoR.2b0D.2b8L.2bcU.2bgR.2bkD.2boD.2ecL.2ekL.2esR.2f8D.2voL.2vsD.31oR.31wL.320R.360U.368D.36sU",
+  "muenzRoute": "fsU.fwD.gcU.1b0U.1bgD.1boU.1c0D.1e8U.1egD.1f0U.1h4L.1hcR.1hgL.1hkL.1hsR.1hwL.1t4R.1tcL.1tgR.240D.270U.278D.27sU.2awR.2b0D.2b8L.2bcU.2bgR.2bkD.2boD.2ekL.2esR.2f0L.2f8D.2fcR.2fgU.2fkD.2i4L.2i8L.2icU.2ikR.2ioD.2isR.2j4L.2voL.2vsD.31oR.31wL.320R.32cR.32kL.360U.368D.36sU",
+  "muenzMax": 169,
+  "aktAbstand": 0.2
+ },
+ "24": {
+  "route": "4oL.4wR.50L.5cU.5kR.5oD.5sL.6gR.6kU.6oL.70D.7gU.7oR.7sD.7wL.b4R.bcL.bgR.g0R.goL.h8L.kwR.l4R.r8L.rgL.roR.134D.1bsL.1c0R.1c4L.1fsR.1g0L.1g4R.1k8U.1l0D.1r0L.1r8R.1rcL.1uoU.1uwD.1vgU.1xsR.1y0L.1y4R.1ycU.1ygL.1ysR.1ywD.1z0L.1z4D.1z8R.22gL.22oR.22sL.29gR.29oL.29sR.2e0L.2ecR.2egU.2ekL.2ewD.2fcU.2fkR.2foD.2fsL.2gcU.2gkR.2goD.2gsL.2joR.2jwL.2k0R.2kgD.2o8D.2ocR.2ogU.2okD.2qwL.2r4L.2rcR.2y8R.394L.39cL.39kR.3dkU.3dsD.3e8U.3h0R.3h4L.3hcD.3hkR.3hsL.3mkL.3msR.3mwL.3qoR.3qwR.3r4L.3rcR.3w0L.3w4D.400U.40gL.40kD.40oR.414U.41cL.41gD.41kR.424U.42cL.42gD.42kR.458L.45gR.45kL.4jkR.4jsR.4skL.4ssL.4t0R.4woU.4wwD.4xgU",
+  "muenzRoute": "4oL.4wR.50L.5cR.5gU.5kL.5oR.5sD.60L.6gU.6sD.70R.78L.7gU.7oR.7sD.7wL.84R.fcL.fkR.foR.fsU.g0L.g4D.g8R.gkL.hcL.hkR.jcL.jkR.joL.jsL.k0R.k4L.kkR.l4R.rgL.roR.rwL.s8R.sgL.soR.w8L.wcR.wgD.wkU.woL.134D.1c0L.1c8R.1cgL.1fwR.1g4L.1g8R.1gkL.1gsR.1k8U.1l0D.1r8L.1rgR.1roL.1uoU.1uwD.1vgU.1xsR.1y0L.1y4R.1ycU.1ygL.1ysR.1ywD.1z0L.1z4D.1z8R.22gL.22oR.22sL.234R.23cL.23kU.23sR.23wD.240L.29gR.29oL.29sR.2a4L.2acR.2e0L.2e8R.2ecU.2egL.2eoD.2ewR.2f4L.2fcU.2fkR.2foD.2fsL.2g0R.2g8L.2gcU.2gkR.2goD.2gsL.2h0R.2kgD.2o8D.2ocR.2ogU.2okD.2r0L.2r8L.2rgR.2rwR.2wsL.2wwR.2x0D.2x4U.2x8L.2y8R.38wL.390L.394U.39cR.39gD.39kR.39sL.3a0R.3a8L.3dkU.3dsD.3e8U.3gsR.3h0L.3hcD.3hkR.3hsL.3msL.3n0R.3n8L.3qoR.3qwR.3r4L.3rcR.3w0L.3w4D.404L.40gR.40oL.40sR.410U.414L.41cR.41gD.41oL.420R.424U.42cL.42gD.42kR.42oU.430D.450L.458R.45cL.45gL.45oR.45sL.4jkR.4jsR.4ssL.4t0R.4t8L.4tkR.4tsL.4u0R.4wcL.4wkR.4woU.4wsL.4wwD.4x4R.4xcL.4xgU",
+  "muenzMax": 273,
+  "aktAbstand": 0.2
+ },
+ "25": {
+  "route": "9wL.a8R.agL.akR.b4L.t0U.toD.15wR.160R.164R.16cL.16kL.16sD.1ewR.1f4L.1f8R.1fsL.1ggR.1tcR.1x4U.1xwD.2a4L.2acR.2agL.2awD.2b4R.2b8U.2bcL.2bgD.2bkD.2e8R.31oL.31wL.324R.3gkD.3p0R.3pkL.3q8R",
+  "muenzRoute": "9oL.9wR.a0L.agR.awL.b4R.b8L.bkR.f4L.fcR.fkL.fsR.g0L.g8R.gcL.goR.okL.osR.p0L.p8R.pgL.poR.pwL.q8R.s4L.s8R.scD.sgR.skR.ssL.swR.t0U.t4D.wsL.wwL.x0U.x8R.xcD.xgL.xoR.xsL.xwL.y4R.ygL.ysR.z0R.16cL.16kL.16sD.170R.174U.178R.17cD.19sL.1a0L.1a8R.1agL.1aoR.1awL.1b8R.1bgL.1boR.1bwR.1e8L.1ecL.1egL.1eoR.1ewL.1f4R.1fcL.1fgU.1fkR.1foD.1fwL.1ggR.1tcR.1tkL.1tsR.1x4U.1xwD.2acL.2akR.2aoL.2awD.2b4R.2b8U.2bcL.2bgD.2bkD.2e4R.2ecL.2ekR.2esL.2f0R.2f8L.2fgR.2fsL.2k8R.2kgL.2koR.2kwL.2l4R.2lcL.2pkR.2pwL.2q4R.2qcL.2qkR.31oL.31wL.324R.32cR.32kL.3gkD.3owR.3p4L.3pcR.3pkL.3qcR.3qkL.3ucR.3uoL.3uwR.3v8L.3vcR",
+  "muenzMax": 174,
+  "aktAbstand": 0.2
+ },
+ "26": {
+  "route": "9oL.a8R.awL.d8R.dgL.dkR.e0U.egD.j4L.m8R.mgL.mkR.wkU.xcD.z4L.zcR.zgL.zwU.100D.150R.180R.1c8L.1cwL.1dgR.1fsL.1g0R.1g4L.1ggU.1goD.1loR.1okL.1osR.1owL.1pcD.1pkR.1poU.1psL.1pwD.1q0D.1roR.1rwL.1s0R.1sgU.1skD.1xkL.20cR.20kR.20wL.214D.21cR.21kL.24sL.25gR.260L.28cR.28kL.28oR.290U.298D.2e8L.2isR.2j0L.2j4R.2noD.2q0L.2q8R.2qcL.2qsU.2r8D.2vsR.2z0L.2z8R.2zcL.348R.34wL.35gR.37sL.380R.384L.38gU.38oD.3doR.3gsR.3lgL.3lkL.3loU.3lwR.3m0D.3m4L",
+  "muenzRoute": "9sL.a8R.b0L.b8R.e0U.e4D.j4L.mcR.mkL.moR.n0L.n8R.nkL.nsR.wkU.xcD.z4L.zcR.zgL.zsU.100R.104D.108L.10cR.10gU.10kD.124L.12cR.12gL.12kL.12sR.12wL.150R.17wR.184L.18cR.1c0L.1c8R.1ccL.1csL.1d0R.1d8L.1dgR.1fwL.1g4R.1g8L.1ggU.1goR.1gsD.1gwL.1h0R.1h4U.1h8D.1iwL.1j4R.1j8L.1jkR.1jsL.1loR.1osL.1p0R.1p4L.1pcD.1pkR.1poU.1psL.1pwD.1q0D.1rwR.1s4R.1scL.1sgU.1skL.1soD.1ssR.1t0L.1uoR.1uwL.1v0R.1vcR.1vkL.1xkL.20gR.20oR.210L.214D.21cR.21kL.21sL.244R.24cR.24kL.24sL.25cR.25kL.25sR.260L.28gR.28oL.28sR.294U.298L.29cD.29gR.29oL.2bgR.2boL.2bsR.2c4L.2ccR.2e8L.2j0R.2j8R.2jgL.2joL.2jwR.2k4L.2kcR.2noD.2q8L.2qgR.2qoL.2qsU.2qwD.2r8R.2t0L.2t8R.2tcL.2toR.2twL.2vsR.2ysL.2z0R.2z4L.2z8L.2zgR.2zkL.2zsR.300L.30cR.30gU.30kL.30oD.340R.348L.34cR.34sL.35gR.37wL.384R.388L.38gU.38oR.38sD.38wL.390R.394U.398D.3awL.3b4R.3b8L.3bkR.3bsL.3doR.3goR.3gwL.3h4R.3lsL.3m0L.3m8R.3mgL.3moR.3mwL.3n8R.3ngR",
+  "muenzMax": 192,
+  "aktAbstand": 0.2
+ },
+ "27": {
+  "route": "9kL.a4R.asR.fsL.g0R.g4L.swU.t4D.tgU.ywR.19cL.19gL.19kU.19sR.19wD.1a0L.1e4R.1e8U.1ecR.1fgL.1foR.1fsL.1l8U.1loD.1lwU.1m8D.1ogU.1ooD.1p8U.1zoD.1zsR.1zwU.200D.23wL.250L.258R.25cL.2g4R.2gcR.2goU.2hcD.2kkL.2ksL.2s0R.2soL.2t8R.2ykR.33cL.33kL.33sR.37gU.37oD.380U.3d4L.3dcR.3dgL.3lkR.3lsL.3lwR.3rwL.3s4R.3s8L",
+  "muenzRoute": "9cL.9kR.9oL.a4R.awR.b4L.e0L.e4U.e8R.ecR.egR.eoD.esL.ewU.f0R.fsL.g0R.g4L.swU.t0D.tgU.ywR.1agD.1fgL.1foR.1fsL.1l8U.1loD.1lwU.1m8D.1ogU.1ooD.1p8U.1zoD.1zsR.1zwU.200D.23wL.240R.244D.248U.24cL.250L.258R.25cL.2gwD.2rsR.2s0L.2s4R.2skL.2t8R.2ykR.33gL.33oL.33wR.37gU.37kD.380U.3d4L.3dcR.3dgL.3lkR.3lsL.3lwR.3m8L.3mgR.3rwL.3s4R.3s8L",
+  "muenzMax": 226,
+  "aktAbstand": 0.2
+ },
+ "28": {
+  "route": "5cR.5wL.6gL.a4R.dkL.dsR.dwL.jwR.k4L.k8R.qcL.qkR.qoL.uoR.uwR.ykU.z0D.z8U.zkD.170D.19gL.19oL.19wR.1hkL.1hsR.1hwL.1kwR.1l4R.1r0L.1r8L.1rgR.260R.268D.26gL.26kU.26oD.26sR.26wD.28oL.28sL.28wU.294R.298D.29cL.2csR.2d0L.2d4R.2h0U.2hoD.2m8L.2mgR.2mkL.2voD.378R.37sL.38cR.3doL.3dwR.3e0L.3hoU.3hwD.3icU.3tsR.3u0L.3u4R.3x8L.3xgR.3xkL.40kR.40sL.40wR.4d0L.4d8R.4dgD.4doL.4dsU.4dwR.4e0D.4e4D",
+  "muenzRoute": "5gR.5wL.6kL.6wR.8oL.8wR.90L.9kR.dcL.dkR.doL.dsL.e0R.e4L.ekR.qgL.qoR.qsL.r4R.rcL.uoR.uwR.v4L.vcR.ykU.z0D.z8U.zkD.170D.198L.19cL.19gU.19oR.19sD.19wR.1a4L.1acR.1akL.1awR.1c0L.1hkL.1hsR.1hwL.1i8R.1igL.1l0R.1l8R.1r0L.1r8L.1rgR.1roR.1rwL.264R.268D.26gL.26kU.26oD.26sR.26wD.28wL.290L.294L.29cR.29kL.2akR.2asR.2ckL.2coL.2csU.2d0R.2d4D.2d8R.2dgL.2doR.2dwL.2e8R.2ggL.2goL.2gwR.2h0U.2h8R.2hgL.2hkD.2hoR.2m8L.2mgL.2moR.2mwL.2noR.2nwR.2r0L.2r4L.2r8U.2rgR.2rkD.2roL.2s4R.2scL.2t0R.2v0L.2v8R.2vcL.2voD.2w4R.2xwL.2y4R.2y8L.2ysR.32sL.330R.334L.33sR.364L.36cR.36gL.36kL.36sR.36wL.37cR.37sL.38cR.3dwL.3e4R.3ecL.3hoU.3hwD.3icU.3tsR.3u0L.3u4R.3ugR.3uoL.3xgL.3xoR.3xwL.40oR.40wL.410R.41gL.41oR.4d0L.4d8R.4dgD.4doL.4dsU.4dwR.4e0D.4e4D",
+  "muenzMax": 212,
+  "aktAbstand": 0.2
+ },
+ "29": {
+  "route": "4oU.5cD.7oD.9wR.a4L.a8R.acR.akL.coR.d0L.d4R.d8D.dgL.joU.kcD.moD.owR.p4L.p8U.pgR.pkD.psL.qsU.roL.s0R.s4L.s8D.sgR.16cR.16kL.16wD.174R.178U.17cL.17gD.17kD.18sL.190R.194L.1esR.1f0L.1f4R.1j4R.1mkL.1moR.1msR.1n0L.1n4R.1ncL.1ngU.1nkD.1o0R.1okL.1v4D.220L.228R.22cL.26gU.26oD.270U.2twR.2u4L.2u8R.2uoU.2usD.2zkL.3bwR.3c4L.3c8R.3loR.3m0L.3m4D.3mcR.3mgU.3mkL.3moD.3msD.424R.4doL.4dsL.4dwU.4e4R.4e8D.4ecL.4k8R.4kgL.4kkR.4ngL.4noR.4nsL.4qsR.4r0L.4r4R.4rgL.4roR.4rsU.4rwL.4s8D.4soU.4t8D.4toU.4u8D.4wsR.4x0L.4x4R.4xkD.504U.50sD.5owL.5p4R.5p8L",
+  "muenzRoute": "4oU.5cD.7oD.9wR.a4L.a8U.agR.akD.aoL.awR.d0L.d4R.d8D.dcU.dgL.dkD.doR.foL.fwL.g4R.ggR.goL.h0R.h8L.joU.kcD.moD.owR.p4L.p8U.pgR.pkD.poL.pwR.rcU.rgL.rkL.roL.rwD.s0R.s4L.s8D.sgR.soR.uoL.uwL.v4R.vgR.voL.w0R.w8L.16cR.16kL.16wD.174R.178U.17cL.17gD.17kD.18kL.18sR.18wL.190L.198R.19cL.1f4R.1fcL.1fkR.1ikL.1isR.1iwR.1j0R.1j8L.1jcR.1mkL.1moR.1msR.1n0L.1n4R.1ncL.1ngU.1nkD.1o0R.1okL.1v4D.21sL.220R.224L.228L.22gR.22kL.22wR.230L.26gU.26kD.270U.2twR.2u4L.2u8R.2uoU.2usD.2zkL.3bwR.3c4L.3c8R.3csL.3d0R.3lkR.3lsL.3m4D.3mcR.3mgU.3mkL.3moD.3msD.424R.4dwL.4e0L.4e4L.4ecR.4ekL.4kcR.4kkL.4koR.4nkL.4nsR.4nwL.4qsR.4r0L.4r4R.4rgL.4roU.4rwR.4s0D.4s4L.4scU.4t4R.4t8D.4tcL.4toU.4twR.4u0D.4u4L.4ucR.4xkD.504U.50sD.5owL.5p4R.5p8L.5pcL.5pkR.5poL",
+  "muenzMax": 317,
+  "aktAbstand": 0.2
+ },
+ "30": {
+  "route": "5cL.5wR.6gL.ckU.d0D.d8U.dkD.fkD.hgR.hoR.ncU.nsD.o0U.ocD.11oL.11sL.11wU.124R.128D.12cL.19kR.19sL.19wR.21cL.21kR.21oL.27gR.27oL.27sR.288U.28cD.2d4L.2l4R.2l8R.2lcU.2lkL.2loR.2lsR.2m0D.2m8U.2mkD.2nkL.2noL.2nsU.2o0R.2o4D.2o8L.2okU.2osD.2p4U.2wsR.2x0L.2x4R.2xgL.2xoR.2xsU.2xwL.2y8D.2ykU.2z4D.2zkU.2zsR.2zwD.300L.33gR.33oL.33sR.3e8L.3egR.3ekL.3i8R.3igR.3n0L.3qoR.3woU.3xcD.3yoL.3ywL.3z4R.428D.44oU.454D.45cU.45oD.46oL.46wR.470L.4acD.4eoR.4ewL.4f0R.4pgU.4poD.4q0U.4usL.4v0R.4v4L.4zoR.5awL.5b4R.5b8L.5lkR.5lsR.5wwL.5zsR.608U.60gD.60sU.67sL.67wL.680U.688R.68cD.68gL.68kU.690D.698U.69kD.6asR.6b0L.6b4R.6bkU.6bwD.6ggR.6j4L.6j8L.6jcU.6jkR.6joD.6jsL.6poR.6pwL.6q0R.6tkL.6tsR.6twL.6u8R.6ucU.6ugL.6usD.6v4U.6voD.6w4U.6wcR.6wgD.6wkL.79wR.7okU.7osD.7p4U",
+  "muenzRoute": "5gL.5wR.6kL.6sR.8oL.8wR.90L.94L.9cR.9gL.9wR.a4L.ckU.d0D.d8U.dkD.fkD.i0U.ioD.kwD.nkD.pgR.poR.pwL.q4R.11wL.120L.124L.12cR.12kL.19kR.19sL.19wR.1a8L.1agR.21cL.21kR.21oL.21sL.220R.224L.27kR.27sL.27wR.288U.28cD.28oL.2acR.2akL.2aoR.2b0R.2b8L.2d4L.2lwD.2okU.2ooD.2p4U.2wsR.2x0L.2x4R.2xgL.2xoU.2y0D.2y8R.2ygL.2ykU.2z0D.2z8R.2zgL.2zkU.2zsR.2zwD.300L.308R.3e8L.3egR.3ekL.3ewR.3f4L.3i4R.3icR.3ikL.3isR.3n0L.3qsR.3woU.3xcD.3ygL.3ykL.3yoU.3ywR.3z0D.3z4R.3zcL.428D.44oU.454D.45cU.45oD.46sL.470R.474L.4acD.4eoR.4ewL.4f0R.4pgU.4pkD.4q0U.4ukL.4usR.4uwL.4v0L.4v8R.4vcL.4w8R.4wgR.4y0L.4y4L.4y8U.4ygR.4ykD.4yoL.4z4R.4zcR.52sL.530L.538R.53kR.53sL.544R.558L.5awL.5b4R.5b8L.5bkR.5bsL.5lgR.5lkR.5loR.5lwL.5m4R.5wwL.5zwR.608U.60cD.60gL.60oR.60sU.68sD.6b0L.6b8R.6bgL.6bkU.6boD.6c0R.6dwL.6e4R.6ecL.6ggR.6j4L.6j8L.6jcU.6jkR.6joD.6jsL.6k0R.6k8L.6ksR.6l0R.6pgL.6pkL.6poU.6pwR.6q0D.6q4R.6qcL.6qoR.6qwL.6r4R.6tcL.6tkL.6tsR.6u0L.6u8U.6ukD.6v0R.6v4U.6v8L.6vkD.6vsR.6w0L.6w4U.6wcR.6wgD.6wkL.6wsR.6z0L.6z8R.6zcL.79wR.7okU.7ooD.7p4U",
+  "muenzMax": 403,
+  "aktAbstand": 0.2
+ }
+}
