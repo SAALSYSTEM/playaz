@@ -22,6 +22,8 @@
   // "haupt" = Schlüssel, die echten Fortschritt enthalten (Ton an/aus zählt nicht als Spielstand).
   // Neues Spiel mit eigenem Präfix? Hier eintragen, sonst wird es nicht mit umgezogen.
   const SPIELE = [
+    { id: 'geisterschloss', name: 'Geisterschloss', prefix: 'geisterschloss.', haupt: ['geisterschloss.v1'],
+      info: (g) => { const d = J(g['geisterschloss.v1']) || {}; return { text: zahl(d.unlocked || 1) + '/20 Level · ' + zahl((d.best || []).reduce((a,b) => a + (Number(b) || 0), 0)) + ' Punkte', wert: (d.unlocked || 1) * 1000 }; } },
     { id: 'kristallrausch', name: 'Kristallrausch', prefix: 'kristallrausch.', haupt: ['kristallrausch.v1'],
       info: (g) => { const d = J(g['kristallrausch.v1']) || {}; const lv = Object.keys(d.levels || {}).length; return { text: lv + ' von 20 Höhlen · ' + zahl(d.best) + ' Punkte', wert: lv * 10000 + (d.best || 0) }; } },
     { id: 'mysupermarkt', name: 'MySupermarkt', prefix: 'mysupermarkt.', haupt: ['mysupermarkt.v1'],

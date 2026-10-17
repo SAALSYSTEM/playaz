@@ -37,6 +37,18 @@ export default {
       const image=m[1]==='start'?renderSebiPreview():renderSebiPreview(Number(m[2]),Number(m[3]));
       return new Response(image,{headers:{'Content-Type':'image/png','Cache-Control':'public, max-age=86400','X-Content-Type-Options':'nosniff'}});
     }
+    if(url.pathname==='/spiele/geisterschloss'){
+      const level=Number(url.searchParams.get('l')),points=Number(url.searchParams.get('p'));
+      if(!Number.isInteger(level)||level<1||level>20||!Number.isInteger(points)||points<0||points>999999)return env.ASSETS.fetch(request);
+      const asset=await env.ASSETS.fetch(new Request(new URL('/spiele/geisterschloss',url.origin),request));if(!asset.ok)return asset;
+      let html=await asset.text();const number=points.toLocaleString('de-DE');
+      const title=`Level ${level}/20 geschafft · ${number} Punkte – schlägst du mich?`;
+      const description=`Ich habe Level ${level} im Geisterschloss geschafft und ${number} Punkte geholt. Kommst du weiter?`;
+      for(const key of ['og:title','twitter:title'])html=replaceMeta(html,key,title);
+      for(const key of ['og:description','twitter:description'])html=replaceMeta(html,key,description);
+      html=replaceMeta(html,'og:url',`${url.origin}/spiele/geisterschloss?l=${level}&amp;p=${points}`);
+      const headers=new Headers(asset.headers);headers.set('Content-Type','text/html; charset=utf-8');headers.set('Cache-Control','public, max-age=300');headers.delete('Content-Length');headers.delete('ETag');return new Response(html,{status:200,headers});
+    }
     if(url.pathname!==BASE&&url.pathname!==BAU&&url.pathname!==SEBI)return env.ASSETS.fetch(request);
     if(url.pathname===SEBI){
       const level=Number(url.searchParams.get('c')),stars=Number(url.searchParams.get('s'));
