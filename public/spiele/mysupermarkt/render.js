@@ -10,12 +10,12 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
   if(!T)throw new Error('Die lokale 3D-Engine konnte nicht geladen werden.');
   const renderer=new T.WebGLRenderer({canvas,antialias:true,alpha:false,powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(globalThis.devicePixelRatio||1,quality==='low'?1:1.6));
-  renderer.outputEncoding=T.sRGBEncoding;renderer.setClearColor(0xc3e3d4);
-  renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;
+  renderer.outputEncoding=T.sRGBEncoding;renderer.setClearColor(0x93c9a6);
+  renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
   renderer.shadowMap.enabled=quality!=='low';renderer.shadowMap.type=T.PCFSoftShadowMap;
-  const scene=new T.Scene();scene.fog=new T.Fog(0xc3e3d4,52,95);
+  const scene=new T.Scene();scene.fog=new T.Fog(new T.Color(0x93c9a6).convertSRGBToLinear(),60,110);
   const camera=new T.OrthographicCamera(-10,10,14,-14,.1,130);
-  scene.add(new T.HemisphereLight(0xfff8e5,0x8eafad,.95));
+  scene.add(new T.HemisphereLight(0xfff8e5,0x7c9f9a,.9));
   const sun=new T.DirectionalLight(0xfff3d6,.85);sun.position.set(-12,28,16);sun.castShadow=true;
   sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-22,right:22,top:24,bottom:-24,near:1,far:65});
   sun.shadow.normalBias=.035;sun.shadow.bias=-.0002;scene.add(sun);sun.target.position.set(10,0,10);scene.add(sun.target);
@@ -39,7 +39,7 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
     temp.position.set(x,y,z);temp.scale.set(sx,sy,sz);temp.rotation.set(rx,ry,rz);
     if(basis)temp.quaternion.premultiply(turn.setFromAxisAngle(axis,basis.angle));
     temp.updateMatrix();b.mesh.setMatrixAt(b.n,temp.matrix);
-    if(!colors.has(color))colors.set(color,new T.Color(color));b.mesh.setColorAt(b.n++,colors.get(color));
+    if(!colors.has(color))colors.set(color,new T.Color(color).convertSRGBToLinear());b.mesh.setColorAt(b.n++,colors.get(color));
   }
   const box=(c,x,y,z,w,h,d,ry=0)=>part('soft',c,x,y,z,w,h,d,0,ry);
   function reset(which){phase=which;for(const[k,b]of batches)if(k.startsWith(which+'/'))b.n=0;}
@@ -65,11 +65,12 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
   }
   function rebuild(s){
     reset('static');removeLabels();const w=s.upgrades.floor?24:14;
-    box(0x9ac9a8,11,-.65,10,80,1,72);
-    box(0xadc0ba,12,-.12,24,55,.28,6);
+    box(0x6fb184,11,-.65,10,80,1,72);
+    box(0x56666a,12,-.12,24,55,.28,6);box(0xcfc8b4,12,-.1,29.2,55,.32,2.6);box(0xe2dccb,12,.03,27.9,55,.1,.18);
+    for(let x=-12;x<38;x+=6)box(0x6fb184,x+1,.03,31.1,2.4,.2,.9);
     for(let x=-12;x<38;x+=3)box(0xfdf4d5,x,.035,24,1.4,.02,.13);
-    box(0xdde5d9,w/2,-.12,10.6,w+.5,.4,21.2);
-    for(let z=1;z<21;z+=2)for(let x=1;x<w;x+=2)box((x+z)%4===0?0xf7f3df:0xecebdc,x,.065,z,1.97,.04,1.97);
+    box(0xb4ccbd,w/2,-.12,10.6,w+.5,.4,21.2);
+    for(let z=1;z<21;z+=2)for(let x=1;x<w;x+=2)box((x+z)%4===0?0xf6ebc9:0xcfe3cf,x,.065,z,1.97,.04,1.97);
     // Cutaway architecture: only a low back/left wall, never a roof in front of play.
     box(0x17635d,w/2,.5,.05,w,.9,.22);box(0x83bba6,.05,.5,10,.22,.9,20);
     box(0xf9f4df,w/2,.98,.05,w,.12,.27);
@@ -78,6 +79,11 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
     box(0x17635d,w/2,2.35,-1,w,.25,.2);
     label('brand','MY SUPERMARKT',w/2,2.25,.5,{size:6,bg:'#246b58',color:'#fff4cc'});
     for(const [x,z]of [[-1,2],[-1,10],[w+1,2],[w+1,12],[w+1,19]])tree(x,z);
+    box(0xe2d8bf,-4.3,-.08,10,1.8,.3,46);box(0xe2d8bf,w+4.3,-.08,10,1.8,.3,46);
+    for(const x of [-9,-3,6,15,24,32]){box(0x3f5457,x,1.2,30.8,.12,2.4,.12);box(0xfff0b0,x,2.5,30.8,.4,.22,.4);}
+    for(const [x,z,c]of [[-2.2,5,0xf08a7a],[-2.2,7,0xffd25a],[-2.2,13,0xf08a7a],[w+2.2,6,0xffd25a],[w+2.2,15,0xf08a7a],[w+2.2,9,0xb9a0e6]]){
+      box(0x4f9a69,x,.18,z,.9,.36,.9);for(let i=0;i<4;i++)part('ball',i%2?c:0xfff4d8,x+(i%2-.5)*.4,.45,z+((i>>1)-.5)*.3,.28,.28,.28);}
+    box(0xc98a52,w/2-3,.45,30.6,1.8,.1,.55);box(0x9a6a3f,w/2-3.7,.22,30.6,.1,.45,.5);box(0x9a6a3f,w/2-2.3,.22,30.6,.1,.45,.5);
     // Delivery, warehouse and workstation furniture remains out of walking cells.
     box(0xb99365,.95,.16,12.7,1.3,.25,1.6);zone(2,13,0x58b9a1,1.6);
     label('storage','LAGER',2,2,13,{size:2.1});
@@ -189,6 +195,30 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
       if(player&&(n||parcel))label('carry',parcel?'PAKET':n+' EINHEITEN',x,2.65,z,{size:2,dynamic:true,bg:'#254c48',color:'#fff8dc'});
     }
   }
+  // Reine Dekoration: Autos und Passanten beleben die Straße, ohne den Spielstand zu berühren.
+  const AMB_PEOPLE=[[0,.0,-1,1],[1,.5,-1,-1],[2,.2,1,-1],[3,.7,1,1]];
+  const AMB_CARS=[[0xe9776a,.0,5.2],[0xf2c14e,.45,4.1],[0x6aa6d8,.8,6.4]];
+  function car(x,z,color,dir){
+    basis={x,z,angle:dir>0?Math.PI/2:-Math.PI/2};
+    box(color,x,.55,z,1.5,.5,3.0);box(color,x,1.02,z-.1,1.3,.44,1.6);box(0x4a6e7a,x,1.04,z-.1,1.34,.3,1.2);
+    box(0xf4e9a8,x-.5,.62,z+1.5,.3,.18,.04);box(0xf4e9a8,x+.5,.62,z+1.5,.3,.18,.04);
+    for(const sx of [-.78,.78])for(const dz of [-.95,.95])part('cylinder',0x2f3f45,x+sx,.3,z+dz,.5,.22,.5,0,0,Math.PI/2);
+    basis=null;
+  }
+  function ambient(s){
+    const t=s.time,busy=!!(vehiclePose(s,'delivery')||vehiclePose(s,'mail'));
+    if(!busy)for(const [c,ph,sp] of AMB_CARS){
+      const span=64,x=((t*sp+ph*span)%span)-14;car(x,25.9,c,1);
+    }
+    const w=s.upgrades.floor?24:14;
+    for(const [id,ph,side,dir] of AMB_PEOPLE){
+      const span=44,u=((t*1.1*(1+id*.12)+ph*span)%span),z=dir>0?u-8:36-u,x=side<0?-4.3:w+4.3;
+      const a={id:'amb'+id,color:id*2+1};
+      basis={x,z,angle:dir>0?0:Math.PI};
+      drawCharacter((geo,color,xx,y,zz,...args)=>part(geo,color,x+xx,y,z+zz,...args),a,{time:t+id*3,theme:0,moving:true,carrying:false});
+      basis=null;
+    }
+  }
   const look=new T.Vector3(7,0,13),desired=new T.Vector3(),screenVector=new T.Vector3();
   function resize(){const r=canvas.getBoundingClientRect();width=r.width;height=r.height;renderer.setSize(width,height,false);}
   function frame(s,dt){
@@ -224,6 +254,7 @@ export function createView(canvas,{quality='auto',inspection=false}={}){
       else if(o.state==='parcel'&&![s.player,...s.staff].some(a=>a.parcel===o.id))carton(o.station?4:1,1.75,o.station?2.4:4,.65);
       else if(sumStock(o.staged))carton(o.station?4:1,1.6,o.station?2.4:4,.5,0xedc995);
     }
+    ambient(s);
     for(const a of [...s.customers,...s.staff,s.player])person(a,s);
     for(const [id,pose]of poses)if(pose.gen!==generation)poses.delete(id);
     const hint=nextHint(s);if(hint.target){
