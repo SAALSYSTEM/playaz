@@ -1,5 +1,7 @@
 # PlaySaal
 
+**Jungle Runner:** 3D-Dschungel-Läufer mit 30 festen Leveln in 5 Welten, Junge oder Mädchen, Tieren, Power-ups, Awards, Teilen und Endlosmodus; Figuren und Tiere sind deklarierte Platzhalter. Details, Asset-Liste und Teststand in [`docs/JUNGLE_RUNNER.md`](docs/JUNGLE_RUNNER.md); Module in `public/spiele/jungle-runner/`.
+
 **Turmschicht:** Retro-Arcade für Erwachsene im Hochformat (Pixelgrafik): aus einem Stahlturm ausbrechen, Hebel schalten Leitern zwischen zwei festen Stellen um (gestrichelt = Zielposition), Patrouillen und Jäger mit „!“-Ankündigung und Wegsuche über nutzbare Leitern, 3 Herzen, Rückstoß und 1,5 s Schutz. Zwei Bestzeit-Modi (Schneller Ausbruch / Perfekter Lauf mit allen 3 Sternen), Herausforderung per Link `?l=Level&m=s|p&t=Hundertstel`. Regeln, Löser und Bot: `public/spiele/turmschicht/engine.js`; Level 1–6 von Hand (`tools/turmschicht-tutorial.mjs`), 7–30 vom Generator `tools/turmschicht-levels.mjs` geprüft und fest in `levels.js` gespeichert; Oberfläche `game.js`. Test: `node --test tests/turmschicht-sim.test.mjs`.
 
 **Dino-Leiterhelden:** 2D-Kletterspiel im Hochformat für Kinder ab 4: 30 handgebaute Level, drei Dino-Freunde einsammeln und über Leitern ins Baumhaus bringen. Schlafmonster (Frucht bringen), Hebel (versteckte Leiter) und fallende Kokosnüsse (kurzer „Bonk“, zurück zum letzten Leiterende). Schwebender Joystick dort, wo der Finger aufsetzt; Pfeiltasten/WASD am Rechner. Fester 60-Hz-Takt, damit Herausforderungs-Links (`?l=Level&t=Hundertstel&r=Rücksetzer`) überall gleich zählen. Regeln, Level-Prüfung, Löser und Bot: `public/spiele/dino-leiterhelden/engine.js`, Level: `levels.js`, Oberfläche: `game.js`. Grafiken: Originale von ChatGPT in `design/dino-leiterhelden/`, als WebP in `dino-leiterhelden/img/` (Liste `IMAGES` in `game.js`; Hintergründe werden pro Level nachgeladen). Fehlt ein Bild, zeichnet das Spiel einen Platzhalter. Test: `node --test tests/dino-leiterhelden-sim.test.mjs`.
@@ -10,7 +12,7 @@
 
 **MySupermarkt:** echtes 3D-Aufbauspiel mit Laden- und Online-Warenkette, zwölf Produkten, Mitarbeitern und 20 Meilensteinen. Neue rundum modellierte Figuren mit separater 360°-Ansicht. Implementierung und offene Browserabnahme: [`docs/MYSUPERMARKT.md`](docs/MYSUPERMARKT.md). Veröffentlichung auf `main` am 17.10.2026 ausdrücklich vom Auftraggeber freigegeben.
 
-Browserspiele ohne Anmeldung: **SprungSebi**, **Zahlensturm**, **Schräglage**, **Sondengänger**, **Stammvölker**, **Anbiss**, **Stellwerk**, **Eiszeit**, **Linke Spur**, **Schwindelfrei**, **Hochstapler** und **Richtfest**.
+Browserspiele ohne Anmeldung: **Jungle Runner**, **SprungSebi**, **Zahlensturm**, **Schräglage**, **Sondengänger**, **Stammvölker**, **Anbiss**, **Stellwerk**, **Eiszeit**, **Linke Spur**, **Schwindelfrei**, **Hochstapler** und **Richtfest**.
 Früher PlayAZ; Umstellung siehe [`docs/PLAYSAAL_UMSTELLUNG.md`](docs/PLAYSAAL_UMSTELLUNG.md).
 
 - `public/` – die komplette Website (statisch, keine Build-Schritte)
@@ -21,6 +23,7 @@ Früher PlayAZ; Umstellung siehe [`docs/PLAYSAAL_UMSTELLUNG.md`](docs/PLAYSAAL_U
 - `design/` – Bildvorlagen in Originalgröße, `design/playsaal/` das Branding-Paket (wird nicht ausgeliefert)
 - `tools/domain.mjs` – kanonische Adresse prüfen bzw. beim Domainwechsel in einem Schritt umstellen
 - `tools/schraeglage-bot.mjs` – Lösungs-Bot für die 30 SCHRÄGLAGE-Level (Lösbarkeit, Timing-Toleranz, Goldzeiten), `tools/planck-vendor.mjs` – Physik-Engine neu einbinden
+- `tools/jungle-pruefer.mjs` – Streckenprüfer für die 30 JUNGLE-RUNNER-Level und den Endlosmodus (kollisionsfreie Route, Reaktionszeiten, Checkpoints, Sterne); schreibt `tests/jungle-loesungen.json`
 - `tools/zahlensturm-bot.mjs` – Lösungs-Bot für die 20 ZAHLENSTURM-Level (Lösbarkeit, Par, Münzrouten, Torvielfalt); schreibt `public/spiele/zahlensturm/par.js` und `tests/zahlensturm-loesungen.json`
 - `tests/` – Browser-Tests (Playwright gegen `wrangler dev`)
 - `wrangler.jsonc` – Cloudflare Worker `playaz` (technischer Name bleibt), liefert `public/` als Static Assets aus
@@ -42,6 +45,7 @@ npm i -g playwright && npx playwright install chromium   # einmalig
 node --test --test-concurrency=1 tests/*.test.mjs       # startet wrangler dev selbst
 node --test tests/schraeglage-sim.test.mjs              # nur SCHRÄGLAGE-Physik und Level, ohne Browser (schnell)
 node --test tests/zahlensturm-sim.test.mjs              # nur ZAHLENSTURM-Rechnen, Tore, Kämpfe und alle 20 Level, ohne Browser (schnell)
+node --test tests/jungle-sim.test.mjs                   # nur JUNGLE RUNNER: Regeln, Level, Speicherstand, Lösungsrouten, ohne Browser (schnell)
 node --test tests/kakerlake-sim.test.mjs                # nur HAU DIE KAKERLAKE!: Level, Logik, Bot-Durchläufe, ohne Browser (schnell)
 node --test tests/sprungsebi-sim.test.mjs           # SPRUNGSEBI: 30 Level, Fortschritt, Teilen-Text und Vorschau
 node --test tests/turmschicht-sim.test.mjs          # TURMSCHICHT: 30 Level beide Modi lösbar (Löser + Bot), Hebel, Jäger, Herzen, Herausforderung
@@ -51,7 +55,7 @@ node tools/domain.mjs                                   # Canonical/Sitemap/robo
 
 ## Spielstände
 
-Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Kein Backend, keine Cookies, kein Tracking.
+Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `jungle.v1`, `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Kein Backend, keine Cookies, kein Tracking.
 `localStorage` hängt an der Adresse: Ein neues Spiel mit eigenem Schlüssel-Präfix muss in `public/assets/umzug.js` (Liste `SPIELE`) eingetragen werden, sonst wird es beim Umzug nicht mitgenommen.
 
 ## Vor dem Livegang

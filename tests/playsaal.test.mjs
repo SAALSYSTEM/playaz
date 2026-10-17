@@ -205,7 +205,7 @@ test('Startseite: Suche mit Live-Treffern (Name, Art, Kategorie), Leermeldung, E
   await page.fill('#sucheText', 'stamm');
   assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Stammvölker']);
   await page.fill('#sucheText', 'retro');
-  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Richtfest', 'Kristallrausch']);
+  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Richtfest', 'Turmschicht', 'Kristallrausch']);
   await page.fill('#sucheText', 'sondengaenger');   // ohne Umlaut
   assert.equal(await page.locator('#sucheListe li').count(), 1);
   await page.fill('#sucheText', '3d');
