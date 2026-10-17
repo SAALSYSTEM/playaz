@@ -1,5 +1,7 @@
 # PlaySaal
 
+**Kristallrausch:** eigenständiges Höhlen-Arcade mit 20 deterministischen und erreichbaren Höhlen, Kristallquote, fallenden und schiebbaren Felsen, Timer, Sternen, Handy-Wisch- und Steuerkreuzbedienung. Engine: `public/spiele/kristallrausch/engine.js`; Oberfläche: `public/spiele/kristallrausch/game.js`; Test: `node --test tests/kristallrausch-sim.test.mjs`.
+
 **MySupermarkt:** echtes 3D-Aufbauspiel mit Laden- und Online-Warenkette, zwölf Produkten, Mitarbeitern und 20 Meilensteinen. Neue rundum modellierte Figuren mit separater 360°-Ansicht. Implementierung und offene Browserabnahme: [`docs/MYSUPERMARKT.md`](docs/MYSUPERMARKT.md). Veröffentlichung auf `main` am 17.10.2026 ausdrücklich vom Auftraggeber freigegeben.
 
 Browserspiele ohne Anmeldung: **SprungSebi**, **BauSaal**, **Zahlensturm**, **Schräglage**, **Sondengänger**, **Stammvölker**, **Anbiss**, **Stellwerk**, **Eiszeit**, **Linke Spur**, **Schwindelfrei**, **Hochstapler** und **Richtfest**.
