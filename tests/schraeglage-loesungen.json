@@ -268,5 +268,47 @@
   "robust4": 0,
   "robust8": 0,
   "gold": 20
+ },
+ "31": {
+  "ms": 12306,
+  "inputs": "0g.eib.f6g",
+  "einfach": "0g.ecb.f6g",
+  "einfachMs": 12850,
+  "robust4": 1,
+  "robust8": 1
+ },
+ "32": {
+  "ms": 7714,
+  "inputs": "0g.a6b.aog.c0n.cig.con.cug",
+  "einfach": "0g.a6b.gig",
+  "einfachMs": 13962,
+  "robust4": 0.8333333333333334,
+  "robust8": 0.5
+ },
+ "33": {
+  "ms": 9098,
+  "inputs": "0g.aib.aug.b0n.big.dun.e0b.e6g",
+  "einfach": "0g.aib.b0n",
+  "einfachMs": 9478,
+  "robust4": 0.7333333333333333,
+  "robust8": 0.5333333333333333
+ },
+ "34": {
+  "ms": 21178,
+  "inputs": "0g.oub.q0g.q6n.r0g.r6n.s0g.s6n.sig.son.t0g.t6n.tig.ton.u6g.ucn.uog.uun.v0g",
+  "einfach": "0g.oub.q0n.xig",
+  "einfachMs": 23529,
+  "robust4": 0.8333333333333334,
+  "robust8": 0.4,
+  "gold": 24
+ },
+ "35": {
+  "ms": 24988,
+  "inputs": "0g.n6b.nig.nob.nug.o6b.p6n.qug.r0n.scg.son.sug.t0n.u0g.xin.xub.y0n.ycg.yin.yog",
+  "einfach": "0g.n6b.nug.o6b.p6n.u0g.xin.yug",
+  "einfachMs": 25819,
+  "robust4": 0.6,
+  "robust8": 0.36666666666666664,
+  "gold": 28
  }
 }

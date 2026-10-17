@@ -116,24 +116,28 @@
 .kachel a:focus-visible{outline-offset:-3px}
 /* Handy: 3 Spalten. Neu: 1 groß, 2+3 rechts, 4-6 klein. Top: 1 groß, Rest klein. */
 .kachel:first-child{grid-column:span 2;grid-row:span 2}
+[data-lay="hot"] .kachel:nth-child(4),[data-lay="hot"] .kachel:nth-child(7),[data-lay="neu"] .kachel:nth-child(7){grid-column:span 2}
 /* sehr schmale Handys: 2 Spalten */
 @media (max-width:339px){
   .kacheln{--cols:2}
-  [data-lay="neu"] .kachel:nth-child(6){grid-column:span 2}
-  [data-lay="hot"] .kachel:nth-child(6){grid-column:span 2}
+  [data-lay="hot"] .kachel:nth-child(4),[data-lay="hot"] .kachel:nth-child(7){grid-column:auto}
+  [data-lay="neu"] .kachel:nth-child(7){grid-column:auto}
+  [data-lay="neu"] .kachel:nth-child(6),[data-lay="neu"] .kachel:nth-child(11){grid-column:span 2}
 }
 @media (min-width:640px){
   .kacheln{--cols:4;--gap:12px}
   .kacheln{--gap:16px}
   .kachel{border-radius:26px}
-  [data-lay="neu"] .kachel:nth-child(2),[data-lay="neu"] .kachel:nth-child(3),[data-lay="neu"] .kachel:nth-child(4){grid-column:span 2}
-  [data-lay="hot"] .kachel:nth-child(2),[data-lay="hot"] .kachel:nth-child(5),[data-lay="hot"] .kachel:nth-child(6){grid-column:span 2}
+  [data-lay="neu"] .kachel:nth-child(7){grid-column:auto}
+  [data-lay="neu"] .kachel:nth-child(2),[data-lay="neu"] .kachel:nth-child(3),[data-lay="neu"] .kachel:nth-child(4),[data-lay="neu"] .kachel:nth-child(5),[data-lay="neu"] .kachel:nth-child(10),[data-lay="neu"] .kachel:nth-child(11){grid-column:span 2}
+  [data-lay="hot"] .kachel:nth-child(4),[data-lay="hot"] .kachel:nth-child(7){grid-column:auto}
+  [data-lay="hot"] .kachel:nth-child(2),[data-lay="hot"] .kachel:nth-child(5){grid-column:span 2}
 }
 @media (min-width:1024px){
   .kacheln{--cols:6;--gap:18px}
-  [data-lay="neu"] .kachel:nth-child(2),[data-lay="neu"] .kachel:nth-child(3),[data-lay="neu"] .kachel:nth-child(4){grid-column:span 2}
-  [data-lay="hot"] .kachel:nth-child(n+2):nth-child(-n+4){grid-column:span 2}
-  [data-lay="hot"] .kachel:nth-child(5),[data-lay="hot"] .kachel:nth-child(6){grid-column:auto}
+  [data-lay="neu"] .kachel:nth-child(5),[data-lay="neu"] .kachel:nth-child(10){grid-column:auto}
+  [data-lay="hot"] .kachel:nth-child(2),[data-lay="hot"] .kachel:nth-child(3){grid-column:span 2}
+  [data-lay="hot"] .kachel:nth-child(5){grid-column:auto}
 }
 @media (hover:hover) and (min-width:640px){
   .kachel .name{position:absolute;width:auto;height:auto;clip:auto;white-space:normal;left:0;right:0;bottom:0;padding:34px 14px 12px;font:700 15px/1.15 var(--f-text);letter-spacing:.03em;text-transform:uppercase;color:#fff;background:linear-gradient(to top,rgba(10,11,16,.88),rgba(10,11,16,0));opacity:0;transition:opacity .2s}
@@ -213,6 +217,7 @@
     <section class="block block-hot" id="hot" aria-labelledby="hot-titel">
       <div class="block-kopf"><h2 id="hot-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Hot</h2><p>Unsere Highlights</p></div>
       <ul class="kacheln" data-lay="hot">
+      <li class="kachel" data-slug="schraeglage" data-rec="schraeglage" data-name="Schräglage" data-arten="Fahren,Geschick" data-kat="hot"><a href="/spiele/schraeglage"><img src="/bilder/schraeglage.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Schräglage</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
       <li class="kachel" data-slug="linke-spur" data-rec="linkespur" data-name="Linke Spur" data-arten="3D,Rennen" data-kat="hot"><a href="/spiele/linke-spur"><img src="/bilder/linke-spur.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Linke Spur</span></a></li>
       <li class="kachel" data-slug="hochstapler" data-rec="hochstapler" data-name="Hochstapler" data-arten="Geschick,Ein Finger" data-kat="hot"><a href="/spiele/hochstapler"><img src="/bilder/hochstapler.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Hochstapler</span></a></li>
       <li class="kachel" data-slug="schwindelfrei" data-rec="schwindelfrei" data-name="Schwindelfrei" data-arten="3D,Ein Finger" data-kat="hot"><a href="/spiele/schwindelfrei"><img src="/bilder/schwindelfrei.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Schwindelfrei</span></a></li>
@@ -227,7 +232,7 @@
       <ul class="kacheln" data-lay="neu">
       <li class="kachel" data-slug="dino-leiterhelden" data-rec="dinoleiter" data-name="Dino-Leiterhelden" data-arten="Für Kinder,Puzzle,Abenteuer" data-kat="neu"><a href="/spiele/dino-leiterhelden"><img src="/bilder/dino-leiterhelden.webp" width="960" height="600" alt="Dino-Leiterhelden: Dinos, Leitern und ein schlafendes Monster im Baumhaus" decoding="async" loading="lazy"><span class="name">Dino-Leiterhelden</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
       <li class="kachel" data-slug="geisterschloss" data-rec="geisterschloss" data-name="Geisterschloss" data-arten="3D,Action,Halloween" data-kat="neu"><a href="/spiele/geisterschloss"><img src="/bilder/geisterschloss.png" width="1199" height="675" alt="Gelbe Geister im Halloween-Schloss" decoding="async" loading="lazy"><span class="name">Geisterschloss</span><span class="badge" title="Neu">★</span></a></li>
-      <li class="kachel" data-slug="kristallrausch" data-rec="kristallrausch" data-name="Kristallrausch" data-arten="Arcade,Retro,Abenteuer,Puzzle" data-kat="neu"><a href="/spiele/kristallrausch"><img src="/bilder/kristallrausch.svg" width="960" height="600" alt="Kristallrausch: ein Bergarbeiter und funkelnde Kristalle" decoding="async"><span class="name">Kristallrausch</span></a></li>
+      <li class="kachel" data-slug="kristallrausch" data-rec="kristallrausch" data-name="Kristallrausch" data-arten="Arcade,Retro,Abenteuer,Puzzle" data-kat="neu"><a href="/spiele/kristallrausch"><img src="/bilder/kristallrausch.svg" width="960" height="600" alt="Kristallrausch: ein Bergarbeiter und funkelnde Kristalle" decoding="async" loading="lazy"><span class="name">Kristallrausch</span></a></li>
       <li class="kachel" data-slug="mysupermarkt" data-rec="mysupermarkt" data-name="MySupermarkt" data-arten="3D,Aufbau,Simulation" data-kat="neu"><a href="/spiele/mysupermarkt"><img src="/bilder/mysupermarkt.webp" width="960" height="504" alt="MySupermarkt: Baue deinen eigenen 3D-Supermarkt" decoding="async" loading="lazy"><span class="name">MySupermarkt</span></a></li>
       <li class="kachel" data-slug="sprungsebi" data-rec="sprungsebi" data-name="SprungSebi" data-arten="Jump and Run,Abenteuer,Für Kinder" data-kat="neu"><a href="/spiele/sprungsebi"><img src="/bilder/sprungsebi.svg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">SprungSebi</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
       <li class="kachel" data-slug="zahlensturm" data-rec="zahlensturm" data-name="Zahlensturm" data-arten="3D,Rechnen,Laufspiel" data-kat="neu"><a href="/spiele/zahlensturm"><img src="/bilder/zahlensturm.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Zahlensturm</span></a></li>
@@ -367,7 +372,7 @@
   const sg = read('sondengaenger.v1');
   if (sg && sg.stats && (sg.stats.finds || sg.stats.trash)) { const d = sg.daily || {}; show('sondengaenger', 'Stufe ' + (sg.lvl || 1) + ' · ' + n(sg.stats.finds || 0) + ' Funde' + (d.streak > 1 ? ' · Serie ' + d.streak : '')); }
   const sl = read('schraeglage.v1');
-  if (sl && sl.levels && typeof sl.levels === 'object') { const lv = Object.values(sl.levels).filter((l) => l && l.done); const g = lv.filter((l) => l.gold).length; if (lv.length) show('schraeglage', lv.length + ' von 30 Level' + (g ? ' · ' + g + ' Gold' : '')); }
+  if (sl && sl.levels && typeof sl.levels === 'object') { const lv = Object.values(sl.levels).filter((l) => l && l.done); const g = lv.filter((l) => l.gold).length; if (lv.length) show('schraeglage', lv.length + ' von 35 Level' + (g ? ' · ' + g + ' Gold' : '')); }
   const zs = read('zahlensturm.v1');
   if (zs && zs.levels && typeof zs.levels === 'object') { const lv = Object.values(zs.levels).filter((l) => l && l.done); const st = lv.reduce((a, l) => a + (l.stars || 0), 0); if (lv.length) show('zahlensturm', lv.length + ' von 20 Level · ' + st + ' Sterne'); }
   const sv = read('stammvoelker.v1');

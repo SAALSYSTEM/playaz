@@ -27,8 +27,8 @@ test('deterministische Winkelfunktionen: genau genug und ohne Math.sin/cos', () 
   assert.doesNotMatch(readFileSync(join(ROOT, 'public/spiele/schraeglage/planck.js'), 'utf8'), /Math\.(sin|cos|atan2)\b/);
 });
 
-test('30 Level, aufsteigende IDs, jedes mit Ziel, Fahrzeug, Goldzeit und Tipp', () => {
-  assert.equal(LEVELS.length, 30);
+test('35 Level, aufsteigende IDs, jedes mit Ziel, Fahrzeug, Goldzeit und Tipp', () => {
+  assert.equal(LEVELS.length, 35);
   LEVELS.forEach((l, i) => {
     assert.equal(l.id, i + 1);
     assert.ok(VEHICLES[l.vehicle], 'Fahrzeug ' + l.id);
@@ -44,7 +44,7 @@ test('30 Level, aufsteigende IDs, jedes mit Ziel, Fahrzeug, Goldzeit und Tipp', 
 });
 
 test('Simulation ist deterministisch: gleicher Lauf, gleiches Ergebnis bis aufs Bit', () => {
-  for (const id of [1, 13, 30]) {
+  for (const id of [1, 13, 30, 33]) {
     const ch = decodeInputs(LOES[id].inputs);
     const a = replay(LEVELS[id - 1], ch), b = replay(LEVELS[id - 1], ch);
     assert.equal(a.hash, b.hash, 'Level ' + id);
@@ -52,7 +52,7 @@ test('Simulation ist deterministisch: gleicher Lauf, gleiches Ergebnis bis aufs 
   }
 });
 
-test('jedes der 30 Level ist mit der gespeicherten Bot-Lösung lösbar, die Goldzeit ist erreichbar', () => {
+test('jedes der 35 Level ist mit der gespeicherten Bot-Lösung lösbar, die Goldzeit ist erreichbar', () => {
   for (const l of LEVELS) {
     const s = LOES[l.id];
     assert.ok(s, 'keine Lösung für Level ' + l.id);
@@ -152,4 +152,18 @@ test('Awards: Bedingungen, Datum, keine doppelte Vergabe', () => {
   // Fortschritt
   const p = progressOf(save, 30);
   assert.equal(p.done, 10);
+  // Meisterfahrer und Alles Gold brauchen alle 35 Level (Gipfel-Welt 31–35)
+  const voll = { levels: {}, stats: {}, awards: {} };
+  for (let i = 1; i <= 34; i++) voll.levels[i] = { done: true, gold: true };
+  const ohne = evaluateAwards(voll, 35, null, t).map((a) => a.id);
+  assert.ok(!ohne.includes('meister') && !ohne.includes('allesgold'), 'bei 34 von 35 noch nicht');
+  voll.levels[35] = { done: true, gold: true };
+  const mit = evaluateAwards(voll, 35, null, t).map((a) => a.id);
+  assert.ok(mit.includes('meister') && mit.includes('allesgold'));
+});
+
+test('Gipfel-Welt: Level 31–35 gehören zusammen, mit Gesamt-Fahrzeugwechsel im Finale', () => {
+  const g = LEVELS.filter((l) => l.theme === 'gipfel');
+  assert.deepEqual(g.map((l) => l.id), [31, 32, 33, 34, 35]);
+  assert.ok(LEVELS[34].swaps.length >= 4, 'Finale wechselt durch alle Fahrzeuge');
 });

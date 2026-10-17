@@ -164,6 +164,7 @@ const PAL = {
   baustelle: { sky: ['#6fb1e3', '#dceefa'], sonne: '#fffbe0', fern: '#a7b5c9', mitte: '#8a99b0', nah: '#6c7b92', face: ['#8f949f', '#666b77'], stein: 'rgba(40,44,54,.28)', top: '#4b505d', wolken: 0.8 },
   gletscher: { sky: ['#6aa6e6', '#e6f3ff'], sonne: '#ffffff', fern: '#d2e4f6', mitte: '#a9c9e8', nah: '#86afd8', face: ['#8db2d8', '#5f86b2'], stein: 'rgba(30,60,110,.25)', top: '#ffffff', wolken: 0.7 },
   insel: { sky: ['#2ec5ea', '#c9f5ff'], sonne: '#fff9d2', fern: '#86d6c8', mitte: '#49bf9d', nah: '#2fa07f', face: ['#d9a65a', '#b07d38'], stein: 'rgba(120,70,20,.3)', top: '#f2d28b', wolken: 0.85 },
+  gipfel: { sky: ['#5b3f9e', '#ffc2d4'], sonne: '#fff0d6', fern: '#b9a2d8', mitte: '#8f7fc2', nah: '#6d5fa6', face: ['#8a86a8', '#5a5778'], stein: 'rgba(40,30,80,.3)', top: '#ffffff', wolken: 0.6 },
   vulkan: { sky: ['#2a1633', '#b2452f'], sonne: '#ffb36b', fern: '#4a2438', mitte: '#3b1f2c', nah: '#2d1820', face: ['#43302f', '#241a1b'], stein: 'rgba(0,0,0,.35)', top: '#5d4a48', wolken: 0.25 }
 };
 const SURF_COL = {
@@ -314,7 +315,7 @@ function ebene(f, farbe, base, hoehe, phase, theme, idx, ppm) {
     } else if (theme === 'canyon' && idx === 0) { // Tafelberge
       const v = Math.sin(x * 0.7 + phase) + 0.5 * Math.sin(x * 1.9 + phase * 2);
       y = yb - amp * (v > 0.3 ? 1.1 : 0.35);
-    } else if (theme === 'gletscher' && idx === 0) { // Zacken
+    } else if ((theme === 'gletscher' || theme === 'gipfel') && idx === 0) { // Zacken
       const v = Math.abs(((x * 0.8 + phase) % 2) - 1);
       y = yb - amp * (0.4 + 1.1 * (1 - v)) - amp * 0.2 * Math.sin(x * 3 + phase);
     } else {
@@ -343,6 +344,7 @@ function silhouette(theme, x, y, s) {
     case 'wiese': ctx.rect(x - s * 0.06, y - s * 0.6, s * 0.12, s * 0.6); ctx.moveTo(x + s * 0.45, y - s * 0.75); ctx.arc(x, y - s * 0.75, s * 0.45, 0, 7); break;
     case 'canyon': ctx.rect(x - s * 0.1, y - s * 1.1, s * 0.2, s * 1.1); ctx.rect(x - s * 0.4, y - s * 0.75, s * 0.12, s * 0.35); ctx.rect(x - s * 0.4, y - s * 0.5, s * 0.3, s * 0.1); ctx.rect(x + s * 0.28, y - s * 0.9, s * 0.12, s * 0.4); ctx.rect(x + s * 0.1, y - s * 0.6, s * 0.3, s * 0.1); break;
     case 'baustelle': ctx.rect(x, y - s * 2.2, s * 0.1, s * 2.2); ctx.rect(x - s * 0.5, y - s * 2.2, s * 1.6, s * 0.1); ctx.rect(x - s * 0.5, y - s * 2.1, s * 0.25, s * 0.25); break;
+    case 'gipfel':
     case 'gletscher': for (let i = 0; i < 3; i++) { ctx.moveTo(x - s * (0.5 - i * 0.1), y - s * i * 0.35); ctx.lineTo(x, y - s * (0.6 + i * 0.35)); ctx.lineTo(x + s * (0.5 - i * 0.1), y - s * i * 0.35); } break;
     case 'insel': ctx.moveTo(x, y); ctx.quadraticCurveTo(x + s * 0.2, y - s * 0.6, x + s * 0.1, y - s * 1.2); ctx.lineTo(x + s * 0.18, y - s * 1.2); ctx.quadraticCurveTo(x + s * 0.3, y - s * 0.6, x + s * 0.1, y);
       for (let i = 0; i < 5; i++) { const a = -2.6 + i * 0.55; ctx.moveTo(x + s * 0.14, y - s * 1.2); ctx.quadraticCurveTo(x + s * 0.14 + Math.cos(a) * s * 0.5, y - s * 1.35 + Math.sin(a) * s * 0.3, x + s * 0.14 + Math.cos(a) * s * 0.8, y - s * 1.0 + Math.sin(a) * s * 0.2); ctx.lineTo(x + s * 0.14, y - s * 1.16); } break;
@@ -440,6 +442,11 @@ function zeichneDeko(theme, d, t) {
       if (v < 0.4) { ctx.fillStyle = '#ff7a1a'; ctx.beginPath(); ctx.moveTo(-0.25, 0); ctx.lineTo(0.25, 0); ctx.lineTo(0.06, 0.75); ctx.lineTo(-0.06, 0.75); ctx.fill(); ctx.fillStyle = '#fff'; ctx.fillRect(-0.15, 0.28, 0.3, 0.1); }
       else if (v < 0.7) { ctx.fillStyle = '#f4f4f4'; ctx.fillRect(-0.8, 0.45, 1.6, 0.35); ctx.fillStyle = '#e53935'; for (let i = 0; i < 4; i++) ctx.fillRect(-0.8 + i * 0.4, 0.45, 0.2, 0.35); ctx.fillStyle = '#555'; ctx.fillRect(-0.7, 0, 0.1, 0.45); ctx.fillRect(0.6, 0, 0.1, 0.45); }
       else { ctx.fillStyle = '#7a5532'; ctx.fillRect(-0.6, 0, 1.2, 0.18); ctx.fillRect(-0.6, 0.2, 1.2, 0.18); ctx.fillStyle = '#5a3d22'; ctx.fillRect(-0.6, 0.18, 1.2, 0.02); }
+      break;
+    case 'gipfel':
+      if (v < 0.55) { tanne(); }
+      else if (v < 0.85) { ctx.fillStyle = '#c9c4dd'; blob(0, 0.28, 0.55, 0.3); ctx.fillStyle = '#ffffff'; blob(0.05, 0.4, 0.3, 0.16); }
+      else { ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 0.08; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 1.5); ctx.stroke(); ctx.fillStyle = '#ff7a1a'; ctx.beginPath(); ctx.moveTo(0.02, 1.5); ctx.lineTo(0.75, 1.3); ctx.lineTo(0.02, 1.1); ctx.fill(); }
       break;
     case 'gletscher':
       if (v < 0.6) { tanne(); }

@@ -304,6 +304,6 @@ test('Portal: Kachel unter „Neu“, Weiter spielen zeigt Fortschritt', async (
   await page.evaluate(() => localStorage.setItem('schraeglage.v1', JSON.stringify({ v: 1, levels: { 1: { done: true, best: 12000, gold: true }, 2: { done: true, best: 9000 } }, awards: {} })));
   await page.goto(BASE + '/');
   assert.equal(await page.textContent('#weiterName'), 'Schräglage');
-  assert.match(await page.textContent('#weiterRec'), /2 von 30 Level · 1 Gold/);
+  assert.match(await page.textContent('#weiterRec'), /2 von 35 Level · 1 Gold/);
   await ctx.close();
 });

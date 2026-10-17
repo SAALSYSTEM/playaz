@@ -205,7 +205,7 @@ test('Startseite: Suche mit Live-Treffern (Name, Art, Kategorie), Leermeldung, E
   await page.fill('#sucheText', 'stamm');
   assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Stammvölker']);
   await page.fill('#sucheText', 'retro');
-  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Richtfest']);
+  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Richtfest', 'Kristallrausch']);
   await page.fill('#sucheText', 'sondengaenger');   // ohne Umlaut
   assert.equal(await page.locator('#sucheListe li').count(), 1);
   await page.fill('#sucheText', '3d');
@@ -215,7 +215,7 @@ test('Startseite: Suche mit Live-Treffern (Name, Art, Kategorie), Leermeldung, E
   assert.ok(await page.isVisible('#sucheLeer')); assert.match(await page.textContent('#sucheLeer'), /Kein Spiel/);
   // Art-Knopf füllt die Suche
   await page.click('#sucheTags button:text-is("Puzzle")');
-  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Stellwerk']);
+  assert.deepEqual(await page.$$eval('#sucheListe b', (e) => e.map((x) => x.textContent)), ['Stellwerk', 'Dino-Leiterhelden', 'Kristallrausch']);
   await page.click('#sucheListe a[href="/spiele/stellwerk"]'); await page.waitForURL(/\/spiele\/stellwerk/);
   await page.goBack(); await page.click('#sucheBtn'); await page.keyboard.press('Escape');
   assert.ok(await page.isHidden('#suche'));

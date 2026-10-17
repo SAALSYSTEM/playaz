@@ -12,7 +12,7 @@ Adresse: `/spiele/schraeglage` · Spielstand: `localStorage` → `schraeglage.v1
 |---|---|
 | `public/spiele/schraeglage.html` | Seite, Oberfläche (HUD, Menüs, Pedale), CSS, SEO |
 | `public/spiele/schraeglage/sim.js` | Physik und Regeln ohne DOM: Fahrzeuge, Untergründe, Crash/Ziel, Replays, `verifyRun()` |
-| `public/spiele/schraeglage/levels.js` | 30 Level im Baukasten-Format (Stift läuft von links nach rechts) |
+| `public/spiele/schraeglage/levels.js` | 35 Level im Baukasten-Format (Stift läuft von links nach rechts) |
 | `public/spiele/schraeglage/game.js` | Darstellung (Canvas 2D), Steuerung, Ton (WebAudio), Speicherstand, Bildschirme, Teilen |
 | `public/spiele/schraeglage/awards.js` | Auszeichnungen (Bedingungen, Auswertung), Symbole, 1080×1080-Teilen-Grafik |
 | `public/spiele/schraeglage/online.js` | Adapter zur PlaySaal-Infrastruktur (`window.PlaySaal` vom Branch `rangliste`) |
@@ -22,7 +22,7 @@ Adresse: `/spiele/schraeglage` · Spielstand: `localStorage` → `schraeglage.v1
 | `tools/planck-vendor.mjs` | erzeugt `planck.js` neu (nur bei planck-Update nötig) |
 | `tests/schraeglage-sim.test.mjs` | Physik, Level, Determinismus, Prüfung, Awards (ohne Browser) |
 | `tests/schraeglage.test.mjs` | Browser-Tests (Playwright gegen `wrangler dev`) |
-| `tests/schraeglage-loesungen.json` | Bot-Lösungen aller 30 Level (Regressionstest) |
+| `tests/schraeglage-loesungen.json` | Bot-Lösungen aller 35 Level (Regressionstest) |
 
 **Abweichung von den anderen Spielen:** Die bisherigen Spiele sind je eine einzelne HTML-Datei. SCHRÄGLAGE teilt sich in Module, weil dieselbe Physik im Browser, im Test-Bot und später im Prüfdienst des Servers laufen muss. Kein Build-Schritt: die Module werden direkt als `type="module"` geladen.
 
@@ -60,7 +60,7 @@ Ein Lauf wird als Eingabewechsel gespeichert (`[Takt, Gas|Bremse|nichts]`, kodie
 
 ## Level
 
-30 Level in sechs Welten, je fünf: Wiese (1–5, Grundlagen), Canyon (6–10, Brücken/Rampen/Bremsen), Baustelle (11–15, bewegte Plattformen/Wippen/Schaukeln), Gletscher (16–20, Sprungkombinationen, Eis/Schnee/Turbo), Insel (21–25, Fahrzeugwechsel, große Räder, Balance), Vulkan (26–30, alles zusammen). Level werden der Reihe nach freigeschaltet; Herausforderungs-Links öffnen ihr Level direkt.
+35 Level in sieben Welten, je fünf: Wiese (1–5, Grundlagen), Canyon (6–10, Brücken/Rampen/Bremsen), Baustelle (11–15, bewegte Plattformen/Wippen/Schaukeln), Gletscher (16–20, Sprungkombinationen, Eis/Schnee/Turbo), Insel (21–25, Fahrzeugwechsel, große Räder, Balance), Vulkan (26–30, alles zusammen), Gipfel (31–35, Eis, Seilbrücken, Wippen, schwere Lasten, Fahrzeugwechsel-Finale). Level werden der Reihe nach freigeschaltet; Herausforderungs-Links öffnen ihr Level direkt.
 
 **Lösbarkeit:** `node tools/schraeglage-bot.mjs --json tests/schraeglage-loesungen.json` sucht für jedes Level eine Eingabefolge in 0,1-s-Schritten, vereinfacht sie auf möglichst wenige Wechsel und misst, wie viele Läufe mit verschobenem Timing (±4 bzw. ±8 Takte = ±67/133 ms je Eingabe) noch ins Ziel kommen. Die Goldzeit ist die schnellste Bot-Zeit + 12 %, aufgerundet auf 0,5 s.
 
@@ -96,6 +96,11 @@ Ein Lauf wird als Eingabewechsel gespeichert (`[Takt, Gas|Bremse|nichts]`, kodie
 | 28 | Magmakammer | Wummser | 16,64 s | 19 s | 27 % | 10 % |
 | 29 | Feuerprobe | Strandfloh → Brummi → Kraxler | 11,36 s | 13 s | 10 % | 13 % |
 | 30 | Schräglage | Kraxler | 17,74 s | 20 s | 0 % | 0 % |
+| 31 | Gipfelstürmer | Kraxler | 12,31 s | 14 s | 100 % | 100 % |
+| 32 | Wolkenbrücke | Strandfloh | 7,71 s | 9 s | 83 % | 50 % |
+| 33 | Rutschpartie | Pritsche | 9,10 s | 10,5 s | 73 % | 53 % |
+| 34 | Schwergewicht | Brummi → Wummser | 21,18 s | 24 s | 83 % | 40 % |
+| 35 | Gipfelkreuz | Kraxler, 3 Wechsel | 24,99 s | 28 s | 60 % | 37 % |
 
 Hinweis zur Timing-Toleranz: Bei Leveln mit Fähren und Aufzügen ist der Wert niedrig, weil der Bot-Test jede Eingabe blind verschiebt. Menschen sehen die Plattform und warten einfach; die Plattformen halten an jedem Ende 1–2 s an.
 
@@ -106,14 +111,14 @@ Hinweis zur Timing-Toleranz: Bei Leveln mit Fähren und Aufzügen ist der Wert n
 | Award | Bedingung | Seltenheit |
 |---|---|---|
 | Bronze / Silber / Gold | 1 / 10 / 25 Level geschafft | Gewöhnlich / Selten / Episch |
-| Meisterfahrer | alle 30 Level | Legendär |
+| Meisterfahrer | alle 35 Level | Legendär |
 | Perfekte Landung | Level mit Sprung, ohne Überschlag, Karosserie nie aufgesetzt | Selten |
 | Speedrunner | ein Level unter der Goldzeit | Selten |
 | Unkaputtbar | fünfmal in Folge im Ziel ohne Unfall dazwischen | Episch |
 | Stunt-König | drei saubere Sprünge in einem Level | Selten |
 | Comeback | Level ab 11 nach ≥ 10 Fehlversuchen erstmals geschafft | Episch |
 | Salto / Doppelsalto | 1 / 2 Überschläge in einem Sprung, sauber gelandet | Episch / Legendär |
-| Goldrausch / Alles Gold | 10 / 30 Goldzeiten | Episch / Legendär |
+| Goldrausch / Alles Gold | 10 / 35 Goldzeiten | Episch / Legendär |
 | Vielflieger | 60 s Luft insgesamt | Gewöhnlich |
 | Wheelie | 3 s am Stück auf den Hinterrädern | Selten |
 | Ohne Bremse | Level ab 6 ohne Bremse | Selten |
@@ -128,7 +133,7 @@ Hinweis zur Timing-Toleranz: Bei Leveln mit Fähren und Aufzügen ist der Wert n
 - Nach jedem neuen Award: Erfolgsanimation mit „Teilen“, „Bild speichern“, „Link kopieren“, „Weiter spielen“. Nach dem Ziel zusätzlich „Herausfordern“ mit der eigenen Bestzeit.
 - Teilen-Grafik 1080×1080 (Canvas): Award-Symbol bzw. Zeit, Award-Name, Spielname, PlaySaal-Logo, Leistung, Spielername (falls in der Garage eingetragen oder vom PlaySaal-Konto), Einladung und Adresse.
 - Handy: Web Share API mit Bild (`navigator.canShare({files})`), sonst nur Text+Link. Desktop: Link wird kopiert und das Bild heruntergeladen.
-- Links: `…/spiele/schraeglage?award=gold&von=Lena` bzw. `?level=7&zeit=14560&von=Lena`. Empfänger spielt sofort ohne Anmeldung; bei Zeit-Links startet das Level direkt mit Banner „Lena fordert dich heraus: 14,56 s – nicht verifiziert“. Parameter werden geprüft (Level 1–30, Zeit 1–3600 s, Name nur Buchstaben/Ziffern/._- , max. 16 Zeichen, nur als Text eingesetzt).
+- Links: `…/spiele/schraeglage?award=gold&von=Lena` bzw. `?level=7&zeit=14560&von=Lena`. Empfänger spielt sofort ohne Anmeldung; bei Zeit-Links startet das Level direkt mit Banner „Lena fordert dich heraus: 14,56 s – nicht verifiziert“. Parameter werden geprüft (Level 1–35, Zeit 1–3600 s, Name nur Buchstaben/Ziffern/._- , max. 16 Zeichen, nur als Text eingesetzt).
 - **Lokal vs. verifiziert:** Ohne Server-Bestätigung steht auf Bild und Banner „auf meinem Gerät gemessen (nicht verifiziert)“. „✓ verifiziert“ erscheint nur, wenn der Prüfdienst den Lauf nachgefahren hat (siehe unten). Link-Parameter können nie „verifiziert“ behaupten.
 
 ## Ranglisten und Konten (vorbereitet, nicht aktiv)
@@ -153,7 +158,7 @@ Zum Aktivieren (nach Freigabe): Branch `rangliste` auf den aktuellen Stand bring
 
 ## Einbindung ins Portal
 
-- Startseite: Kachel im Block „Neu“ an erster Stelle (Eiszeit bleibt unter „Top“), JSON-LD-Liste, Meta-Beschreibung „Zehn Browserspiele“, „Weiter spielen“ zeigt „x von 30 Level · y Gold“.
+- Startseite: Kachel im Block „Hot“ an erster Stelle (2×2) und weiterhin in „Neu“, JSON-LD-Liste, Meta-Beschreibung „Zehn Browserspiele“, „Weiter spielen“ zeigt „x von 35 Level · y Gold“.
 - `sitemap.xml`, `public/assets/umzug.js` (Spielstand-Umzug) und README ergänzt.
 - Coverbild `public/bilder/schraeglage.jpg` (960×600, aus dem Spiel gerendert; Original 1920×1200 in `design/schraeglage/`). Kann jederzeit durch ein eigenes Motiv ersetzt werden.
 - Im Spiel: „Alle Spiele“-Knopf wie bei den anderen Spielen, Vollbild (wo der Browser es kann; iPhone-Safari hat keine Vollbild-API), Farbrollen: Anthrazit-Panels, Gelb nur für Hauptaktionen, Orange für Auszeichnungen/Highlights.
@@ -167,7 +172,7 @@ Automatisch geprüft (15.10.2026, Chromium headless über `wrangler dev`):
 | Physik | deterministische Winkelfunktionen, keine ungenauen Math-Funktionen in Physik/Level | bestanden |
 | Physik | Anfahren, Bremsen, kein Kippen auf flachem Boden, kein Zittern im Stand – alle 5 Fahrzeuge | bestanden |
 | Physik | Crash-Erkennung (Kopf/Dach, Absturz, Wasser, Lava), Zielzeit zwischen Takten | bestanden |
-| Level | alle 30 Level mit gespeicherter Bot-Lösung im Ziel, Goldzeit erreichbar | bestanden |
+| Level | alle 35 Level mit gespeicherter Bot-Lösung im Ziel, Goldzeit erreichbar | bestanden |
 | Replays | gleicher Lauf = gleiches Ergebnis bis aufs Bit; Prüfung lehnt falsche Zeit/Version/Level/Eingaben ab | bestanden |
 | Awards | Bedingungen, Datum, keine Doppelvergabe, Comeback/Unkaputtbar-Sonderfälle | bestanden |
 | Browser | Seite lädt ohne Fehler, SEO, Module mit JavaScript-MIME-Typ | bestanden |
@@ -185,7 +190,7 @@ Automatisch geprüft (15.10.2026, Chromium headless über `wrangler dev`):
 **Offen (nicht ausgeführt):**
 - Echte Geräte: iPhone/Safari, Android/Chrome (Touch-Gefühl, Ton nach dem ersten Tippen, Bildrate auf älteren Handys, echtes Teilen-Menü).
 - Firefox und Safari: Determinismus ist durch `det.js` konstruktiv abgesichert, ein Vergleichslauf über Browser hinweg wurde aber nicht gemacht.
-- Spielgefühl und Schwierigkeit durch Menschen: Lösbarkeit ist per Bot belegt, die Kurve (vor allem Level 24–30 mit Fähren und Lava) sollte probegespielt werden.
+- Spielgefühl und Schwierigkeit durch Menschen: Lösbarkeit ist per Bot belegt, die Kurve (vor allem Level 24–35 mit Fähren, Lava und dem Gipfel-Finale) sollte probegespielt werden.
 - Cloudflare-Vorschau des Branches (Build läuft erst nach dem Push).
 - Konten, Ranglisten und Server-Prüfung: nur vorbereitet, nichts davon ist aktiv oder gegen Supabase getestet.
 

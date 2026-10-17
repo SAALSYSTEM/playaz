@@ -11,7 +11,8 @@ export const THEMES = {
   baustelle: { name: 'Baustelle', surface: 'asphalt' },
   gletscher: { name: 'Gletscher', surface: 'schnee' },
   insel:     { name: 'Insel',     surface: 'strand' },
-  vulkan:    { name: 'Vulkan',    surface: 'stein' }
+  vulkan:    { name: 'Vulkan',    surface: 'stein' },
+  gipfel:    { name: 'Gipfel',    surface: 'schnee' }
 };
 
 class Bau {
@@ -154,6 +155,7 @@ function L(id, name, opts, build) {
 // Level 16–20: Sprungkombinationen, unterschiedliche Untergründe
 // Level 21–25: Fahrzeugwechsel, große Räder, Balance
 // Level 26–30: alles zusammen
+// Level 31–35: Gipfel (Zusatzwelt): steile Hänge, Eis, lange Brücken, schwere Fahrzeuge, Finale mit allen fünf Fahrzeugen
 export const LEVELS = [
   // ------------------------------------------------ Wiese
   L(1, 'Erste Runde', { theme: 'wiese', gold: 14, tip: 'Halte Gas gedrückt. Vor großen Kuppen kurz loslassen.' }, (b) => {
@@ -260,5 +262,21 @@ export const LEVELS = [
   L(30, 'Schräglage', { theme: 'vulkan', gold: 20, tip: 'Das Finale: alles, was du gelernt hast.' }, (b) => {
     b.flat(8).bridge(12, 0, { unten: 'lava' }).flat(5).seesaw(9, { unten: 'lava' }).flat(5).ferry(13, 6, 5, { unten: 'lava', wait: 0.3 }).flat(5).fallBridge(10, 3, { unten: 'lava' }).flat(4)
       .surf('boost').flat(5).surf().kicker(7, 1.6).lava(12, -1).flat(4).stairs(2, 3, 0.8).flat(4).swingGap(9, 7, { unten: 'lava' }).flat(5).kicker(6, 1).lava(7, -1.5).flat(6);
+  }),
+  // ------------------------------------------------ Gipfel
+  L(31, 'Gipfelstürmer', { theme: 'gipfel', gold: 14, tip: 'Steile Hänge hoch: Gas halten. Vor den Schanzen nicht zu früh bremsen.' }, (b) => {
+    b.flat(8).curve(12, 4).flat(4).surf('eis').curve(10, 3).surf().flat(4).kicker(6, 1.2).gap(7, 1).flat(5).curve(10, -3).flat(4).kicker(6, 1).gap(8, -1.5).flat(4).curve(8, 2).flat(3).stairs(2, 3, 0.6).flat(6);
+  }),
+  L(32, 'Wolkenbrücke', { theme: 'gipfel', gold: 9, vehicle: 'strandfloh', tip: 'Brücke, Schaukel, Bröckelplatten: der Floh ist leicht, bleib sanft am Gas.' }, (b) => {
+    b.flat(8).bridge(14, 0, { h: 0.24 }).flat(4).swingGap(10, 5).flat(4).fallBridge(12, 4, { delay: 14 }).flat(4).kicker(6, 1.3).gap(9, -1).flat(4).bridge(16, 0.5, { h: 0.24 }).flat(6);
+  }),
+  L(33, 'Rutschpartie', { theme: 'gipfel', gold: 10.5, vehicle: 'pritsche', tip: 'Eis, Wippen und Turbo. Auf dem Eis kaum lenken, einfach rollen lassen.' }, (b) => {
+    b.flat(8).surf('eis').curve(10, -3).flat(6).surf().seesaw(10).flat(4).surf('eis').flat(8).surf('boost').flat(5).surf().kicker(7, 1.5).gap(12, -1).surf('eis').flat(6).surf().seesaw(9, { limit: 16 }).flat(5).kicker(5, 1).gap(6, -1).flat(6);
+  }),
+  L(34, 'Schwergewicht', { theme: 'gipfel', gold: 24, vehicle: 'brummi', tip: 'Erst mit dem Brummi alles wegschieben, dann mit dem Wummser über Stufen und Aufzug.' }, (b) => {
+    b.flat(10).bridge(14, 0, { density: 90 }).flat(6).crate(3, 0, 1.2).crate(3, 1.2, 1.2).crate(4.4, 0, 1.2).flat(18).swap('wummser', 2).flat(10).rock(4, 1.0, -0.3).rock(9, 1.1, -0.4).flat(12).stairs(2, 3.5, 0.6).flat(6).elevator(8, 5.5, 3, 6).flat(6).curve(8, -1.5).flat(3).kicker(6, 1).gap(6, -0.5).flat(6);
+  }),
+  L(35, 'Gipfelkreuz', { theme: 'gipfel', gold: 28, tip: 'Das große Finale: alle fünf Fahrzeuge, ein Berg. Viel Glück!' }, (b) => {
+    b.flat(8).kicker(6, 1.2).gap(8, -0.5).flat(5).swap('strandfloh', 2).flat(6).fallBridge(12, 4).flat(4).swingGap(9, 6).flat(5).swap('pritsche', 2).flat(6).surf('boost').flat(5).surf().kicker(7, 1.5).gap(12, -1).flat(4).swap('brummi', 2).flat(8).bridge(12, 0, { density: 90 }).flat(5).seesaw(10, { limit: 10, density: 14 }).flat(5).swap('wummser', 2).flat(6).stairs(3, 3.5, 0.75).flat(4).elevator(7, 5, 3, 6).flat(5).kicker(7, 1.4).gap(9, -0.5).flat(6);
   })
 ];
