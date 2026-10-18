@@ -2,7 +2,7 @@
 // Regeln stehen in sim.js (fester 60-Hz-Takt), die Level in levels.js, die 3D-Darstellung in render.js.
 import { createSim, step, result, starFlags, DT, POWER } from './sim.js';
 import { LEVELS, LEVEL_BY_ID, WORLDS, endlessLevel } from './levels.js';
-import { AWARDS, AWARD_BY_ID, RARITY, evaluateAwards, progressOf, drawAwardIcon, drawShareImage, drawKid } from './awards.js';
+import { AWARDS, AWARD_BY_ID, RARITY, evaluateAwards, progressOf, drawAwardIcon, drawShareImage, drawKid, kidReady } from './awards.js';
 import { createRenderer } from './render.js';
 import { createAudio } from './audio.js';
 import { OUTFITS, OUTFIT_BY_ID, POWER_COL, POWER_NAME, iconImg, iconUrl } from './chars.js';
@@ -60,7 +60,7 @@ let akku = 0, letzteZeit = 0, zeitGesamt = 0, endeZeit = 0;
 let herausforderung = null;
 let ergebnis = null;
 const cmdQueue = [];
-let wahlSel = 'boy', gKind = 'boy', gVorschau = 'entdecker';
+let wahlSel = 'boy', gKind = 'boy';
 const awardWarteschlange = [];
 
 const HINT = {
@@ -378,7 +378,7 @@ function frame(now) {
   if (!R) return;
   const dt = Math.min(0.1, letzteZeit ? (now - letzteZeit) / 1000 : 0.016); letzteZeit = now; zeitGesamt += dt;
   if (BUEHNE.has(zustand)) {
-    R.stageFrame({ mode: zustand === 'wahl' ? 'choose' : zustand === 'garage' ? 'garage' : 'menu', sel: zustand === 'wahl' ? wahlSel : zustand === 'garage' ? gKind : figur(), outfit: zustand === 'garage' ? gVorschau : stand.char.outfit }, dt);
+    R.stageFrame({ mode: zustand === 'wahl' ? 'choose' : zustand === 'garage' ? 'garage' : 'menu', sel: zustand === 'wahl' ? wahlSel : zustand === 'garage' ? gKind : figur() }, dt);
     return;
   }
   if (zustand === 'karte' || zustand === 'awards' || !sim) return;
@@ -536,40 +536,13 @@ function zeigeAwards() {
 
 // ---------- Kleiderschrank
 function zeigeGarage() {
-  if (zustand !== 'garage') { gKind = figur(); gVorschau = stand.char.outfit; }
+  if (zustand !== 'garage') gKind = figur();
   zustand = 'garage'; hudAus(); zeigeNur('#sGarage');
   garageBauen();
 }
 function garageBauen() {
-  $('#gMuenzen').textContent = stand.coins + ' Münzen';
   $('#gName').value = stand.settings.name;
   $('#gJunge').setAttribute('aria-pressed', gKind === 'boy'); $('#gMaedchen').setAttribute('aria-pressed', gKind === 'girl');
-  const liste = $('#gListe'); const scroll = liste.scrollLeft; liste.textContent = '';
-  for (const o of OUTFITS) {
-    const hat = stand.char.owned.includes(o.id), aktiv = stand.char.outfit === o.id;
-    const k = document.createElement('div'); k.className = 'skin' + (aktiv ? ' aktiv' : '') + (gVorschau === o.id ? ' vorschau' : '');
-    const cv = document.createElement('canvas'); cv.width = 168; cv.height = 200;
-    drawKid(cv.getContext('2d'), gKind, o, 84, 180, 190);
-    const nm = document.createElement('b'); nm.textContent = o.name;
-    const sm = document.createElement('small'); sm.textContent = hat ? 'Freigeschaltet' : (stand.coins < o.preis ? 'Noch ' + (o.preis - stand.coins) + ' Münzen' : ' ');
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'btn2';
-    if (aktiv) { b.textContent = 'Gewählt'; b.disabled = true; }
-    else if (hat) { b.textContent = 'Anziehen'; b.addEventListener('click', (e) => { e.stopPropagation(); stand.char.outfit = o.id; gVorschau = o.id; speichern(); A.klick(); garageBauen(); }); }
-    else {
-      b.textContent = o.preis + ' Münzen'; b.disabled = stand.coins < o.preis;
-      b.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (stand.coins < o.preis || stand.char.owned.includes(o.id)) return;
-        stand.coins -= o.preis; stand.char.owned.push(o.id); stand.char.outfit = o.id; gVorschau = o.id; A.kauf();
-        const neu = evaluateAwards(stand, N, null, new Date()); speichern();
-        garageBauen();
-        if (neu.length) { awardWarteschlange.push(...neu); zeigeNaechstenAward(() => { zeigeNur('#sGarage'); }); }
-      });
-    }
-    k.addEventListener('click', () => { gVorschau = o.id; garageBauen(); });
-    k.append(cv, nm, sm, b); liste.appendChild(k);
-  }
-  liste.scrollLeft = scroll;
 }
 
 // ---------- Pause
@@ -695,6 +668,7 @@ let logoBild = null;
 function logo() { if (!logoBild) { logoBild = new Image(); logoBild.src = '../brand/playsaal-logo-horizontal-dark.svg'; } return logoBild; }
 const urlKurz = () => (document.querySelector('link[rel=canonical]') || location).href.split('?')[0].replace(/^https?:\/\//, '');
 async function teilenBild(info) {
+  await kidReady(figur());
   const lg = logo();
   if (!lg.complete) await new Promise((r) => { lg.onload = lg.onerror = r; setTimeout(r, 1500); });
   try { await Promise.all(['400 54px "Dela Gothic One"', '700 40px "Barlow"', '600 42px "Barlow"', '500 34px "Barlow"', '700 190px "Barlow Condensed"'].map((f) => document.fonts.load(f))); } catch (e) { /* Schriften optional */ }
@@ -919,6 +893,7 @@ async function init() {
   setTimeout(logo, 2500);
   menuLevelId = stand.last && LEVEL_BY_ID[stand.last] ? stand.last : 1;
   const l0 = LEVEL_BY_ID[menuLevelId]; R.setLevel(l0); R.lvl = l0;
+  kidReady('boy'); kidReady('girl');
   tonKnoepfe();
   const ziel = startParameter();
   requestAnimationFrame(frame);

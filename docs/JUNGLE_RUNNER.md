@@ -66,8 +66,16 @@ Letzter Lauf (18.10.2026, 30 Level): alle 30 `OK` (fein = ja, robust = ja/ja/ja,
 
 - **A2**: `icon-herz/stern/stern-leer/pause/ton-an/ton-aus.png` ersetzen die Inline-SVGs (Leben-Anzeige, Level- und Ergebnissterne, Kriterien, Pause- und Ton-Knopf). Das leere Herz ist per CSS abgedunkelt. Pause/Ton sind Bild-Knöpfe ohne eigenen Rahmen (orange); Neustart und Musik bleiben dunkle Rahmen-Knöpfe, weil dafür keine Bilder geliefert wurden.
 - **B**: `tex-*.webp/png` als Kacheln. `geo.js` (`MB.tex(name)`, `LAYERS`, `LAYER_DEF`) schreibt Körper in Texturschichten derselben Chunk-Geometrie (Gruppen + Materialarray, UVs aus Weltkoordinaten nach Flächenrichtung; Zylinder: eigene UV; Stammenden: lokale UV). Zugeordnet in `world.js`: Wiese = Gras, Wegplatten/Säulen/Ruinen = Tempelstein, Brücke/Rampen = Holzbohlen, Stämme/Baumstämme = Rinde (+ Stammschnitt an den Enden, alphaTest), Schlamm, Felsen = Stein-Moos; Wasser = `tex-wasser` (Farbton je Welt über `waterMat.color`). Die Vertexfarbe der Welt bleibt als Tönung erhalten (`tint`/`gain`). Texturen werden beim Start geladen und auf höchstens 512 px verkleinert (Grafikspeicher ca. 10 MB statt 40 MB); der Ladebildschirm wartet bis zu 3 s darauf.
-- **C**: `gesicht-junge/maedchen.png` (transparent, nur Augen, Brauen, Mund, beim Mädchen Wangen) liegen als Abziehbild auf einem Kugelstück vor dem Kopf (`faceGeo` in `chars.js`, Bild deckt 2,2 rad ab, transparent, kein Tiefenschreiben, Polygon-Offset). Die alten Augen-, Wangen- und Mund-Körper entfallen; Nase und Ohren bleiben Körper. Die Garderoben-Kärtchen zeigen weiterhin ihre eigenen Vorschaubilder.
+- **C** (inzwischen durch die Sprite-Figuren ersetzt, siehe unten): `gesicht-junge/maedchen.png` (transparent, nur Augen, Brauen, Mund, beim Mädchen Wangen) liegen als Abziehbild auf einem Kugelstück vor dem Kopf (`faceGeo` in `chars.js`, Bild deckt 2,2 rad ab, transparent, kein Tiefenschreiben, Polygon-Offset). Die alten Augen-, Wangen- und Mund-Körper entfallen; Nase und Ohren bleiben Körper. Die Garderoben-Kärtchen zeigen weiterhin ihre eigenen Vorschaubilder.
 - Kosten: Zeichenaufrufe von 62 auf ca. 90 (Grenze 160), Dreiecke unverändert; das Savannen-Gras (Welt 3) wirkt durch die grüne Textur grüner als vorher.
+
+## Sprite-Figuren (ersetzen die 3D-Figur und Paket C)
+
+- Abweichung vom ursprünglichen Plan („ChatGPT liefert nur 2D-Assets, 3D-Figuren bleiben Code“): Die Code-Figur aus Grundkörpern kam nicht an das Keyart heran, daher sind Junge und Mädchen jetzt Bilder (12 PNGs, 512², transparent, `assets/sprites/{junge,maedchen}-{hinten-lauf-a,hinten-lauf-b,hinten-sprung,hinten-ducken,hinten-getroffen,vorn-jubel}.png`).
+- `chars.js`: `buildChar(kind)` = Ebene mit dem Bild (Fußpunkt bei y = 496/512 auf y = 0, 1,92 m Kantenlänge ≈ 1,5 m Figur), `poseChar(c, {mode, ph, lane, t, view})` wählt die Pose: Lauf wechselt A/B mit der Laufphase (plus Wippen und leichtes Kippen), Sprung/Fall, Ducken (auch bei „verloren“), Treffer (mit Zittern), Jubel (im Lauf beim Sieg: dreht sich zur Kamera). `view: 'stage'` (Menü, Figurenwahl, Garage) zeigt immer `vorn-jubel`, zur Kamera der Bühne gedreht.
+- Im Lauf ist die Figur um 20 % größer als die Trefferfläche (`render.js`, `tilt.scale`), damit sie auf dem Handy gut sichtbar ist. Die Trefferflächen der Simulation sind unverändert.
+- Teilen-Bild und Ergebniskarten: `drawKid` (`awards.js`) zeichnet `vorn-jubel`.
+- Outfits entfallen: Garage zeigt nur noch Junge/Mädchen und das Namensfeld. Daten (`owned`, `outfit`) und der Award „Neues Outfit“ bleiben im Code, der Award ist aber nicht mehr erreichbar (Entscheidung offen). Paket C (`gesicht-*.png`) und der alte Skelett-Code sind entfernt bzw. ungenutzt; die Dateien liegen noch in `assets/`.
 
 ## Temporäre Grafik – ehrliche Einordnung
 
@@ -134,7 +142,8 @@ Befehle: `node --test tests/jungle-sim.test.mjs`, `node --test --test-concurrenc
 | Grafikpaket A1: Bilder laden unverzerrt, Ladebildschirm weg, Power-up-Symbole im HUD | Browser | ja | bestanden | – |
 | Grafikpaket A2: Herzen, Pause, Ton als Bilder, kein Inline-SVG | Browser | ja | bestanden | – |
 | Grafikpaket B: Texturen geladen, Texturgruppen in den Stücken | Browser | ja | bestanden | – |
-| Grafikpaket C: Gesichtsbild auf dem Kopf (Junge und Mädchen) | Browser | ja | bestanden | – |
+| Sprite-Figuren: 12 Posen geladen, Laufpose wechselt | Browser | ja | bestanden | – |
+| Garage: nur Figurwahl, ohne Outfit-Liste | Browser | ja | bestanden | – |
 | Menü, Lauf, Levelkarte, Hilfe, Garage, Ergebnis bei 375/390 px sowie 800×390 und 1440×900 | manuell (Screenshots) | ja | gesichtet | – |
 | Ladezeit Menü (4 Mbit/s, 60 ms, Software-GL) | manuell | ja | 2,5 s statt 2,1 s auf main, +190 KB | – |
 | Optik der Platzhalter-Modelle aus der Nähe, Qualitätsstufen | manuell | teilweise | Screenshots gesichtet | finale Assets stehen aus (siehe Tabelle oben) |

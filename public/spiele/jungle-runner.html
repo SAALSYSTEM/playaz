@@ -227,14 +227,6 @@ body.touch .lehre .touch{display:inline}
 .gtabs{display:flex;gap:8px;max-width:360px}
 .gtabs button{flex:1;min-height:44px;border-radius:12px;border:2px solid var(--linie);background:rgba(26,27,38,.92);font:700 17px/1 var(--f-text)}
 .gtabs button[aria-pressed=true]{border-color:var(--aktion);background:rgba(255,210,28,.16)}
-.gliste{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;touch-action:pan-x}
-.skin{flex:0 0 150px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;border-radius:16px;background:var(--flaeche);border:2px solid var(--linie);text-align:center}
-.skin canvas{width:84px;height:100px}
-.skin b{font-size:16px}
-.skin small{color:var(--leise);font-weight:600;font-size:13px;min-height:18px}
-.skin.aktiv{border-color:var(--aktion)}
-.skin.vorschau{border-color:var(--marke)}
-.skin .btn2{min-height:38px;padding:0 12px;font-size:15px;justify-content:center;width:100%}
 .name-feld{max-width:980px;margin:6px auto 0}
 .name-feld label{display:block;font:700 13px/1 var(--f-text);letter-spacing:.1em;text-transform:uppercase;color:var(--leise);margin-bottom:6px}
 .name-feld input{width:min(100%,320px);height:44px;border-radius:12px;border:1px solid var(--linie);background:var(--flaeche);color:var(--text);padding:0 14px;font:600 17px var(--f-text)}
@@ -244,7 +236,6 @@ body.touch .lehre .touch{display:inline}
   #sGarage{flex-direction:row;flex-wrap:wrap;align-content:flex-start;background:linear-gradient(270deg,rgba(17,18,26,.94) 0,rgba(17,18,26,.9) 52%,rgba(17,18,26,0) 74%)}
   #sGarage .kopf{width:100%;flex:none}
   .gunten{margin:0 0 0 auto;width:min(58%,560px);max-width:none}
-  .gliste{flex-wrap:nowrap}
   .name-feld{display:none}
 }
 
@@ -378,12 +369,10 @@ body.touch .lehre .touch{display:inline}
   </section>
 
   <section class="screen" id="sGarage" aria-labelledby="hGarage" hidden>
-    <div class="kopf"><button class="zurueck" data-zurueck aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="hGarage">Figur &amp; Outfit</h2><span class="rechts mz" id="gMuenzen" style="color:var(--aktion);font-weight:700"></span></div>
+    <div class="kopf"><button class="zurueck" data-zurueck aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="hGarage">Figur</h2></div>
     <div class="gunten">
       <div class="gtabs" role="group" aria-label="Figur"><button type="button" id="gJunge" aria-pressed="true">Junge</button><button type="button" id="gMaedchen" aria-pressed="false">Mädchen</button></div>
-      <div class="gliste" id="gListe"></div>
-      <p class="status" id="gStatus" style="text-align:left;color:#fff"></p>
-      <div class="name-feld"><label for="gName">Dein Name auf geteilten Bildern</label><input id="gName" maxlength="16" autocomplete="nickname" placeholder="optional" spellcheck="false"><p>Bleibt auf diesem Gerät. Buchstaben, Zahlen, Punkt, Strich, 3–16 Zeichen. Outfits sind nur Optik.</p></div>
+      <div class="name-feld"><label for="gName">Dein Name auf geteilten Bildern</label><input id="gName" maxlength="16" autocomplete="nickname" placeholder="optional" spellcheck="false"><p>Bleibt auf diesem Gerät. Buchstaben, Zahlen, Punkt, Strich, 3–16 Zeichen.</p></div>
     </div>
   </section>
 
@@ -395,7 +384,7 @@ body.touch .lehre .touch{display:inline}
         <li><b>Baumstamm am Boden</b>: springen. <b>Ast in der Luft</b>: rutschen. <b>Fels</b>: Spur wechseln. Auf dicken Stämmen kannst du über Wasser laufen.</li>
         <li><b>Nashorn</b> und <b>Fels-Kugel</b> kommen in einer markierten Spur auf dich zu. <b>Elefanten</b> sind langsam und blockieren Spuren. <b>Affen</b> schwingen hin und her.</li>
         <li>Du hast <b>3 Herzen</b>. Jeder Treffer kostet eins. Fällst du ins Wasser, geht es am letzten Checkpoint weiter.</li>
-        <li>Münzen bringen <b>Sterne</b> und Outfits. Power-ups, die du einsammelst:</li>
+        <li>Münzen bringen <b>Sterne</b>. Power-ups, die du einsammelst:</li>
       </ul>
       <ul class="legende" aria-label="Power-ups">
         <li><img class="ico" src="jungle-runner/assets/icon-magnet.webp" width="34" height="34" alt="" loading="lazy">Magnet zieht Münzen an</li>

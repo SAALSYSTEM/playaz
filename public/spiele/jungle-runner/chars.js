@@ -13,18 +13,6 @@ const geo = {
 };
 const part = (g, m, x, y, z, sx, sy, sz, rx = 0, ry = 0, rz = 0) => { const o = new T.Mesh(g, m); o.position.set(x, y, z); o.scale.set(sx, sy, sz); o.rotation.set(rx, ry, rz); return o; };
 const grp = (x = 0, y = 0, z = 0) => { const g = new T.Group(); g.position.set(x, y, z); return g; };
-// Gesichter (Paket C): transparente PNGs, als Abziehbild auf ein Kugelstück vor dem Kopf gelegt (Nase und Ohren bleiben Körper)
-const FACE_FILE = { boy: 'gesicht-junge.png', girl: 'gesicht-maedchen.png' };
-const faceTex = {};
-export const faceReady = Promise.all(Object.keys(FACE_FILE).map((k) => new Promise((ok) => {
-  const img = new Image(), t = new T.Texture(img); t.anisotropy = 4; faceTex[k] = t;
-  img.onload = () => { t.needsUpdate = true; ok(); }; img.onerror = () => ok();
-  img.src = new URL('assets/' + FACE_FILE[k], import.meta.url).href;
-})));
-const FACE_SPAN = 2.2;                                  // Bogenmaß, das das 256-px-Bild auf dem Kopf abdeckt (Augenabstand ≈ 0,16 m)
-const faceGeo = new T.SphereGeometry(0.5, 20, 14, Math.PI * 1.5 - FACE_SPAN / 2, FACE_SPAN, Math.PI / 2 - 0.1 - FACE_SPAN / 2, FACE_SPAN);
-const faceMats = {};
-const faceMat = (k) => faceMats[k] || (faceMats[k] = new T.MeshLambertMaterial({ map: faceTex[k], transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
 const approach = (a, b, k) => a + (b - a) * Math.min(1, k);
 
 // ====================================================================== Kleidung (nur Optik, kein Spielvorteil)
@@ -40,125 +28,46 @@ export const OUTFITS = [
   { id: 'gold', name: 'Goldener Held', preis: 1200, shirt: 0xf5b81f, shirt2: 0xfff1a8, pants: 0xfff6dc, shoes: 0xf5b81f, hat: 'cap', hatC: 0xf5b81f, pack: 0xe53935 }
 ];
 export const OUTFIT_BY_ID = Object.fromEntries(OUTFITS.map((o) => [o.id, o]));
-const pick = (v, girl) => (Array.isArray(v) ? v[girl ? 1 : 0] : v);
 
-// ====================================================================== Spielfigur
-export function buildChar(kind, outfit) {
-  const girl = kind === 'girl', O = outfit || OUTFITS[0];
-  const skin = 0xf2b78c, hairC = girl ? 0x5b2f1b : 0x70401f, shirt = pick(O.shirt, girl), pants = pick(O.pants, girl);
-  const root = grp(), tilt = grp(), pivot = grp(0, 0.62, 0);
-  root.add(tilt); tilt.add(pivot);
-  // Torso
-  const torso = grp(0, 0, 0); pivot.add(torso);
-  torso.add(part(geo.box, lam(shirt), 0, 0.23, 0, 0.40, 0.42, 0.26));
-  torso.add(part(geo.box, lam(O.shirt2), 0, 0.40, -0.01, 0.30, 0.06, 0.28));              // Kragen/Träger
-  torso.add(part(geo.box, lam(pants), 0, -0.01, 0, 0.41, 0.14, 0.27));                   // Hosenbund
-  torso.add(part(geo.box, lam(0xc9a66b), 0, 0.045, -0.002, 0.42, 0.04, 0.275));          // Gürtel
-  // Rucksack mit Trägern (gut von hinten zu sehen)
-  const pack = grp(0, 0.25, 0.2); torso.add(pack);
-  pack.add(part(geo.box, lam(O.pack), 0, 0, 0, 0.30, 0.34, 0.15));
-  pack.add(part(geo.box, lam(0x2b2b35), 0, 0.12, 0.02, 0.32, 0.06, 0.17));
-  pack.add(part(geo.box, lam(O.shirt2), 0, -0.08, 0.09, 0.2, 0.12, 0.05));
-  for (const sx of [-1, 1]) torso.add(part(geo.box, lam(0x2b2b35), sx * 0.11, 0.3, -0.11, 0.05, 0.3, 0.03));
-  // Kopf
-  const head = grp(0, 0.5, 0); torso.add(head);
-  head.add(part(geo.sph, lam(skin), 0, 0.08, 0, 0.5, 0.5, 0.5));
-  head.add(part(geo.sph, lam(skin), 0, 0.02, -0.255, 0.07, 0.065, 0.06));                // Nase
-  for (const sx of [-1, 1]) head.add(part(geo.sph, lam(skin), sx * 0.25, 0.07, 0.0, 0.07, 0.11, 0.07));   // Ohren
-  head.add(part(faceGeo, faceMat(girl ? 'girl' : 'boy'), 0, 0.08, 0, 0.51, 0.51, 0.51));                    // Gesicht (Augen, Brauen, Mund, Wangen)
-  // Haare: Kappe, nach hinten gekippt, damit das Gesicht frei bleibt
-  const hair = grp(0, 0.1, 0.035); head.add(hair);
-  hair.add(part(geo.cap, lam(hairC), 0, 0, 0, 0.56, 0.56, 0.56, 0.62, 0, 0));
-  hair.add(part(geo.sph, lam(hairC), 0, -0.03, 0.14, 0.5, 0.42, 0.34));                  // Hinterkopf
-  const tufts = girl ? [] : [[-0.1, 0.27, -0.05, 0.35], [0.06, 0.29, -0.09, -0.25], [0.14, 0.24, 0.02, -0.7], [-0.17, 0.2, 0.05, 0.8], [0, 0.3, 0.07, 0.1]];
-  for (const [x, y, z, rz] of tufts) hair.add(part(geo.cone, lam(hairC), x, y, z, 0.12, 0.2, 0.12, -0.35, 0, rz));
-  let tail = null;
-  if (girl) {
-    tail = grp(0, 0.14, 0.23); head.add(tail);
-    tail.add(part(geo.box, lam(0xe53935), 0, 0.02, -0.02, 0.1, 0.07, 0.1));
-    const seg1 = grp(0, 0, 0.04); tail.add(seg1); seg1.add(part(geo.sph, lam(hairC), 0, -0.08, 0.08, 0.17, 0.26, 0.17));
-    const seg2 = grp(0, -0.18, 0.1); seg1.add(seg2); seg2.add(part(geo.sph, lam(hairC), 0, -0.09, 0.02, 0.15, 0.28, 0.15));
-    tail.userData.s1 = seg1; tail.userData.s2 = seg2;
-    hair.add(part(geo.box, lam(hairC), 0.09, 0.1, -0.2, 0.26, 0.08, 0.08, 0.2, 0, -0.5)); // Pony
-  }
-  // Kopfbedeckung
-  if (O.hat === 'cap') {
-    head.add(part(geo.cap, lam(O.hatC), 0, 0.17, 0.0, 0.54, 0.54, 0.54, 0.3, 0, 0));
-    head.add(part(geo.box, lam(O.hatC), 0, 0.2, -0.27, 0.34, 0.035, 0.22, 0.2, 0, 0));
-  } else if (O.hat === 'safari') {
-    head.add(part(geo.disc, lam(O.hatC), 0, 0.26, 0, 0.78, 0.03, 0.78));
-    head.add(part(geo.cap, lam(O.hatC), 0, 0.26, 0, 0.5, 0.5, 0.5));
-    head.add(part(geo.cyl, lam(O.hatBand || 0x6b4a2a), 0, 0.3, 0, 0.51, 0.05, 0.51));
-  } else if (O.hat === 'band') {
-    head.add(part(geo.cyl, lam(O.hatC), 0, 0.18, 0.005, 0.54, 0.07, 0.54));
-    head.add(part(geo.box, lam(O.hatC), 0.0, 0.17, 0.27, 0.07, 0.16, 0.04, 0, 0, 0.4));  // Knoten hinten
-  }
-  // Arme
-  const arm = (sx) => {
-    const a = grp(sx * 0.26, 0.4, 0); torso.add(a);
-    a.add(part(geo.sph, lam(shirt), 0, 0, 0, 0.17, 0.17, 0.17));
-    a.add(part(geo.cylL, lam(shirt), 0, -0.1, 0, 0.115, 0.2, 0.115));
-    const el = grp(0, -0.2, 0); a.add(el);
-    el.add(part(geo.cylL, lam(skin), 0, -0.09, 0, 0.09, 0.18, 0.09));
-    el.add(part(geo.sphL, lam(skin), 0, -0.2, 0, 0.12, 0.12, 0.12));
-    return { a, el };
-  };
-  const armL = arm(-1), armR = arm(1);
-  // Beine
-  const leg = (sx) => {
-    const l = grp(sx * 0.1, -0.03, 0); pivot.add(l);
-    l.add(part(geo.cylL, lam(pants), 0, -0.1, 0, 0.19, 0.2, 0.19));
-    l.add(part(geo.cylL, lam(skin), 0, -0.22, 0, 0.1, 0.12, 0.1));
-    const kn = grp(0, -0.27, 0); l.add(kn);
-    kn.add(part(geo.cylL, lam(skin), 0, -0.07, 0, 0.09, 0.14, 0.09));
-    kn.add(part(geo.cylL, lam(0xffffff), 0, -0.17, 0, 0.11, 0.08, 0.11));
-    kn.add(part(geo.box, lam(O.shoes), 0, -0.235, -0.04, 0.15, 0.1, 0.28));
-    kn.add(part(geo.box, lam(0xffffff), 0, -0.275, -0.04, 0.155, 0.03, 0.285));
-    return { l, kn };
-  };
-  const legL = leg(-1), legR = leg(1);
+// ====================================================================== Spielfigur (Sprites)
+// Junge und Mädchen sind flache Bilder (je 6 Posen), die zur Kamera zeigen: im Lauf von hinten, in Menü/Figurenwahl/Garage von vorn.
+// Kein Skelett, keine Outfits. Der Fußpunkt der Bilder liegt bei y = 496 von 512 und wird auf y = 0 gesetzt, damit die Trefferflächen passen.
+const SPR_NAME = { boy: 'junge', girl: 'maedchen' };
+const SPR_POSEN = ['hinten-lauf-a', 'hinten-lauf-b', 'hinten-sprung', 'hinten-ducken', 'hinten-getroffen', 'vorn-jubel'];
+const SPR_H = 1.92, SPR_FUSS = (16 / 512) * SPR_H;          // Kantenlänge des Bildes in m (Figur ≈ 1,5 m hoch) und Abstand Fuß–Unterkante
+export const spriteUrl = (kind, pose) => new URL('assets/sprites/' + SPR_NAME[kind] + '-' + pose + '.png', import.meta.url).href;
+const sprMat = new Map();
+const spriteMat = (kind, pose) => {
+  const k = kind + pose; if (sprMat.has(k)) return sprMat.get(k);
+  const img = new Image(), t = new T.Texture(img); t.anisotropy = 4;
+  const p = new Promise((ok) => { img.onload = () => { t.needsUpdate = true; ok(); }; img.onerror = () => ok(); });
+  img.src = spriteUrl(kind, pose);
+  const m = { mat: new T.MeshBasicMaterial({ map: t, alphaTest: 0.5 }), p }; sprMat.set(k, m); return m;
+};
+export const spritesReady = () => Promise.all(['boy', 'girl'].flatMap((k) => SPR_POSEN.map((p) => spriteMat(k, p).p)));
+const sprGeo = new T.PlaneGeometry(SPR_H, SPR_H).translate(0, SPR_H / 2 - SPR_FUSS, 0);
+export function buildChar(kind) {
+  const girl = kind === 'girl', root = grp(), tilt = grp(); root.add(tilt);
+  const mesh = new T.Mesh(sprGeo, spriteMat(kind, 'hinten-lauf-a').mat); tilt.add(mesh);
   const shadow = part(new T.CircleGeometry(0.5, 16), new T.MeshBasicMaterial({ color: 0x0b2a10, transparent: true, opacity: 0.28, depthWrite: false }), 0, 0.02, 0, 0.8, 0.8, 0.8, -Math.PI / 2);
-  const c = { kind, root, tilt, pivot, torso, head, armL, armR, legL, legR, tail, shadow, J: {}, ph: 0, outfit: O, girl };
-  return c;
+  return { kind, root, tilt, mesh, shadow, girl };
 }
-
-// Gelenkwinkel weich auf das Ziel zuführen. tgt: { thL, thR, shL, shR, aL, aR, elL, elR, azL, azR, lean, roll, hx, hy, py, tilt }
-export function poseChar(c, tgt, dt, hart) {
-  const J = c.J, k = hart ? 1 : dt * 24;
-  for (const key of Object.keys(tgt)) J[key] = J[key] === undefined ? tgt[key] : approach(J[key], tgt[key], key === 'py' ? Math.min(1, dt * 40) : k);
-  c.legL.l.rotation.x = J.thL; c.legR.l.rotation.x = J.thR;
-  c.legL.kn.rotation.x = -J.shL; c.legR.kn.rotation.x = -J.shR;
-  c.armL.a.rotation.x = J.aL; c.armR.a.rotation.x = J.aR;
-  c.armL.a.rotation.z = J.azL; c.armR.a.rotation.z = J.azR;
-  c.armL.el.rotation.x = J.elL; c.armR.el.rotation.x = J.elR;
-  c.pivot.rotation.x = J.lean; c.pivot.rotation.z = J.roll;
-  c.pivot.position.y = 0.62 + J.py;
-  c.head.rotation.x = J.hx; c.head.rotation.y = J.hy;
-}
-
-// Zielwinkel je Zustand. m: { mode, ph (Laufphase), grounded, vy, lane (−1/0/1 Richtung des Spurwechsels, weich), slide (0..1), stun (0..1), t (Zeit) }
-export function poseTarget(m) {
-  const s = Math.sin(m.ph), s2 = Math.sin(m.ph + Math.PI);
-  const run = {
-    thL: s * 0.95, thR: s2 * 0.95,
-    shL: 0.25 + Math.max(0, Math.sin(m.ph - 1.0)) * 1.15, shR: 0.25 + Math.max(0, Math.sin(m.ph + Math.PI - 1.0)) * 1.15,
-    aL: s2 * 0.9, aR: s * 0.9, elL: 1.15 - s2 * 0.3, elR: 1.15 - s * 0.3, azL: -0.1, azR: 0.1,
-    lean: 0.2, roll: -m.lane * 0.28, hx: -0.12, hy: m.lane * 0.2, py: Math.abs(Math.cos(m.ph)) * 0.05 - 0.02
-  };
+// m: { mode, ph (Laufphase), lane (−1…1, Richtung des Spurwechsels), t (Zeit), view: 'play' | 'stage' }
+export function poseChar(c, m) {
+  const stage = m.view === 'stage', s = Math.sin(m.ph);
+  let pose = 'hinten-lauf-a', bob = 0, roll = 0;
   switch (m.mode) {
-    case 'jump': return { thL: 0.95, thR: -0.35, shL: 1.15, shR: 0.55, aL: 2.5, aR: 2.3, elL: 0.35, elR: 0.5, azL: -0.25, azR: 0.25, lean: 0.12, roll: -m.lane * 0.2, hx: -0.18, hy: 0, py: 0.0 };
-    case 'fall': return { thL: 0.45, thR: -0.15, shL: 0.5, shR: 0.3, aL: 0.6, aR: 0.5, elL: 0.3, elR: 0.3, azL: -1.25, azR: 1.25, lean: 0.1, roll: -m.lane * 0.18, hx: -0.1, hy: 0, py: 0.0 };
-    case 'slide': return { thL: 1.45, thR: 1.2, shL: 0.1, shR: 0.15, aL: -0.9, aR: -0.8, elL: 0.3, elR: 0.3, azL: -0.35, azR: 0.35, lean: 1.28, roll: 0, hx: 0.5, hy: 0, py: -0.31 };
-    case 'stun': return { thL: 0.5, thR: -0.2, shL: 0.7, shR: 0.5, aL: 2.1, aR: 1.8, elL: 0.9, elR: 0.9, azL: -0.5, azR: 0.5, lean: -0.38, roll: Math.sin(m.t * 38) * 0.14, hx: 0.25, hy: Math.sin(m.t * 30) * 0.4, py: -0.02 };
-    case 'cheer': { const j = Math.abs(Math.sin(m.t * 6.5)); return { thL: 0.5 * Math.sin(m.t * 13), thR: -0.5 * Math.sin(m.t * 13), shL: 0.5, shR: 0.5, aL: 2.8, aR: 2.8, elL: 0.2, elR: 0.2, azL: -0.45, azR: 0.45, lean: 0.0, roll: Math.sin(m.t * 6.5) * 0.12, hx: -0.15, hy: Math.sin(m.t * 3.2) * 0.35, py: j * 0.26 }; }
-    case 'lose': return { thL: 0.9, thR: 0.7, shL: 1.5, shR: 1.5, aL: 0.5, aR: 0.4, elL: 0.3, elR: 0.3, azL: -0.15, azR: 0.15, lean: 0.7, roll: 0, hx: 0.55, hy: 0, py: -0.28 };
-    case 'idle': return { thL: 0.05 * s, thR: -0.05 * s, shL: 0.1, shR: 0.1, aL: -0.05 + 0.08 * Math.sin(m.t * 2), aR: 0.1 - 0.08 * Math.sin(m.t * 2), elL: 0.2, elR: 0.2, azL: -0.1, azR: 0.1, lean: 0.03, roll: 0, hx: -0.04, hy: Math.sin(m.t * 0.9) * 0.15, py: Math.sin(m.t * 2) * 0.008 };
-    case 'wave': return { thL: 0, thR: 0, shL: 0.05, shR: 0.05, aL: -0.05, aR: 2.9 + Math.sin(m.t * 7) * 0.2, elL: 0.2, elR: 0.5 + Math.sin(m.t * 7) * 0.5, azL: -0.1, azR: 0.2, lean: 0.0, roll: 0, hx: -0.05, hy: 0.2, py: Math.sin(m.t * 2) * 0.008 };
-    default: return run;
+    case 'jump': case 'fall': pose = 'hinten-sprung'; roll = -m.lane * 0.15; break;
+    case 'slide': case 'lose': pose = 'hinten-ducken'; break;
+    case 'stun': pose = 'hinten-getroffen'; roll = Math.sin(m.t * 38) * 0.1; break;
+    case 'cheer': pose = 'vorn-jubel'; bob = Math.abs(Math.sin(m.t * 6.5)) * 0.16; roll = Math.sin(m.t * 6.5) * 0.05; break;
+    case 'idle': case 'wave': pose = stage ? 'vorn-jubel' : 'hinten-lauf-a'; bob = Math.sin(m.t * 2) * 0.01; roll = Math.sin(m.t * 1.4) * 0.03; break;
+    default: pose = s >= 0 ? 'hinten-lauf-a' : 'hinten-lauf-b'; bob = Math.abs(Math.cos(m.ph)) * 0.07; roll = -m.lane * 0.2 + s * 0.04;
   }
-}
-export function animateExtras(c, t, v) {                // Pferdeschwanz schwingt mit
-  if (c.tail) { const s1 = c.tail.userData.s1, s2 = c.tail.userData.s2; s1.rotation.x = 0.45 + Math.sin(t * 11) * 0.28 * Math.min(1, v / 8); s2.rotation.x = 0.25 + Math.sin(t * 11 - 1.2) * 0.38 * Math.min(1, v / 8); s1.rotation.z = Math.sin(t * 7) * 0.1; }
+  if (stage) pose = 'vorn-jubel';
+  c.mesh.material = spriteMat(c.kind, pose).mat;
+  c.mesh.rotation.y = stage && pose === 'vorn-jubel' ? Math.PI : 0;        // von vorn gezeigt: Bild zur −z-Seite drehen (Kamera der Bühne steht dort)
+  c.tilt.position.y = bob; c.tilt.rotation.z = roll;
 }
 
 // ====================================================================== Tiere

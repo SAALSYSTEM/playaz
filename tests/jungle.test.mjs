@@ -76,7 +76,8 @@ test('Grafikpaket A1: Logo, Keyart und Icons laden unverzerrt, Ladebildschirm ve
   const logo = bilder.find((b) => /assets\/logo\.webp$/.test(b.src) && b.rw > 0);
   assert.ok(logo, 'Logo im Menü sichtbar');
   assert.ok(Math.abs(logo.rw / logo.rh - logo.w / logo.h) < 0.03, 'Logo nicht verzerrt');
-  await page.click('#mHilfe'); await warte(500);   // Hilfe öffnen: die Legenden-Icons laden erst jetzt (lazy)
+  await page.click('#mHilfe');   // Hilfe öffnen: die Legenden-Icons laden erst jetzt (lazy)
+  await page.waitForFunction(() => [...document.querySelectorAll('.legende img')].every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 20000 }).catch(() => {});
   const legende = await page.evaluate(() => [...document.querySelectorAll('.legende img')].map((i) => i.complete && i.naturalWidth > 0));
   assert.equal(legende.length, 4); assert.ok(legende.every(Boolean), 'Legenden-Icons laden');
   await page.click('#hZu');
@@ -114,13 +115,15 @@ test('Grafikpaket B: Boden-, Holz-, Stein- und Wassertexturen sind geladen und i
   await ctx.close();
 });
 
-test('Grafikpaket C: Gesicht ist ein geladenes Bild auf dem Kopf (Junge und Mädchen), keine alten Augen-Meshes', async () => {
+test('Sprite-Figuren: Junge und Mädchen laden alle 6 Posen, Figur steht mit dem Fuß auf dem Boden und wechselt im Lauf die Pose', async () => {
   const { ctx, page, fehler, anfragen } = await seite(MOBIL);
-  await page.evaluate(() => { __jr.starteLevel(1); __jr.beginne(); }); await warte(600);
-  const f = async () => page.evaluate(() => { const h = __jr.R.getChar().head; const m = h.children.find((c) => c.material && c.material.map && c.material.transparent); return { ok: !!m && m.material.map.image.complete && m.material.map.image.naturalWidth > 0, anzahl: h.children.length }; });
-  const boy = await f(); assert.ok(boy.ok, 'Jungen-Gesicht geladen'); assert.ok(anfragen.some((u) => u.includes('gesicht-junge')));
-  await page.evaluate(() => { __jr.stand.char.kind = 'girl'; __jr.R.setChar('girl', __jr.stand.char.outfit); }); await warte(400);
-  const girl = await f(); assert.ok(girl.ok, 'Mädchen-Gesicht geladen'); assert.ok(anfragen.some((u) => u.includes('gesicht-maedchen')));
+  await page.evaluate(() => { __jr.starteLevel(1); __jr.beginne(); __jr.schnell(60 * 2); }); await warte(800);
+  for (const k of ['junge', 'maedchen']) for (const p of ['hinten-lauf-a', 'hinten-lauf-b', 'hinten-sprung', 'hinten-ducken', 'hinten-getroffen', 'vorn-jubel']) assert.ok(anfragen.some((u) => u.includes(`sprites/${k}-${p}.png`)), 'Sprite angefragt: ' + k + '-' + p);
+  const pr = await page.evaluate(() => ['boy', 'girl'].map((k) => { const c = __jr.R.getChar(k, 'entdecker'); const i = c.mesh.material.map.image; return { ok: i.complete && i.naturalWidth === 512, y: c.root.position.y }; }));
+  assert.ok(pr.every((x) => x.ok), 'Sprites geladen');
+  const frames = new Set();
+  for (let i = 0; i < 12; i++) { frames.add(await page.evaluate(() => __jr.R.getChar(__jr.stand.char.kind || 'boy', 'entdecker').mesh.material.map.image.src.split('/').pop())); await warte(60); }
+  assert.ok(frames.size >= 2, 'Laufposen wechseln: ' + [...frames]);
   assert.deepEqual(fehler, []);
   await ctx.close();
 });
@@ -309,18 +312,13 @@ test('Herausforderungs-Link: Gast öffnet Level 1 direkt; gesperrte Ziele führe
   await c.ctx.close();
 });
 
-test('Garage: Outfit kaufen kostet Münzen, wird gespeichert, ohne Münzen nicht kaufbar', async () => {
-  const vorher = () => localStorage.setItem('jungle.v1', JSON.stringify({ v: 1, coins: 200, char: { kind: 'boy', outfit: 'entdecker', owned: ['entdecker'] } }));
-  const { ctx, page, fehler } = await seite({}, SPIEL + '?test', vorher);
+test('Garage: nur Figurwahl Junge/Mädchen, wird gespeichert, keine Outfit-Liste mehr', async () => {
+  const { ctx, page, fehler } = await seite({}, SPIEL + '?test', () => localStorage.setItem('jungle.v1', JSON.stringify({ v: 1, coins: 200, char: { kind: 'boy', outfit: 'entdecker', owned: ['entdecker'] } })));
   await page.evaluate(() => __jr.zeigeGarage());
-  const knoepfe = await page.$$eval('#gListe .skin button', (b) => b.map((x) => [x.textContent, x.disabled]));
-  assert.equal(knoepfe.length, 6);
-  assert.deepEqual(knoepfe[0], ['Gewählt', true]);
-  assert.deepEqual(knoepfe[1], ['150 Münzen', false]);
-  assert.equal(knoepfe[5][1], true, 'Gold-Outfit (1200) nicht kaufbar');
-  await page.click('#gListe .skin:nth-child(2) button');
-  const st = await stand(page);
-  assert.equal(st.coins, 50); assert.ok(st.char.owned.includes('blau')); assert.equal(st.char.outfit, 'blau');
+  assert.equal(await page.$$eval('#gListe, .skin', (e) => e.length), 0);
+  await page.click('#gMaedchen');
+  assert.equal((await stand(page)).char.kind, 'girl');
+  assert.equal((await stand(page)).coins, 200);
   assert.deepEqual(fehler, []);
   await ctx.close();
 });

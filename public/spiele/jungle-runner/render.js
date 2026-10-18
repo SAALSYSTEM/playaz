@@ -45,7 +45,7 @@ export function createRenderer(canvas, opts = {}) {
     return new T.MeshLambertMaterial({ vertexColors: true, map: t, alphaTest: d.alphaTest || 0 });
   });
   const waterLoad = loadTex('tex-wasser.webp', true); texLoads.push(waterLoad.p);
-  texLoads.push(C.faceReady);
+  texLoads.push(C.spritesReady());
   const worldGroup = new T.Group(); scene.add(worldGroup);
   const chunks = new Map();
   let level = null, W = WORLDS[0], worldIdx = 0, curSkyKey = '';
@@ -189,7 +189,7 @@ export function createRenderer(canvas, opts = {}) {
   let charKind = 'boy', charOutfit = 'entdecker', player = null;
   const getChar = (kind, outfit) => {
     const k = kind + '|' + outfit;
-    if (!charCache.has(k)) { const c = C.buildChar(kind, C.OUTFIT_BY_ID[outfit] || C.OUTFITS[0]); c.root.visible = false; scene.add(c.root); c.root.add(c.shadow); charCache.set(k, c); }
+    if (!charCache.has(k)) { const c = C.buildChar(kind); c.root.visible = false; scene.add(c.root); c.root.add(c.shadow); charCache.set(k, c); }
     return charCache.get(k);
   };
   const shield = new T.Mesh(new T.SphereGeometry(1.15, 18, 12), new T.MeshBasicMaterial({ color: 0x59c6ff, transparent: true, opacity: 0.26, depthWrite: false, blending: T.AdditiveBlending }));
@@ -415,13 +415,12 @@ export function createRenderer(canvas, opts = {}) {
     else if (!s.grounded) mode = s.vy > 0 ? 'jump' : 'fall';
     else if (s.slideT > 0) mode = 'slide';
     else if (!moving) mode = 'idle';
-    C.poseChar(c, C.poseTarget({ mode, ph: fxState.ph, lane: fxState.lane, t }), dt);
-    C.animateExtras(c, t, fxState.speed);
+    C.poseChar(c, { mode, ph: fxState.ph, lane: fxState.lane, t, view: 'play' });
     c.root.rotation.y = -fxState.lane * 0.3;
     // Squash beim Landen
     fxState.squash = Math.max(0, fxState.squash - dt * 5);
     const sq = 1 - fxState.squash * 0.1;
-    c.tilt.scale.set(1 + (1 - sq) * 0.6, sq, 1 + (1 - sq) * 0.6);
+    c.tilt.scale.set((1 + (1 - sq) * 0.6) * 1.2, sq * 1.2, 1);          // im Lauf 20 % größer als die Trefferfläche, damit die Figur auf dem Handy gut zu sehen ist
     // Blinken bei Unverwundbarkeit
     c.root.visible = !(s.invul > 0 && s.phase === 'run' && Math.floor(t * 14) % 2 === 0 && s.invul < 5);
     c.shadow.position.y = 0.03 - st.y + groundHere(st); const hs = Math.max(0.35, 1 - Math.abs(st.y - groundHere(st)) * 0.2); c.shadow.scale.set(0.85 * hs, 0.85 * hs, 0.85 * hs);
@@ -510,9 +509,9 @@ export function createRenderer(canvas, opts = {}) {
     const zc = 58, t = fxState.t;
     wantChunks(zc, true);
     const mode = o.mode || 'menu';
-    const boy = getChar('boy', o.outfit || charOutfit), girl = getChar('girl', o.outfit || charOutfit);
+    const boy = getChar('boy', charOutfit), girl = getChar('girl', charOutfit);
     const sel = o.sel || charKind;
-    const place = (c, x, yaw, pose, bump) => { c.root.visible = true; c.root.position.set(x, bump, -zc); c.root.rotation.y = yaw; C.poseChar(c, C.poseTarget({ mode: pose, ph: t * 8, lane: 0, t }), dt); C.animateExtras(c, t, 0); c.tilt.scale.set(1, 1, 1); c.shadow.position.y = 0.03 - bump; };
+    const place = (c, x, yaw, pose, bump) => { c.root.visible = true; c.root.position.set(x, bump, -zc); c.root.rotation.y = yaw; C.poseChar(c, { mode: pose, ph: t * 8, lane: 0, t, view: 'stage' }); c.tilt.scale.set(1, 1, 1); c.shadow.position.y = 0.03 - bump; };
     for (const c of charCache.values()) if (c !== boy && c !== girl) c.root.visible = false;
     let camX = 0, camY = 1.9, camD = 8, look = 1.0, shX = 0, shY = 0;
     const aspect = size.w / size.h, portrait = aspect < 0.85, TH = Math.tan((44 * Math.PI) / 360);

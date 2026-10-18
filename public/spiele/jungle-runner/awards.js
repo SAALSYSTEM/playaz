@@ -114,29 +114,17 @@ function shade(hex, f) {
 const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`; };
 const hx = (n) => '#' + n.toString(16).padStart(6, '0');
 
-// Kleine 2D-Figur (Junge/Mädchen) für Teilen-Bild, Kleiderschrank-Karten und Figurenwahl. Fußpunkt (x, y), Höhe s.
+// Figur (Junge/Mädchen) als Sprite für Teilen-Bild und Ergebnis-Karten. Fußpunkt (x, y), Höhe s. Das Bild muss vorher geladen sein (kidReady).
+const kidImg = {};
+export function kidReady(kind) {
+  const k = kind === 'girl' ? 'girl' : 'boy';
+  if (!kidImg[k]) { const i = new Image(); kidImg[k] = { i, p: new Promise((r) => { i.onload = i.onerror = r; }) }; i.src = new URL('assets/sprites/' + (k === 'girl' ? 'maedchen' : 'junge') + '-vorn-jubel.png', import.meta.url).href; }
+  return kidImg[k].p;
+}
 export function drawKid(ctx, kind, o, x, y, s) {
-  const girl = kind === 'girl', k = s / 100, skin = '#f3bb91', hair = girl ? '#5b2f1b' : '#6e3f20';
-  const pick = (v) => (Array.isArray(v) ? v[girl ? 1 : 0] : v);
-  ctx.save(); ctx.translate(x, y); ctx.scale(k, k);
-  ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.ellipse(0, 0, 26, 6, 0, 0, 7); ctx.fill();
-  ctx.fillStyle = hx(o.pack); ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-16, -62, 32, 34, 6) : ctx.rect(-16, -62, 32, 34); ctx.fill();         // Rucksack
-  ctx.fillStyle = '#20222c'; ctx.fillRect(-9, -22, 7, 22); ctx.fillRect(2, -22, 7, 22);                                                              // Beine/Schuhe angedeutet
-  ctx.fillStyle = hx(o.shoes); ctx.fillRect(-12, -5, 12, 6); ctx.fillRect(1, -5, 12, 6);
-  ctx.fillStyle = hx(pick(o.pants)); ctx.fillRect(-11, -33, 22, 13);
-  ctx.fillStyle = hx(pick(o.shirt)); ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-14, -62, 28, 31, 7) : ctx.rect(-14, -62, 28, 31); ctx.fill();
-  ctx.fillStyle = hx(o.shirt2); ctx.fillRect(-9, -62, 5, 20); ctx.fillRect(4, -62, 5, 20);
-  ctx.fillStyle = skin; ctx.fillRect(-21, -58, 7, 20); ctx.fillRect(14, -58, 7, 20);                                                                  // Arme
-  ctx.beginPath(); ctx.arc(0, -78, 17, 0, 7); ctx.fill();                                                                                           // Kopf
-  ctx.fillStyle = hair; ctx.beginPath(); ctx.arc(0, -82, 17.5, Math.PI, 0); ctx.fill(); ctx.fillRect(-17.5, -83, 6, 10); ctx.fillRect(11.5, -83, 6, 10);
-  if (girl) { ctx.beginPath(); ctx.ellipse(19, -70, 7, 15, 0.3, 0, 7); ctx.fill(); ctx.fillStyle = '#e53935'; ctx.fillRect(15, -86, 8, 6); }
-  else { ctx.beginPath(); ctx.moveTo(-10, -97); ctx.lineTo(-4, -108); ctx.lineTo(2, -97); ctx.lineTo(9, -106); ctx.lineTo(13, -95); ctx.closePath(); ctx.fill(); }
-  if (o.hat === 'cap') { ctx.fillStyle = hx(o.hatC); ctx.beginPath(); ctx.arc(0, -84, 18, Math.PI, 0); ctx.fill(); ctx.fillRect(-4, -86, 24, 4); }
-  else if (o.hat === 'safari') { ctx.fillStyle = hx(o.hatC); ctx.beginPath(); ctx.ellipse(0, -90, 27, 5, 0, 0, 7); ctx.fill(); ctx.beginPath(); ctx.arc(0, -90, 14, Math.PI, 0); ctx.fill(); }
-  else if (o.hat === 'band') { ctx.fillStyle = hx(o.hatC); ctx.fillRect(-17.5, -90, 35, 6); }
-  ctx.fillStyle = '#20222c'; ctx.beginPath(); ctx.arc(-6, -76, 2.6, 0, 7); ctx.arc(6, -76, 2.6, 0, 7); ctx.fill();
-  ctx.fillStyle = '#8a2b3a'; ctx.fillRect(-4, -68, 8, 2.4);
-  ctx.restore();
+  kidReady(kind); const i = kidImg[kind === 'girl' ? 'girl' : 'boy'].i; if (!i.complete || !i.naturalWidth) return;
+  const h = (s * 512) / 420;                                  // Figur füllt 420 von 512 px, Fuß bei y = 496
+  ctx.drawImage(i, x - h / 2, y - (h * 496) / 512, h, h);
 }
 
 // Teilen-Grafik 1080×1080
