@@ -7,15 +7,15 @@
 import { OB, laneX, speedAt } from './sim.js';
 
 export const WORLDS = [
-  { id: 'sonne', name: 'Sonniger Dschungel', sub: 'Level 1–6', sky: [0x6fd0ff, 0xeaf9ff], fog: 0xd2efe6, ground: 0x62c84a, ground2: 0x4fb53e, tile: [0xdcc590, 0xcdb27a], curb: 0x8c7a55, water: 0x2bbfd6,
+  { id: 'sonne', name: 'Sonniger Dschungel', sub: 'Level 1–6', sky: [0x6fd0ff, 0xeaf9ff], fog: 0x93d2c2, ground: 0x62c84a, ground2: 0x4fb53e, tile: [0xdcc590, 0xcdb27a], curb: 0x8c7a55, water: 0x2bbfd6,
     leaves: [0x2fbf4a, 0x49d35f, 0x1f9a3a, 0x7fd957], trunk: 0x8a5a2f, flowers: [0xff6b81, 0xffd23f, 0xffffff, 0xff9ad5], deco: 'dschungel', mount: 0x6fb98a },
-  { id: 'fluss', name: 'Flüsse und Hängebrücken', sub: 'Level 7–12', sky: [0x62d9f0, 0xe8fcff], fog: 0xc9f1ee, ground: 0x4fbf7f, ground2: 0x3ea36a, tile: [0xb98250, 0xa97444], curb: 0x6b4a2a, water: 0x1fb6d4,
+  { id: 'fluss', name: 'Flüsse und Hängebrücken', sub: 'Level 7–12', sky: [0x62d9f0, 0xe8fcff], fog: 0x8fd8d8, ground: 0x4fbf7f, ground2: 0x3ea36a, tile: [0xb98250, 0xa97444], curb: 0x6b4a2a, water: 0x1fb6d4,
     leaves: [0x1fae8c, 0x2fcf9a, 0x178a6e, 0x66dba8], trunk: 0x7a4f2a, flowers: [0xffffff, 0xff8fb3, 0xffe066], deco: 'fluss', mount: 0x5fb3a3 },
-  { id: 'tal', name: 'Wildtier-Tal', sub: 'Level 13–18', sky: [0xffcf7e, 0xfff3d4], fog: 0xf7e2b0, ground: 0xc9c050, ground2: 0xb8ae3f, tile: [0xdcb67e, 0xc9a066], curb: 0x8f6a3c, water: 0x3cc1c9,
+  { id: 'tal', name: 'Wildtier-Tal', sub: 'Level 13–18', sky: [0xffcf7e, 0xfff3d4], fog: 0xe9b86c, ground: 0xc9c050, ground2: 0xb8ae3f, tile: [0xdcb67e, 0xc9a066], curb: 0x8f6a3c, water: 0x3cc1c9,
     leaves: [0x86b03a, 0xa4c944, 0x6f9a2e, 0xd9a441], trunk: 0x8c5d33, flowers: [0xff8a3d, 0xffd23f, 0xff5d73], deco: 'tal', mount: 0xd9a86a },
-  { id: 'tempel', name: 'Verlorener Tempel', sub: 'Level 19–24', sky: [0x74b6c8, 0xd6f0ee], fog: 0xb4d9d3, ground: 0x3f9570, ground2: 0x347f61, tile: [0xbcc3b2, 0xa5ad9b], curb: 0x6f776a, water: 0x2aa9b8,
+  { id: 'tempel', name: 'Verlorener Tempel', sub: 'Level 19–24', sky: [0x74b6c8, 0xd6f0ee], fog: 0xa88aa6, ground: 0x3f9570, ground2: 0x347f61, tile: [0xbcc3b2, 0xa5ad9b], curb: 0x6f776a, water: 0x2aa9b8,
     leaves: [0x2a8f5c, 0x3fae73, 0x1f7a4d, 0x6bd49a], trunk: 0x6f4a2a, flowers: [0xffd23f, 0x5ee0ff, 0xffffff], deco: 'tempel', mount: 0x6f9d93 },
-  { id: 'gipfel', name: 'Großer Dschungel', sub: 'Level 25–30', sky: [0x8ec9ff, 0xf3f8ff], fog: 0xd0e1ee, ground: 0x4f9f5f, ground2: 0x438c52, tile: [0xc7ccd1, 0xb3b9c0], curb: 0x7c838c, water: 0x2eb4dc,
+  { id: 'gipfel', name: 'Großer Dschungel', sub: 'Level 25–30', sky: [0x8ec9ff, 0xf3f8ff], fog: 0xbfcaa0, ground: 0x4f9f5f, ground2: 0x438c52, tile: [0xc7ccd1, 0xb3b9c0], curb: 0x7c838c, water: 0x2eb4dc,
     leaves: [0x2e9d57, 0x45bd6d, 0x1f7f45, 0x8bdc7e], trunk: 0x6a4a2c, flowers: [0xffffff, 0xff9ad5, 0xffd23f], deco: 'gipfel', mount: 0x8fb0c4 }
 ];
 

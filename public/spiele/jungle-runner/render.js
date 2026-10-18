@@ -75,6 +75,30 @@ export function createRenderer(canvas, opts = {}) {
     }
     const g = b.build(); backdropMesh = new T.Mesh(g, new T.MeshBasicMaterial({ vertexColors: true })); backdropMesh.frustumCulled = false; backdrop.add(backdropMesh);
   }
+  // Panorama je Welt (Bild 2048×1024: unten das Bild, oben eine weiche Fortsetzung des Himmels). Bis es geladen ist, bleiben Kegelberge und Wolken.
+  const PANO_R = 170, PANO_H = 193, PANO_ARC = (130 * Math.PI) / 180;
+  const panoTex = new Map();
+  let panoMesh = null, panoWant = -1;
+  function showPano(idx) {
+    const t = panoTex.get(idx);
+    if (!t || panoWant !== idx) return;
+    if (!panoMesh) {
+      const g = new T.CylinderGeometry(PANO_R, PANO_R, PANO_H, 48, 1, true, Math.PI - PANO_ARC / 2, PANO_ARC);
+      panoMesh = new T.Mesh(g, new T.MeshBasicMaterial({ map: t, fog: false, depthWrite: false, side: T.BackSide }));
+      panoMesh.scale.x = -1; panoMesh.position.y = 2 + PANO_H / 2; panoMesh.renderOrder = -10; panoMesh.frustumCulled = false; backdrop.add(panoMesh);
+    } else { panoMesh.material.map = t; panoMesh.material.needsUpdate = true; }
+    panoMesh.visible = true;
+    if (backdropMesh) backdropMesh.visible = false;
+    for (const c of clouds) c.visible = false;
+  }
+  function loadPano(idx) {
+    panoWant = idx;
+    if (panoTex.has(idx)) { showPano(idx); return; }
+    const img = new Image();
+    img.onload = () => { const t = new T.Texture(img); t.generateMipmaps = false; t.minFilter = T.LinearFilter; t.magFilter = T.LinearFilter; t.needsUpdate = true; panoTex.set(idx, t); showPano(idx); };
+    img.onerror = () => { /* ohne Panorama bleibt die einfache Kulisse */ };
+    img.src = new URL('img/pano-' + (idx + 1) + '.jpg', import.meta.url).href;
+  }
   function applyWorld(w, idx, now) {
     if (w === W && !now && curSkyKey) return;
     W = w; worldIdx = idx;
@@ -84,6 +108,9 @@ export function createRenderer(canvas, opts = {}) {
     scene.fog.color.setHex(W.fog);
     curSkyKey = String(idx);
     buildBackdrop();
+    if (panoMesh) panoMesh.visible = false;
+    for (const c of clouds) c.visible = true;
+    loadPano(idx);
   }
 
   // ------------------------------------------------------------ Münzen (instanziert), Power-ups

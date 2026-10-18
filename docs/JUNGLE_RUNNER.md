@@ -69,7 +69,7 @@ Alle 3D-Figuren, Tiere, Hindernisse, Bäume und Symbole sind **prozedurale Low-P
 | P1 | `assets/jungle/obstacles.glb` | Bodenstamm, Überhang, begehbarer Stamm + Rampe, Fels, Wurzel, Brücke, Kokosnuss, Tempeltor, rollender Fels | modular, ≤ 1 k Dreiecke je Teil | Tor: Auf/Zu, Fels: Rollen |
 | P1 | `assets/jungle/props-w1..w5.glb` | Bäume, Büsche, Palmen, Ruinen je Welt | Instancing-tauglich, ≤ 800 Dreiecke | – |
 | P1 | `assets/jungle/powerups/*.svg` | Magnet, Schild, Super-Sprung, ×2 | 128², transparent | HUD-Symbol und 3D-Pickup |
-| P2 | `assets/jungle/sky-w1..w5.jpg` | Himmel/Horizont je Welt | 2048×512, nahtlos | – |
+| P2 | ~~`assets/jungle/sky-w1..w5.jpg`~~ | Himmel/Horizont je Welt – **geliefert und eingebaut** (`public/spiele/jungle-runner/img/pano-1..5.jpg`, 2048×1024: unten das ChatGPT-Panorama, oben weiche Himmelsfortsetzung; als gebogenes Band hinter der Strecke, je Welt geladen, Nebelfarben darauf abgestimmt) | 2000×500 | – |
 | P2 | `assets/jungle/sfx/*.ogg`, `music.ogg` | Klänge und Schleife (optional, derzeit synthetisch) | OGG/AAC | – |
 
 Falls die Bilder von ChatGPT erzeugt werden sollen: je Motiv ein eigenes Briefing mit Dateiname, Ansichten (Front, Seite, 3/4, Rücken), Maßstab und transparentem Hintergrund. Das ergibt Referenzbilder, **keine** fertigen 3D-Modelle; 3D-Modelle müssen als GLB modelliert/gerigged werden.
