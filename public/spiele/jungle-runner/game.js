@@ -308,7 +308,7 @@ function kraefteHud() {
       if (!el) {
         el = kraftEl[k] = document.createElement('div'); el.className = 'kraft'; el.style.color = POWER_COL[k];
         const cv = iconImg(k, 28);
-        const nm = document.createElement('span'); nm.textContent = POWER_NAME[k]; nm.style.color = '#fff';
+        const nm = document.createElement('span'); nm.textContent = POWER_NAME[k]; nm.className = 'sr'; el.title = POWER_NAME[k];
         const bar = document.createElement('i'); bar.innerHTML = '<b></b>';
         el.append(cv, nm, bar); box.appendChild(el);
       }

@@ -62,8 +62,9 @@ body{--himmel0:#6fd0ff;--himmel1:#eaf9ff}
 @keyframes herzweg{30%{transform:scale(1.5) rotate(-12deg)}100%{transform:scale(1)}}
 @media (max-width:420px){.chip.lv span{display:none}}
 .kraefte{position:absolute;left:calc(var(--sl) + 14px);top:calc(var(--st) + 100px);z-index:5;display:flex;flex-direction:column;gap:6px;pointer-events:none}
-.kraft{display:flex;align-items:center;gap:8px;height:30px;padding:0 10px 0 4px;border-radius:99px;background:rgba(17,18,26,.8);border:1px solid var(--linie);color:#fff;font:700 15px/1 var(--f-zahl)}
-.kraft i{display:block;width:54px;height:6px;border-radius:9px;background:rgba(255,255,255,.2);overflow:hidden}
+.kraft{display:flex;flex-direction:column;align-items:center;gap:4px;width:46px;padding:5px 0 6px;border-radius:14px;background:rgba(17,18,26,.8);border:1px solid var(--linie);color:#fff}
+.kraft .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.kraft i{display:block;width:30px;height:5px;border-radius:9px;background:rgba(255,255,255,.2);overflow:hidden}
 .kraft i b{display:block;height:100%;width:100%;background:currentColor}
 .kraft.knapp{animation:blink .45s linear infinite}
 @keyframes blink{50%{opacity:.45}}
@@ -85,10 +86,10 @@ body.touch .lehre .touch{display:inline}
 .lehre button{pointer-events:auto;background:none;border:0;color:var(--leise);font:600 13px/1 var(--f-text);text-decoration:underline;padding:6px 8px;margin-top:2px}
 @keyframes puls{50%{opacity:.82}}
 @media (orientation:landscape) and (max-height:520px){.lehre{left:auto;right:calc(var(--sr) + 18px);bottom:auto;top:30%;transform:none;max-width:260px}.tipp,.banner{top:calc(var(--st) + 96px)}}
-.tipp{position:absolute;left:50%;top:calc(var(--st) + 100px);transform:translateX(-50%);z-index:5;max-width:min(92vw,520px);padding:9px 15px;border-radius:12px;background:rgba(17,18,26,.88);border:1px solid rgba(255,146,0,.55);color:#fff;font-weight:600;font-size:15px;text-align:center;pointer-events:none;animation:rein .25s ease-out both}
-.banner{position:absolute;left:50%;top:calc(var(--st) + 150px);transform:translateX(-50%);z-index:6;width:max-content;max-width:min(94vw,560px);padding:9px 14px;border-radius:12px;background:rgba(17,18,26,.9);border:1px solid rgba(255,146,0,.6);font-size:15px;font-weight:600;pointer-events:none;color:#fff;text-align:center}
+.tipp{position:absolute;left:50%;top:calc(var(--st) + 100px);transform:translateX(-50%);z-index:5;max-width:min(calc(100vw - 132px),520px);padding:9px 15px;border-radius:12px;background:rgba(17,18,26,.88);border:1px solid rgba(255,146,0,.55);color:#fff;font-weight:600;font-size:15px;text-align:center;pointer-events:none;animation:rein .25s ease-out both}
+.banner{position:absolute;left:50%;top:calc(var(--st) + 150px);transform:translateX(-50%);z-index:6;width:max-content;max-width:min(calc(100vw - 132px),560px);padding:9px 14px;border-radius:12px;background:rgba(17,18,26,.9);border:1px solid rgba(255,146,0,.6);font-size:15px;font-weight:600;pointer-events:none;color:#fff;text-align:center}
 .toasts{position:absolute;left:50%;top:calc(var(--st) + 150px);transform:translateX(-50%);z-index:30;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
-.toasts div{padding:9px 14px;border-radius:12px;background:rgba(17,18,26,.94);border:1px solid rgba(255,146,0,.6);font-weight:600;animation:rein .25s ease-out both;white-space:nowrap;color:#fff}
+.toasts div{max-width:calc(100vw - 132px);padding:9px 14px;border-radius:12px;background:rgba(17,18,26,.94);border:1px solid rgba(255,146,0,.6);font-weight:600;animation:rein .25s ease-out both;color:#fff;text-align:center}
 @keyframes rein{from{opacity:0;transform:translateY(-8px)}}
 .gross{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);z-index:8;font:400 clamp(70px,20vw,150px)/1 var(--f-display);color:#fff;text-shadow:0 6px 0 rgba(0,0,0,.3);pointer-events:none;animation:knall .45s cubic-bezier(.2,1.6,.4,1) both;white-space:nowrap}
 .gross.klein{font-size:clamp(46px,12vw,100px)}
@@ -160,7 +161,7 @@ body.touch .lehre .touch{display:inline}
 /* Icons aus Paket A1: einheitlich, nie verzerrt */
 .ico{display:block;object-fit:contain;flex:none;-webkit-user-drag:none;user-select:none}
 .chip .ico{width:24px;height:24px;margin-left:-3px}
-.kraft .ico{width:28px;height:28px}
+.kraft .ico{width:32px;height:32px}
 .pop img{display:inline-block;width:36px;height:36px;vertical-align:-7px;margin-right:6px;filter:drop-shadow(0 2px 3px rgba(20,24,50,.45))}
 .mz::before{content:"";display:inline-block;width:20px;height:20px;margin-right:5px;vertical-align:-5px;background:url(jungle-runner/assets/icon-muenze.webp) center/contain no-repeat}
 .zahlen3 small{display:flex;align-items:center;justify-content:center;gap:4px;height:18px}
