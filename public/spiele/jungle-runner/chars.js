@@ -283,8 +283,9 @@ export function buildCoconut() {
 // ====================================================================== Symbole (Power-ups, HUD): Bilder aus assets/ (Paket A1)
 export const POWER_COL = { magnet: '#ef4444', shield: '#38bdf8', boost: '#f97316', x2: '#fbbf24' };
 export const POWER_NAME = { magnet: 'Magnet', shield: 'Schild', boost: 'Super-Sprung', x2: 'Doppelte Punkte' };
-const POWER_ICON = { magnet: 'icon-magnet', shield: 'icon-schild', boost: 'icon-fluegelschuh', x2: 'icon-x2', coin: 'icon-muenze' };
-export const iconUrl = (kind) => new URL('assets/' + POWER_ICON[kind] + '.webp', import.meta.url).href;
+const ICON_FILE = { magnet: 'icon-magnet.webp', shield: 'icon-schild.webp', boost: 'icon-fluegelschuh.webp', x2: 'icon-x2.webp', coin: 'icon-muenze.webp',
+  heart: 'icon-herz.png', star: 'icon-stern.png', starOff: 'icon-stern-leer.png', pause: 'icon-pause.png', soundOn: 'icon-ton-an.png', soundOff: 'icon-ton-aus.png' };
+export const iconUrl = (kind) => new URL('assets/' + ICON_FILE[kind], import.meta.url).href;
 export function iconImg(kind, px) {                      // <img> für HUD und Meldungen, feste Größe, nie verzerrt
   const i = new Image(); i.src = iconUrl(kind); i.alt = ''; i.width = i.height = px; i.decoding = 'async'; i.draggable = false; i.setAttribute('aria-hidden', 'true'); return i;
 }

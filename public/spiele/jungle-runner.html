@@ -42,6 +42,11 @@ body{--himmel0:#6fd0ff;--himmel1:#eaf9ff}
 .ibtn{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:rgba(17,18,26,.78);border:1px solid var(--linie);padding:0;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);flex:none}
 .ibtn svg{width:20px;height:20px}
 .ibtn:hover{background:rgba(38,40,56,.92)}
+/* Bild-Knöpfe (Pause, Ton): Das Bild bringt Rahmen und Farbe selbst mit */
+.ibtn.bild{width:46px;height:46px;border:0;background:none;border-radius:14px;-webkit-backdrop-filter:none;backdrop-filter:none}
+.ibtn.bild img{display:block;width:100%;height:100%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35));pointer-events:none}
+.ibtn.bild:hover{background:none;filter:brightness(1.1)}
+.ibtn.bild:active{transform:scale(.94)}
 .fort{flex:1;min-width:60px;height:16px;border-radius:99px;background:rgba(17,18,26,.55);border:2px solid rgba(17,18,26,.7);position:relative;pointer-events:none;overflow:visible}
 .fort i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:linear-gradient(90deg,#7dffb0,#ffe27a);width:0}
 .fort u{position:absolute;right:-6px;top:-7px;width:24px;height:26px;border-radius:6px;background:conic-gradient(#fff 0 25%,#14182e 0 50%,#fff 0 75%,#14182e 0) 0 0/10px 10px;border:2px solid #14182e}
@@ -55,9 +60,9 @@ body{--himmel0:#6fd0ff;--himmel1:#eaf9ff}
 .chip.muenze{margin-left:auto}
 .chip.muenze b{color:var(--aktion)}
 .herzen{display:flex;gap:3px;padding:0 9px;height:34px;align-items:center;border-radius:10px;background:rgba(17,18,26,.78);border:1px solid var(--linie);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.herzen svg{width:22px;height:22px;transition:transform .2s}
-.herzen .voll{color:#ff4d6a;filter:drop-shadow(0 0 4px rgba(255,77,106,.5))}
-.herzen .leer{color:rgba(246,247,249,.28)}
+.herzen img{width:24px;height:24px;transition:transform .2s;-webkit-user-drag:none}
+.herzen .voll{filter:drop-shadow(0 0 4px rgba(255,77,106,.5))}
+.herzen .leer{filter:grayscale(1) brightness(.5);opacity:.55}
 .herzen .weg{animation:herzweg .6s ease-out}
 @keyframes herzweg{30%{transform:scale(1.5) rotate(-12deg)}100%{transform:scale(1)}}
 @media (max-width:420px){.chip.lv span{display:none}}
@@ -132,6 +137,7 @@ body.touch .lehre .touch{display:inline}
 .reihe>*{flex:1 1 0}
 .klein{display:flex;gap:8px;margin-top:6px}
 .klein .ibtn{width:44px;height:44px;background:rgba(26,27,38,.92)}
+.klein .ibtn.bild{width:46px;height:46px;background:none}
 @media (max-width:640px) and (orientation:portrait){
   #sMenu{padding-left:calc(var(--sl) + 16px);justify-content:flex-start}
   .menu-bild{position:relative;inset:auto;flex:1 1 auto;min-height:56vw;margin:calc(-1 * var(--st) - 12px) calc(-1 * var(--sr) - 16px) 0 calc(-1 * var(--sl) - 16px)}
@@ -193,7 +199,7 @@ body.touch .lehre .touch{display:inline}
 .ltile.zu b{color:var(--leise)}
 .ltile svg.lock{width:16px;height:16px;color:var(--leise)}
 .sterne{display:inline-flex;gap:1px}
-.sterne svg{width:16px;height:16px}
+.sterne img{width:16px;height:16px}
 .endkarte{max-width:980px;margin:0 auto 18px;padding:14px;border-radius:18px;border:1px solid rgba(255,146,0,.5);background:linear-gradient(135deg,rgba(255,146,0,.12),var(--flaeche) 60%);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .endkarte h3{margin:0;font:400 20px/1.1 var(--f-display)}
 .endkarte p{margin:2px 0 0;color:var(--leise);font-size:14px;font-weight:600}
@@ -250,12 +256,12 @@ body.touch .lehre .touch{display:inline}
 .panel h2{margin:0;font:400 30px/1.05 var(--f-display);text-align:center}
 .panel .sub{margin:-4px 0 4px;text-align:center;color:var(--leise);font-weight:600}
 .ergebnis-sterne{display:flex;justify-content:center;gap:6px;margin:2px 0 0}
-.ergebnis-sterne svg{width:50px;height:50px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) both}
-.ergebnis-sterne span:nth-child(2) svg{animation-delay:.14s}.ergebnis-sterne span:nth-child(3) svg{animation-delay:.28s}
+.ergebnis-sterne img{display:block;width:54px;height:54px;animation:pop .5s cubic-bezier(.2,1.6,.4,1) both}
+.ergebnis-sterne span:nth-child(2) img{animation-delay:.14s}.ergebnis-sterne span:nth-child(3) img{animation-delay:.28s}
 .kriterien{display:flex;flex-direction:column;gap:3px;font-size:14px;font-weight:600;color:var(--leise)}
 .kriterien div{display:flex;gap:8px;align-items:center}
 .kriterien .ja{color:#fff}
-.kriterien svg{width:16px;height:16px;flex:none}
+.kriterien img{width:18px;height:18px;flex:none}
 .zahlen3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
 .zahlen3 div{padding:8px 4px;border-radius:12px;background:var(--flaeche-hell)}
 .zahlen3 b{display:block;font:800 26px/1.05 var(--f-zahl);font-variant-numeric:tabular-nums}
@@ -286,10 +292,10 @@ body.touch .lehre .touch{display:inline}
   .panel.zweiteilig{display:grid;grid-template-columns:1fr 1fr;column-gap:22px;align-items:center;width:min(100%,780px)}
   .awardpanel .strahl{width:110px;height:110px}.awardpanel canvas{width:110px;height:110px}
   .panel h2{font-size:26px}
-  .ergebnis-sterne svg{width:38px;height:38px}
+  .ergebnis-sterne img{width:40px;height:40px}
 }
 @media (max-height:620px){.awardpanel .strahl{width:130px;height:130px}.awardpanel canvas{width:130px;height:130px}.panel{gap:8px;padding:16px}}
-@media (prefers-reduced-motion:reduce){.panel,.awardpanel canvas,.awardpanel .strahl::before,.gross,.lehre,.pop,.ergebnis-sterne svg,.lehre .pfeile svg,.herzen .weg,.kraft.knapp,.tipp{animation:none}}
+@media (prefers-reduced-motion:reduce){.panel,.awardpanel canvas,.awardpanel .strahl::before,.gross,.lehre,.pop,.ergebnis-sterne img,.lehre .pfeile svg,.herzen .weg,.kraft.knapp,.tipp{animation:none}}
 .noscript{position:absolute;inset:0;display:grid;place-items:center;padding:20px;text-align:center;z-index:50}
 </style>
 </head><body>
@@ -307,7 +313,7 @@ body.touch .lehre .touch{display:inline}
     <div class="fort" id="fort" aria-hidden="true"><i id="fBar"></i><u id="fZiel"></u></div>
     <div class="chip" id="hDist" hidden><b class="dist" id="hMeter">0</b><span>m</span></div>
     <button class="ibtn" id="bNeu" aria-label="Neustart (R)" title="Neustart (R)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 1 0 2.4-5.5M4.5 4v4h4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-    <button class="ibtn" id="bPause" aria-label="Pause (Esc)" title="Pause (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg></button>
+    <button class="ibtn bild" id="bPause" aria-label="Pause (Esc)" title="Pause (Esc)"><img src="jungle-runner/assets/icon-pause.png" width="46" height="46" alt="" aria-hidden="true"></button>
   </div>
   <div class="hud2" id="hud2" hidden>
     <div class="chip lv"><b id="hLevel">1</b><span id="hName"></span></div>
@@ -343,7 +349,7 @@ body.touch .lehre .touch{display:inline}
         <button class="btn2" id="mHilfe"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.6 9.4a2.6 2.6 0 1 1 3.6 2.4c-.8.4-1.2.9-1.2 1.8M12 16.6v.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>So geht's</button>
       </div>
       <div class="klein">
-        <button class="ibtn" id="mTon" aria-label="Ton aus" title="Ton an/aus"></button>
+        <button class="ibtn bild" id="mTon" aria-label="Ton aus" title="Ton an/aus"></button>
         <button class="ibtn" id="mMusik" aria-label="Musik aus" title="Musik an/aus"></button>
         <button class="ibtn" id="mVoll" aria-label="Vollbild" title="Vollbild"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>

@@ -88,6 +88,20 @@ test('Grafikpaket A1: Logo, Keyart und Icons laden unverzerrt, Ladebildschirm ve
   await ctx.close();
 });
 
+test('Grafikpaket A2: Herzen, Pause, Ton und Sterne sind geladene Bilder (kein Inline-SVG mehr)', async () => {
+  const { ctx, page, fehler } = await seite(MOBIL);
+  const ton = await page.evaluate(() => { const i = document.querySelector('#mTon img'); return !!i && i.complete && i.naturalWidth > 0; });
+  assert.ok(ton, 'Ton-Knopf im Menü zeigt Bild');
+  await page.evaluate(() => { __jr.starteLevel(1); __jr.beginne(); }); await warte(500);
+  const hud = await page.evaluate(() => ({
+    herzen: [...document.querySelectorAll('#hHerzen img')].map((i) => i.complete && i.naturalWidth > 0),
+    pause: (() => { const i = document.querySelector('#bPause img'); const r = i && i.getBoundingClientRect(); return !!i && i.complete && i.naturalWidth > 0 && Math.abs(r.width - r.height) < 1; })(),
+    svg: document.querySelectorAll('#hHerzen svg, #bPause svg, #mTon svg').length }));
+  assert.equal(hud.herzen.length, 3); assert.ok(hud.herzen.every(Boolean)); assert.ok(hud.pause); assert.equal(hud.svg, 0);
+  assert.deepEqual(fehler, []);
+  await ctx.close();
+});
+
 test('Werbefrei: nur eigene Anfragen (plus Schriften), kein Login, keine Fremdskripte', async () => {
   const { ctx, page, anfragen } = await seite();
   await page.evaluate(() => __jr.starteLevel(1)); await warte(800);

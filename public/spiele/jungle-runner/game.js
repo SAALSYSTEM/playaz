@@ -5,7 +5,7 @@ import { LEVELS, LEVEL_BY_ID, WORLDS, endlessLevel } from './levels.js';
 import { AWARDS, AWARD_BY_ID, RARITY, evaluateAwards, progressOf, drawAwardIcon, drawShareImage, drawKid } from './awards.js';
 import { createRenderer } from './render.js';
 import { createAudio } from './audio.js';
-import { OUTFITS, OUTFIT_BY_ID, POWER_COL, POWER_NAME, iconImg } from './chars.js';
+import { OUTFITS, OUTFIT_BY_ID, POWER_COL, POWER_NAME, iconImg, iconUrl } from './chars.js';
 import { SAVE_KEY, ladeAusRoh, migriere, saubererName, tagesSeed, heute } from './save.js';
 
 const $ = (s) => document.querySelector(s);
@@ -287,7 +287,7 @@ function herzen(wackeln) {
   const box = $('#hHerzen');
   if (box.childElementCount !== 3) {
     box.textContent = '';
-    for (let i = 0; i < 3; i++) { const sp = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); sp.setAttribute('viewBox', '0 0 24 24'); sp.setAttribute('aria-hidden', 'true'); sp.innerHTML = '<path d="M12 21s-7.5-4.6-9.5-9.2C1 8.2 3 5 6.3 5c2 0 3.6 1.1 4.4 2.6h.6C12.1 6.1 13.7 5 15.7 5 19 5 21 8.2 19.5 11.8 17.5 16.4 12 21 12 21z" fill="currentColor"/>'; box.appendChild(sp); }
+    for (let i = 0; i < 3; i++) box.appendChild(iconImg('heart', 24));
   }
   for (let i = 0; i < 3; i++) {
     const sp = box.children[i], voll = i < h;
@@ -432,10 +432,9 @@ function baueMenu() {
   $('#mEndlos').setAttribute('aria-disabled', endlosFrei() ? 'false' : 'true'); $('#mEndlos').style.opacity = endlosFrei() ? '' : '.6';
   tonKnoepfe();
 }
-const IC_TON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>';
 function tonKnoepfe() {
   const an = stand.settings.sound, mu = stand.settings.music;
-  $('#mTon').innerHTML = IC_TON + (an ? '<path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' : '<path d="M16 9l5 6M21 9l-5 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>');
+  $('#mTon').innerHTML = `<img src="${iconUrl(an ? 'soundOn' : 'soundOff')}" width="46" height="46" alt="" draggable="false">`;
   $('#mTon').setAttribute('aria-label', an ? 'Ton aus' : 'Ton an');
   $('#mMusik').innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.6" fill="currentColor"/><circle cx="16.5" cy="16" r="2.6" fill="currentColor"/>' + (mu ? '' : '<path d="M3 3l18 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>') + '</svg>';
   $('#mMusik').setAttribute('aria-label', mu ? 'Musik aus' : 'Musik an');
@@ -463,8 +462,8 @@ function wahlBestaetigen() {
 }
 
 // ---------- Levelkarte
-const STERN = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4 6.1 20.5l1.2-6.5L2.5 9.4l6.6-.9z" fill="currentColor"/></svg>';
-const sterneHtml = (n) => Array.from({ length: 3 }, (_, i) => `<span style="color:${i < n ? '#ffc928' : 'rgba(246,247,249,.22)'};display:inline-flex">${STERN}</span>`).join('');
+const stern = (an) => `<img class="ico" src="${iconUrl(an ? 'star' : 'starOff')}" width="24" height="24" alt="" draggable="false">`;
+const sterneHtml = (n) => Array.from({ length: 3 }, (_, i) => stern(i < n)).join('');
 const HEX = (n) => '#' + n.toString(16).padStart(6, '0');
 function zeigeKarte() {
   zustand = 'karte'; hudAus(); zeigeNur('#sKarte');
@@ -596,12 +595,12 @@ function zeigeErgebnis() {
   $('#hErgebnis').textContent = e.erster ? 'Geschafft!' : 'Im Ziel!';
   $('#eLevel').textContent = 'Level ' + l.id + ' · ' + l.name;
   const sv = $('#eSterne'); sv.textContent = '';
-  for (let i = 0; i < 3; i++) { const sp = document.createElement('span'); sp.style.cssText = 'display:inline-flex;color:' + (i < r.sterne ? '#ffc928' : 'rgba(246,247,249,.22)'); sp.innerHTML = STERN; sv.appendChild(sp); }
+  for (let i = 0; i < 3; i++) { const sp = document.createElement('span'); sp.innerHTML = stern(i < r.sterne); sv.appendChild(sp); }
   sv.setAttribute('aria-label', r.sterne + ' von 3 Sternen');
   const fl = starFlags(l, sim.s);
   const kr = $('#eKriterien'); kr.textContent = '';
   [['Ziel erreicht', true], ['Mindestens ' + l.starCoins + ' Münzen (' + r.coins + '/' + r.coinsGesamt + ')', fl[1]], ['Mit mindestens ' + (l.starHearts || 2) + ' Herzen im Ziel', fl[2]]].forEach(([t, ok], i) => {
-    const d = document.createElement('div'); d.className = ok ? 'ja' : ''; d.innerHTML = '<span style="color:' + (ok ? '#ffc928' : 'rgba(246,247,249,.3)') + ';display:inline-flex">' + STERN + '</span>'; d.append(document.createTextNode(t)); kr.appendChild(d); void i;
+    const d = document.createElement('div'); d.className = ok ? 'ja' : ''; d.innerHTML = stern(ok); d.append(document.createTextNode(t)); kr.appendChild(d); void i;
   });
   $('#eHerzen').textContent = r.hearts; $('#eMuenzen').textContent = r.coins; $('#eZeit').textContent = fmtZeit(r.sek);
   const ms = [];
