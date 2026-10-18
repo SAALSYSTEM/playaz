@@ -21,7 +21,8 @@ export const OUTFITS = [
   // Entdecker = Palette des Keyarts: heller Safarihut mit dunklem Band, olivgrünes Shirt, rote Rucksack-Tasche, braune Stiefel
   { id: 'entdecker', name: 'Entdecker', preis: 0, shirt: [0x9db35e, 0xe9806b], shirt2: 0x6f8040, pants: [0x6f7d3a, 0x7a6a4c], shoes: 0x6b4a2a, hat: 'safari', hatC: 0xb98c4e, hatBand: 0x4a3322, pack: 0xc9382f },
   { id: 'blau', name: 'Flussläufer', preis: 150, shirt: 0x2f9be8, shirt2: 0x1b6fb0, pants: 0xc9b27a, shoes: 0xf2f2f2, hat: 'cap', hatC: 0xffd23f, pack: 0xff8a3d },
-  { id: 'safari', name: 'Safari', preis: 300, shirt: 0xe6d3a3, shirt2: 0xb89b5e, pants: 0x6f7f45, shoes: 0x6b4a2a, hat: 'safari', hatC: 0xc9a66b, pack: 0x4a6b3a },
+  // Safari: helles Cremeweiß statt Braun/Olive des Entdeckers (Hut, Shirt, Hose, Tasche), damit beide sofort unterscheidbar sind
+  { id: 'safari', name: 'Safari', preis: 300, shirt: 0xf3e6b8, shirt2: 0xc9862f, pants: 0x6a4e33, shoes: 0x3a2918, hat: 'safari', hatC: 0xf4ecd6, hatBand: 0x9a5f2a, pack: 0x2f6b3c },
   { id: 'schatz', name: 'Schatzsucher', preis: 500, shirt: 0x1f8a8a, shirt2: 0xf2f2f2, pants: 0x3a3f5c, shoes: 0x2b2b35, hat: 'band', hatC: 0xe53935, pack: 0x8d5a2b },
   { id: 'tempel', name: 'Tempelwächter', preis: 800, shirt: 0x7e57c2, shirt2: 0xffd23f, pants: 0x4a3a6b, shoes: 0xffd23f, hat: 'band', hatC: 0xffd23f, pack: 0x2e7d32 },
   { id: 'gold', name: 'Goldener Held', preis: 1200, shirt: 0xf5b81f, shirt2: 0xfff1a8, pants: 0xfff6dc, shoes: 0xf5b81f, hat: 'cap', hatC: 0xf5b81f, pack: 0xe53935 }
