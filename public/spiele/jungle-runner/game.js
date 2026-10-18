@@ -915,6 +915,7 @@ async function init() {
   }
   groesse();
   try { await Promise.race([Promise.all(['800 100px "Barlow Condensed"', '700 20px "Barlow"'].map((f) => document.fonts.load(f))), new Promise((r) => setTimeout(r, 1500))]); } catch (e) { /* Schriften optional */ }
+  try { await Promise.race([R.texReady, new Promise((r) => setTimeout(r, 3000))]); } catch (e) { /* Texturen optional */ }
   setTimeout(logo, 2500);
   menuLevelId = stand.last && LEVEL_BY_ID[stand.last] ? stand.last : 1;
   const l0 = LEVEL_BY_ID[menuLevelId]; R.setLevel(l0); R.lvl = l0;

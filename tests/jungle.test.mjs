@@ -102,6 +102,18 @@ test('Grafikpaket A2: Herzen, Pause, Ton und Sterne sind geladene Bilder (kein I
   await ctx.close();
 });
 
+test('Grafikpaket B: Boden-, Holz-, Stein- und Wassertexturen sind geladen und in den Streckenstücken im Einsatz', async () => {
+  const { ctx, page, fehler, anfragen } = await seite(MOBIL);
+  await page.evaluate(() => { __jr.starteLevel(8); __jr.beginne(); __jr.schnell(60 * 3); }); await warte(1200);
+  const i = await page.evaluate(() => __jr.info());
+  assert.ok(i.textures >= 8, 'Texturen auf der Grafikkarte: ' + i.textures);
+  for (const f of ['gras', 'tempelstein', 'holzbohlen', 'rinde', 'wasser']) assert.ok(anfragen.some((u) => u.includes('tex-' + f)), 'Textur angefragt: ' + f);
+  const gruppen = await page.evaluate(() => __jr.R.scene.children.flatMap((g) => g.children || []).filter((m) => m.geometry && m.geometry.groups && m.geometry.groups.length > 1).length);
+  assert.ok(gruppen >= 3, 'Streckenstücke mit Texturgruppen: ' + gruppen);
+  assert.deepEqual(fehler, []);
+  await ctx.close();
+});
+
 test('Werbefrei: nur eigene Anfragen (plus Schriften), kein Login, keine Fremdskripte', async () => {
   const { ctx, page, anfragen } = await seite();
   await page.evaluate(() => __jr.starteLevel(1)); await warte(800);

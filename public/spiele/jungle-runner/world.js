@@ -48,7 +48,7 @@ function palm(b, x, z, h, W, r) {
 }
 function tree(b, x, z, h, W, r) {
   const w = 0.55 + h * 0.07;
-  b.cyl(x, h * 0.4, Z(z), w, h * 0.8, w, W.trunk, 0, 0, (r() - 0.5) * 0.08, 8);
+  b.tex('rinde').cyl(x, h * 0.4, Z(z), w, h * 0.8, w, W.trunk, 0, 0, (r() - 0.5) * 0.08, 8).tex('');
   b.cone(x, 0.1, Z(z), w * 2.2, h * 0.3, w * 2.2, W.trunk, 0, 0, 0, 8);          // Wurzelansatz
   const R = 2.0 + h * 0.2;
   for (let i = 0; i < 4; i++) b.ico(x + (r() - 0.5) * R * 0.9, h * 0.85 + r() * R * 0.5, Z(z) + (r() - 0.5) * R * 0.9, R * (0.9 + r() * 0.5), R * (0.7 + r() * 0.3), R * (0.9 + r() * 0.5), W.leaves[(r() * W.leaves.length) | 0], r() * 3, r() * 3, 0, 0);
@@ -76,23 +76,27 @@ function flowers(b, x, z, W, r) {
 }
 function rocks(b, x, z, s, r, tint) {
   const c = tint || 0x8e8b84;
-  b.put(G.dode(), x, s * 0.3, Z(z), s * 1.5, s * 0.9, s * 1.3, c, r() * 3, r() * 3, 0);
+  b.tex('stein').put(G.dode(), x, s * 0.3, Z(z), s * 1.5, s * 0.9, s * 1.3, c, r() * 3, r() * 3, 0);
   if (r() < 0.7) b.put(G.dode(), x + s * 0.9, s * 0.18, Z(z) + 0.4, s * 0.8, s * 0.5, s * 0.7, shade(c, 0.1), r() * 3, r() * 3, 0);
+  b.tex('');
   b.ico(x, s * 0.72, Z(z), s * 1.0, s * 0.25, s * 0.9, 0x5ea352, 0, r() * 3, 0, 0);          // Moos
 }
 function pillar(b, x, z, h, W, r, broken) {
   const c = W.tile[0], d = shade(c, -0.15);
+  b.tex('pfad');
   b.box(x, 0.2, Z(z), 1.5, 0.4, 1.5, d);
   b.box(x, h / 2 + 0.4, Z(z), 1.0, h, 1.0, c);
   if (!broken) { b.box(x, h + 0.55, Z(z), 1.4, 0.3, 1.4, d); b.box(x, h + 0.8, Z(z), 1.15, 0.2, 1.15, c); }
   else { b.box(x + 0.3, h + 0.45, Z(z) + 0.1, 0.55, 0.25, 0.5, shade(c, -0.05), 0.2, 0.5, 0.3); b.box(x + 1.1, 0.35, Z(z) + 0.8, 0.9, 0.6, 0.8, c, 0.1, 0.7, 0.1); }
-  b.ico(x, 0.55, Z(z), 1.25, 0.3, 1.25, 0x5ea352, 0, 0, 0, 0);
+  b.tex('').ico(x, 0.55, Z(z), 1.25, 0.3, 1.25, 0x5ea352, 0, 0, 0, 0);
   b.box(x, h * 0.55 + 0.4, Z(z) - 0.505, 0.25, 0.9, 0.02, W.curb);                           // Ritzmuster
   b.box(x, h * 0.55 + 0.4, Z(z) - 0.506, 0.7, 0.14, 0.02, 0xe0b72f);
 }
 function ruinWall(b, x, z, W, r) {
   const c = W.tile[1], n = 3 + ((r() * 3) | 0);
+  b.tex('pfad');
   for (let i = 0; i < n; i++) b.box(x, 0.45 + i * 0.5, Z(z) + (r() - 0.5) * 0.15, 3.2 - i * 0.3, 0.5, 0.8, i % 2 ? shade(c, 0.08) : c);
+  b.tex('');
   b.ico(x, n * 0.5 + 0.2, Z(z), 2.4, 0.3, 0.8, 0x5ea352, 0, 0, 0, 0);
 }
 function spire(b, x, z, h, W, r) {
@@ -121,8 +125,8 @@ function obstacle(b, o, W, ci) {
   switch (o.k) {
     case 'log': {
       const c = 0x8a5a2f;
-      b.cyl(x, 0.25, z, 1.2, 1.9, 1.2, c, 0, 0, Math.PI / 2, 10);
-      for (const sx of [-1, 1]) b.cyl(x + sx * 0.955, 0.25, z, 1.12, 0.06, 1.12, 0xe0b980, 0, 0, Math.PI / 2, 10, 0.02);
+      b.tex('rinde').cyl(x, 0.25, z, 1.2, 1.9, 1.2, c, 0, 0, Math.PI / 2, 10).tex('');
+      b.tex('schnitt'); for (const sx of [-1, 1]) b.cyl(x + sx * 0.955, 0.25, z, 1.12, 0.06, 1.12, 0xe0b980, 0, 0, Math.PI / 2, 10, 0.02); b.tex('');
       b.cyl(x, 0.25, z - 0.35, 0.3, 1.88, 0.2, shade(c, -0.25), 0, 0, Math.PI / 2, 5);
       b.ico(x - 0.3, 0.83, z + 0.1, 0.7, 0.18, 0.5, 0x5ea352, 0, 0.3, 0, 0);
       b.cyl(x + 0.5, 0.86, z + 0.05, 0.12, 0.1, 0.12, 0x3a2412, 0, 0, 0, 5);
@@ -130,9 +134,9 @@ function obstacle(b, o, W, ci) {
     }
     case 'hang': {
       const c = 0x7d5128;
-      b.cyl(x, 1.65, z, 1.2, 1.9, 1.2, c, 0, 0, Math.PI / 2, 10);
+      b.tex('rinde').cyl(x, 1.65, z, 1.2, 1.9, 1.2, c, 0, 0, Math.PI / 2, 10).tex('');
       for (const sx of [-1, 1]) {
-        b.cyl(x + sx * 0.955, 1.65, z, 1.12, 0.06, 1.12, 0xe0b980, 0, 0, Math.PI / 2, 10, 0.02);
+        b.tex('schnitt').cyl(x + sx * 0.955, 1.65, z, 1.12, 0.06, 1.12, 0xe0b980, 0, 0, Math.PI / 2, 10, 0.02).tex('');
         b.cyl(x + sx * 1.07, 1.45, z, 0.26, 2.9, 0.26, shade(c, -0.1), 0, 0, sx * -0.04, 6);              // Stützstamm außen
         b.cyl(x + sx * 1.1, 0.04, z, 0.5, 0.14, 0.5, shade(c, -0.2), 0, 0, 0, 6);
       }
@@ -142,8 +146,9 @@ function obstacle(b, o, W, ci) {
     }
     case 'rock': {
       const c = 0x93908a;
-      b.put(G.dode(), x, 0.7, z, 1.9, 1.65, 1.65, c, 0.3, hs(1) * 3, 0.2);
+      b.tex('stein').put(G.dode(), x, 0.7, z, 1.9, 1.65, 1.65, c, 0.3, hs(1) * 3, 0.2);
       b.put(G.dode(), x + 0.45, 0.35, z - 0.4, 1.0, 0.7, 0.9, shade(c, 0.1), 0.2, hs(2) * 3, 0);
+      b.tex('');
       b.ico(x - 0.2, 1.4, z, 1.0, 0.28, 0.9, 0x5ea352, 0, 0, 0, 0);
       b.ico(x + 0.6, 1.25, z + 0.3, 0.5, 0.2, 0.4, 0x6dbd5a, 0, 0, 0, 0);
       break;
@@ -155,8 +160,9 @@ function obstacle(b, o, W, ci) {
     }
     case 'mud': {
       const w = 1.9, len = o.len;
-      b.box(x, 0.02, z, w, 0.04, len, 0x6b4a2e, 0, 0, 0, 0.12);
+      b.tex('schlamm').box(x, 0.02, z, w, 0.04, len, 0x6b4a2e, 0, 0, 0, 0.12);
       b.box(x, 0.045, z, w - 0.3, 0.02, len - 0.4, 0x7c583a, 0, 0, 0, 0.18);
+      b.tex('');
       for (let i = 0; i < 6; i++) b.sph(x + (hs(i) - 0.5) * 1.4, 0.06, z + (hs(i + 20) - 0.5) * (len - 1), 0.22, 0.1, 0.22, 0x8a6544, 6, 0.05);
       break;
     }
@@ -233,7 +239,7 @@ export function buildChunk(level, ci, o = {}) {
       for (let i = 0; i < n; i++) {
         const z0 = s0 + i * len, zc = z0 + len / 2, br = lane === 1 && bridgeZ.some((q) => zc >= q[0] - 1 && zc <= q[1] + 1);
         const col = br ? (i % 2 ? 0xa57a4a : 0x946a3c) : ((i + lane) % 2 ? gt[0] : gt[1]);
-        b.box(x, -0.6, Z(zc), 2.14, 1.2, len - 0.05, col, 0, 0, 0, br ? 0.08 : 0.05);
+        b.tex(br ? 'holz' : 'pfad').box(x, -0.6, Z(zc), 2.14, 1.2, len - 0.05, col, 0, 0, 0, br ? 0.08 : 0.05).tex('');
         const hh = hash3(ci, lane * 50 + i, 3);
         if (!br && hh < 0.14) b.box(x + (hh - 0.07) * 8, 0.012, Z(zc) + (hh * 30 % 1 - 0.5), 0.55, 0.02, 0.45, 0x5ea352, 0, hh * 6, 0, 0.1);
         else if (!br && hh > 0.9) b.box(x + (hh - 0.95) * 10, 0.012, Z(zc), 0.7, 0.02, 0.05, shade(col, -0.35), 0, hh * 9, 0, 0);
@@ -249,7 +255,7 @@ export function buildChunk(level, ci, o = {}) {
       const n = Math.max(1, Math.round((s1 - s0) / 6)), len = (s1 - s0) / n;
       for (let i = 0; i < n; i++) {
         const zc = s0 + i * len + len / 2, cx = side * (3.6 + 33.5);
-        b.box(cx, -0.225, Z(zc), 67, 0.25, len + 0.02, hash3(ci, i + lane * 9, 5) < 0.5 ? grass : W.ground2, 0, 0, 0, 0.05);
+        b.tex('gras').box(cx, -0.225, Z(zc), 67, 0.25, len + 0.02, hash3(ci, i + lane * 9, 5) < 0.5 ? grass : W.ground2, 0, 0, 0, 0.05).tex('');
         b.box(cx, -0.85, Z(zc), 67, 1.0, len + 0.02, dirt, 0, 0, 0, 0.04);
       }
       // Randsteine
@@ -259,7 +265,7 @@ export function buildChunk(level, ci, o = {}) {
   };
   bank(0, -1); bank(2, 1);
   // vor dem Start und hinter dem Ziel: Wiese über die ganze Breite
-  const full = (z0, z1) => { if (z1 - z0 < 0.01) return; b.box(0, -0.225, Z((z0 + z1) / 2), 140, 0.25, z1 - z0 + 0.02, grass); b.box(0, -0.85, Z((z0 + z1) / 2), 140, 1.0, z1 - z0 + 0.02, dirt); };
+  const full = (z0, z1) => { if (z1 - z0 < 0.01) return; b.tex('gras').box(0, -0.225, Z((z0 + z1) / 2), 140, 0.25, z1 - z0 + 0.02, grass).tex(''); b.box(0, -0.85, Z((z0 + z1) / 2), 140, 1.0, z1 - z0 + 0.02, dirt); };
   if (a < PATH0) full(a, Math.min(bz, PATH0));
   if (bz > pe) full(Math.max(a, pe), bz);
   // Brückengeländer aus Seil und Pfosten
@@ -275,13 +281,13 @@ export function buildChunk(level, ci, o = {}) {
     if (g.t !== 'log' || g.z1 < a || g.z0 >= bz) continue;
     const x = laneX(lane), h = g.h, ramp = g.ramp, c = 0x8a5a2f, R = 0.95;
     const m0 = g.z0 + ramp, m1 = g.z1 - ramp;
-    b.cyl(x, h - R * 0.92, Z((m0 + m1) / 2), R * 2, m1 - m0, R * 2, c, Math.PI / 2, 0, 0, 8);
+    b.tex('rinde').cyl(x, h - R * 0.92, Z((m0 + m1) / 2), R * 2, m1 - m0, R * 2, c, Math.PI / 2, 0, 0, 8);
     b.cyl(x, h - R * 0.92, Z((m0 + m1) / 2), R * 2.04, m1 - m0 - 0.5, R * 2.04, shade(c, -0.15), Math.PI / 2, 0, 0, 8);
-    for (const zz of [m0, m1]) b.cyl(x, h - R * 0.92, Z(zz), R * 1.9, 0.08, R * 1.9, 0xe0b980, Math.PI / 2, 0, 0, 8, 0.02);
+    b.tex('schnitt'); for (const zz of [m0, m1]) b.cyl(x, h - R * 0.92, Z(zz), R * 1.9, 0.08, R * 1.9, 0xe0b980, Math.PI / 2, 0, 0, 8, 0.02); b.tex('');
     for (let i = 0; i < 3; i++) b.box(x + (hash3(Math.round(g.z0), i, 8) - 0.5) * 0.5, h + 0.03, Z(m0 + ((i + 0.6) * (m1 - m0)) / 3), 0.5, 0.05, 0.9, 0x5ea352, 0, 0, 0, 0.1);
     // Rampen (schräge Bretter)
     const ang = Math.atan2(h, ramp), L = Math.hypot(ramp, h);
-    for (const [zA, dir] of [[g.z0, 1], [g.z1, -1]]) b.box(x, h / 2, Z(zA + (dir * ramp) / 2), 1.8, 0.2, L, 0xa9753f, dir * -ang * -1, 0, 0, 0.08);
+    b.tex('holz'); for (const [zA, dir] of [[g.z0, 1], [g.z1, -1]]) b.box(x, h / 2, Z(zA + (dir * ramp) / 2), 1.8, 0.2, L, 0xa9753f, dir * -ang * -1, 0, 0, 0.08); b.tex('');
     b.box(x, h * 0.5 - 0.12, Z((g.z0 + g.z1) / 2), 1.3, 0.12, g.z1 - g.z0 - 0.6, 0x3a2a18, 0, 0, 0, 0);
   }
   // Hindernisse

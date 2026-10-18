@@ -3,7 +3,7 @@
 import { laneX, groundH, dynPos, monkeyX, gateBottom, COCO_FALL, FALL_Y } from './sim.js';
 import { WORLDS } from './levels.js';
 import { buildChunk, CH, worldFor } from './world.js';
-import { MB, G, hash3, shade, hexs } from './geo.js';
+import { MB, G, hash3, shade, mix, hexs, LAYERS, LAYER_DEF } from './geo.js';
 import * as C from './chars.js';
 
 const T = window.THREE;
@@ -24,6 +24,27 @@ export function createRenderer(canvas, opts = {}) {
   scene.fog = new T.Fog(0xd2efe6, 48, 138);
 
   const worldMat = new T.MeshLambertMaterial({ vertexColors: true });
+  // Bildtexturen (Paket B): laden asynchron, auf höchstens 512 px verkleinert (spart Grafikspeicher), Kacheln mit Mipmaps
+  const TEX_MAX = 512;
+  const loadTex = (file, rep) => {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 4;
+    const t = new T.Texture(cv); t.anisotropy = 4;
+    if (rep) t.wrapS = t.wrapT = T.RepeatWrapping;
+    const p = new Promise((ok) => {
+      const img = new Image(); img.decoding = 'async';
+      img.onload = () => { const n = Math.min(TEX_MAX, img.naturalWidth); cv.width = cv.height = n; cv.getContext('2d').drawImage(img, 0, 0, n, n); t.needsUpdate = true; ok(); };
+      img.onerror = () => ok();
+      img.src = new URL('assets/' + file, import.meta.url).href;
+    });
+    return { t, p };
+  };
+  const texLoads = [];
+  const worldMats = LAYERS.map((n) => {
+    if (!n) return worldMat;
+    const d = LAYER_DEF[n], { t, p } = loadTex(d.file, d.uv !== 'lokal'); texLoads.push(p);
+    return new T.MeshLambertMaterial({ vertexColors: true, map: t, alphaTest: d.alphaTest || 0 });
+  });
+  const waterLoad = loadTex('tex-wasser.webp', true); texLoads.push(waterLoad.p);
   const worldGroup = new T.Group(); scene.add(worldGroup);
   const chunks = new Map();
   let level = null, W = WORLDS[0], worldIdx = 0, curSkyKey = '';
@@ -32,14 +53,8 @@ export function createRenderer(canvas, opts = {}) {
 
   // ------------------------------------------------------------ Texturen
   const canvasTex = (w, h, draw, rep) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); const t = new T.CanvasTexture(c); if (rep) { t.wrapS = t.wrapT = T.RepeatWrapping; } t.anisotropy = 2; return t; };
-  const waterTex = canvasTex(128, 128, (x, w, h) => {
-    x.fillStyle = '#fff'; x.fillRect(0, 0, w, h);
-    x.strokeStyle = 'rgba(120,200,225,.55)'; x.lineWidth = 3; x.lineCap = 'round';
-    for (let i = 0; i < 16; i++) { const px = (i * 53) % w, py = (i * 37) % h; x.beginPath(); x.moveTo(px - 14, py); x.quadraticCurveTo(px, py - 6, px + 14, py); x.stroke(); }
-    x.strokeStyle = 'rgba(255,255,255,.9)'; x.lineWidth = 2;
-    for (let i = 0; i < 10; i++) { const px = (i * 71 + 20) % w, py = (i * 29 + 9) % h; x.beginPath(); x.moveTo(px - 8, py); x.lineTo(px + 8, py); x.stroke(); }
-  }, true);
-  waterTex.repeat.set(70, 70);
+  const waterTex = waterLoad.t;
+  waterTex.repeat.set(70, 70);                   // 420 m Fläche, 6 m je Kachel
   const warnTex = canvasTex(128, 128, (x, w, h) => {
     x.translate(w / 2, h / 2);
     x.fillStyle = 'rgba(255,60,60,.28)'; x.beginPath(); x.arc(0, 0, 60, 0, 7); x.fill();
@@ -57,7 +72,7 @@ export function createRenderer(canvas, opts = {}) {
   const textTex = (text, w, h, bg, fg) => canvasTex(w, h, (x) => { x.fillStyle = bg; x.fillRect(0, 0, w, h); x.fillStyle = fg; x.font = `400 ${Math.round(h * 0.62)}px "Dela Gothic One","Arial Black",sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(text, w / 2, h / 2 + 3); });
 
   // ------------------------------------------------------------ Wasser, Hintergrund
-  const waterMat = new T.MeshBasicMaterial({ color: 0x2bbfd6, map: waterTex });
+  const waterMat = new T.MeshBasicMaterial({ color: 0xffffff, map: waterTex });
   const water = new T.Mesh(new T.PlaneGeometry(420, 420), waterMat); water.rotation.x = -Math.PI / 2; water.position.y = -1.0; scene.add(water);
   const backdrop = new T.Group(); scene.add(backdrop);
   let backdropMesh = null;
@@ -102,7 +117,7 @@ export function createRenderer(canvas, opts = {}) {
   function applyWorld(w, idx, now) {
     if (w === W && !now && curSkyKey) return;
     W = w; worldIdx = idx;
-    waterMat.color.setHex(W.water);
+    waterMat.color.setHex(mix(W.water, 0xffffff, 0.55));
     hemi.color.setHex(W.deco === 'tal' ? 0xfff3d6 : 0xffffff);
     document.body.style.setProperty('--himmel0', hexs(W.sky[0])); document.body.style.setProperty('--himmel1', hexs(W.sky[1]));
     scene.fog.color.setHex(W.fog);
@@ -242,7 +257,7 @@ export function createRenderer(canvas, opts = {}) {
       if (chunks.has(ci)) continue;
       const g = buildChunk(level, ci, { deco: q.deco }); budget--;
       if (!g) continue;
-      const m = new T.Mesh(g, worldMat); m.matrixAutoUpdate = false; worldGroup.add(m); chunks.set(ci, m);
+      const m = new T.Mesh(g, g.groups.length ? worldMats : worldMat); m.matrixAutoUpdate = false; worldGroup.add(m); chunks.set(ci, m);
     }
   }
   function releaseView(v) { release(v.kind, v.o); if (v.kids) for (const k of v.kids) if (k.e !== v.o) release('elephant', k.e); }
@@ -541,5 +556,5 @@ export function createRenderer(canvas, opts = {}) {
   function info() { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, chunks: chunks.size, geos: renderer.info.memory.geometries, textures: renderer.info.memory.textures, pr: q.pr, deco: q.deco }; }
   // Testhilfe: Pixel des Spielfelds lesen
   const dom = renderer.domElement;
-  return { frame, stageFrame, leaveStage, setLevel, reset, setChar, resize, setQuality, project, info, event, camera, scene, renderer, emit, get quality() { return q; }, get W() { return W; }, get dom() { return dom; }, get charKind() { return charKind; }, getChar, textTex, confetti };
+  return { texReady: Promise.all(texLoads), frame, stageFrame, leaveStage, setLevel, reset, setChar, resize, setQuality, project, info, event, camera, scene, renderer, emit, get quality() { return q; }, get W() { return W; }, get dom() { return dom; }, get charKind() { return charKind; }, getChar, textTex, confetti };
 }
