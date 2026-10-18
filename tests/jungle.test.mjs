@@ -60,10 +60,30 @@ test('Seite: lädt ohne Fehler, SEO, Menü, Spielstand-Schlüssel', async () => 
   assert.match(await page.title(), /JUNGLE RUNNER/i);
   assert.equal(await page.getAttribute('link[rel=canonical]', 'href'), 'https://playsaal.com/spiele/jungle-runner');
   assert.equal(await page.getAttribute('meta[property="og:url"]', 'content'), 'https://playsaal.com/spiele/jungle-runner');
-  assert.match(await page.getAttribute('meta[property="og:image"]', 'content'), /jungle-runner\.jpg$/);
+  assert.match(await page.getAttribute('meta[property="og:image"]', 'content'), /jungle-runner(-og)?\.jpg$/);
   assert.ok(await sicht(page, '#mSpielen'));
   const r = await page.evaluate(() => fetch('/spiele/jungle-runner').then((x) => x.status));
   assert.equal(r, 200);
+  assert.deepEqual(fehler, []);
+  await ctx.close();
+});
+
+test('Grafikpaket A1: Logo, Keyart und Icons laden unverzerrt, Ladebildschirm verschwindet, Power-up-Symbole im HUD', async () => {
+  const { ctx, page, fehler } = await seite(MOBIL);
+  assert.equal(await sicht(page, '#sLade'), false, 'Ladebildschirm muss im Menü weg sein');
+  const bilder = await page.evaluate(() => [...document.querySelectorAll('img:not([loading=lazy])')].map((i) => ({ src: i.getAttribute('src'), ok: i.complete && i.naturalWidth > 0, w: i.naturalWidth, h: i.naturalHeight, rw: i.getBoundingClientRect().width, rh: i.getBoundingClientRect().height })));
+  for (const b of bilder) assert.ok(b.ok, 'Bild lädt nicht: ' + b.src);
+  const logo = bilder.find((b) => /assets\/logo\.webp$/.test(b.src) && b.rw > 0);
+  assert.ok(logo, 'Logo im Menü sichtbar');
+  assert.ok(Math.abs(logo.rw / logo.rh - logo.w / logo.h) < 0.03, 'Logo nicht verzerrt');
+  await page.click('#mHilfe'); await warte(500);   // Hilfe öffnen: die Legenden-Icons laden erst jetzt (lazy)
+  const legende = await page.evaluate(() => [...document.querySelectorAll('.legende img')].map((i) => i.complete && i.naturalWidth > 0));
+  assert.equal(legende.length, 4); assert.ok(legende.every(Boolean), 'Legenden-Icons laden');
+  await page.click('#hZu');
+  await page.evaluate(() => { __jr.starteLevel(1); __jr.beginne(); for (const k of ['magnet', 'shield', 'boost', 'x2']) __jr.sim.s.pw[k] = 5; __jr.schnell(10); });
+  await warte(400);
+  const hud = await page.evaluate(() => [...document.querySelectorAll('#kraefte img, .chip.muenze img')].map((i) => i.complete && i.naturalWidth > 0));
+  assert.equal(hud.length, 5); assert.ok(hud.every(Boolean));
   assert.deepEqual(fehler, []);
   await ctx.close();
 });

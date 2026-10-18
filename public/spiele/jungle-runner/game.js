@@ -5,7 +5,7 @@ import { LEVELS, LEVEL_BY_ID, WORLDS, endlessLevel } from './levels.js';
 import { AWARDS, AWARD_BY_ID, RARITY, evaluateAwards, progressOf, drawAwardIcon, drawShareImage, drawKid } from './awards.js';
 import { createRenderer } from './render.js';
 import { createAudio } from './audio.js';
-import { OUTFITS, OUTFIT_BY_ID, POWER_COL, POWER_NAME, drawPowerIcon } from './chars.js';
+import { OUTFITS, OUTFIT_BY_ID, POWER_COL, POWER_NAME, iconImg } from './chars.js';
 import { SAVE_KEY, ladeAusRoh, migriere, saubererName, tagesSeed, heute } from './save.js';
 
 const $ = (s) => document.querySelector(s);
@@ -185,7 +185,7 @@ function ereignisse(log) {
       case 'splash': A.platsch(); herzen(true); blitz(true); vibrieren(40); pop('Platsch! −1 Herz', 'schlecht'); break;
       case 'respawn': A.respawn(); prev.x = s.x; prev.y = s.y; prev.z = s.z; prev.t = s.t; break;
       case 'checkpoint': A.checkpoint(); pop('Checkpoint!', 'gold'); break;
-      case 'power': A.power(e.k); pop(POWER_NAME[e.k] + '!', 'gold'); break;
+      case 'power': A.power(e.k); pop(POWER_NAME[e.k] + '!', 'gold', e.k); break;
       case 'pwend': A.powerEnde(); break;
       case 'start': if (e.k === 'rhino') A.nashorn(); else if (e.k === 'boulder') A.fels(); else if (e.k === 'elephant') A.elefant(); break;
       case 'crack': A.kokos(); break;
@@ -307,7 +307,7 @@ function kraefteHud() {
       let el = kraftEl[k];
       if (!el) {
         el = kraftEl[k] = document.createElement('div'); el.className = 'kraft'; el.style.color = POWER_COL[k];
-        const cv = document.createElement('canvas'); cv.width = cv.height = 48; drawPowerIcon(cv.getContext('2d'), k, 24, 24, 44);
+        const cv = iconImg(k, 28);
         const nm = document.createElement('span'); nm.textContent = POWER_NAME[k]; nm.style.color = '#fff';
         const bar = document.createElement('i'); bar.innerHTML = '<b></b>';
         el.append(cv, nm, bar); box.appendChild(el);
@@ -317,8 +317,8 @@ function kraefteHud() {
     } else if (kraftEl[k]) { kraftEl[k].remove(); delete kraftEl[k]; }
   }
 }
-function pop(text, art) {
-  const d = document.createElement('div'); d.className = 'pop ' + (art || ''); d.textContent = text;
+function pop(text, art, icon) {
+  const d = document.createElement('div'); d.className = 'pop ' + (art || ''); if (icon) d.appendChild(iconImg(icon, 36)); d.append(text);
   $('#pops').appendChild(d); setTimeout(() => d.remove(), 1000);
 }
 function blitz(wasser) { if (reduceMotion) return; const f = $('#flash'); f.classList.toggle('wasser', !!wasser); f.classList.add('an'); requestAnimationFrame(() => requestAnimationFrame(() => f.classList.remove('an'))); }
@@ -904,9 +904,14 @@ function weiterMitZiel(ziel) {
   if (ziel && ziel.level) toast('Level ' + ziel.level + ' wird freigeschaltet, wenn du die Level davor geschafft hast.', 4500);
   else if (ziel && ziel.endless) { if (endlosFrei()) zeigeEndlos(); else toast('Der Endlosmodus wird nach Level ' + N + ' freigeschaltet.', 4500); }
 }
+// Ladebildschirm (steht im HTML, damit er sofort sichtbar ist) ausblenden, sobald Menü oder Figurenwahl dran ist.
+function ladeEnde() {
+  const el = $('#sLade'); if (!el || el.hidden) return;
+  el.classList.add('weg'); setTimeout(() => { el.hidden = true; }, reduceMotion ? 0 : 450);
+}
 async function init() {
   if (!R) {
-    $('#sMenu').hidden = false; $('#sMenu').querySelector('.menu-in').innerHTML = '<h1 class="titel"><span>JUNGLE</span><span>RUNNER</span></h1><p class="unter">Dein Browser kann leider kein WebGL. Probier einen aktuellen Browser oder ein anderes Gerät.</p><a class="btn" href="../">Andere Spiele</a>';
+    $('#sMenu').hidden = false; ladeEnde(); $('#sMenu').querySelector('.menu-in').innerHTML = '<h1 class="titel"><img src="jungle-runner/assets/logo.webp" width="891" height="297" alt="JUNGLE RUNNER"></h1><p class="unter">Dein Browser kann leider kein WebGL. Probier einen aktuellen Browser oder ein anderes Gerät.</p><a class="btn" href="../">Andere Spiele</a>';
     return;
   }
   groesse();
@@ -918,6 +923,7 @@ async function init() {
   const ziel = startParameter();
   requestAnimationFrame(frame);
   if (!stand.char.kind) zeigeWahl(() => weiterMitZiel(ziel)); else weiterMitZiel(ziel);
+  ladeEnde();
 }
 init();
 

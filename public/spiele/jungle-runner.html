@@ -4,13 +4,14 @@
 <title>JUNGLE RUNNER · 3D-Dschungel-Lauf · PlaySaal</title>
 <link rel="canonical" href="https://playsaal.com/spiele/jungle-runner">
 <meta name="description" content="3D-Laufspiel im Dschungel: Wische durch 30 Level, springe über Baumstämme, rutsche unter Ästen durch und weiche Nashorn, Elefant und Affe aus. Junge oder Mädchen, Awards und Endlosmodus, ohne Anmeldung und ohne Werbung.">
-<meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="JUNGLE RUNNER · PlaySaal"><meta property="og:description" content="30 Dschungel-Level in 3D: springen, rutschen, ausweichen. Werbefrei, ohne Anmeldung."><meta property="og:url" content="https://playsaal.com/spiele/jungle-runner"><meta property="og:image" content="https://playsaal.com/bilder/jungle-runner.jpg"><meta property="og:image:width" content="960"><meta property="og:image:height" content="600"><meta property="og:image:alt" content="JUNGLE RUNNER: Ein Kind rennt im Dschungel über einen Pfad mit Münzen auf einen Baumstamm zu"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playsaal.com/bilder/jungle-runner.jpg">
+<meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="JUNGLE RUNNER · PlaySaal"><meta property="og:description" content="30 Dschungel-Level in 3D: springen, rutschen, ausweichen. Werbefrei, ohne Anmeldung."><meta property="og:url" content="https://playsaal.com/spiele/jungle-runner"><meta property="og:image" content="https://playsaal.com/bilder/jungle-runner-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="JUNGLE RUNNER: Ein Junge mit Safarihut rennt über eine Holzbrücke, voraus Münzen, ein Nashorn und ein Affe an der Liane"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playsaal.com/bilder/jungle-runner-og.jpg">
 <meta name="theme-color" content="#11121A">
 <link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="icon" href="../favicon.ico" sizes="any">
 <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
 <link rel="manifest" href="../site.webmanifest">
 <link rel="stylesheet" href="../assets/fonts.css">
+<link rel="preload" as="image" href="jungle-runner/assets/keyart.webp" type="image/webp" fetchpriority="high"><link rel="preload" as="image" href="jungle-runner/assets/logo.webp" type="image/webp">
 <link rel="modulepreload" href="jungle-runner/sim.js"><link rel="modulepreload" href="jungle-runner/levels.js"><link rel="modulepreload" href="jungle-runner/render.js"><link rel="modulepreload" href="jungle-runner/world.js"><link rel="modulepreload" href="jungle-runner/chars.js">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"Jungle Runner","alternateName":"Jungle Runner – Das Dschungel-Abenteuer","url":"https://playsaal.com/spiele/jungle-runner","inLanguage":"de","genre":["Geschicklichkeitsspiel","Laufspiel","Abenteuerspiel"],"gamePlatform":"Webbrowser","applicationCategory":"Game","operatingSystem":"Alle","isAccessibleForFree":true,"publisher":{"@type":"Organization","name":"PlaySaal"}}</script>
 <script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'jungle-runner',t:Date.now()}))}catch(e){}</script>
@@ -62,7 +63,6 @@ body{--himmel0:#6fd0ff;--himmel1:#eaf9ff}
 @media (max-width:420px){.chip.lv span{display:none}}
 .kraefte{position:absolute;left:calc(var(--sl) + 14px);top:calc(var(--st) + 100px);z-index:5;display:flex;flex-direction:column;gap:6px;pointer-events:none}
 .kraft{display:flex;align-items:center;gap:8px;height:30px;padding:0 10px 0 4px;border-radius:99px;background:rgba(17,18,26,.8);border:1px solid var(--linie);color:#fff;font:700 15px/1 var(--f-zahl)}
-.kraft canvas{width:24px;height:24px}
 .kraft i{display:block;width:54px;height:6px;border-radius:9px;background:rgba(255,255,255,.2);overflow:hidden}
 .kraft i b{display:block;height:100%;width:100%;background:currentColor}
 .kraft.knapp{animation:blink .45s linear infinite}
@@ -103,16 +103,18 @@ body.touch .lehre .touch{display:inline}
 .kopf h2{margin:0;font:400 26px/1.1 var(--f-display);letter-spacing:-.01em}
 @media (max-width:1060px){.kopf{padding-left:42px}}
 @media (max-width:420px){.kopf h2{font-size:22px}}
-.kopf .rechts{margin-left:auto;color:var(--leise);font-weight:600}
+.kopf .rechts{margin-left:auto;color:var(--leise);font-weight:600;white-space:nowrap}
 .zurueck{width:44px;height:44px;border-radius:12px;border:1px solid var(--linie);background:var(--flaeche);display:grid;place-items:center;padding:0;flex:none}
 .zurueck svg{width:22px;height:22px}
 
-#sMenu{display:flex;flex-direction:column;justify-content:center;padding-left:calc(var(--sl) + 56px);background:linear-gradient(90deg,rgba(17,18,26,.92) 0,rgba(17,18,26,.78) 420px,rgba(17,18,26,.12) 760px,rgba(17,18,26,0))}
-.menu-in{width:min(100%,400px);display:flex;flex-direction:column;gap:10px}
-.titel{margin:0 0 4px;font:400 clamp(44px,8.6vw,64px)/.95 var(--f-display);letter-spacing:-.01em;transform:rotate(-6deg) translateX(-2px);transform-origin:left bottom}
-.titel span{display:block}
-.titel span:last-child{position:relative;display:inline-block;padding:0 10px 4px 2px}
-.titel span:last-child::after{content:"";position:absolute;left:0;right:0;bottom:2px;height:12px;background:var(--marke);z-index:-1;transform:skewX(-14deg)}
+#sMenu{display:flex;flex-direction:column;justify-content:center;padding-left:calc(var(--sl) + 56px);background:var(--basis)}
+/* Menü-Titelbild: Keyart vollflächig, links abgedunkelt für die Knöpfe; im Hochformat als Banner oben mit Übergang in die Fläche */
+.menu-bild{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.menu-bild img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:62% 50%}
+.menu-bild::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(17,18,26,.93) 0,rgba(17,18,26,.8) 420px,rgba(17,18,26,.14) 780px,rgba(17,18,26,0))}
+.menu-in{position:relative;z-index:1;width:min(100%,400px);display:flex;flex-direction:column;gap:10px}
+.titel{margin:0 0 2px;line-height:0}
+.titel img{display:block;width:min(100%,360px);height:auto;aspect-ratio:891/297;filter:drop-shadow(0 4px 10px rgba(0,0,0,.45))}
 .unter{margin:6px 0 14px;color:var(--leise);font-weight:600}
 .btn{display:flex;align-items:center;justify-content:center;gap:10px;min-height:52px;padding:0 22px;border-radius:999px;border:0;background:var(--aktion);color:var(--basis);font:700 18px/1 var(--f-text);text-decoration:none;cursor:pointer}
 .btn:hover{background:var(--aktion-hover)}
@@ -123,23 +125,49 @@ body.touch .lehre .touch{display:inline}
 .btn2:hover{background:var(--flaeche-hell)}
 .btn2:disabled{opacity:.5;cursor:default}
 .btn2 svg{width:22px;height:22px;flex:none;color:var(--leise)}
-.btn2 em{margin-left:auto;font-style:normal;color:var(--leise);font-weight:600;font-size:15px}
+.btn2 em{margin-left:auto;font-style:normal;color:var(--leise);font-weight:600;font-size:15px;white-space:nowrap}
+@media (max-width:400px){.reihe .btn2{gap:8px;padding:0 12px}.reihe .btn2 em{font-size:13px}}
 .reihe{display:flex;gap:8px;flex-wrap:wrap}
 .reihe>*{flex:1 1 0}
 .klein{display:flex;gap:8px;margin-top:6px}
 .klein .ibtn{width:44px;height:44px;background:rgba(26,27,38,.92)}
 @media (max-width:640px) and (orientation:portrait){
-  #sMenu{padding-left:calc(var(--sl) + 16px);justify-content:flex-end;background:linear-gradient(0deg,rgba(17,18,26,.95) 0,rgba(17,18,26,.88) 62%,rgba(17,18,26,.2) 86%,rgba(17,18,26,0))}
-  .menu-in{width:100%}
-  .titel{font-size:46px}.unter{margin:0 0 6px}
+  #sMenu{padding-left:calc(var(--sl) + 16px);justify-content:flex-start}
+  .menu-bild{position:relative;inset:auto;flex:1 1 auto;min-height:56vw;margin:calc(-1 * var(--st) - 12px) calc(-1 * var(--sr) - 16px) 0 calc(-1 * var(--sl) - 16px)}
+  .menu-bild img{object-position:54% 40%}
+  .menu-bild::after{background:linear-gradient(0deg,var(--basis) 0,rgba(17,18,26,.7) 22%,rgba(17,18,26,0) 55%)}
+  .menu-in{width:100%;flex:none}
+  .titel{margin-top:-16vw;display:flex;justify-content:center}.titel img{width:min(76vw,300px)}.unter{margin:0 0 6px;text-align:center}
 }
 @media (max-height:500px) and (orientation:landscape){
   #sMenu{justify-content:flex-start}
-  .titel{font-size:38px}.unter{margin:2px 0 6px}
+  .titel img{width:170px}.unter{margin:2px 0 6px}
   .btn{min-height:44px}.btn2{min-height:40px}
   .menu-in{gap:6px}
 }
 
+/* Ladebildschirm (Keyart + Logo), liegt über allem, bis das Menü bereit ist */
+#sLade{position:absolute;inset:0;z-index:40;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:14px;padding:calc(var(--st) + 16px) 16px calc(var(--sb) + 8vh);background:var(--basis);transition:opacity .4s}
+#sLade.weg{opacity:0;pointer-events:none}
+#sLade>img.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:54% 50%}
+#sLade::before{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(17,18,26,.88) 0,rgba(17,18,26,.45) 38%,rgba(17,18,26,0) 62%)}
+#sLade .logo{position:relative;width:min(80vw,380px);height:auto;aspect-ratio:891/297;filter:drop-shadow(0 4px 12px rgba(0,0,0,.5))}
+#sLade .bahn{position:relative;width:min(56vw,220px);height:8px;border-radius:99px;background:rgba(17,18,26,.6);border:1px solid var(--linie);overflow:hidden}
+#sLade .bahn i{position:absolute;top:0;bottom:0;left:0;width:40%;border-radius:99px;background:linear-gradient(90deg,#7dffb0,#ffe27a);animation:ladelauf 1.1s ease-in-out infinite}
+@keyframes ladelauf{0%{left:-40%}100%{left:100%}}
+@media (orientation:landscape) and (max-height:520px){#sLade{padding-bottom:calc(var(--sb) + 14px);gap:8px}#sLade .logo{width:min(34vw,240px)}}
+
+/* Icons aus Paket A1: einheitlich, nie verzerrt */
+.ico{display:block;object-fit:contain;flex:none;-webkit-user-drag:none;user-select:none}
+.chip .ico{width:24px;height:24px;margin-left:-3px}
+.kraft .ico{width:28px;height:28px}
+.pop img{display:inline-block;width:36px;height:36px;vertical-align:-7px;margin-right:6px;filter:drop-shadow(0 2px 3px rgba(20,24,50,.45))}
+.mz::before{content:"";display:inline-block;width:20px;height:20px;margin-right:5px;vertical-align:-5px;background:url(jungle-runner/assets/icon-muenze.webp) center/contain no-repeat}
+.zahlen3 small{display:flex;align-items:center;justify-content:center;gap:4px;height:18px}
+.zahlen3 small .ico{width:16px;height:16px}
+.legende{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;margin:0;padding:0;list-style:none}
+.legende li{display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;line-height:1.2}
+.legende .ico{width:34px;height:34px}
 /* Figurenwahl */
 #sWahl{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:12px;background:linear-gradient(0deg,rgba(17,18,26,.9) 0,rgba(17,18,26,.55) 32%,rgba(17,18,26,0) 55%);padding-bottom:calc(var(--sb) + 20px)}
 #sWahl h2{margin:0;font:400 clamp(26px,6vw,38px)/1.05 var(--f-display);text-align:center;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.35)}
@@ -268,6 +296,12 @@ body.touch .lehre .touch{display:inline}
   <canvas id="c" aria-label="Spielfeld in 3D"></canvas>
   <div id="flash"></div>
 
+  <div id="sLade" role="status" aria-label="JUNGLE RUNNER lädt">
+    <img class="bg" src="jungle-runner/assets/keyart.webp" width="1080" height="720" alt="" fetchpriority="high" decoding="async">
+    <img class="logo" src="jungle-runner/assets/logo.webp" width="891" height="297" alt="JUNGLE RUNNER">
+    <div class="bahn" aria-hidden="true"><i></i></div>
+  </div>
+
   <div class="hud" id="hud" hidden>
     <div class="fort" id="fort" aria-hidden="true"><i id="fBar"></i><u id="fZiel"></u></div>
     <div class="chip" id="hDist" hidden><b class="dist" id="hMeter">0</b><span>m</span></div>
@@ -277,7 +311,7 @@ body.touch .lehre .touch{display:inline}
   <div class="hud2" id="hud2" hidden>
     <div class="chip lv"><b id="hLevel">1</b><span id="hName"></span></div>
     <div class="herzen" id="hHerzen" role="img" aria-label="Herzen"></div>
-    <div class="chip muenze" title="Münzen in diesem Lauf"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#ffc928" stroke="#b07a00" stroke-width="2"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="#b07a00" stroke-width="2"/></svg><b id="hMuenzen">0</b></div>
+    <div class="chip muenze" title="Münzen in diesem Lauf"><img class="ico" src="jungle-runner/assets/icon-muenze.webp" width="24" height="24" alt="" aria-hidden="true"><b id="hMuenzen">0</b></div>
   </div>
   <div class="kraefte" id="kraefte"></div>
   <div id="pops"></div>
@@ -293,8 +327,9 @@ body.touch .lehre .touch{display:inline}
 
   <!-- Hauptmenü -->
   <section class="screen" id="sMenu" aria-labelledby="titel" hidden>
+    <div class="menu-bild" aria-hidden="true"><img src="jungle-runner/assets/keyart.webp" width="1080" height="720" alt="" decoding="async"></div>
     <div class="menu-in">
-      <h1 class="titel" id="titel"><span>JUNGLE</span><span>RUNNER</span></h1>
+      <h1 class="titel" id="titel"><img src="jungle-runner/assets/logo.webp" width="891" height="297" alt="JUNGLE RUNNER"></h1>
       <p class="unter">Das Dschungel-Abenteuer. 30 Level, keine Werbung.</p>
       <button class="btn" id="mSpielen"><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 2l8 5-8 5z" fill="currentColor"/></svg><span id="mSpielenText">Spielen</span></button>
       <button class="btn2" id="mLevel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Levelkarte<em id="mLevelZahl"></em></button>
@@ -303,7 +338,7 @@ body.touch .lehre .touch{display:inline}
         <button class="btn2" id="mAwards"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 3h3l1 5M16 3h-3l-1 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>Awards<em id="mAwardsZahl"></em></button>
       </div>
       <div class="reihe">
-        <button class="btn2" id="mGarage"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.4" fill="currentColor"/><path d="M5.5 20c0-4 3-6.4 6.5-6.4s6.5 2.4 6.5 6.4z" fill="currentColor"/></svg>Figur<em id="mMuenzen"></em></button>
+        <button class="btn2" id="mGarage"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7" r="3.4" fill="currentColor"/><path d="M5.5 20c0-4 3-6.4 6.5-6.4s6.5 2.4 6.5 6.4z" fill="currentColor"/></svg>Figur<em id="mMuenzen" class="mz"></em></button>
         <button class="btn2" id="mHilfe"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M9.6 9.4a2.6 2.6 0 1 1 3.6 2.4c-.8.4-1.2.9-1.2 1.8M12 16.6v.1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>So geht's</button>
       </div>
       <div class="klein">
@@ -336,7 +371,7 @@ body.touch .lehre .touch{display:inline}
   </section>
 
   <section class="screen" id="sGarage" aria-labelledby="hGarage" hidden>
-    <div class="kopf"><button class="zurueck" data-zurueck aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="hGarage">Figur &amp; Outfit</h2><span class="rechts" id="gMuenzen" style="color:var(--aktion);font-weight:700"></span></div>
+    <div class="kopf"><button class="zurueck" data-zurueck aria-label="Zurück"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button><h2 id="hGarage">Figur &amp; Outfit</h2><span class="rechts mz" id="gMuenzen" style="color:var(--aktion);font-weight:700"></span></div>
     <div class="gunten">
       <div class="gtabs" role="group" aria-label="Figur"><button type="button" id="gJunge" aria-pressed="true">Junge</button><button type="button" id="gMaedchen" aria-pressed="false">Mädchen</button></div>
       <div class="gliste" id="gListe"></div>
@@ -353,7 +388,13 @@ body.touch .lehre .touch{display:inline}
         <li><b>Baumstamm am Boden</b>: springen. <b>Ast in der Luft</b>: rutschen. <b>Fels</b>: Spur wechseln. Auf dicken Stämmen kannst du über Wasser laufen.</li>
         <li><b>Nashorn</b> und <b>Fels-Kugel</b> kommen in einer markierten Spur auf dich zu. <b>Elefanten</b> sind langsam und blockieren Spuren. <b>Affen</b> schwingen hin und her.</li>
         <li>Du hast <b>3 Herzen</b>. Jeder Treffer kostet eins. Fällst du ins Wasser, geht es am letzten Checkpoint weiter.</li>
-        <li>Münzen bringen <b>Sterne</b> und Outfits. Power-ups: Magnet, Schild, Super-Sprung und doppelte Punkte.</li>
+        <li>Münzen bringen <b>Sterne</b> und Outfits. Power-ups, die du einsammelst:</li>
+      </ul>
+      <ul class="legende" aria-label="Power-ups">
+        <li><img class="ico" src="jungle-runner/assets/icon-magnet.webp" width="34" height="34" alt="" loading="lazy">Magnet zieht Münzen an</li>
+        <li><img class="ico" src="jungle-runner/assets/icon-schild.webp" width="34" height="34" alt="" loading="lazy">Schild fängt einen Treffer ab</li>
+        <li><img class="ico" src="jungle-runner/assets/icon-fluegelschuh.webp" width="34" height="34" alt="" loading="lazy">Flügelschuh: Super-Sprung</li>
+        <li><img class="ico" src="jungle-runner/assets/icon-x2.webp" width="34" height="34" alt="" loading="lazy">Doppelte Punkte</li>
       </ul>
       <button class="btn" id="hZu">Verstanden</button>
     </div>
@@ -376,7 +417,7 @@ body.touch .lehre .touch{display:inline}
         <p class="sub" id="eLevel"></p>
         <div class="ergebnis-sterne" id="eSterne" aria-live="polite"></div>
         <div class="kriterien" id="eKriterien"></div>
-        <div class="zahlen3"><div><b id="eHerzen">0</b><small>Herzen</small></div><div><b id="eMuenzen">0</b><small>Münzen</small></div><div><b id="eZeit">0</b><small>Zeit</small></div></div>
+        <div class="zahlen3"><div><b id="eHerzen">0</b><small>Herzen</small></div><div><b id="eMuenzen">0</b><small><img class="ico" src="jungle-runner/assets/icon-muenze.webp" width="16" height="16" alt="" aria-hidden="true">Münzen</small></div><div><b id="eZeit">0</b><small>Zeit</small></div></div>
         <div class="ministats" id="eStats"></div>
         <div class="awardsrow" id="eAwards"></div>
       </div>
@@ -394,7 +435,7 @@ body.touch .lehre .touch{display:inline}
       <h2 id="hVerloren">Keine Herzen mehr</h2>
       <p class="sub" id="vGrund"></p>
       <p class="sub" id="vTipp" style="color:var(--text)"></p>
-      <div class="zahlen3" id="vZahlen" hidden><div><b id="vMeter">0</b><small>Meter</small></div><div><b id="vMuenzen">0</b><small>Münzen</small></div><div><b id="vRekord">0</b><small>Rekord</small></div></div>
+      <div class="zahlen3" id="vZahlen" hidden><div><b id="vMeter">0</b><small>Meter</small></div><div><b id="vMuenzen">0</b><small><img class="ico" src="jungle-runner/assets/icon-muenze.webp" width="16" height="16" alt="" aria-hidden="true">Münzen</small></div><div><b id="vRekord">0</b><small>Rekord</small></div></div>
       <button class="btn" id="vNochmal">Nochmal <small>(R)</small></button>
       <button class="btn2" id="vTipp2" hidden style="justify-content:center">Tipp anzeigen</button>
       <div class="reihe"><button class="btn2" id="vTeilen" hidden>Teilen</button><button class="btn2" id="vLevels">Levelkarte</button><button class="btn2" id="vMenu">Menü</button></div>

@@ -22,9 +22,11 @@ Adresse: `/spiele/jungle-runner` · Spielstand: `localStorage` → `jungle.v1` (
 | `public/spiele/jungle-runner/audio.js` | Ton komplett synthetisch (WebAudio), Marimba/Bongo-Schleife, Ein/Aus im Spielstand |
 | `tools/jungle-pruefer.mjs` | **Streckenprüfer**: sucht auf der echten Sim eine kollisionsfreie Route und prüft Reaktionszeiten |
 | `tests/jungle-sim.test.mjs` | 18 Tests ohne Browser |
-| `tests/jungle.test.mjs` | 21 Browser-Tests (Playwright gegen `wrangler dev`) |
+| `tests/jungle.test.mjs` | 22 Browser-Tests (Playwright gegen `wrangler dev`) |
 | `tests/jungle-loesungen.json` | Prüfer-Lösungen aller 30 Level (Regressionstest) |
-| `public/bilder/jungle-runner.jpg` | Kachelbild/Social-Preview 960×600 (echter Screenshot aus Level 5 mit Titel) |
+| `public/spiele/jungle-runner/assets/` | Grafikpaket A1 von ChatGPT, Laufzeit-Dateien als WebP: `logo.webp` (zugeschnitten), `keyart.webp`, `icon-muenze/magnet/schild/fluegelschuh/x2.webp` (256², optisch gleich groß zentriert). `design/jungle-runner/a1/` hält die unveränderten Lieferdateien (PNG/WebP) als Quelle |
+| `public/bilder/jungle-runner.jpg` | Kachelbild der Startseite 960×600, zugeschnitten aus dem Keyart |
+| `public/bilder/jungle-runner-og.jpg` | Social-Preview 1200×630 (`og:image`), Keyart mit Logo |
 
 Kein Build-Schritt. three.js r128 kommt wie bei den anderen 3D-Spielen aus `public/assets/three.min.js`.
 
@@ -52,6 +54,14 @@ Kein Build-Schritt. three.js r128 kommt wie bei den anderen 3D-Spielen aus `publ
 
 Letzter Lauf (18.10.2026, 30 Level): alle 30 `OK` (fein = ja, robust = ja/ja/ja, verzögert = ja, Checkpoints ok). Endlos Seed 3: fehlerfreie Route bis 1500 m. Die Lösungen sind **keine Spielerbots**: Sie belegen nur, dass jedes Level mit exakten Eingaben schaffbar ist und dass die Zeitfenster fair sind.
 
+## Grafikpaket A1 (eingebaut)
+
+- **Logo** im Hauptmenü (Hochformat zentriert über den Knöpfen, sonst links oben) und auf dem Ladebildschirm; bei fehlendem WebGL ebenfalls.
+- **Keyart** als Menü-Titelbild (Hochformat: Banner oben mit Übergang, sonst vollflächig mit dunklem Verlauf links), als Ladebildschirm (`#sLade` im HTML, sichtbar bevor das Skript läuft, blendet aus, sobald Menü oder Figurenwahl dran ist), als Kachelbild und als Social-Preview.
+- **Icons**: Münze im HUD, in Menü/Garage-Kontostand und in den Ergebnis-/Verloren-Zahlen; Magnet, Schild, Flügelschuh (= Super-Sprung), ×2 als 3D-Pickup, im HUD-Balken der aktiven Kräfte, in der Meldung beim Einsammeln und als Legende in „So geht's“. Die 3D-Münzen im Lauf bleiben Zylinder, nur in der Farbe ans Keyart angepasst.
+- **Figuren/Tiere nur farblich** ans Keyart angepasst, Modelle unverändert: Outfit „Entdecker“ trägt jetzt den Safarihut mit dunklem Band, olivgrünes Shirt, rote Rucksacktasche und braune Stiefel; Nashorn mit wärmerem Violettgrau und Horn in Creme; Affe etwas wärmer. Elefant unverändert (kein Entwurf geliefert). Das gekaufte Outfit „Safari“ unterscheidet sich vom Entdecker dadurch nur noch in den Farben.
+- **Noch offen**: A2 (Herz, Stern, Pause, Ton), B (Texturen), C (Gesichtsdetails). Bis dahin bleiben HUD-Herzen, Sterne, Pause/Ton-Knöpfe und alle Texturen die vorhandenen Platzhalter.
+
 ## Temporäre Grafik – ehrliche Einordnung
 
 Alle 3D-Figuren, Tiere, Hindernisse, Bäume und Symbole sind **prozedurale Low-Poly-Platzhalter**, im Code aus Würfeln, Kugeln und Zylindern gebaut, mit weich animierten Gelenken. Sie machen die Spiellogik und die Fairness prüfbar, sind aber **nicht die finale Optik**. Die mitgelieferten PNG-Konzepte sind Moodboards und wurden nicht als 3D-Modelle verwendet oder ausgegeben. Vor einer Freigabe sollte die Optik gesondert abgenommen werden.
@@ -68,7 +78,7 @@ Alle 3D-Figuren, Tiere, Hindernisse, Bäume und Symbole sind **prozedurale Low-P
 | P0 | `assets/jungle/monkey.glb` | Affe an Liane | ≤ 3 k Dreiecke | Schwingen, Greifen |
 | P1 | `assets/jungle/obstacles.glb` | Bodenstamm, Überhang, begehbarer Stamm + Rampe, Fels, Wurzel, Brücke, Kokosnuss, Tempeltor, rollender Fels | modular, ≤ 1 k Dreiecke je Teil | Tor: Auf/Zu, Fels: Rollen |
 | P1 | `assets/jungle/props-w1..w5.glb` | Bäume, Büsche, Palmen, Ruinen je Welt | Instancing-tauglich, ≤ 800 Dreiecke | – |
-| P1 | `assets/jungle/powerups/*.svg` | Magnet, Schild, Super-Sprung, ×2 | 128², transparent | HUD-Symbol und 3D-Pickup |
+| P1 | ~~`assets/jungle/powerups/*.svg`~~ | Magnet, Schild, Super-Sprung, ×2 – **geliefert (A1) und eingebaut** (`assets/icon-*.webp`) | 256², transparent | HUD-Symbol und 3D-Pickup |
 | P2 | ~~`assets/jungle/sky-w1..w5.jpg`~~ | Himmel/Horizont je Welt – **geliefert und eingebaut** (`public/spiele/jungle-runner/img/pano-1..5.jpg`, 2048×1024: unten das ChatGPT-Panorama, oben weiche Himmelsfortsetzung; als gebogenes Band hinter der Strecke, je Welt geladen, Nebelfarben darauf abgestimmt) | 2000×500 | – |
 | P2 | `assets/jungle/sfx/*.ogg`, `music.ogg` | Klänge und Schleife (optional, derzeit synthetisch) | OGG/AAC | – |
 
@@ -114,6 +124,9 @@ Befehle: `node --test tests/jungle-sim.test.mjs`, `node --test --test-concurrenc
 | Echte Geräte (iPhone/Android), echter Touch, Haptik | manuell | **nein** | – | Muss vor Freigabe jemand am Handy spielen |
 | Ton hörbar/Lautstärke, Autoplay-Regeln auf iOS | manuell | **nein** | – | offen |
 | Web Share API mit Bild auf echtem Handy | manuell | **nein** | – | nur der Fallback (Link kopieren + Bild speichern) ist automatisch geprüft |
+| Grafikpaket A1: Bilder laden unverzerrt, Ladebildschirm weg, Power-up-Symbole im HUD | Browser | ja | bestanden | – |
+| Menü, Lauf, Levelkarte, Hilfe, Garage, Ergebnis bei 375/390 px sowie 800×390 und 1440×900 | manuell (Screenshots) | ja | gesichtet | – |
+| Ladezeit Menü (4 Mbit/s, 60 ms, Software-GL) | manuell | ja | 2,5 s statt 2,1 s auf main, +190 KB | – |
 | Optik der Platzhalter-Modelle aus der Nähe, Qualitätsstufen | manuell | teilweise | Screenshots gesichtet | finale Assets stehen aus (siehe Tabelle oben) |
 
 ## Offene Punkte

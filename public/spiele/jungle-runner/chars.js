@@ -18,7 +18,8 @@ const approach = (a, b, k) => a + (b - a) * Math.min(1, k);
 // ====================================================================== Kleidung (nur Optik, kein Spielvorteil)
 // shirt: [Junge, Mädchen] oder eine Farbe
 export const OUTFITS = [
-  { id: 'entdecker', name: 'Entdecker', preis: 0, shirt: [0x4caf50, 0xff6f61], shirt2: 0x2e7d32, pants: [0x8d6e43, 0x6b7280], shoes: 0x3d3d4a, hat: 'none', hatC: 0, pack: 0x3a78c9 },
+  // Entdecker = Palette des Keyarts: heller Safarihut mit dunklem Band, olivgrünes Shirt, rote Rucksack-Tasche, braune Stiefel
+  { id: 'entdecker', name: 'Entdecker', preis: 0, shirt: [0x9db35e, 0xe9806b], shirt2: 0x6f8040, pants: [0x6f7d3a, 0x7a6a4c], shoes: 0x6b4a2a, hat: 'safari', hatC: 0xb98c4e, hatBand: 0x4a3322, pack: 0xc9382f },
   { id: 'blau', name: 'Flussläufer', preis: 150, shirt: 0x2f9be8, shirt2: 0x1b6fb0, pants: 0xc9b27a, shoes: 0xf2f2f2, hat: 'cap', hatC: 0xffd23f, pack: 0xff8a3d },
   { id: 'safari', name: 'Safari', preis: 300, shirt: 0xe6d3a3, shirt2: 0xb89b5e, pants: 0x6f7f45, shoes: 0x6b4a2a, hat: 'safari', hatC: 0xc9a66b, pack: 0x4a6b3a },
   { id: 'schatz', name: 'Schatzsucher', preis: 500, shirt: 0x1f8a8a, shirt2: 0xf2f2f2, pants: 0x3a3f5c, shoes: 0x2b2b35, hat: 'band', hatC: 0xe53935, pack: 0x8d5a2b },
@@ -31,7 +32,7 @@ const pick = (v, girl) => (Array.isArray(v) ? v[girl ? 1 : 0] : v);
 // ====================================================================== Spielfigur
 export function buildChar(kind, outfit) {
   const girl = kind === 'girl', O = outfit || OUTFITS[0];
-  const skin = 0xf3bb91, hairC = girl ? 0x5b2f1b : 0x6e3f20, shirt = pick(O.shirt, girl), pants = pick(O.pants, girl);
+  const skin = 0xf2b78c, hairC = girl ? 0x5b2f1b : 0x70401f, shirt = pick(O.shirt, girl), pants = pick(O.pants, girl);
   const root = grp(), tilt = grp(), pivot = grp(0, 0.62, 0);
   root.add(tilt); tilt.add(pivot);
   // Torso
@@ -79,7 +80,7 @@ export function buildChar(kind, outfit) {
   } else if (O.hat === 'safari') {
     head.add(part(geo.disc, lam(O.hatC), 0, 0.26, 0, 0.78, 0.03, 0.78));
     head.add(part(geo.cap, lam(O.hatC), 0, 0.26, 0, 0.5, 0.5, 0.5));
-    head.add(part(geo.cyl, lam(0x6b4a2a), 0, 0.3, 0, 0.51, 0.05, 0.51));
+    head.add(part(geo.cyl, lam(O.hatBand || 0x6b4a2a), 0, 0.3, 0, 0.51, 0.05, 0.51));
   } else if (O.hat === 'band') {
     head.add(part(geo.cyl, lam(O.hatC), 0, 0.18, 0.005, 0.54, 0.07, 0.54));
     head.add(part(geo.box, lam(O.hatC), 0.0, 0.17, 0.27, 0.07, 0.16, 0.04, 0, 0, 0.4));  // Knoten hinten
@@ -153,28 +154,29 @@ export function animateExtras(c, t, v) {                // Pferdeschwanz schwing
 }
 
 // ====================================================================== Tiere
-const grey = 0x8b97ae, greyD = 0x6c7890, greyL = 0xbcc6d8;
+const grey = 0x8b97ae, greyD = 0x6c7890, greyL = 0xbcc6d8;        // Elefant (noch ohne Entwurf)
+const rGrey = 0x918c9f, rGreyD = 0x6f6a80, rGreyL = 0xbdb8ca;     // Nashorn: wärmeres Violettgrau wie im Keyart
 
 export function buildRhino() {
   const g = grp(), body = grp(0, 0, 0); g.add(body);
-  body.add(part(geo.ico, lam(grey), 0, 1.0, 0.45, 1.5, 1.35, 2.2));
-  body.add(part(geo.sph, lam(greyD), 0, 1.35, -0.25, 1.1, 0.9, 1.0));                 // Schulterbuckel
-  body.add(part(geo.sph, lam(greyL), 0, 0.62, 0.35, 1.2, 0.6, 1.6));                  // Bauch
+  body.add(part(geo.ico, lam(rGrey), 0, 1.0, 0.45, 1.5, 1.35, 2.2));
+  body.add(part(geo.sph, lam(rGreyD), 0, 1.35, -0.25, 1.1, 0.9, 1.0));                 // Schulterbuckel
+  body.add(part(geo.sph, lam(rGreyL), 0, 0.62, 0.35, 1.2, 0.6, 1.6));                  // Bauch
   const head = grp(0, 0.88, -0.95); body.add(head);
-  head.add(part(geo.sph, lam(grey), 0, 0, 0, 0.85, 0.8, 1.05));
-  head.add(part(geo.sph, lam(greyL), 0, -0.2, -0.38, 0.65, 0.4, 0.5));                // Schnauze
-  head.add(part(geo.cone, lam(0xf3e6c8), 0, 0.28, -0.52, 0.22, 0.62, 0.22, -0.55, 0, 0));    // Horn
-  head.add(part(geo.cone, lam(0xe6d6b0), 0, 0.2, -0.22, 0.14, 0.3, 0.14, -0.35, 0, 0));
+  head.add(part(geo.sph, lam(rGrey), 0, 0, 0, 0.85, 0.8, 1.05));
+  head.add(part(geo.sph, lam(rGreyL), 0, -0.2, -0.38, 0.65, 0.4, 0.5));                // Schnauze
+  head.add(part(geo.cone, lam(0xe9d5a8), 0, 0.28, -0.52, 0.22, 0.62, 0.22, -0.55, 0, 0));    // Horn
+  head.add(part(geo.cone, lam(0xdcc490), 0, 0.2, -0.22, 0.14, 0.3, 0.14, -0.35, 0, 0));
   for (const sx of [-1, 1]) {
-    head.add(part(geo.cone, lam(greyD), sx * 0.3, 0.42, 0.18, 0.2, 0.3, 0.12, 0.2, 0, sx * -0.35));  // Ohren
+    head.add(part(geo.cone, lam(rGreyD), sx * 0.3, 0.42, 0.18, 0.2, 0.3, 0.12, 0.2, 0, sx * -0.35));  // Ohren
     head.add(part(geo.sphL, lam(0x20212b), sx * 0.36, 0.1, -0.22, 0.1, 0.12, 0.08));
     head.add(part(geo.sphL, lam(0xffffff), sx * 0.375, 0.14, -0.26, 0.04, 0.04, 0.03));
   }
-  body.add(part(geo.cylL, lam(greyD), 0, 1.05, 1.52, 0.09, 0.6, 0.09, -0.9, 0, 0));    // Schwanz
+  body.add(part(geo.cylL, lam(rGreyD), 0, 1.05, 1.52, 0.09, 0.6, 0.09, -0.9, 0, 0));    // Schwanz
   const legs = [];
   for (const [x, z] of [[-0.45, -0.35], [0.45, -0.35], [-0.45, 1.05], [0.45, 1.05]]) {
     const l = grp(x, 0.7, z); g.add(l);
-    l.add(part(geo.cylL, lam(greyD), 0, -0.3, 0, 0.3, 0.62, 0.3)); l.add(part(geo.box, lam(0x57627a), 0, -0.62, -0.04, 0.34, 0.14, 0.4));
+    l.add(part(geo.cylL, lam(rGreyD), 0, -0.3, 0, 0.3, 0.62, 0.3)); l.add(part(geo.box, lam(0x5a5568), 0, -0.62, -0.04, 0.34, 0.14, 0.4));
     legs.push(l);
   }
   g.userData = { body, head, legs, kind: 'rhino' };
@@ -226,7 +228,7 @@ export function animElephant(g, t, ph = 0) {
 
 export function buildMonkey() {
   const g = grp(), body = grp(0, 0, 0); g.add(body);
-  const fur = 0x9a5a2c, furL = 0xe9b783, furD = 0x6e3d1c;
+  const fur = 0xa65f2e, furL = 0xf2c598, furD = 0x6e3d1c;
   body.add(part(geo.sph, lam(fur), 0, 0, 0, 0.55, 0.75, 0.45));                           // Rumpf
   body.add(part(geo.sph, lam(furL), 0, -0.02, -0.12, 0.38, 0.5, 0.25));                   // Bauch
   const head = grp(0, 0.5, -0.02); body.add(head);
@@ -277,34 +279,20 @@ export function buildCoconut() {
   return g;
 }
 
-// ====================================================================== Symbole (Power-ups, HUD) auf Canvas
-export const POWER_COL = { magnet: '#ef4444', shield: '#38bdf8', boost: '#a3e635', x2: '#fbbf24' };
+// ====================================================================== Symbole (Power-ups, HUD): Bilder aus assets/ (Paket A1)
+export const POWER_COL = { magnet: '#ef4444', shield: '#38bdf8', boost: '#f97316', x2: '#fbbf24' };
 export const POWER_NAME = { magnet: 'Magnet', shield: 'Schild', boost: 'Super-Sprung', x2: 'Doppelte Punkte' };
-export function drawPowerIcon(ctx, kind, x, y, s) {
-  ctx.save(); ctx.translate(x, y); ctx.scale(s / 100, s / 100);
-  const col = POWER_COL[kind];
-  const g = ctx.createRadialGradient(-12, -16, 6, 0, 0, 50); g.addColorStop(0, '#ffffff'); g.addColorStop(0.35, col); g.addColorStop(1, '#14182e');
-  ctx.beginPath(); ctx.arc(0, 0, 46, 0, 7); ctx.fillStyle = g; ctx.fill();
-  ctx.lineWidth = 6; ctx.strokeStyle = '#fff'; ctx.stroke();
-  ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#fff'; ctx.fillStyle = '#fff'; ctx.lineWidth = 9;
-  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 6;
-  if (kind === 'magnet') {
-    ctx.beginPath(); ctx.moveTo(-22, 20); ctx.lineTo(-22, -4); ctx.arc(0, -4, 22, Math.PI, 0); ctx.lineTo(22, 20); ctx.stroke();
-    ctx.fillStyle = '#ef4444'; ctx.fillRect(-27, 12, 10, 14); ctx.fillRect(17, 12, 10, 14);
-  } else if (kind === 'shield') {
-    ctx.beginPath(); ctx.moveTo(0, -28); ctx.lineTo(24, -18); ctx.quadraticCurveTo(24, 14, 0, 30); ctx.quadraticCurveTo(-24, 14, -24, -18); ctx.closePath(); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-9, 2); ctx.lineTo(-2, 10); ctx.lineTo(11, -8); ctx.stroke();
-  } else if (kind === 'boost') {
-    ctx.beginPath(); ctx.moveTo(-22, 8); ctx.lineTo(0, -22); ctx.lineTo(22, 8); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-22, 26); ctx.lineTo(0, -4); ctx.lineTo(22, 26); ctx.stroke();
-  } else {
-    ctx.font = '900 44px "Dela Gothic One","Arial Black",sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.shadowBlur = 4; ctx.fillText('×2', 0, 3);
-  }
-  ctx.restore();
+const POWER_ICON = { magnet: 'icon-magnet', shield: 'icon-schild', boost: 'icon-fluegelschuh', x2: 'icon-x2', coin: 'icon-muenze' };
+export const iconUrl = (kind) => new URL('assets/' + POWER_ICON[kind] + '.webp', import.meta.url).href;
+export function iconImg(kind, px) {                      // <img> für HUD und Meldungen, feste Größe, nie verzerrt
+  const i = new Image(); i.src = iconUrl(kind); i.alt = ''; i.width = i.height = px; i.decoding = 'async'; i.draggable = false; i.setAttribute('aria-hidden', 'true'); return i;
 }
 const iconTex = new Map();
-export function powerTexture(kind) {
+export function powerTexture(kind) {                     // Textur für den 3D-Pickup; füllt sich, sobald das Bild geladen ist
   if (iconTex.has(kind)) return iconTex.get(kind);
-  const c = document.createElement('canvas'); c.width = c.height = 128; drawPowerIcon(c.getContext('2d'), kind, 64, 64, 118);
-  const t = new T.CanvasTexture(c); iconTex.set(kind, t); return t;
+  const img = new Image(), t = new T.Texture(img);
+  t.generateMipmaps = false; t.minFilter = T.LinearFilter; t.magFilter = T.LinearFilter;
+  img.onload = () => { t.needsUpdate = true; };
+  img.src = iconUrl(kind);
+  iconTex.set(kind, t); return t;
 }

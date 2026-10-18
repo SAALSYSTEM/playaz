@@ -117,8 +117,8 @@ export function createRenderer(canvas, opts = {}) {
   const COIN_CAP = 260;
   const coinGeoA = new T.CylinderGeometry(0.34, 0.34, 0.1, 16); coinGeoA.rotateX(Math.PI / 2);
   const coinGeoB = new T.CylinderGeometry(0.22, 0.22, 0.13, 12); coinGeoB.rotateX(Math.PI / 2);
-  const coinA = new T.InstancedMesh(coinGeoA, new T.MeshLambertMaterial({ color: 0xffc928, emissive: 0x7a5200 }), COIN_CAP);
-  const coinB = new T.InstancedMesh(coinGeoB, new T.MeshLambertMaterial({ color: 0xffe9a0, emissive: 0x6b5a20 }), COIN_CAP);
+  const coinA = new T.InstancedMesh(coinGeoA, new T.MeshLambertMaterial({ color: 0xf6b300, emissive: 0x7a4a00 }), COIN_CAP);
+  const coinB = new T.InstancedMesh(coinGeoB, new T.MeshLambertMaterial({ color: 0xffd648, emissive: 0x6b4a10 }), COIN_CAP);
   for (const m of [coinA, coinB]) { m.frustumCulled = false; m.instanceMatrix.setUsage(T.DynamicDrawUsage); m.count = 0; scene.add(m); }
   const dummy = new T.Object3D();
   const pupViews = new Map();
