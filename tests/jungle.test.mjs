@@ -114,6 +114,17 @@ test('Grafikpaket B: Boden-, Holz-, Stein- und Wassertexturen sind geladen und i
   await ctx.close();
 });
 
+test('Grafikpaket C: Gesicht ist ein geladenes Bild auf dem Kopf (Junge und Mädchen), keine alten Augen-Meshes', async () => {
+  const { ctx, page, fehler, anfragen } = await seite(MOBIL);
+  await page.evaluate(() => { __jr.starteLevel(1); __jr.beginne(); }); await warte(600);
+  const f = async () => page.evaluate(() => { const h = __jr.R.getChar().head; const m = h.children.find((c) => c.material && c.material.map && c.material.transparent); return { ok: !!m && m.material.map.image.complete && m.material.map.image.naturalWidth > 0, anzahl: h.children.length }; });
+  const boy = await f(); assert.ok(boy.ok, 'Jungen-Gesicht geladen'); assert.ok(anfragen.some((u) => u.includes('gesicht-junge')));
+  await page.evaluate(() => { __jr.stand.char.kind = 'girl'; __jr.R.setChar('girl', __jr.stand.char.outfit); }); await warte(400);
+  const girl = await f(); assert.ok(girl.ok, 'Mädchen-Gesicht geladen'); assert.ok(anfragen.some((u) => u.includes('gesicht-maedchen')));
+  assert.deepEqual(fehler, []);
+  await ctx.close();
+});
+
 test('Werbefrei: nur eigene Anfragen (plus Schriften), kein Login, keine Fremdskripte', async () => {
   const { ctx, page, anfragen } = await seite();
   await page.evaluate(() => __jr.starteLevel(1)); await warte(800);

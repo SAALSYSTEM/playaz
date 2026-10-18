@@ -45,6 +45,7 @@ export function createRenderer(canvas, opts = {}) {
     return new T.MeshLambertMaterial({ vertexColors: true, map: t, alphaTest: d.alphaTest || 0 });
   });
   const waterLoad = loadTex('tex-wasser.webp', true); texLoads.push(waterLoad.p);
+  texLoads.push(C.faceReady);
   const worldGroup = new T.Group(); scene.add(worldGroup);
   const chunks = new Map();
   let level = null, W = WORLDS[0], worldIdx = 0, curSkyKey = '';

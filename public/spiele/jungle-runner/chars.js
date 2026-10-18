@@ -13,6 +13,18 @@ const geo = {
 };
 const part = (g, m, x, y, z, sx, sy, sz, rx = 0, ry = 0, rz = 0) => { const o = new T.Mesh(g, m); o.position.set(x, y, z); o.scale.set(sx, sy, sz); o.rotation.set(rx, ry, rz); return o; };
 const grp = (x = 0, y = 0, z = 0) => { const g = new T.Group(); g.position.set(x, y, z); return g; };
+// Gesichter (Paket C): transparente PNGs, als Abziehbild auf ein Kugelstück vor dem Kopf gelegt (Nase und Ohren bleiben Körper)
+const FACE_FILE = { boy: 'gesicht-junge.png', girl: 'gesicht-maedchen.png' };
+const faceTex = {};
+export const faceReady = Promise.all(Object.keys(FACE_FILE).map((k) => new Promise((ok) => {
+  const img = new Image(), t = new T.Texture(img); t.anisotropy = 4; faceTex[k] = t;
+  img.onload = () => { t.needsUpdate = true; ok(); }; img.onerror = () => ok();
+  img.src = new URL('assets/' + FACE_FILE[k], import.meta.url).href;
+})));
+const FACE_SPAN = 2.2;                                  // Bogenmaß, das das 256-px-Bild auf dem Kopf abdeckt (Augenabstand ≈ 0,16 m)
+const faceGeo = new T.SphereGeometry(0.5, 20, 14, Math.PI * 1.5 - FACE_SPAN / 2, FACE_SPAN, Math.PI / 2 - 0.1 - FACE_SPAN / 2, FACE_SPAN);
+const faceMats = {};
+const faceMat = (k) => faceMats[k] || (faceMats[k] = new T.MeshLambertMaterial({ map: faceTex[k], transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
 const approach = (a, b, k) => a + (b - a) * Math.min(1, k);
 
 // ====================================================================== Kleidung (nur Optik, kein Spielvorteil)
@@ -52,13 +64,8 @@ export function buildChar(kind, outfit) {
   const head = grp(0, 0.5, 0); torso.add(head);
   head.add(part(geo.sph, lam(skin), 0, 0.08, 0, 0.5, 0.5, 0.5));
   head.add(part(geo.sph, lam(skin), 0, 0.02, -0.255, 0.07, 0.065, 0.06));                // Nase
-  for (const sx of [-1, 1]) {
-    head.add(part(geo.sphL, lam(0x20212b), sx * 0.09, 0.115, -0.222, 0.08, 0.1, 0.05));  // Augen
-    head.add(part(geo.sphL, lam(0xffffff), sx * 0.083, 0.14, -0.248, 0.03, 0.03, 0.02));
-    head.add(part(geo.sphL, lam(0xff9aa2, { transparent: true, opacity: 0.55 }), sx * 0.15, 0.04, -0.2, 0.08, 0.05, 0.03)); // Wangen
-    head.add(part(geo.sph, lam(skin), sx * 0.25, 0.07, 0.0, 0.07, 0.11, 0.07));          // Ohren
-  }
-  head.add(part(geo.box, lam(0x8a2b3a), 0, -0.04, -0.238, 0.1, 0.022, 0.03));            // Mund
+  for (const sx of [-1, 1]) head.add(part(geo.sph, lam(skin), sx * 0.25, 0.07, 0.0, 0.07, 0.11, 0.07));   // Ohren
+  head.add(part(faceGeo, faceMat(girl ? 'girl' : 'boy'), 0, 0.08, 0, 0.51, 0.51, 0.51));                    // Gesicht (Augen, Brauen, Mund, Wangen)
   // Haare: Kappe, nach hinten gekippt, damit das Gesicht frei bleibt
   const hair = grp(0, 0.1, 0.035); head.add(hair);
   hair.add(part(geo.cap, lam(hairC), 0, 0, 0, 0.56, 0.56, 0.56, 0.62, 0, 0));

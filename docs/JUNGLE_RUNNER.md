@@ -22,7 +22,7 @@ Adresse: `/spiele/jungle-runner` · Spielstand: `localStorage` → `jungle.v1` (
 | `public/spiele/jungle-runner/audio.js` | Ton komplett synthetisch (WebAudio), Marimba/Bongo-Schleife, Ein/Aus im Spielstand |
 | `tools/jungle-pruefer.mjs` | **Streckenprüfer**: sucht auf der echten Sim eine kollisionsfreie Route und prüft Reaktionszeiten |
 | `tests/jungle-sim.test.mjs` | 18 Tests ohne Browser |
-| `tests/jungle.test.mjs` | 24 Browser-Tests (Playwright gegen `wrangler dev`) |
+| `tests/jungle.test.mjs` | 25 Browser-Tests (Playwright gegen `wrangler dev`) |
 | `tests/jungle-loesungen.json` | Prüfer-Lösungen aller 30 Level (Regressionstest) |
 | `public/spiele/jungle-runner/assets/` | Grafikpaket A1 von ChatGPT, Laufzeit-Dateien als WebP: `logo.webp` (zugeschnitten), `keyart.webp`, `icon-muenze/magnet/schild/fluegelschuh/x2.webp` (256², optisch gleich groß zentriert). `design/jungle-runner/a1/` hält die unveränderten Lieferdateien (PNG/WebP) als Quelle |
 | `public/bilder/jungle-runner.jpg` | Kachelbild der Startseite 960×600, zugeschnitten aus dem Keyart |
@@ -60,12 +60,13 @@ Letzter Lauf (18.10.2026, 30 Level): alle 30 `OK` (fein = ja, robust = ja/ja/ja,
 - **Keyart** als Menü-Titelbild (Hochformat: Banner oben mit Übergang, sonst vollflächig mit dunklem Verlauf links), als Ladebildschirm (`#sLade` im HTML, sichtbar bevor das Skript läuft, blendet aus, sobald Menü oder Figurenwahl dran ist), als Kachelbild und als Social-Preview.
 - **Icons**: Münze im HUD, in Menü/Garage-Kontostand und in den Ergebnis-/Verloren-Zahlen; Magnet, Schild, Flügelschuh (= Super-Sprung), ×2 als 3D-Pickup, im HUD-Balken der aktiven Kräfte, in der Meldung beim Einsammeln und als Legende in „So geht's“. Die 3D-Münzen im Lauf bleiben Zylinder, nur in der Farbe ans Keyart angepasst.
 - **Figuren/Tiere nur farblich** ans Keyart angepasst, Modelle unverändert: Outfit „Entdecker“ trägt jetzt den Safarihut mit dunklem Band, olivgrünes Shirt, rote Rucksacktasche und braune Stiefel; Nashorn mit wärmerem Violettgrau und Horn in Creme; Affe etwas wärmer. Elefant unverändert (kein Entwurf geliefert). Das gekaufte Outfit „Safari“ ist cremeweiß mit weißem Hut, braunen Hosen und grüner Tasche und damit klar vom Entdecker zu unterscheiden.
-- **Noch offen**: C (Gesichtsdetails).
+- **Alle Pakete (A1, A2, B, C) sind eingebaut.**
 
-## Grafikpakete A2 und B (eingebaut)
+## Grafikpakete A2, B und C (eingebaut)
 
 - **A2**: `icon-herz/stern/stern-leer/pause/ton-an/ton-aus.png` ersetzen die Inline-SVGs (Leben-Anzeige, Level- und Ergebnissterne, Kriterien, Pause- und Ton-Knopf). Das leere Herz ist per CSS abgedunkelt. Pause/Ton sind Bild-Knöpfe ohne eigenen Rahmen (orange); Neustart und Musik bleiben dunkle Rahmen-Knöpfe, weil dafür keine Bilder geliefert wurden.
 - **B**: `tex-*.webp/png` als Kacheln. `geo.js` (`MB.tex(name)`, `LAYERS`, `LAYER_DEF`) schreibt Körper in Texturschichten derselben Chunk-Geometrie (Gruppen + Materialarray, UVs aus Weltkoordinaten nach Flächenrichtung; Zylinder: eigene UV; Stammenden: lokale UV). Zugeordnet in `world.js`: Wiese = Gras, Wegplatten/Säulen/Ruinen = Tempelstein, Brücke/Rampen = Holzbohlen, Stämme/Baumstämme = Rinde (+ Stammschnitt an den Enden, alphaTest), Schlamm, Felsen = Stein-Moos; Wasser = `tex-wasser` (Farbton je Welt über `waterMat.color`). Die Vertexfarbe der Welt bleibt als Tönung erhalten (`tint`/`gain`). Texturen werden beim Start geladen und auf höchstens 512 px verkleinert (Grafikspeicher ca. 10 MB statt 40 MB); der Ladebildschirm wartet bis zu 3 s darauf.
+- **C**: `gesicht-junge/maedchen.png` (transparent, nur Augen, Brauen, Mund, beim Mädchen Wangen) liegen als Abziehbild auf einem Kugelstück vor dem Kopf (`faceGeo` in `chars.js`, Bild deckt 2,2 rad ab, transparent, kein Tiefenschreiben, Polygon-Offset). Die alten Augen-, Wangen- und Mund-Körper entfallen; Nase und Ohren bleiben Körper. Die Garderoben-Kärtchen zeigen weiterhin ihre eigenen Vorschaubilder.
 - Kosten: Zeichenaufrufe von 62 auf ca. 90 (Grenze 160), Dreiecke unverändert; das Savannen-Gras (Welt 3) wirkt durch die grüne Textur grüner als vorher.
 
 ## Temporäre Grafik – ehrliche Einordnung
@@ -133,6 +134,7 @@ Befehle: `node --test tests/jungle-sim.test.mjs`, `node --test --test-concurrenc
 | Grafikpaket A1: Bilder laden unverzerrt, Ladebildschirm weg, Power-up-Symbole im HUD | Browser | ja | bestanden | – |
 | Grafikpaket A2: Herzen, Pause, Ton als Bilder, kein Inline-SVG | Browser | ja | bestanden | – |
 | Grafikpaket B: Texturen geladen, Texturgruppen in den Stücken | Browser | ja | bestanden | – |
+| Grafikpaket C: Gesichtsbild auf dem Kopf (Junge und Mädchen) | Browser | ja | bestanden | – |
 | Menü, Lauf, Levelkarte, Hilfe, Garage, Ergebnis bei 375/390 px sowie 800×390 und 1440×900 | manuell (Screenshots) | ja | gesichtet | – |
 | Ladezeit Menü (4 Mbit/s, 60 ms, Software-GL) | manuell | ja | 2,5 s statt 2,1 s auf main, +190 KB | – |
 | Optik der Platzhalter-Modelle aus der Nähe, Qualitätsstufen | manuell | teilweise | Screenshots gesichtet | finale Assets stehen aus (siehe Tabelle oben) |
