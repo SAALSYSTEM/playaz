@@ -37,7 +37,7 @@
   const handlers = {};
   const on = (ev, fn) => { (handlers[ev] = handlers[ev] || []).push(fn); };
   const emit = (ev, a) => { (handlers[ev] || []).slice().forEach((f) => { try { f(a); } catch (e) {} }); };
-  const gueltigerRueckweg = (p) => typeof p === 'string' && /^\/(?!\/)[A-Za-z0-9\-._~\/%?=&#,+:@!$*;]{0,300}$/.test(p) && !p.startsWith('/konto');
+  const gueltigerRueckweg = (p) => typeof p === 'string' && /^\/(?!\/)[A-Za-z0-9\-._~\/%?=&#,+:@!$*;]{0,300}$/.test(p) && !p.startsWith('/konto') && !p.includes('..');
   const testlauf = () => !!(navigator.webdriver || C.test || /[?&]playsaal-test\b/.test(location.search) || ss.get('playsaal.test') === '1');
 
   // ---------------------------------------------------------------- Zustand
@@ -431,6 +431,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{
 .fab button{height:36px;min-width:36px;border-radius:18px;border:1px solid rgba(246,247,249,.22);background:rgba(17,18,26,.72);color:#f6f7f9;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;opacity:.6;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .fab button:hover,.fab button:focus-visible{opacity:1}
 .fab svg{width:16px;height:16px}
+.fab .pill[hidden]{display:none}
 .fab .pill{max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fab .pill[data-s="ok"]::before{content:"";width:8px;height:8px;border-radius:50%;background:#FFD21C;display:inline-block}
 .fab .pill[data-s="ausstehend"]::before,.fab .pill[data-s="offline"]::before,.fab .pill[data-s="speichert"]::before{content:"";width:8px;height:8px;border-radius:50%;background:#FF9200;display:inline-block}
@@ -477,9 +478,15 @@ label.ck input{width:20px;height:20px;margin-top:2px;accent-color:#FFD21C}
     const ICON = { flagge: 'M5 21V4M5 4h11l-2 4 2 4H5', google: 'M21 12.2c0-.6 0-1.1-.1-1.6H12v3.1h5a4.3 4.3 0 0 1-1.9 2.8v2.3h3A9 9 0 0 0 21 12.2zM12 21c2.4 0 4.5-.8 6-2.2l-3-2.3a5.6 5.6 0 0 1-8.3-2.9H3.6v2.4A9 9 0 0 0 12 21zM6.7 13.6a5.4 5.4 0 0 1 0-3.2V8H3.6a9 9 0 0 0 0 8.1zM12 6.6c1.3 0 2.5.5 3.5 1.4l2.6-2.6A9 9 0 0 0 3.6 8l3.1 2.4A5.4 5.4 0 0 1 12 6.6z', apple: 'M12 7.5c-3 0-5 2.4-5 5.800 0 3.400 2 6.700 4 6.700.8 0 1-.4 1-.4s.2.4 1 .4c2 0 4-3.300 4-6.700 0-3.400-2-5.800-5-5.800zM12 7.500c0-2 1-3.500 3-4.500', mail: 'M3 6h18v12H3zM3 7l9 6 9-6' };
 
     let aktiv = null;
+    // Dialoge laufen nacheinander: ein neuer wartet, bis der offene geschlossen ist (nichts wird weggedrückt, z. B. die Übernahme-Frage).
+    let kette = Promise.resolve();
     function dialog(inhalt, opts) {
+      const lauf = kette.then(() => oeffneDialog(inhalt, opts));
+      kette = lauf.catch(() => {});
+      return lauf;
+    }
+    function oeffneDialog(inhalt, opts) {
       montieren();
-      if (aktiv) { try { aktiv.close(); } catch (e) {} }
       const d = el('dialog', { 'aria-label': opts && opts.label || 'PlaySaal' });
       const zu = (ergebnis) => { d._ergebnis = ergebnis; try { d.close(); } catch (e) {} };
       const box = el('div', { class: 'in' });
@@ -645,11 +652,12 @@ label.ck input{width:20px;height:20px;margin-top:2px;accent-color:#FFD21C}
       const pill = el('button', { type: 'button', class: 'pill' });
       const zeigePill = () => {
         const st = S.sync;
-        if (!HOST_OK || !(C.anmelden && (C.anmelden.email || C.anmelden.google || C.anmelden.apple)) && !S.user) { pill.hidden = true; return; }
+        const a = S.anbieterCache; if (!S.user && (!HOST_OK || !a || !(a.email || a.google || a.apple))) { pill.hidden = true; return; }
         pill.hidden = false; pill.dataset.s = st; pill.textContent = SYNC_TEXT[st] || ''; pill.title = S.user ? 'Konto öffnen' : 'Anmelden, um Fortschritt zu sichern';
       };
       pill.addEventListener('click', () => { if (S.user) location.href = '/konto'; else anmelden(); });
       fab.append(pill); wrap.append(fab); zeigePill();
+      if (HOST_OK && C.anmelden && (C.anmelden.email || C.anmelden.google || C.anmelden.apple)) anbieter().then(zeigePill);
       on('sync', zeigePill); on('auth', zeigePill);
       return fab;
     }
