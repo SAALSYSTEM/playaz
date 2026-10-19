@@ -12,7 +12,11 @@ export const C = {
   nut: 52,          // Trefferzone der Kokosnuss
   stun: 54,         // Schritte "Bonk" bis zum Rücksetzpunkt
   nudge: 16,        // Schritte, die das schnarchende Monster den Dino zurückschiebt
-  warn: 66, fall: 14, hit: 12 // Kokosnuss: Schatten, Fallen, liegt am Boden
+  warn: 66, fall: 14, hit: 12, // Kokosnuss: Schatten, Fallen, liegt am Boden
+  slide: 54,        // Schritte, die die Rutsche braucht
+  bw: 170,          // Breite der Fahr-Brücke
+  dwell: 72,        // so lange steht die Brücke an jedem Ende still (1,2 s, genug zum Aufsteigen)
+  wake: 66, warnW: 48 // Wechsel-Monster: wach, davor blinzelt es
 };
 export const STORE = 'dinoleiter.v1';
 
@@ -30,6 +34,28 @@ const arr = (lv, k) => lv[k] || [];
 export function nutPhase(nut, clock) { return (clock + (nut.offset || 0)) % nut.period; }
 export function nutDanger(nut, clock) { const p = nutPhase(nut, clock); return p >= nut.period - 6 || p < C.hit; }
 
+// Rutsche: Einstieg auf Etage f+1 bei x, Ausstieg auf Etage f seitlich versetzt (dir 1 = rechts, -1 = links).
+export const slideDx = (gap) => Math.round(((gap + 30) * 1.229 - 80) / 10) * 10; // auf 10er gerundet wie das Raster des Lösers
+export const slideExit = (lv, sl) => sl.x + (sl.dir || 1) * slideDx(layout(lv).gap);
+
+// Fahr-Brücke über eine Lücke [a, b] einer Etage: pendelt in festem Takt, steht an beiden Enden kurz still.
+const bridgeCycle = (br, clock) => { const P = br.period, m = (P - 2 * C.dwell) / 2; return { p: (clock + (br.offset || 0)) % P, m }; };
+export function bridgeLo(br, clock) {
+  const { p, m } = bridgeCycle(br, clock), D = C.dwell, travel = br.b - br.a - C.bw;
+  const t = p < D ? 0 : p < D + m ? (p - D) / m : p < 2 * D + m ? 1 : 1 - (p - 2 * D - m) / m;
+  return br.a + t * travel;
+}
+// -1: steht am linken Ende, 1: steht am rechten Ende, 0: fährt
+export function bridgeDock(br, clock) {
+  const { p, m } = bridgeCycle(br, clock), D = C.dwell;
+  return p < D ? -1 : p >= D + m && p < 2 * D + m ? 1 : 0;
+}
+
+// Wechsel-Monster: schläft, blinzelt kurz vor dem Aufwachen, ist dann wach und versperrt den Weg.
+export const wakerPhase = (w, clock) => (clock + (w.offset || 0)) % w.period;
+export const wakerAwake = (w, clock) => wakerPhase(w, clock) >= w.period - C.wake;
+export const wakerWarn = (w, clock) => { const p = wakerPhase(w, clock); return p >= w.period - C.wake - C.warnW && p < w.period - C.wake; };
+
 export function newState(lv) {
   const { gap } = layout(lv);
   return {
@@ -38,7 +64,8 @@ export function newState(lv) {
     carry: -1, got: lv.friends.map(() => 0), order: [], fed: arr(lv, 'monsters').map(() => false),
     taken: arr(lv, 'fruits').map(() => false), on: arr(lv, 'levers').map(() => false),
     vis: lv.ladders.map((l) => !l.hidden), cp: { f: lv.start.f, x: lv.start.x },
-    stun: 0, nudge: 0, nudgeV: 0, events: [], lastSnore: -999, lastLocked: -999
+    stun: 0, nudge: 0, nudgeV: 0, events: [], lastSnore: -999, lastLocked: -999, lastGrumble: -999,
+    ride: -1, off: 0, slide: -1, sp: 0
   };
 }
 export const gotAll = (s) => s.got.every(Boolean);
@@ -55,12 +82,25 @@ export function step(s, ix = 0, iy = 0) {
   s.clock++; s.speed = 0; s.climbing = 0;
   if (s.done) return s;
   if (s.started) s.time++;
+  arr(lv, 'wakers').forEach((w, i) => { if (wakerAwake(w, s.clock) && !wakerAwake(w, s.clock - 1)) ev(s, 'wake', { m: i }); });
   if (s.stun > 0) {
-    if (--s.stun === 0) { s.f = s.cp.f; s.x = s.cp.x; s.ladder = -1; s.p = 0; ev(s, 'respawn'); }
+    if (--s.stun === 0) { s.f = s.cp.f; s.x = s.cp.x; s.ladder = -1; s.p = 0; s.ride = -1; s.slide = -1; ev(s, 'respawn'); }
     return s;
   }
   if (!s.started && Math.hypot(ix, iy) > 0.2) s.started = true;
-  if (s.nudge > 0) { s.nudge--; ix = 0; iy = 0; const seg = segOf(lv, s.f, s.x); s.x = clamp(s.x + s.nudgeV / HZ, seg[0] + C.edge, seg[1] - C.edge); }
+  if (s.slide >= 0) return slideTick(s);
+  if (s.ride >= 0) s.x = bridgeLo(lv.bridges[s.ride], s.clock) + s.off; // die Brücke nimmt den Dino mit
+  // Wach-Monster: wer drinsteht, wenn es aufwacht, wird sanft hinausgeschoben
+  if (s.ladder < 0 && s.ride < 0) {
+    for (const w of arr(lv, 'wakers')) {
+      if (w.f !== s.f || !wakerAwake(w, s.clock) || Math.abs(s.x - w.x) >= C.monster) continue;
+      const [lo, hi] = walkRange(s);
+      s.x = clamp(s.x + (s.x < w.x ? -1 : 1) * 220 / HZ, lo, hi);
+      if (s.clock - s.lastGrumble > 50) { s.lastGrumble = s.clock; ev(s, 'grumble', { m: arr(lv, 'wakers').indexOf(w) }); }
+      touch(s); return s;
+    }
+  }
+  if (s.nudge > 0) { s.nudge--; ix = 0; iy = 0; const [lo, hi] = walkRange(s); s.x = clamp(s.x + s.nudgeV / HZ, lo, hi); }
 
   if (s.ladder >= 0) {
     const l = lv.ladders[s.ladder];
@@ -73,20 +113,25 @@ export function step(s, ix = 0, iy = 0) {
     if (s.ladder >= 0) return s;
   } else {
     // Greifen: Hoch/Runter deutlich stärker als seitlich, Leiter in Reichweite
-    if (Math.abs(iy) > 0.45 && Math.abs(iy) >= Math.abs(ix) * 0.75) {
+    if (s.ride < 0 && Math.abs(iy) > 0.45 && Math.abs(iy) >= Math.abs(ix) * 0.75) {
       const up = iy > 0; let best = -1, bd = Infinity;
       lv.ladders.forEach((l, i) => {
         if (!s.vis[i] || (up ? l.f !== s.f : l.f + 1 !== s.f)) return;
         const d = Math.abs(l.x - s.x); if (d <= C.grab && d < bd) { bd = d; best = i; }
       });
       if (best >= 0) { s.ladder = best; s.p = up ? 0 : 1; ev(s, 'grab'); return s; }
+      if (!up) { // Rutsche: am Einstieg nach unten ziehen
+        let sb = -1, sd = Infinity;
+        arr(lv, 'slides').forEach((sl, i) => { const d = Math.abs(sl.x - s.x); if (sl.f + 1 === s.f && d <= C.grab && d < sd) { sd = d; sb = i; } });
+        if (sb >= 0) { const sl = lv.slides[sb]; s.slide = sb; s.sp = 0; s.x = sl.x; s.face = sl.dir || 1; ev(s, 'slide', { i: sb }); return s; }
+      }
     }
     const a = Math.abs(ix);
     if (a > 0.18) {
       const dir = Math.sign(ix), sp = C.walk * Math.min(1, (a - 0.18) / 0.45 + 0.2);
       s.face = dir; s.speed = sp;
-      const seg = segOf(lv, s.f, s.x);
-      let nx = clamp(s.x + dir * sp / HZ, seg[0] + C.edge, seg[1] - C.edge);
+      const [rlo, rhi] = walkRange(s);
+      let nx = clamp(s.x + dir * sp / HZ, rlo, rhi);
       arr(lv, 'monsters').forEach((m, i) => {
         if (s.fed[i] || m.f !== s.f) return;
         const lo = m.x - C.monster, hi = m.x + C.monster;
@@ -98,11 +143,53 @@ export function step(s, ix = 0, iy = 0) {
           if (s.clock - s.lastSnore > 50) { s.lastSnore = s.clock; ev(s, 'snore', { m: i }); }
         }
       });
+      arr(lv, 'wakers').forEach((w, i) => { // wach: versperrt den Weg, schiebt sanft zurück; schlafend: einfach vorbeigehen
+        if (w.f !== s.f || !wakerAwake(w, s.clock)) return;
+        const lo = w.x - C.monster, hi = w.x + C.monster;
+        const side = s.x <= lo && nx > lo ? -1 : s.x >= hi && nx < hi ? 1 : 0;
+        if (!side) return;
+        nx = side < 0 ? lo : hi; s.nudge = C.nudge; s.nudgeV = side * 160;
+        if (s.clock - s.lastGrumble > 50) { s.lastGrumble = s.clock; ev(s, 'grumble', { m: i }); }
+      });
       s.x = nx;
     }
+    updateRide(s);
   }
   touch(s);
   return s;
+}
+
+function slideTick(s) {
+  const sl = s.lv.slides[s.slide];
+  s.sp += 1 / C.slide;
+  if (s.sp >= 1) { const x = slideExit(s.lv, sl); s.f = sl.f; s.x = x; s.slide = -1; s.sp = 0; s.cp = { f: sl.f, x }; ev(s, 'arrive'); touch(s); }
+  return s;
+}
+
+// Wie weit darf der Dino auf seiner Plattform (oder der Brücke) laufen? Steht die Brücke am Rand, gehört sie dazu.
+function walkRange(s) {
+  const lv = s.lv, bs = arr(lv, 'bridges');
+  if (s.ride >= 0) {
+    const br = bs[s.ride], lo = bridgeLo(br, s.clock), d = bridgeDock(br, s.clock);
+    return [d === -1 ? segOf(lv, s.f, br.a)[0] + C.edge : lo + 8, d === 1 ? segOf(lv, s.f, br.b)[1] - C.edge : lo + C.bw - 8];
+  }
+  const seg = segOf(lv, s.f, s.x);
+  let a = seg[0] + C.edge, b = seg[1] - C.edge;
+  bs.forEach((br) => {
+    if (br.f !== s.f) return;
+    const lo = bridgeLo(br, s.clock), d = bridgeDock(br, s.clock);
+    if (seg[1] === br.a && d === -1) b = lo + C.bw - 8;
+    if (seg[0] === br.b && d === 1) a = lo + 8;
+  });
+  return [a, b];
+}
+function updateRide(s) {
+  s.ride = -1;
+  arr(s.lv, 'bridges').forEach((br, i) => {
+    if (br.f !== s.f) return;
+    const lo = bridgeLo(br, s.clock);
+    if (s.x > lo + 0.5 && s.x < lo + C.bw - 0.5) { s.ride = i; s.off = s.x - lo; }
+  });
 }
 
 function touch(s) {
@@ -133,11 +220,33 @@ export function validate(lv) {
   });
   arr(lv, 'levers').forEach((o, i) => { const l = lv.ladders[o.ladder]; if (!l || !l.hidden) err.push(`Hebel ${i}: braucht versteckte Leiter`); });
   lv.ladders.forEach((l, i) => { if (l.hidden && !arr(lv, 'levers').some((o) => o.ladder === i)) err.push(`Leiter ${i} versteckt ohne Hebel`); });
-  const ends = (f) => lv.ladders.filter((l) => l.f === f || l.f + 1 === f).map((l) => l.x);
+  arr(lv, 'slides').forEach((sl, i) => {
+    const x2 = slideExit(lv, sl);
+    if (!(n >= 2 && sl.f >= 0 && sl.f < n - 1)) { err.push(`Rutsche ${i}: Etage`); return; }
+    if (!inSeg(sl.f + 1, sl.x)) err.push(`Rutsche ${i}: Einstieg ${sl.x} liegt nicht auf einer Plattform`);
+    if (!inSeg(sl.f, x2)) err.push(`Rutsche ${i}: Ausstieg ${x2} liegt nicht auf einer Plattform`);
+    lv.ladders.forEach((l, j) => { if (l.f === sl.f && Math.abs(l.x - sl.x) < 130) err.push(`Rutsche ${i}: Leiter ${j} am Einstieg zu nah`); });
+    arr(lv, 'slides').forEach((k, j) => { if (j > i && k.f === sl.f && Math.abs(k.x - sl.x) < 160) err.push(`Rutsche ${i}/${j} zu nah`); });
+  });
+  arr(lv, 'bridges').forEach((br, i) => {
+    const segs = lv.floors[br.f] || [];
+    if (!segs.some(([, e]) => e === br.a) || !segs.some(([s0]) => s0 === br.b)) err.push(`Brücke ${i}: Lücke ${br.a}-${br.b} passt nicht zu den Plattformen`);
+    if (!(br.b - br.a >= C.bw + 100 && br.b - br.a <= 480)) err.push(`Brücke ${i}: Lücke muss ${C.bw + 100} bis 480 breit sein`);
+    if (!(br.period >= 2 * C.dwell + 140 && (br.period - 2 * C.dwell) % 2 === 0)) err.push(`Brücke ${i}: Takt`);
+  });
+  const ends = (f) => [...lv.ladders.filter((l) => l.f === f || l.f + 1 === f).map((l) => l.x),
+    ...arr(lv, 'slides').flatMap((sl) => (sl.f + 1 === f ? [sl.x] : sl.f === f ? [slideExit(lv, sl)] : []))];
   arr(lv, 'monsters').forEach((m, i) => {
     if (!inSeg(m.f, m.x, 0)) err.push(`Monster ${i}: Plattform`);
     for (const [k, o] of pts) if (o.f === m.f && Math.abs(o.x - m.x) < C.monster + C.pick) err.push(`Monster ${i}: ${k} zu nah`);
     for (const x of ends(m.f)) if (Math.abs(x - m.x) < C.monster + 40) err.push(`Monster ${i}: Leiter zu nah`);
+  });
+  arr(lv, 'wakers').forEach((w, i) => {
+    const z = C.monster + 30, seg = segOf(lv, w.f, w.x);
+    if (!seg || !inSeg(w.f, w.x - z) || !inSeg(w.f, w.x + z) || segOf(lv, w.f, w.x - z) !== seg) err.push(`Wechsel-Monster ${i}: Platz auf der Plattform`);
+    if (!(w.period >= 220)) err.push(`Wechsel-Monster ${i}: Takt`);
+    for (const [k, o] of pts) if (o.f === w.f && Math.abs(o.x - w.x) < C.monster + C.pick + 20) err.push(`Wechsel-Monster ${i}: ${k} zu nah`);
+    for (const x of ends(w.f)) if (Math.abs(x - w.x) < C.monster + 40) err.push(`Wechsel-Monster ${i}: Leiter oder Rutsche zu nah`);
   });
   if (arr(lv, 'fruits').length < arr(lv, 'monsters').length) err.push('zu wenige Früchte');
   arr(lv, 'nuts').forEach((nt, i) => {
@@ -182,7 +291,7 @@ export function solve(lv) {
     for (const dir of [-1, 1]) {
       const nx = clamp(st.x + dir * cell, seg[0] + C.edge, seg[1] - C.edge);
       if (nx === st.x) continue;
-      let ns = { ...st, x: nx }, blocked = false;
+      let ns = { ...st, x: nx, via: null }, blocked = false;
       M.forEach((m, i) => {
         if (blocked || (ns.fed >> i & 1) || m.f !== st.f) return;
         const lo = m.x - C.monster, hi = m.x + C.monster;
@@ -192,8 +301,19 @@ export function solve(lv) {
     }
     lv.ladders.forEach((l, i) => {
       if (!visible(st, i) || Math.abs(l.x - st.x) > C.grab) return;
-      if (l.f === st.f) next.push([gap / C.climb + 0.1, apply({ ...st, f: l.f + 1, x: l.x })]);
-      else if (l.f + 1 === st.f) next.push([gap / C.climb + 0.1, apply({ ...st, f: l.f, x: l.x })]);
+      if (l.f === st.f) next.push([gap / C.climb + 0.1, apply({ ...st, f: l.f + 1, x: l.x, via: null })]);
+      else if (l.f + 1 === st.f) next.push([gap / C.climb + 0.1, apply({ ...st, f: l.f, x: l.x, via: null })]);
+    });
+    // Rutsche: nur nach unten; Wechsel-Monster sind immer passierbar (der Bot wartet auf das Schlafen)
+    arr(lv, 'slides').forEach((sl, i) => {
+      if (sl.f + 1 === st.f && Math.abs(sl.x - st.x) <= C.grab) next.push([C.slide / HZ + 0.2, apply({ ...st, f: sl.f, x: slideExit(lv, sl), via: 's' + i })]);
+    });
+    // Fahr-Brücke: von einem Lückenrand zum anderen, Kosten = im Schnitt warten + fahren
+    arr(lv, 'bridges').forEach((br, i) => {
+      if (br.f !== st.f || !seg) return;
+      const cost = (br.period / 2 + 60) / HZ;
+      if (seg[1] === br.a && st.x >= seg[1] - C.edge - 0.5) next.push([cost, apply({ ...st, x: segOf(lv, br.f, br.b)[0] + C.edge, via: 'b' + i })]);
+      if (seg[0] === br.b && st.x <= seg[0] + C.edge + 0.5) next.push([cost, apply({ ...st, x: segOf(lv, br.f, br.a)[1] - C.edge, via: 'b' + i })]);
     });
     for (const [c, ns] of next) {
       const nk = key(ns), nd = d + c;
@@ -208,7 +328,9 @@ export function playPath(lv, path, maxSeconds = 300) {
   const plan = [];
   for (let i = 1; i < path.length; i++) {
     const a = path[i - 1], b = path[i];
-    if (b.f !== a.f) plan.push({ climb: b.f > a.f ? 1 : -1, f: b.f, x: b.x });
+    if (b.via && b.via[0] === 's') plan.push({ slide: Number(b.via.slice(1)), f: b.f, x: b.x });
+    else if (b.via && b.via[0] === 'b') plan.push({ bridge: Number(b.via.slice(1)), dir: Math.sign(b.x - a.x), f: b.f, x: b.x });
+    else if (b.f !== a.f) plan.push({ climb: b.f > a.f ? 1 : -1, f: b.f, x: b.x });
     else { const last = plan[plan.length - 1]; if (last && last.walk && last.f === b.f && Math.sign(b.x - a.x) === last.dir) last.x = b.x; else plan.push({ walk: 1, f: b.f, x: b.x, dir: Math.sign(b.x - a.x) }); }
   }
   const s = newState(lv); let k = 0, guard = 0;
@@ -220,18 +342,51 @@ export function playPath(lv, path, maxSeconds = 300) {
     for (let t = 1; t <= ticks; t++) if (nutDanger(n, s.clock + t)) return true;
     return false;
   });
+  // Wechsel-Monster: nur losgehen, wenn es die ganze Strecke durch seinen Bereich schläft
+  const wakeWait = (dir) => arr(lv, 'wakers').some((w) => {
+    if (w.f !== s.f) return false;
+    const z = C.monster + 4, nx = s.x + dir * C.walk / HZ * 2;
+    if (Math.abs(s.x - w.x) < z || Math.abs(nx - w.x) >= z) return false;
+    const ticks = Math.ceil((2 * z + 40) / (C.walk * 0.85) * HZ) + 14;
+    for (let t = 1; t <= ticks; t++) if (wakerAwake(w, s.clock + t)) return true;
+    return false;
+  });
+  // Brücke: am Rand warten, bis sie frisch angelegt hat, aufsteigen, mitfahren, am anderen Ende absteigen
+  const bridgeStep = (a) => {
+    const br = lv.bridges[a.bridge], dir = a.dir, d = bridgeDock(br, s.clock), p = wakerPhase(br, s.clock), m = (br.period - 2 * C.dwell) / 2;
+    const nearDock = dir > 0 ? -1 : 1, farDock = -nearDock;
+    if (s.ride >= 0) {
+      if (d === farDock) return dir;
+      return Math.abs(s.off - (C.bw / 2)) > 6 ? Math.sign(C.bw / 2 - s.off) * 0.6 : 0;
+    }
+    const onNear = dir > 0 ? s.x <= br.a + 0.5 : s.x >= br.b - 0.5;
+    if (!onNear) return dir;
+    const edge = dir > 0 ? br.a - 20 : br.b + 20, dx = edge - s.x;
+    if (Math.abs(dx) > 6 && d !== nearDock) return Math.sign(dx) * 0.9;
+    const left = nearDock === -1 ? C.dwell - p : 2 * C.dwell + m - p;
+    return d === nearDock && left >= 34 ? dir : (Math.abs(dx) > 6 ? Math.sign(dx) * 0.9 : 0);
+  };
   while (!s.done && s.clock < maxSeconds * HZ) {
     const a = plan[k]; let ix = 0, iy = 0;
     if (s.stun > 0) { step(s, 0, 0); continue; }
-    if (!a) { ix = Math.sign(lv.door.x - s.x); }
-    else if (a.walk) {
+    if (s.slide >= 0) { step(s, 0, 0); continue; }
+    if (!a) { ix = Math.sign(lv.door.x - s.x); if (wakeWait(ix)) ix = 0; }
+    else if (a.slide !== undefined) {
+      if (s.f === a.f) { k++; continue; }
+      const dx = lv.slides[a.slide].x - s.x;
+      if (Math.abs(dx) > 5) ix = Math.sign(dx) * Math.max(0.5, Math.min(1, Math.abs(dx) / 30)); else iy = -1;
+    } else if (a.bridge !== undefined) {
+      const br = lv.bridges[a.bridge];
+      if (s.ride < 0 && s.f === a.f && (a.dir > 0 ? s.x >= Math.max(a.x - 3, br.b + 5) : s.x <= Math.min(a.x + 3, br.a - 5))) { k++; continue; }
+      ix = bridgeStep(a);
+    } else if (a.walk) {
       if (s.f !== a.f) { // nach Rücksetzer: Plan ab passender Stelle fortsetzen
         break;
       }
       const dx = a.x - s.x;
       if (Math.abs(dx) < 3) { k++; continue; }
       ix = Math.sign(dx) * Math.max(0.5, Math.min(1, Math.abs(dx) / 30));
-      if (nutWait(Math.sign(dx))) ix = 0;
+      if (nutWait(Math.sign(dx)) || wakeWait(Math.sign(dx))) ix = 0;
     } else {
       iy = a.climb;
       if (s.ladder < 0 && s.f === a.f) { k++; continue; }

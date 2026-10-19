@@ -2,14 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { LEVELS, LEVEL_COUNT } from '../public/spiele/dino-leiterhelden/levels.js';
-import { C, HZ, layout, newState, step, validate, solve, playPath, nutDanger, freshSave, sanitizeSave, recordRun, parseChallenge, beats, centis, fmt } from '../public/spiele/dino-leiterhelden/engine.js';
+import { C, HZ, layout, newState, step, validate, solve, playPath, nutDanger, bridgeDock, bridgeLo, wakerAwake, slideExit, freshSave, sanitizeSave, recordRun, parseChallenge, beats, centis, fmt } from '../public/spiele/dino-leiterhelden/engine.js';
 import worker from '../src/worker.js';
 
 const run = (s, ix, iy, ticks) => { for (let i = 0; i < ticks; i++) step(s, ix, iy); return s; };
 const lv = (o) => ({ tip: { icon: '·', text: 'Test' }, ladders: [], door: { x: 820 }, start: { f: 0, x: 100 }, friends: [{ f: 0, x: 300 }, { f: 0, x: 500 }, { f: 0, x: 700 }], ...o });
 
-test('30 gültige Level: Freunde erreichbar, Tür lösbar, jede Mechanik wird gebraucht, Bot schafft jedes ohne Rücksetzer', () => {
-  assert.equal(LEVEL_COUNT, 30);
+test('60 gültige Level: Freunde erreichbar, Tür lösbar, jede Mechanik wird gebraucht, Bot schafft jedes ohne Rücksetzer', () => {
+  assert.equal(LEVEL_COUNT, 60);
   LEVELS.forEach((level, i) => {
     const n = i + 1;
     assert.deepEqual(validate(level), [], `Level ${n}`);
@@ -27,11 +27,11 @@ test('30 gültige Level: Freunde erreichbar, Tür lösbar, jede Mechanik wird ge
 });
 
 test('Schwierigkeit steigt: frühe Level erklären je eine Sache, spätere haben mehr Etagen und Wege', () => {
-  const mech = (l) => ['monsters', 'fruits', 'levers', 'nuts'].filter((k) => (l[k] || []).length);
+  const mech = (l) => ['monsters', 'fruits', 'levers', 'nuts', 'slides', 'bridges', 'wakers'].filter((k) => (l[k] || []).length);
   assert.equal(LEVELS[0].floors.length, 1); assert.equal(LEVELS[0].ladders.length, 0);
   assert.deepEqual(mech(LEVELS[1]), []); assert.deepEqual(mech(LEVELS[5]), ['monsters', 'fruits']);
   assert.deepEqual(mech(LEVELS[6]), ['nuts']); assert.deepEqual(mech(LEVELS[7]), ['levers']);
-  assert.ok(LEVELS.slice(20).every((l) => l.floors.length === 6));
+  assert.ok(LEVELS.slice(20, 30).every((l) => l.floors.length === 6));
   const t = (n) => solve(LEVELS[n - 1]).seconds;
   assert.ok(t(1) < t(10) && t(10) < t(25), 'Wege werden länger');
   assert.ok(LEVELS.every((l) => l.tip.icon && l.tip.text.length <= 45), 'kurze Tipps mit Symbol');
@@ -70,6 +70,61 @@ test('Hebel macht die Leiter sichtbar; Kokosnuss gibt Bonk und Rücksetzpunkt, F
   run(s, 1, 0, C.stun); assert.equal(s.stun, 0); assert.equal(s.x, s.cp.x); assert.equal(s.got[0], 1, 'Freund bleibt eingesammelt');
 });
 
+test('Level 31–60: jedes neue Element wird eingeführt und gebraucht, danach gemischt', () => {
+  const used = (n, c) => solve(LEVELS[n - 1]).path.some((p) => p.via && p.via[0] === c);
+  const kinds = (l) => ['slides', 'bridges', 'wakers'].filter((k) => (l[k] || []).length);
+  for (let n = 36; n <= 42; n++) assert.ok(used(n, 's'), `Level ${n}: Rutsche gehört zum Bestweg`);
+  for (let n = 43; n <= 49; n++) assert.ok(used(n, 'b'), `Level ${n}: Fahr-Brücke gehört zum Bestweg`);
+  for (let n = 50; n <= 55; n++) assert.ok((LEVELS[n - 1].wakers || []).length, `Level ${n}: Wechsel-Monster`);
+  for (let n = 31; n <= 35; n++) assert.deepEqual(kinds(LEVELS[n - 1]), [], `Level ${n}: nur bekannte Elemente`);
+  for (const n of [56, 58, 59, 60]) assert.ok(kinds(LEVELS[n - 1]).length >= 2, `Level ${n}: Mischung`);
+  assert.deepEqual(kinds(LEVELS[35]), ['slides'], 'Level 36 zeigt nur die Rutsche');
+  assert.deepEqual(kinds(LEVELS[42]), ['bridges'], 'Level 43 zeigt nur die Brücke');
+  assert.deepEqual(kinds(LEVELS[49]), ['wakers'], 'Level 50 zeigt nur das Wechsel-Monster');
+  assert.ok(LEVELS.slice(30).every((l) => solve(l).seconds < 40), 'neue Level bleiben kurz');
+});
+
+test('Rutsche: am Einstieg nach unten ziehen, rutscht von allein, Rücksetzpunkt am Ausstieg, nie nach oben', () => {
+  const level = lv({ floors: [[[40, 860]], [[40, 860]]], slides: [{ f: 0, x: 300, dir: 1 }], start: { f: 1, x: 250 }, friends: [{ f: 0, x: 780 }, { f: 1, x: 100 }, { f: 1, x: 500 }] });
+  const s = newState(level);
+  run(s, 0, -1, 1); assert.equal(s.slide, 0, 'nach unten greift die Rutsche'); assert.equal(s.x, 300);
+  run(s, 1, 0, 10); assert.equal(s.x, 300, 'während des Rutschens wirkt keine Steuerung');
+  run(s, 0, 0, C.slide); assert.equal(s.slide, -1); assert.equal(s.f, 0); assert.equal(s.x, slideExit(level, level.slides[0]));
+  assert.deepEqual(s.cp, { f: 0, x: s.x }); assert.ok(s.events.some((e) => e.t === 'slide'));
+  const up = newState(lv({ ...level, start: { f: 0, x: 300 } })); run(up, 0, 1, 20); assert.equal(up.slide, -1); assert.equal(up.f, 0, 'nach oben geht es nicht');
+  const far = newState(lv({ ...level, start: { f: 1, x: 100 } })); run(far, 0, -1, 5); assert.equal(far.slide, -1, 'zu weit weg vom Einstieg');
+  assert.ok(validate(lv({ ...level, slides: [{ f: 0, x: 800, dir: 1 }] })).some((e) => e.includes('Ausstieg')), 'Ausstieg muss auf einer Plattform liegen');
+});
+
+test('Fahr-Brücke: aufsteigen nur wenn angelegt, mitfahren, am anderen Ende absteigen', () => {
+  const br = { f: 0, a: 230, b: 550, period: 300, offset: 100 };
+  const level = lv({ floors: [[[40, 230], [550, 860]]], bridges: [br], door: { x: 800 }, start: { f: 0, x: 100 }, friends: [{ f: 0, x: 150 }, { f: 0, x: 650 }, { f: 0, x: 730 }] });
+  assert.deepEqual(validate(level), []);
+  const s = newState(level);
+  run(s, 1, 0, 100); assert.equal(s.ride, -1); assert.equal(s.x, 230 - C.edge, 'Brücke nicht da: am Rand bleiben');
+  while (bridgeDock(br, s.clock + 1) !== -1) step(s, 1, 0);
+  assert.equal(s.x, 230 - C.edge, 'bleibt am Rand, bis sie anlegt');
+  run(s, 1, 0, 12); assert.equal(s.ride, 0, 'aufgestiegen'); assert.ok(s.x > 230);
+  const off = s.x - bridgeLo(br, s.clock);
+  while (bridgeDock(br, s.clock + 1) !== 1) step(s, 0, 0);
+  assert.ok(Math.abs(s.x - (bridgeLo(br, s.clock) + off)) < 0.01 && s.x > 380, 'fährt mit');
+  run(s, 1, 0, 90); assert.equal(s.ride, -1); assert.ok(s.x > 550, 'drüben abgestiegen'); assert.equal(s.resets, 0);
+  assert.ok(validate(lv({ ...level, bridges: [{ ...br, b: 400 }] })).length > 0, 'Lücke muss zur Brücke passen');
+});
+
+test('Wechsel-Monster: schlafend passierbar, wach versperrt und schiebt sanft zurück, nie ein Rücksetzer', () => {
+  const w = { f: 0, x: 450, period: 300, offset: 0 };
+  const base = lv({ floors: [[[40, 860]]], wakers: [w], friends: [{ f: 0, x: 120 }, { f: 0, x: 780 }, { f: 0, x: 820 }], start: { f: 0, x: 200 } });
+  assert.deepEqual(validate(base), []);
+  const sleepy = newState(base); run(sleepy, 1, 0, 70); assert.ok(sleepy.x > 540, 'schläft: einfach vorbeigehen'); assert.equal(wakerAwake(w, 1), false);
+  const awake = newState(lv({ ...base, wakers: [{ ...w, offset: 250 }] }));
+  run(awake, 1, 0, 44); assert.ok(awake.x <= 450 - C.monster, 'wach: davor stehen bleiben'); assert.ok(awake.events.some((e) => e.t === 'grumble'));
+  const inside = newState(lv({ ...base, start: { f: 0, x: 440 }, wakers: [{ ...w, offset: 232 }] }));
+  run(inside, 0, 0, 40); assert.ok(Math.abs(inside.x - 450) >= C.monster, 'wird beim Aufwachen hinausgeschoben'); assert.ok(inside.events.some((e) => e.t === 'wake'));
+  assert.equal(awake.resets + inside.resets, 0);
+  assert.ok(validate(lv({ ...base, friends: [{ f: 0, x: 400 }, { f: 0, x: 780 }, { f: 0, x: 820 }] })).some((e) => e.includes('Wechsel-Monster')), 'Freund darf nicht im Schlafbereich liegen');
+});
+
 test('Tür: erst mit allen drei Freunden; feste 60-Hz-Zeit ist auf jedem Gerät gleich', () => {
   const level = lv({ floors: [[[40, 860]]], door: { x: 200 }, friends: [{ f: 0, x: 400 }, { f: 0, x: 500 }, { f: 0, x: 600 }], start: { f: 0, x: 120 } });
   const s = newState(level); run(s, 1, 0, 20); assert.equal(s.done, false); assert.ok(s.events.some((e) => e.t === 'locked'));
@@ -81,6 +136,8 @@ test('Tür: erst mit allen drei Freunden; feste 60-Hz-Zeit ist auf jedem Gerät 
 test('Spielstand und Herausforderung: Bestzeit, Freischalten, Gleichstand über Rücksetzer', () => {
   const save = freshSave();
   assert.equal(recordRun(save, 1, 600, 0, 30), true); assert.equal(save.unlocked, 2);
+  assert.equal(recordRun(save, 30, 900, 0, 60), true); assert.equal(save.unlocked, 31, 'nach Level 30 geht es mit Level 31 weiter'); assert.equal(recordRun(save, 60, 900, 0, 60), true); assert.equal(save.unlocked, 60);
+  assert.deepEqual(parseChallenge('?l=45&t=4000', 60), { l: 45, t: 4000, r: 0 });
   assert.equal(recordRun(save, 1, 700, 0, 30), false); assert.equal(recordRun(save, 1, 600, 0, 30), false);
   assert.deepEqual(sanitizeSave({ unlocked: 99, best: { 1: { t: 5, r: 0 }, 50: { t: 1, r: 0 }, x: 1 }, mute: 'ja' }, 30), { v: 1, unlocked: 30, best: { 1: { t: 5, r: 0 } }, mute: false });
   assert.deepEqual(sanitizeSave('kaputt', 30), freshSave());
@@ -105,4 +162,6 @@ test('Einbindung: Seite, Startseite, Umzug, Sitemap und Herausforderungs-Vorscha
   assert.ok(out.includes('content="Dino-Leiterhelden Level 7: 45,23 s – schaffst du es schneller?"'));
   const plain = await worker.fetch(new Request('https://playsaal.com/spiele/dino-leiterhelden?l=99&t=1'), env);
   assert.ok((await plain.text()).includes('content="Dino-Leiterhelden · Kletterspiel für Kinder"'));
+  const late = await worker.fetch(new Request('https://playsaal.com/spiele/dino-leiterhelden?l=45&t=2345&r=0'), env);
+  assert.ok((await late.text()).includes('content="Dino-Leiterhelden Level 45: 23,45 s – schaffst du es schneller?"'), 'Herausforderungen gelten bis Level 60');
 });

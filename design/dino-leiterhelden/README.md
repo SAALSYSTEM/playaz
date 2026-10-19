@@ -30,3 +30,14 @@ kachelbar. Ihre jeweils gegenüberliegenden äußeren Pixelreihen stimmen übere
 Die drei Hintergründe zeigen dieselbe Szene bei Tag, am Nachmittag und am
 Abend. Die gezeichneten Animationsposen sind für die technische Umsetzung
 vorbereitet; Bewegungen und Größen im fertigen Spiel auf dem Telefon prüfen.
+
+## Level 31–60
+
+- `rutsche.png`: 1 Bild, 360 × 293, oben links Einstieg, unten rechts Ausstieg; im Spiel für Rutschen
+  nach links gespiegelt.
+- `bruecke.png`: 1 Bild, 384 × 115, Baumstamm mit Seilen und Moos; wird 170 Einheiten breit gezeichnet.
+- `wechselmonster.png`: 4 × 1, 384 × 256 je Feld, orange, Blick nach links: schlafen A/B, blinzelt
+  (Warnung), wach. Gleiche Fußlinie wie `schlafmonster.png`.
+
+Die Dateien sind aus den ChatGPT-Originalen zugeschnitten und bereinigt (Rauschpixel entfernt, auf die
+Zielgrößen skaliert). Ein zweiter, flacherer Brückenentwurf wurde nicht verwendet.

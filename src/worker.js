@@ -47,7 +47,7 @@ export default {
     if(url.pathname==='/spiele/dino-leiterhelden'){
       // Herausforderungs-Link ?l=Level&t=Hundertstel&r=Rücksetzer: nur Vorschautext anpassen, das Spiel liest die Werte selbst
       const level=Number(url.searchParams.get('l')),cs=Number(url.searchParams.get('t')),resets=Number(url.searchParams.get('r')??0);
-      if(!Number.isInteger(level)||level<1||level>30||!Number.isInteger(cs)||cs<100||cs>360000||!Number.isInteger(resets)||resets<0||resets>999)return env.ASSETS.fetch(request);
+      if(!Number.isInteger(level)||level<1||level>60||!Number.isInteger(cs)||cs<100||cs>360000||!Number.isInteger(resets)||resets<0||resets>999)return env.ASSETS.fetch(request);
       const asset=await env.ASSETS.fetch(new Request(new URL('/spiele/dino-leiterhelden',url.origin),request));if(!asset.ok)return asset;
       let html=await asset.text();const sec=Math.floor(cs/100),time=(sec>=60?Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'):String(sec))+','+String(cs%100).padStart(2,'0')+' s';
       const title=`Dino-Leiterhelden Level ${level}: ${time} – schaffst du es schneller?`;

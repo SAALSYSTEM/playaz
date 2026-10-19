@@ -1,6 +1,6 @@
 // Dino-Leiterhelden – Oberfläche: Canvas-Grafik (Bilder oder gekennzeichnete Platzhalter), schwebender Joystick, Bildschirme, Speichern, Herausforderung.
 import { LEVELS, LEVEL_COUNT } from './levels.js';
-import { W, H, HZ, C, STORE, layout, newState, step, gotAll, nutPhase, freshSave, sanitizeSave, recordRun, centis, parseChallenge, beats, fmt } from './engine.js';
+import { W, H, HZ, C, STORE, layout, newState, step, gotAll, nutPhase, bridgeLo, bridgeDock, wakerAwake, wakerWarn, slideDx, freshSave, sanitizeSave, recordRun, centis, parseChallenge, beats, fmt } from './engine.js';
 
 const $ = (id) => document.getElementById(id);
 const app = $('app'), cv = $('game'), ctx = cv.getContext('2d');
@@ -9,7 +9,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- Bilder ----------
 // Nur tatsächlich gelieferte Dateien eintragen; alles andere zeichnet der Code als Platzhalter (keine 404-Anfragen).
 // Hintergründe lädt das Spiel erst, wenn ein Level sie braucht.
-const IMAGES = ['dino-held', 'freund-tuerkis', 'freund-rosa', 'freund-gelb', 'schlafmonster', 'frucht', 'kokosnuss', 'hebel', 'baumhaus', 'tuer', 'plattform', 'plattform-ende', 'leiter', 'gelaender', 'effekte'];
+const IMAGES = ['dino-held', 'freund-tuerkis', 'freund-rosa', 'freund-gelb', 'schlafmonster', 'frucht', 'kokosnuss', 'hebel', 'baumhaus', 'tuer', 'plattform', 'plattform-ende', 'leiter', 'gelaender', 'effekte', 'rutsche', 'bruecke', 'wechselmonster'];
 const LAZY = ['hintergrund-1', 'hintergrund-2', 'hintergrund-3'];
 const IMG = {};
 function load(k) { if (IMG[k]) return; const i = new Image(); i.decoding = 'async'; i.onload = () => { if (/^(hintergrund|plattform|gelaender)/.test(k)) buildStatic(); }; i.src = new URL('img/' + k + '.webp', import.meta.url).href; IMG[k] = i; }
@@ -48,6 +48,8 @@ const SFX = {
   snore: () => { tone(85, 0.55, 'sawtooth', 0.05, 1.7); tone(120, 0.4, 'sine', 0.06, 0.6, 0.5); },
   feed: () => { for (let i = 0; i < 4; i++) tone(180 + i * 25, 0.07, 'square', 0.05, 0, i * 0.11); tone(620, 0.3, 'triangle', 0.12, 1.6, 0.48); },
   lever: () => { tone(240, 0.05, 'square', 0.07); tone(400, 0.45, 'triangle', 0.12, 2.2, 0.08); },
+  slide: () => { tone(700, 0.55, 'triangle', 0.07, 0.35); tone(520, 0.4, 'sine', 0.05, 0.5, 0.1); },
+  wake: () => { tone(110, 0.45, 'sawtooth', 0.05, 1.8); tone(160, 0.3, 'triangle', 0.05, 0.7, 0.3); },
   bonk: () => { tone(520, 0.4, 'sine', 0.18, 0.3); tone(900, 0.12, 'triangle', 0.06, 0, 0.05); },
   respawn: () => tone(700, 0.25, 'sine', 0.08, 1.6),
   locked: () => { tone(260, 0.1, 'triangle', 0.08); tone(200, 0.16, 'triangle', 0.08, 0, 0.12); },
@@ -61,7 +63,7 @@ function toggleMute() { save.mute = !save.mute; persist(); paintMute(); if (!sav
 // ---------- Zustand ----------
 let mode = 'menu', levelNo = 1, lv = LEVELS[0], st = newState(lv), L = layout(lv);
 let acc = 0, last = 0, now = 0, winAt = 0, tipAt = 0;
-let trail = [], fx = [], reveal = [], bump = {}, fedAt = {}, fedSide = {}, lockedAt = -9, bonkAt = -9;
+let trail = [], fx = [], reveal = [], bump = {}, wbump = {}, fedAt = {}, fedSide = {}, lockedAt = -9, bonkAt = -9;
 const challenge = parseChallenge(location.search, LEVEL_COUNT);
 let activeCh = null;
 
@@ -169,7 +171,7 @@ $('shareBtn').onclick = share;
 function startLevel(n) {
   levelNo = n; lv = LEVELS[n - 1]; st = newState(lv); L = layout(lv);
   activeCh = challenge && challenge.l === n ? challenge : null;
-  acc = 0; winAt = 0; fx = []; trail = []; bump = {}; fedAt = {}; fedSide = {}; lockedAt = -9; bonkAt = -9;
+  acc = 0; winAt = 0; fx = []; trail = []; bump = {}; wbump = {}; fedAt = {}; fedSide = {}; lockedAt = -9; bonkAt = -9;
   reveal = lv.ladders.map(() => -1);
   buildStatic(); track();
   mode = 'play'; show(null);
@@ -210,6 +212,7 @@ async function share() {
 
 // ---------- Ereignisse ----------
 function playerPos() {
+  if (st.slide >= 0) { const sl = lv.slides[st.slide], d = sl.dir || 1, p = st.sp, e = p * p * (3 - 2 * p); return { x: sl.x + d * slideDx(L.gap) * e, y: L.ys[sl.f + 1] + (L.ys[sl.f] - L.ys[sl.f + 1]) * (1 - (1 - p) * (1 - p)) - 16 * (1 - p), climb: false, sliding: true, face: d }; }
   if (st.ladder >= 0) { const l = lv.ladders[st.ladder]; return { x: st.x, y: L.ys[l.f] - st.p * L.gap, climb: true }; }
   return { x: st.x, y: L.ys[st.f], climb: false };
 }
@@ -225,6 +228,9 @@ function handle() {
     else if (e.t === 'lever') { SFX.lever(); reveal[e.ladder] = now; const l = lv.ladders[e.ladder]; burst(l.x, L.ys[l.f] - L.gap / 2, '#fff2a8', 26, 'star'); }
     else if (e.t === 'feed') { SFX.feed(); fedAt[e.m] = now; fedSide[e.m] = Math.sign(lv.monsters[e.m].x - st.x) || 1; burst(lv.monsters[e.m].x, L.ys[lv.monsters[e.m].f] - 90, '#ff7aa8', 12, 'heart'); }
     else if (e.t === 'snore') { SFX.snore(); bump[e.m] = now; }
+    else if (e.t === 'grumble') { if (lv.wakers[e.m].f === st.f) SFX.snore(); wbump[e.m] = now; }
+    else if (e.t === 'wake') { if (lv.wakers[e.m].f === st.f) SFX.wake(); }
+    else if (e.t === 'slide') SFX.slide();
     else if (e.t === 'bonk') { SFX.bonk(); bonkAt = now; burst(p.x, p.y - 120, '#ffe14d', 10, 'star'); }
     else if (e.t === 'respawn') { SFX.respawn(); trail = []; track(); burst(st.x, L.ys[st.f] - 60, '#ffffff', 16, 'star'); }
     else if (e.t === 'locked') { SFX.locked(); lockedAt = now; }
@@ -267,11 +273,11 @@ function buildStatic() {
   staticCv.width = cv.width; staticCv.height = cv.height;
   const c = staticCv.getContext('2d');
   c.setTransform(1, 0, 0, 1, 0, 0);
-  const bgIdx = Math.min(3, Math.floor((levelNo - 1) / 10) + 1); load(LAZY[bgIdx - 1]);
+  const bgIdx = Math.floor(((levelNo - 1) % 30) / 10) + 1; load(LAZY[bgIdx - 1]);
   const bg = pic(LAZY[bgIdx - 1]);
   if (bg) { const k = Math.max(cv.width / bg.width, cv.height / bg.height); c.drawImage(bg, (cv.width - bg.width * k) / 2, (cv.height - bg.height * k) / 2, bg.width * k, bg.height * k); c.fillStyle = bgIdx === 3 ? 'rgba(20,10,50,.18)' : 'rgba(255,250,235,.16)'; c.fillRect(0, 0, cv.width, cv.height); world(c); }
   else { world(c); paintBackdrop(c); }
-  for (let f = 0; f < lv.floors.length; f++) for (const [a, b] of lv.floors[f]) paintPlatform(c, a, b, L.ys[f], f);
+  for (let f = 0; f < lv.floors.length; f++) for (const [a, b] of lv.floors[f]) paintPlatform(c, a, b, L.ys[f], f, { openL: (lv.bridges || []).some((r) => r.f === f && r.b === a), openR: (lv.bridges || []).some((r) => r.f === f && r.a === b) });
 }
 function paintBackdrop(c) {
   const y0 = top(), y1 = bottom();
@@ -294,14 +300,14 @@ function paintBackdrop(c) {
   // Büsche unten
   for (let x = -60; x < 980; x += 110) { c.fillStyle = x % 220 ? '#3e8f37' : '#4aa142'; c.beginPath(); c.arc(x, y1 - 30, 90, 0, Math.PI * 2); c.fill(); }
 }
-function paintPlatform(c, a, b, y, f) {
+function paintPlatform(c, a, b, y, f, open = {}) {
   const img = pic('plattform'), end = pic('plattform-ende');
   if (img) {
     const h = 54, tw = img.width * h / img.height;
     for (let x = a; x < b; x += tw) { const w = Math.min(tw, b - x); c.drawImage(img, 0, 0, img.width * w / tw, img.height, x, y - 12, w, h); }
     if (end) { c.drawImage(end, a - 34, y - 12, 54, 54); c.save(); c.translate(b + 34, 0); c.scale(-1, 1); c.drawImage(end, 0, y - 12, 54, 54); c.restore(); }
     const fence = pic('gelaender');
-    if (fence) for (const [fx, dir] of [[a, 1], [b, -1]]) { c.save(); c.translate(fx, 0); c.scale(dir, 1); c.drawImage(fence, 0, 0, 100, 64, -4, y - 46, 70, 45); c.restore(); }
+    if (fence) for (const [fx, dir] of [[a, 1], [b, -1]]) { if ((dir === 1 && open.openL) || (dir === -1 && open.openR)) continue; c.save(); c.translate(fx, 0); c.scale(dir, 1); c.drawImage(fence, 0, 0, 100, 64, -4, y - 46, 70, 45); c.restore(); }
     return;
   }
   // Platzhalter: Holzbrett mit Moos, Geländerpfosten an den Enden
@@ -314,7 +320,7 @@ function paintPlatform(c, a, b, y, f) {
   c.fillStyle = '#8be05a'; rr(c, a + 4, y - 9, b - a - 8, 5, 3); c.fill();
   c.strokeStyle = '#3f9a2e'; c.lineWidth = 4; c.lineCap = 'round';
   for (let x = a + 30 + (f * 37) % 50; x < b - 20; x += 130) { const len = 30 + ((x * 7) % 40); c.beginPath(); c.moveTo(x, y + 26); c.quadraticCurveTo(x + 10, y + 26 + len / 2, x - 4, y + 26 + len); c.stroke(); c.fillStyle = '#5cbf3c'; c.beginPath(); c.ellipse(x - 4, y + 28 + len, 7, 4, 0.6, 0, Math.PI * 2); c.fill(); }
-  for (const x of [a + 12, b - 12]) { c.fillStyle = '#7b4720'; rr(c, x - 7, y - 46, 14, 50, 5); c.fill(); c.fillStyle = '#b07a44'; c.beginPath(); c.arc(x, y - 46, 8, 0, Math.PI * 2); c.fill(); }
+  for (const x of [a + 12, b - 12]) { if ((x < a + 20 && open.openL) || (x > b - 20 && open.openR)) continue; c.fillStyle = '#7b4720'; rr(c, x - 7, y - 46, 14, 50, 5); c.fill(); c.fillStyle = '#b07a44'; c.beginPath(); c.arc(x, y - 46, 8, 0, Math.PI * 2); c.fill(); }
 }
 function rr(c, x, y, w, h, r) { c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); }
 
@@ -326,9 +332,12 @@ function draw(dt) {
   const t = now, topF = lv.floors.length - 1;
   drawHouse(t, topF);
   lv.ladders.forEach((l, i) => drawLadder(l, i, t));
+  (lv.slides || []).forEach((sl) => drawSlide(sl));
+  (lv.bridges || []).forEach((br) => drawBridge(br));
   (lv.levers || []).forEach((o, i) => drawLever(o, i, t));
   (lv.fruits || []).forEach((o, i) => { if (!st.taken[i]) drawFruit(o.x, L.ys[o.f] - 30 + Math.sin(t * 3 + i) * 5, 1); });
   (lv.monsters || []).forEach((m, i) => drawMonster(m, i, t));
+  (lv.wakers || []).forEach((w, i) => drawWaker(w, i, t));
   (lv.nuts || []).forEach((n) => drawNut(n, t));
   // Freunde: wartend oder hinterher
   let k = 0;
@@ -430,6 +439,44 @@ function drawMonster(m, i, t) {
     drawFruit(bx, by + 4, 1.1);
   } else { ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = '700 28px Fredoka'; ctx.textAlign = 'center'; for (let k = 0; k < 3; k++) { const q2 = (t * 0.6 + k / 3) % 1; ctx.globalAlpha = 1 - q2; ctx.fillText('z', x - 70 + q2 * 50, y - 120 - q2 * 70); } ctx.globalAlpha = 1; }
 }
+// ---------- Rutsche, Brücke, Wechsel-Monster ----------
+function drawSlide(sl) {
+  const d = sl.dir || 1, yb = L.ys[sl.f] + 10, h = L.gap + 30, w = h * 1.229, img = pic('rutsche');
+  ctx.save();
+  if (img) {
+    ctx.translate(d > 0 ? sl.x - 30 : sl.x + 30, 0); if (d < 0) ctx.scale(-1, 1);
+    ctx.drawImage(img, 0, yb - h, w, h);
+  } else { // Platzhalter: Holzrampe
+    const x0 = sl.x, x1 = sl.x + d * slideDx(L.gap), y0 = L.ys[sl.f + 1] - 10, y1 = L.ys[sl.f] - 6;
+    ctx.fillStyle = '#c98b4b'; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(x0 + d * 40, y1, x1, y1); ctx.lineTo(x1, y1 + 18); ctx.quadraticCurveTo(x0 + d * 60, y1 + 18, x0, y0 + 30); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#7b4720'; ctx.lineWidth = 6; ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawBridge(br) {
+  const lo = bridgeLo(br, st.clock), y = L.ys[br.f], img = pic('bruecke'), w = C.bw + 12, dock = bridgeDock(br, st.clock) !== 0;
+  if (img) { const h = w * img.height / img.width; ctx.drawImage(img, lo - 6, y - 14 - (h - 54) / 2, w, h); }
+  else { ctx.fillStyle = '#9a5f2c'; rr(ctx, lo, y - 8, C.bw, 34, 14); ctx.fill(); ctx.fillStyle = '#5cbf3c'; rr(ctx, lo - 4, y - 14, C.bw + 8, 14, 8); ctx.fill(); ctx.strokeStyle = '#e8d3a0'; ctx.lineWidth = 6; for (const x of [lo + 22, lo + C.bw - 22]) { ctx.beginPath(); ctx.moveTo(x, y - 8); ctx.lineTo(x, y + 24); ctx.stroke(); } }
+  if (dock) { // angelegt: kleine Lichter an den Enden
+    ctx.fillStyle = 'rgba(255,242,168,.9)'; for (const x of [lo + 8, lo + C.bw - 8]) { ctx.beginPath(); ctx.arc(x, y - 34, 6, 0, Math.PI * 2); ctx.fill(); }
+  }
+}
+function drawWaker(w, i, t) {
+  const y = L.ys[w.f], awake = wakerAwake(w, st.clock), warn = wakerWarn(w, st.clock), img = pic('wechselmonster');
+  const shake = (t - (wbump[i] ?? -9) < 0.4 ? Math.sin(t * 50) * 4 : 0) + (warn ? Math.sin(t * 30) * 1.5 : 0);
+  ctx.save(); ctx.translate(w.x + shake, y); ctx.scale(1, awake ? 1 : 1 + Math.sin(t * 2) * 0.03);
+  if (img) { const fw = img.width / 4, fr = awake ? 3 : warn ? 2 : Math.floor(t * 1.2) % 2; ctx.drawImage(img, fr * fw, 0, fw, img.height, -130, -173 * 240 / 256, 260, 173); }
+  else {
+    ctx.fillStyle = 'rgba(0,0,0,.15)'; ctx.beginPath(); ctx.ellipse(0, 2, 100, 12, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ff8a2b'; ctx.beginPath(); ctx.ellipse(10, -50, 98, 50, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffd9a8'; ctx.beginPath(); ctx.ellipse(0, -28, 66, 24, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = awake ? '#fff' : '#3c2357'; ctx.beginPath(); ctx.arc(-82, -74, awake ? 10 : 5, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+  if (awake) { ctx.fillStyle = '#ff4a3a'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; ctx.font = '700 54px Fredoka, sans-serif'; ctx.textAlign = 'center'; ctx.strokeText('!', w.x - 60, y - 150); ctx.fillText('!', w.x - 60, y - 150); }
+  else if (warn) { ctx.fillStyle = 'rgba(255,230,120,.95)'; ctx.strokeStyle = '#7a4a24'; ctx.lineWidth = 4; ctx.font = '700 44px Fredoka, sans-serif'; ctx.textAlign = 'center'; ctx.strokeText('?', w.x - 60, y - 150); ctx.fillText('?', w.x - 60, y - 150); }
+  else { ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = '700 28px Fredoka'; ctx.textAlign = 'center'; for (let k = 0; k < 3; k++) { const q2 = (t * 0.6 + k / 3) % 1; ctx.globalAlpha = 1 - q2; ctx.fillText('z', w.x - 70 + q2 * 50, y - 120 - q2 * 70); } ctx.globalAlpha = 1; }
+}
 function drawHouse(t, f) {
   const y = L.ys[f], dx = lv.door.x, hx = clamp(dx, 175, 725), open = gotAll(st), img = pic('baumhaus');
   if (img) { const k = 380 / 640; ctx.save(); ctx.beginPath(); ctx.rect(dx - 200, y - 300, 400, 304); ctx.clip(); ctx.drawImage(img, dx - 320 * k, y - 388 * k, 640 * k, 480 * k); ctx.restore(); }
@@ -465,9 +512,9 @@ function drawFlag(x, y, t) { ctx.strokeStyle = '#6b3d17'; ctx.lineWidth = 5; ctx
 function drawHero(t) {
   if (mode === 'win' || mode === 'done') { const q = clamp((now - winAt - 1.0) / 0.6, 0, 1); ctx.globalAlpha = 1 - q; }
   const p = playerPos(), stun = st.stun > 0;
-  const pose = stun ? 'dizzy' : p.climb ? 'climb' : mode === 'win' ? 'cheer' : st.speed > 0 ? 'walk' : st.carry >= 0 ? 'carry' : 'idle';
+  const pose = stun ? 'dizzy' : p.sliding ? 'cheer' : p.climb ? 'climb' : mode === 'win' ? 'cheer' : st.speed > 0 ? 'walk' : st.carry >= 0 ? 'carry' : 'idle';
   const ph = p.climb ? st.p * L.gap / 40 : t;
-  dino(p.x, p.y, { c: HERO, face: st.face, pose, ph, s: 1 });
+  dino(p.x, p.y, { c: HERO, face: p.sliding ? p.face : st.face, pose, ph, s: 1 });
   if (st.carry >= 0 && !p.climb) drawFruit(p.x, p.y - 150 + Math.sin(t * 6) * 3, 0.95);
   else if (st.carry >= 0) drawFruit(p.x + 34, p.y - 70, 0.8);
   if (stun) { ctx.font = '700 34px Fredoka, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#5a3416'; ctx.strokeText('Bonk!', p.x, p.y - 175); ctx.fillStyle = '#fff'; ctx.fillText('Bonk!', p.x, p.y - 175); }
