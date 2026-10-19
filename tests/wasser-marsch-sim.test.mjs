@@ -116,7 +116,10 @@ test('Laufzeitbilder und Manifest vollständig', () => {
     readFileSync(new URL(`../public/spiele/wasser-marsch/img/${k}.webp`, import.meta.url));
   }
   const html = readFileSync(new URL('../public/spiele/wasser-marsch.html', import.meta.url), 'utf8');
-  assert.match(html, /<meta name="robots" content="noindex/, 'noch nicht beworben');
+  assert.doesNotMatch(html, /name="robots"[^>]*noindex/, 'öffentlich gelistet');
+  assert.match(html, /og:image" content="https:\/\/playsaal\.com\/bilder\/wasser-marsch-og\.jpg"/, 'Social Preview mit Schriftzug');
+  readFileSync(new URL('../public/bilder/wasser-marsch-og.jpg', import.meta.url));
+  readFileSync(new URL('../public/bilder/wasser-marsch.webp', import.meta.url));
   const umzug = readFileSync(new URL('../public/assets/umzug.js', import.meta.url), 'utf8');
   assert.match(umzug, /prefix: 'wassermarsch\.'/, 'Spielstand-Umzug kennt das Spiel');
 });
