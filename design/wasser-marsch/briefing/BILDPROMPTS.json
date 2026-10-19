@@ -1,0 +1,67 @@
+{
+  "method": "built-in imagegen",
+  "style": "Premium friendly preschool firefighter game, polished rounded 2D cartoon illustration with subtle soft volume, clean thick silhouettes, pastel cream turquoise coral buildings, red fire engine, navy uniform yellow helmet. Straight front elevation for architecture, flat side view for props, no perspective distortion, no text labels, no watermark, no UI. Production game asset, crisp isolated shapes. ",
+  "assets": [
+    [
+      "hintergrund",
+      "Portrait 9:16 background ONLY: pale blue sky with soft clouds, very faint faraway skyline along lower quarter, straight sidewalk at 82% height and dark blue grey street in bottom 18%. Entire central area empty for buildings to be placed over. No foreground houses, vehicles, people, trees or fire.",
+      false
+    ],
+    [
+      "kleines-haus",
+      "ONE small cream detached house, straight front view, terracotta pitched roof, centered closed turquoise front door at bottom. Completely BLANK facade WITHOUT ANY WINDOWS: game overlays windows. Wide rectangular facade enough for two rows of two windows. Entire house visible with transparent margin.",
+      true
+    ],
+    [
+      "reihenhaus",
+      "ONE coral peach townhouse, straight front view, flat teal cornice roof, centered closed dark teal front door bottom. Completely BLANK facade WITHOUT ANY WINDOWS. Tall rectangular facade enough for three rows of two windows. No neighboring buildings. Entire building visible with transparent margin.",
+      true
+    ],
+    [
+      "hochhaus",
+      "Horizontal sprite atlas THREE equal square cells in one row. Cell1 a teal rectangular ground floor block with a centered door. Cell2 a perfectly plain teal rectangular middle floor block WITHOUT windows, flat flush top/bottom to stack vertically. Cell3 a teal shallow flat roof cornice. All 3 blocks same width, centered in their separate cell, isolated with generous transparent margins, do not touch other cells. NO windows, no numbers.",
+      true
+    ],
+    [
+      "fenster",
+      "Horizontal sprite atlas FOUR equal square cells in one row, each contains one front-view rounded rectangular apartment window, identical size and aligned baseline. Cell1 cream frame blue glass closed; cell2 cream frame dark open opening for cat; cell3 coral frame blue glass closed; cell4 teal frame blue glass closed. No exterior facade around frames. Large transparent gaps between cells.",
+      true
+    ],
+    [
+      "feuerwehrwagen",
+      "ONE adorable red ladder fire engine SIDE VIEW, cabin faces LEFT, two black wheels, silver equipment compartments, blue roof beacon. No text. NO LADDER and NO BASKET, only a small circular pivot mount on top of rear vehicle body for separately drawn ladder. Fully visible isolated truck, transparent margin.",
+      true
+    ],
+    [
+      "feuerwehrmann",
+      "ONE friendly firefighter stationary full body, three-quarter BACK view facing upper RIGHT, yellow helmet, navy suit with yellow reflective bands, black boots, left arm resting naturally along left side. RIGHT ARM ABSENT from shoulder so a separate rotating arm sprite will attach there. No hose, no nozzle, no tools, no ground shadow. Clean isolated silhouette.",
+      true
+    ],
+    [
+      "arm-loeschrohr",
+      "ONE isolated modular firefighter right ARM: navy sleeve, yellow reflective band and glove holding a short silver firefighting hose nozzle. Side view pointing horizontally RIGHT. Shoulder rounded attachment at far LEFT; nozzle exit at far RIGHT. Straight nearly horizontal assembly, no water, no hose, no body, no extra hands. Transparent margin.",
+      true
+    ],
+    [
+      "drehleiter",
+      "Horizontal sprite atlas THREE equal square cells in one row. Cell1 silver ladder segment front view, upright vertical, two parallel rails and six rungs, flush ends for code stretching. Cell2 circular red metal pivot joint side view. Cell3 red rescue basket front view, open top, rounded solid bottom and low front safety rail, empty inside, basket remains level while ladder moves. Pieces disconnected, one per cell, large transparent gaps.",
+      true
+    ],
+    [
+      "katze",
+      "Horizontal sprite atlas TWO equal square cells. Same cute small orange kitten in each cell, same size and baseline. Cell1 sitting front view expectant with eyes open and paws down. Cell2 sitting front view happy closed eyes and one paw raised. No props, no shadows, no hearts. Feet 8% above each cell bottom. Both complete and well separated.",
+      true
+    ],
+    [
+      "flammen",
+      "Horizontal sprite atlas FOUR equal square cells in one row, four animation poses of same friendly stylized orange yellow small flame, warm orange outside golden yellow inside. No faces, no smoke, no sparks outside cells, no ground, no glow backdrop. Same size and baseline in each frame; shape subtly flickers left to right. Transparent gaps.",
+      true
+    ],
+    [
+      "dekoration",
+      "Horizontal sprite atlas FOUR equal square cells in one row. Cell1 small round green street tree with short trunk; cell2 round green bush; cell3 short white picket fence segment; cell4 simple dark teal streetlamp. All straight front view, isolated, complete, generous transparent gaps. No ground or cast shadows.",
+      true
+    ]
+  ],
+  "cleanup": "Transparent assets edited through imagegen to remove surrounding halo; originals copied unchanged."
+}

@@ -1,0 +1,891 @@
+{
+  "schemaVersion": 1,
+  "coordinateSystem": "normalized viewport rectangles; window centers normalized within each visible building; row/column zero-based top-to-bottom left-to-right",
+  "layoutNote": "Starter rectangles; adjust once for small screens. In scene 6 enlarge hit targets to 40 CSS-px with nearest-center disambiguation. Do not change objective window IDs.",
+  "rules": {
+    "waterUnlimited": true,
+    "fireSpreads": false,
+    "timeLimit": null,
+    "lives": null,
+    "rescueDurationSeconds": 4.5,
+    "progressStorageKey": "playsaal.wasser-marsch.v1",
+    "win": "allFiresOutAndAllCatsDelivered"
+  },
+  "profiles": {
+    "small": {
+      "asset": "kleines-haus",
+      "rows": 2,
+      "columns": 2,
+      "windowWidth": 0.16,
+      "centers": [
+        [
+          [
+            0.26,
+            0.51
+          ],
+          [
+            0.74,
+            0.51
+          ]
+        ],
+        [
+          [
+            0.26,
+            0.73
+          ],
+          [
+            0.74,
+            0.73
+          ]
+        ]
+      ]
+    },
+    "row": {
+      "asset": "reihenhaus",
+      "rows": 3,
+      "columns": 2,
+      "windowWidth": 0.22,
+      "centers": [
+        [
+          [
+            0.27,
+            0.2
+          ],
+          [
+            0.73,
+            0.2
+          ]
+        ],
+        [
+          [
+            0.27,
+            0.48
+          ],
+          [
+            0.73,
+            0.48
+          ]
+        ],
+        [
+          [
+            0.27,
+            0.77
+          ],
+          [
+            0.73,
+            0.77
+          ]
+        ]
+      ]
+    },
+    "tower3": {
+      "asset": "hochhaus",
+      "rows": 3,
+      "columns": 2,
+      "windowWidth": 0.24,
+      "centers": [
+        [
+          [
+            0.28,
+            0.1
+          ],
+          [
+            0.72,
+            0.1
+          ]
+        ],
+        [
+          [
+            0.28,
+            0.45499999999999996
+          ],
+          [
+            0.72,
+            0.45499999999999996
+          ]
+        ],
+        [
+          [
+            0.28,
+            0.8099999999999999
+          ],
+          [
+            0.72,
+            0.8099999999999999
+          ]
+        ]
+      ]
+    },
+    "tower4": {
+      "asset": "hochhaus",
+      "rows": 4,
+      "columns": 2,
+      "windowWidth": 0.24,
+      "centers": [
+        [
+          [
+            0.28,
+            0.1
+          ],
+          [
+            0.72,
+            0.1
+          ]
+        ],
+        [
+          [
+            0.28,
+            0.33666666666666667
+          ],
+          [
+            0.72,
+            0.33666666666666667
+          ]
+        ],
+        [
+          [
+            0.28,
+            0.5733333333333334
+          ],
+          [
+            0.72,
+            0.5733333333333334
+          ]
+        ],
+        [
+          [
+            0.28,
+            0.8099999999999999
+          ],
+          [
+            0.72,
+            0.8099999999999999
+          ]
+        ]
+      ]
+    },
+    "tower5": {
+      "asset": "hochhaus",
+      "rows": 5,
+      "columns": 2,
+      "windowWidth": 0.24,
+      "centers": [
+        [
+          [
+            0.28,
+            0.1
+          ],
+          [
+            0.72,
+            0.1
+          ]
+        ],
+        [
+          [
+            0.28,
+            0.27749999999999997
+          ],
+          [
+            0.72,
+            0.27749999999999997
+          ]
+        ],
+        [
+          [
+            0.28,
+            0.45499999999999996
+          ],
+          [
+            0.72,
+            0.45499999999999996
+          ]
+        ],
+        [
+          [
+            0.28,
+            0.6325
+          ],
+          [
+            0.72,
+            0.6325
+          ]
+        ],
+        [
+          [
+            0.28,
+            0.8099999999999999
+          ],
+          [
+            0.72,
+            0.8099999999999999
+          ]
+        ]
+      ]
+    }
+  },
+  "scenes": [
+    {
+      "id": 1,
+      "name": "Das kleine Haus",
+      "buildings": [
+        {
+          "profile": "small",
+          "rect": [
+            0.13,
+            0.36,
+            0.74,
+            0.4
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Zwei kleine Nachbarn",
+      "buildings": [
+        {
+          "profile": "small",
+          "rect": [
+            0.03,
+            0.39,
+            0.45,
+            0.32
+          ]
+        },
+        {
+          "profile": "small",
+          "rect": [
+            0.52,
+            0.39,
+            0.45,
+            0.32
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Das Wohnhaus",
+      "buildings": [
+        {
+          "profile": "row",
+          "rect": [
+            0.25,
+            0.16,
+            0.5,
+            0.61
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Der Innenhof",
+      "buildings": [
+        {
+          "profile": "row",
+          "rect": [
+            0.04,
+            0.22,
+            0.43,
+            0.53
+          ]
+        },
+        {
+          "profile": "row",
+          "rect": [
+            0.53,
+            0.22,
+            0.43,
+            0.53
+          ]
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Die hohen Häuser",
+      "buildings": [
+        {
+          "profile": "tower4",
+          "rect": [
+            0.04,
+            0.16,
+            0.43,
+            0.61
+          ]
+        },
+        {
+          "profile": "tower3",
+          "rect": [
+            0.53,
+            0.27,
+            0.43,
+            0.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Die große Stadtstraße",
+      "buildings": [
+        {
+          "profile": "tower3",
+          "rect": [
+            0.02,
+            0.3,
+            0.3,
+            0.46
+          ]
+        },
+        {
+          "profile": "tower5",
+          "rect": [
+            0.35,
+            0.15,
+            0.3,
+            0.61
+          ]
+        },
+        {
+          "profile": "tower4",
+          "rect": [
+            0.68,
+            0.24,
+            0.3,
+            0.52
+          ]
+        }
+      ]
+    }
+  ],
+  "levels": [
+    {
+      "id": 1,
+      "scene": 1,
+      "title": "Wasser marsch",
+      "fires": [
+        {
+          "window": "b0-r0-c0",
+          "waterSeconds": 1.9
+        }
+      ],
+      "cats": [],
+      "hint": "holdToSpray"
+    },
+    {
+      "id": 2,
+      "scene": 1,
+      "title": "Die andere Seite",
+      "fires": [
+        {
+          "window": "b0-r1-c1",
+          "waterSeconds": 2.0
+        }
+      ],
+      "cats": [],
+      "hint": null
+    },
+    {
+      "id": 3,
+      "scene": 1,
+      "title": "Zwei Fenster",
+      "fires": [
+        {
+          "window": "b0-r0-c1",
+          "waterSeconds": 2.1
+        },
+        {
+          "window": "b0-r1-c0",
+          "waterSeconds": 2.6
+        }
+      ],
+      "cats": [],
+      "hint": null
+    },
+    {
+      "id": 4,
+      "scene": 2,
+      "title": "Hallo Nachbar",
+      "fires": [
+        {
+          "window": "b0-r0-c0",
+          "waterSeconds": 2.2
+        },
+        {
+          "window": "b1-r0-c1",
+          "waterSeconds": 2.7
+        }
+      ],
+      "cats": [],
+      "hint": null
+    },
+    {
+      "id": 5,
+      "scene": 2,
+      "title": "Links und rechts",
+      "fires": [
+        {
+          "window": "b0-r1-c1",
+          "waterSeconds": 2.3
+        },
+        {
+          "window": "b1-r0-c0",
+          "waterSeconds": 2.8
+        },
+        {
+          "window": "b1-r1-c1",
+          "waterSeconds": 2.3
+        }
+      ],
+      "cats": [],
+      "hint": null
+    },
+    {
+      "id": 6,
+      "scene": 2,
+      "title": "Die kleine Straße",
+      "fires": [
+        {
+          "window": "b0-r0-c1",
+          "waterSeconds": 2.4
+        },
+        {
+          "window": "b0-r1-c0",
+          "waterSeconds": 2.9
+        },
+        {
+          "window": "b1-r0-c0",
+          "waterSeconds": 2.4
+        },
+        {
+          "window": "b1-r1-c1",
+          "waterSeconds": 2.9
+        }
+      ],
+      "cats": [],
+      "hint": null
+    },
+    {
+      "id": 7,
+      "scene": 3,
+      "title": "Die erste Katze",
+      "fires": [
+        {
+          "window": "b0-r2-c0",
+          "waterSeconds": 2.5
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r0-c1",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": "tapCatAfterClearingHouse"
+    },
+    {
+      "id": 8,
+      "scene": 3,
+      "title": "Ein Stockwerk höher",
+      "fires": [
+        {
+          "window": "b0-r0-c0",
+          "waterSeconds": 2.6
+        },
+        {
+          "window": "b0-r1-c1",
+          "waterSeconds": 3.1
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r2-c1",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    },
+    {
+      "id": 9,
+      "scene": 3,
+      "title": "Freier Weg zum Korb",
+      "fires": [
+        {
+          "window": "b0-r0-c1",
+          "waterSeconds": 2.7
+        },
+        {
+          "window": "b0-r1-c0",
+          "waterSeconds": 3.2
+        },
+        {
+          "window": "b0-r2-c1",
+          "waterSeconds": 2.7
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r1-c1",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    },
+    {
+      "id": 10,
+      "scene": 3,
+      "title": "Zwei kleine Freunde",
+      "fires": [
+        {
+          "window": "b0-r1-c0",
+          "waterSeconds": 2.8
+        },
+        {
+          "window": "b0-r2-c1",
+          "waterSeconds": 3.3
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r0-c0",
+          "unlock": "buildingFiresCleared"
+        },
+        {
+          "window": "b0-r0-c1",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    },
+    {
+      "id": 11,
+      "scene": 4,
+      "title": "Rettung im Innenhof",
+      "fires": [
+        {
+          "window": "b0-r0-c0",
+          "waterSeconds": 2.9
+        },
+        {
+          "window": "b1-r1-c1",
+          "waterSeconds": 3.4
+        },
+        {
+          "window": "b1-r2-c0",
+          "waterSeconds": 2.9
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r1-c1",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    },
+    {
+      "id": 12,
+      "scene": 4,
+      "title": "Wer wartet wo",
+      "fires": [
+        {
+          "window": "b0-r2-c0",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b1-r0-c1",
+          "waterSeconds": 3.5
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r0-c1",
+          "unlock": "buildingFiresCleared"
+        },
+        {
+          "window": "b1-r2-c1",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    },
+    {
+      "id": 13,
+      "scene": 4,
+      "title": "Über Kreuz",
+      "fires": [
+        {
+          "window": "b0-r0-c1",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b0-r2-c1",
+          "waterSeconds": 3.5
+        },
+        {
+          "window": "b1-r0-c0",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b1-r2-c0",
+          "waterSeconds": 3.5
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r1-c0",
+          "unlock": "buildingFiresCleared"
+        },
+        {
+          "window": "b1-r1-c1",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    },
+    {
+      "id": 14,
+      "scene": 5,
+      "title": "Hoch hinaus",
+      "fires": [
+        {
+          "window": "b0-r0-c0",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b0-r3-c1",
+          "waterSeconds": 3.5
+        },
+        {
+          "window": "b1-r1-c0",
+          "waterSeconds": 3.0
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r2-c1",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    },
+    {
+      "id": 15,
+      "scene": 5,
+      "title": "Ganz oben wartet jemand",
+      "fires": [
+        {
+          "window": "b0-r1-c0",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b1-r0-c1",
+          "waterSeconds": 3.5
+        },
+        {
+          "window": "b1-r2-c0",
+          "waterSeconds": 3.0
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r0-c1",
+          "unlock": "buildingFiresCleared"
+        },
+        {
+          "window": "b1-r1-c1",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    },
+    {
+      "id": 16,
+      "scene": 5,
+      "title": "Große Fenster kleine Feuer",
+      "fires": [
+        {
+          "window": "b0-r0-c0",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b0-r2-c1",
+          "waterSeconds": 3.5
+        },
+        {
+          "window": "b0-r3-c0",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b1-r0-c1",
+          "waterSeconds": 3.5
+        },
+        {
+          "window": "b1-r2-c1",
+          "waterSeconds": 3.0
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r1-c1",
+          "unlock": "buildingFiresCleared"
+        },
+        {
+          "window": "b1-r1-c0",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    },
+    {
+      "id": 17,
+      "scene": 6,
+      "title": "Drei Häuser",
+      "fires": [
+        {
+          "window": "b0-r0-c0",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b1-r2-c1",
+          "waterSeconds": 3.5
+        },
+        {
+          "window": "b2-r3-c0",
+          "waterSeconds": 3.0
+        }
+      ],
+      "cats": [
+        {
+          "window": "b1-r0-c1",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    },
+    {
+      "id": 18,
+      "scene": 6,
+      "title": "Freunde über der Stadt",
+      "fires": [
+        {
+          "window": "b0-r1-c0",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b1-r4-c1",
+          "waterSeconds": 3.5
+        },
+        {
+          "window": "b2-r0-c0",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b2-r2-c1",
+          "waterSeconds": 3.5
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r0-c1",
+          "unlock": "buildingFiresCleared"
+        },
+        {
+          "window": "b2-r1-c1",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    },
+    {
+      "id": 19,
+      "scene": 6,
+      "title": "Die große Rettungsrunde",
+      "fires": [
+        {
+          "window": "b0-r0-c0",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b0-r2-c1",
+          "waterSeconds": 3.5
+        },
+        {
+          "window": "b1-r1-c1",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b1-r3-c0",
+          "waterSeconds": 3.5
+        },
+        {
+          "window": "b2-r2-c0",
+          "waterSeconds": 3.0
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r1-c1",
+          "unlock": "buildingFiresCleared"
+        },
+        {
+          "window": "b1-r0-c0",
+          "unlock": "buildingFiresCleared"
+        },
+        {
+          "window": "b2-r0-c1",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    },
+    {
+      "id": 20,
+      "scene": 6,
+      "title": "Unsere Feuerwehr schafft das",
+      "fires": [
+        {
+          "window": "b0-r0-c1",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b0-r2-c0",
+          "waterSeconds": 3.5
+        },
+        {
+          "window": "b1-r1-c0",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b1-r4-c1",
+          "waterSeconds": 3.5
+        },
+        {
+          "window": "b2-r1-c1",
+          "waterSeconds": 3.0
+        },
+        {
+          "window": "b2-r3-c0",
+          "waterSeconds": 3.5
+        }
+      ],
+      "cats": [
+        {
+          "window": "b0-r1-c0",
+          "unlock": "buildingFiresCleared"
+        },
+        {
+          "window": "b1-r0-c1",
+          "unlock": "buildingFiresCleared"
+        },
+        {
+          "window": "b2-r0-c0",
+          "unlock": "buildingFiresCleared"
+        }
+      ],
+      "hint": null
+    }
+  ]
+}

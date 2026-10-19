@@ -1,5 +1,7 @@
 # PlaySaal
 
+**Wasser Marsch!:** Feuerwehrspiel für Kinder ab 4 im Hochformat: Finger halten = Wasser spritzt zum Finger, Feuer löschen, danach Katzen antippen – die Drehleiter holt sie herunter. 20 feste Level in 6 Szenen, kein Scheitern, keine Zeit. Noch `noindex` und nicht auf der Startseite (Test über `/spiele/wasser-marsch`). Regeln/Layout: `public/spiele/wasser-marsch/engine.js`, Level: `levels.js`, Oberfläche: `game.js`, Bilder aus `design/wasser-marsch/` per `tools/wasser-marsch-assets.py`. Details und Abweichungen: [`docs/WASSER_MARSCH.md`](docs/WASSER_MARSCH.md). Test: `node --test tests/wasser-marsch-sim.test.mjs`.
+
 **Jungle Runner:** 3D-Dschungel-Läufer mit 30 festen Leveln in 5 Welten, Junge oder Mädchen, Tieren, Power-ups, Awards, Teilen und Endlosmodus; Figuren und Tiere sind deklarierte Platzhalter. Details, Asset-Liste und Teststand in [`docs/JUNGLE_RUNNER.md`](docs/JUNGLE_RUNNER.md); Module in `public/spiele/jungle-runner/`.
 
 **Turmschicht:** Retro-Arcade für Erwachsene im Hochformat (Pixelgrafik): aus einem Stahlturm ausbrechen, Hebel schalten Leitern zwischen zwei festen Stellen um (gestrichelt = Zielposition), Patrouillen und Jäger mit „!“-Ankündigung und Wegsuche über nutzbare Leitern, 3 Herzen, Rückstoß und 1,5 s Schutz. Zwei Bestzeit-Modi (Schneller Ausbruch / Perfekter Lauf mit allen 3 Sternen), Herausforderung per Link `?l=Level&m=s|p&t=Hundertstel`. Regeln, Löser und Bot: `public/spiele/turmschicht/engine.js`; Level 1–6 von Hand (`tools/turmschicht-tutorial.mjs`), 7–30 vom Generator `tools/turmschicht-levels.mjs` geprüft und fest in `levels.js` gespeichert; Oberfläche `game.js`. Test: `node --test tests/turmschicht-sim.test.mjs`.
@@ -49,13 +51,14 @@ node --test tests/jungle-sim.test.mjs                   # nur JUNGLE RUNNER: Reg
 node --test tests/kakerlake-sim.test.mjs                # nur HAU DIE KAKERLAKE!: Level, Logik, Bot-Durchläufe, ohne Browser (schnell)
 node --test tests/sprungsebi-sim.test.mjs           # SPRUNGSEBI: 30 Level, Fortschritt, Teilen-Text und Vorschau
 node --test tests/turmschicht-sim.test.mjs          # TURMSCHICHT: 30 Level beide Modi lösbar (Löser + Bot), Hebel, Jäger, Herzen, Herausforderung
+node --test tests/wasser-marsch-sim.test.mjs        # WASSER MARSCH!: 20 Level, Layout 360×640, Rettung, Spielstand
 node --test tests/dino-leiterhelden-sim.test.mjs    # DINO-LEITERHELDEN: 60 Level lösbar (Löser + Bot), Regeln inkl. Rutsche/Brücke/Wechsel-Monster, Spielstand, Herausforderung
 node tools/domain.mjs                                   # Canonical/Sitemap/robots konsistent?
 ```
 
 ## Spielstände
 
-Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `jungle.v1`, `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Kein Backend, keine Cookies, kein Tracking.
+Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `wassermarsch.v1`, `jungle.v1`, `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Kein Backend, keine Cookies, kein Tracking.
 `localStorage` hängt an der Adresse: Ein neues Spiel mit eigenem Schlüssel-Präfix muss in `public/assets/umzug.js` (Liste `SPIELE`) eingetragen werden, sonst wird es beim Umzug nicht mitgenommen.
 
 ## Vor dem Livegang

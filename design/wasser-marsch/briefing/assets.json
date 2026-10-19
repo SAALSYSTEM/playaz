@@ -1,0 +1,356 @@
+{
+  "hintergrund": {
+    "file": "hintergrund.png",
+    "size": [
+      941,
+      1672
+    ],
+    "transparent": false,
+    "frames": [
+      {
+        "index": 0,
+        "sourceRect": [
+          0,
+          0,
+          941,
+          1672
+        ]
+      }
+    ]
+  },
+  "kleines-haus": {
+    "file": "kleines-haus.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "transparent": true,
+    "frames": [
+      {
+        "index": 0,
+        "sourceRect": [
+          116,
+          20,
+          1304,
+          951
+        ]
+      }
+    ]
+  },
+  "reihenhaus": {
+    "file": "reihenhaus.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "transparent": true,
+    "frames": [
+      {
+        "index": 0,
+        "sourceRect": [
+          142,
+          71,
+          740,
+          1341
+        ]
+      }
+    ]
+  },
+  "hochhaus": {
+    "file": "hochhaus.png",
+    "size": [
+      2172,
+      724
+    ],
+    "transparent": true,
+    "frames": [
+      {
+        "index": 0,
+        "sourceRect": [
+          52,
+          151,
+          621,
+          413
+        ]
+      },
+      {
+        "index": 1,
+        "sourceRect": [
+          776,
+          151,
+          620,
+          413
+        ]
+      },
+      {
+        "index": 2,
+        "sourceRect": [
+          1479,
+          303,
+          661,
+          141
+        ]
+      }
+    ]
+  },
+  "fenster": {
+    "file": "fenster.png",
+    "size": [
+      2172,
+      724
+    ],
+    "transparent": true,
+    "frames": [
+      {
+        "index": 0,
+        "sourceRect": [
+          67,
+          95,
+          438,
+          501
+        ]
+      },
+      {
+        "index": 1,
+        "sourceRect": [
+          600,
+          95,
+          439,
+          501
+        ]
+      },
+      {
+        "index": 2,
+        "sourceRect": [
+          1134,
+          95,
+          438,
+          501
+        ]
+      },
+      {
+        "index": 3,
+        "sourceRect": [
+          1668,
+          95,
+          440,
+          501
+        ]
+      }
+    ]
+  },
+  "feuerwehrwagen": {
+    "file": "feuerwehrwagen.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "transparent": true,
+    "frames": [
+      {
+        "index": 0,
+        "sourceRect": [
+          19,
+          117,
+          1502,
+          806
+        ]
+      }
+    ]
+  },
+  "feuerwehrmann": {
+    "file": "feuerwehrmann.png",
+    "size": [
+      1024,
+      1536
+    ],
+    "transparent": true,
+    "frames": [
+      {
+        "index": 0,
+        "sourceRect": [
+          227,
+          19,
+          602,
+          1494
+        ]
+      }
+    ]
+  },
+  "arm-loeschrohr": {
+    "file": "arm-loeschrohr.png",
+    "size": [
+      1774,
+      887
+    ],
+    "transparent": true,
+    "frames": [
+      {
+        "index": 0,
+        "sourceRect": [
+          52,
+          239,
+          1665,
+          409
+        ]
+      }
+    ]
+  },
+  "drehleiter": {
+    "file": "drehleiter.png",
+    "size": [
+      2172,
+      724
+    ],
+    "transparent": true,
+    "frames": [
+      {
+        "index": 0,
+        "sourceRect": [
+          243,
+          20,
+          319,
+          679
+        ]
+      },
+      {
+        "index": 1,
+        "sourceRect": [
+          830,
+          177,
+          472,
+          407
+        ]
+      },
+      {
+        "index": 2,
+        "sourceRect": [
+          1454,
+          127,
+          681,
+          520
+        ]
+      }
+    ]
+  },
+  "katze": {
+    "file": "katze.png",
+    "size": [
+      1774,
+      887
+    ],
+    "transparent": true,
+    "frames": [
+      {
+        "index": 0,
+        "sourceRect": [
+          163,
+          23,
+          615,
+          781
+        ]
+      },
+      {
+        "index": 1,
+        "sourceRect": [
+          1038,
+          23,
+          622,
+          781
+        ]
+      }
+    ]
+  },
+  "flammen": {
+    "file": "flammen.png",
+    "size": [
+      2172,
+      724
+    ],
+    "transparent": true,
+    "frames": [
+      {
+        "index": 0,
+        "sourceRect": [
+          82,
+          95,
+          409,
+          526
+        ]
+      },
+      {
+        "index": 1,
+        "sourceRect": [
+          639,
+          89,
+          404,
+          533
+        ]
+      },
+      {
+        "index": 2,
+        "sourceRect": [
+          1155,
+          123,
+          412,
+          499
+        ]
+      },
+      {
+        "index": 3,
+        "sourceRect": [
+          1713,
+          91,
+          395,
+          531
+        ]
+      }
+    ]
+  },
+  "dekoration": {
+    "file": "dekoration.png",
+    "size": [
+      2172,
+      724
+    ],
+    "transparent": true,
+    "frames": [
+      {
+        "index": 0,
+        "sourceRect": [
+          34,
+          72,
+          509,
+          590
+        ]
+      },
+      {
+        "index": 1,
+        "sourceRect": [
+          543,
+          274,
+          534,
+          388
+        ]
+      },
+      {
+        "index": 2,
+        "sourceRect": [
+          1147,
+          337,
+          475,
+          319
+        ]
+      },
+      {
+        "index": 3,
+        "sourceRect": [
+          1806,
+          44,
+          199,
+          619
+        ]
+      }
+    ]
+  }
+}
