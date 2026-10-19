@@ -1,0 +1,105 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Admin · PlaySaal</title><meta name="robots" content="noindex"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest"><meta name="theme-color" content="#11121A"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/assets/site.css"><style>body{margin:0;background:#11121A;color:#f5f4ff;font:17px/1.6 "Barlow","Segoe UI",system-ui,sans-serif}main{max-width:980px;margin:0 auto;padding:20px 16px 40px}a{color:#FFD21C}h1{font-family:"Dela Gothic One","Arial Black",sans-serif;font-weight:400;font-size:36px;line-height:1.1;margin:18px 0 22px}h2{font-size:19px;margin:28px 0 6px}p,li{color:#d6d8e2}.ph{background:rgba(255,146,0,.16);color:#FF9200;padding:0 4px;border-radius:3px}.todo{border:1px dashed rgba(255,146,0,.55);border-radius:10px;padding:12px 14px;color:#FF9200;font-size:15px}.karte{background:#1a1b26;border:1px solid rgba(246,247,249,.12);border-radius:16px;padding:14px 16px;margin:0 0 14px}
+.karte h2{margin:0 0 8px;font-size:19px}
+.zeile{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid rgba(246,247,249,.08)}
+.zeile:first-of-type{border-top:0}
+.zeile small,.klein{color:#b6b9c8;font-size:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(246,247,249,.2);background:#232534;color:#f6f7f9;font:700 16px/1 "Barlow","Segoe UI",system-ui,sans-serif;cursor:pointer;text-decoration:none}
+.btn.ja{background:#FFD21C;border-color:#FFD21C;color:#11121A}
+.btn.gefahr{border-color:rgba(255,146,0,.7);color:#FF9200}
+.btn[disabled]{opacity:.5;cursor:default}
+.btn.klein{min-height:36px;padding:0 14px;font-size:14px}
+.avatar{display:grid;place-items:center;width:56px;height:56px;border-radius:16px;background:#232534;font-size:30px}
+.kopfzeile{display:flex;gap:14px;align-items:center}
+input[type=text],input[type=email]{width:100%;min-height:44px;border-radius:12px;border:1px solid rgba(246,247,249,.2);background:#11121A;color:#f6f7f9;font:inherit;padding:8px 12px}
+.f{min-height:20px;font-size:14px;margin:6px 0 0}.f.e{color:#FFB366}.f.g{color:#FFD21C}
+.stat{display:inline-flex;gap:8px;align-items:center}
+.stat::before{content:"";width:9px;height:9px;border-radius:50%;background:#FF9200}
+.stat[data-s=ok]::before,.stat[data-s=gast]::before{background:#FFD21C}
+.reihe{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-top:1px solid rgba(246,247,249,.08);vertical-align:top}
+th{font-size:12.5px;letter-spacing:.06em;text-transform:uppercase;color:#b6b9c8;border-top:0}
+td.z,th.z{text-align:right;font-variant-numeric:tabular-nums}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
+.tabs button[aria-pressed=true]{background:#FFD21C;color:#11121A;border-color:#FFD21C}
+.zahlen{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 14px}
+.zahl{background:#11121A;border:1px solid rgba(246,247,249,.12);border-radius:14px;padding:10px 12px}
+.zahl b{display:block;font-size:26px;line-height:1.1;font-variant-numeric:tabular-nums}.zahl span{font-size:13px;color:#b6b9c8}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips label{display:inline-flex;gap:6px;align-items:center;border:1px solid rgba(246,247,249,.16);border-radius:999px;padding:4px 10px;font-size:14px}
+select{min-height:40px;border-radius:10px;border:1px solid rgba(246,247,249,.2);background:#11121A;color:#f6f7f9;font:inherit;padding:0 8px}
+.scroll{overflow-x:auto}
+.fehler{border-top:1px solid rgba(246,247,249,.1);padding:10px 0;display:grid;gap:4px}
+.fehler p{margin:0;white-space:pre-wrap;word-break:break-word}
+.test{color:#FF9200;font-size:12px;font-weight:700}
+</style></head><body><header class="site-head">
+  <div class="site-head-in">
+    <a class="site-logo" href="/" aria-label="PlaySaal, alle Spiele"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="830" height="244" alt="PlaySaal"></a>
+    <nav class="site-nav" aria-label="Hauptmenü"><a href="/#spiele">Alle Spiele</a><a href="/#neu">Neue Spiele</a></nav>
+    <button class="menu-btn" type="button" aria-controls="menu" aria-expanded="false" aria-label="Menü öffnen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </div>
+</header>
+<dialog class="menu" id="menu" aria-label="Menü"><div class="menu-in">
+  <div class="menu-top"><span>Menü</span><button class="menu-close" type="button" aria-label="Menü schließen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+  <nav aria-label="Spiele"><a href="/#spiele">Alle Spiele</a><a href="/#neu">Neue Spiele</a><a href="/umzug" data-umzug hidden>Spielstände umziehen</a></nav>
+  <nav class="menu-recht" aria-label="Rechtliches"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
+</div></dialog>
+<main id="admin">
+<h1>Admin</h1>
+<p id="laden" class="klein" role="status">Wird geladen …</p>
+<section id="login" hidden><div class="karte"><h2>Anmeldung nötig</h2><p>Dieser Bereich ist nur für freigeschaltete Administratoren.</p><div class="reihe"><button class="btn ja" id="anmelden" type="button">Anmelden</button></div></div></section>
+<section id="keinZugriff" hidden><div class="karte"><h2>Kein Zugriff</h2><p>Dieses Konto hat keine Administratorrechte.</p><div class="reihe"><a class="btn" href="/">Zur Startseite</a><button class="btn" id="abmelden" type="button">Abmelden</button></div></div></section>
+<section id="inhalt" hidden>
+  <div class="tabs" role="group" aria-label="Bereiche">
+    <button class="btn klein" type="button" data-tab="uebersicht" aria-pressed="true">Übersicht</button>
+    <button class="btn klein" type="button" data-tab="spiele" aria-pressed="false">Spiele</button>
+    <button class="btn klein" type="button" data-tab="katalog" aria-pressed="false">Kategorien &amp; Startseite</button>
+    <button class="btn klein" type="button" data-tab="fehler" aria-pressed="false">Fehlermeldungen <span id="fehlerZahl"></span></button>
+  </div>
+  <p class="f" id="meldung" role="status"></p>
+
+  <div data-bereich="uebersicht">
+    <div class="tabs" role="group" aria-label="Zeitraum">
+      <button class="btn klein" type="button" data-tage="1" aria-pressed="true">Heute</button>
+      <button class="btn klein" type="button" data-tage="7" aria-pressed="false">Letzte 7 Tage</button>
+      <button class="btn klein" type="button" data-tage="30" aria-pressed="false">Letzte 30 Tage</button>
+    </div>
+    <p class="klein" id="zeitraum"></p>
+    <div class="zahlen" id="zahlen"></div>
+    <div class="karte"><h2>Was die Zahlen bedeuten</h2>
+      <ul class="klein">
+        <li><b>Spielstarts:</b> Seitenaufrufe eines Spiels, bei denen tatsächlich gespielt wurde (erste Eingabe). Das bloße Öffnen der Seite zählt nicht.</li>
+        <li><b>Aktive Spielzeit:</b> nur Zeit mit sichtbarem Tab und Eingaben in den letzten 15 Sekunden. Hintergrundtabs, Pausen und Menüs ohne Eingabe zählen nicht.</li>
+        <li><b>Fortschritte:</b> Spielstand-Wert gestiegen (neues Level oder neuer Rekord). Keine genaue Rundenzahl, weil nicht jedes Spiel Runden meldet.</li>
+        <li><b>Tage:</b> Kalendertage in Europe/Berlin.</li>
+        <li><b>Nicht gemessen:</b> eindeutige Besucher und wiederkehrende Nutzer. Es gibt bewusst keine Kennung, keinen Cookie und keinen Fingerabdruck, daher wäre jede solche Zahl erfunden.</li>
+        <li><b>Konten:</b> Profile mit gewähltem Spielernamen (nicht zu verwechseln mit Besuchern).</li>
+      </ul></div>
+    <div class="karte"><h2>Verlauf</h2><div class="scroll"><table id="tage"></table></div></div>
+  </div>
+
+  <div data-bereich="spiele" hidden>
+    <div class="karte"><h2>Auswertung je Spiel</h2><div class="scroll"><table id="spieleTab"></table></div></div>
+  </div>
+
+  <div data-bereich="katalog" hidden>
+    <div class="karte"><h2>Spiele: Kategorien und Hervorhebung</h2>
+      <p class="klein">„Hot“ bestimmt, welche Spiele im Bereich Hot der Startseite stehen (Reihenfolge nach Rang). „Gelistet“ aus = Spiel verschwindet von der Startseite, bleibt aber unter seiner Adresse erreichbar. Änderungen gelten sofort, die Startseite hat einen eingebauten Grundstand für den Fall, dass die Datenbank nicht erreichbar ist.</p>
+      <div id="katalogListe"></div></div>
+    <div class="karte"><h2>Kategorien</h2><div id="katListe"></div>
+      <div class="reihe"><input type="text" id="katSlug" placeholder="kennung (a-z, 0-9, -)" aria-label="Neue Kategorie: Kennung" style="max-width:200px"><input type="text" id="katName" placeholder="Anzeigename" aria-label="Neue Kategorie: Name" style="max-width:220px"><button class="btn klein ja" id="katNeu" type="button">Kategorie anlegen</button></div></div>
+  </div>
+
+  <div data-bereich="fehler" hidden>
+    <div class="karte"><h2>Fehlermeldungen</h2>
+      <div class="reihe" style="margin:0 0 8px"><label>Anzeigen: <select id="fehlerFilter"><option value="">Alle</option><option value="offen">Offen</option><option value="in_arbeit">In Arbeit</option><option value="erledigt">Erledigt</option></select></label></div>
+      <div id="fehlerListe"></div></div>
+  </div>
+</section>
+</main>
+<footer class="site-foot"><div class="site-foot-in">
+  <span>PlaySaal · Browserspiele ohne Anmeldung</span>
+  <nav aria-label="Rechtliches"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
+</div></footer>
+<script src="/assets/umzug-config.js"></script><script src="/assets/site.js"></script><script src="/assets/playsaal-config.js"></script><script src="/assets/playsaal.js"></script><script src="/assets/admin.js"></script>
+</body></html>

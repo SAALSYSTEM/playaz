@@ -32,7 +32,7 @@ function sitemap(origin) {
   const urls = SITEMAP.map((p) => `  <url><loc>${origin}${p}</loc></url>`).join('\n');
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
 }
-const robots = (origin) => `User-agent: *\nAllow: /\n\nSitemap: ${origin}/sitemap.xml\n`;
+const robots = (origin) => `User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /konto\n\nSitemap: ${origin}/sitemap.xml\n`;
 
 function pruefen() {
   const o = aktuell(); const fehler = [];

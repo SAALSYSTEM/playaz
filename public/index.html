@@ -169,6 +169,23 @@
 .note.umzug{border:1px solid color-mix(in srgb,var(--marke) 55%,transparent);color:var(--text)}
 .note.umzug a{color:var(--aktion);font-weight:600}
 
+
+/* Kategorien, Favoriten */
+.kat{margin-top:16px}
+.kat-chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.kat-chips::-webkit-scrollbar{display:none}
+.kat-chips button{flex:none;font:600 15px/1 var(--f-text);color:var(--leise);background:var(--flaeche-hell);border:1px solid var(--linie);border-radius:999px;padding:0 16px;min-height:40px;cursor:pointer;white-space:nowrap}
+.kat-chips button:hover{color:var(--text)}
+.kat-chips button[aria-pressed="true"]{background:var(--aktion);border-color:var(--aktion);color:var(--basis)}
+.kat-leer{margin-top:20px;color:var(--leise)}
+.kat-leer p{margin:0 0 12px}
+.kat-alle{font:700 15px/1 var(--f-text);background:var(--aktion);color:var(--basis);border:0;border-radius:999px;min-height:42px;padding:0 18px;cursor:pointer}
+[data-lay="filter"] .kachel{grid-column:auto!important;grid-row:auto!important}
+.kachel .fav{position:absolute;right:8px;top:8px;z-index:2;width:40px;height:40px;border-radius:50%;border:0;display:grid;place-items:center;background:rgba(17,18,26,.62);color:#fff;cursor:pointer;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.kachel .fav svg{width:20px;height:20px;fill:none}
+.kachel .fav[aria-pressed="true"]{color:var(--basis);background:var(--aktion)}
+.kachel .fav[aria-pressed="true"] svg{fill:currentColor}
+.kachel .fav:focus-visible{outline:3px solid var(--aktion);outline-offset:2px}
 </style>
 
 <header class="portal-head" id="kopf">
@@ -181,7 +198,7 @@
     </nav>
     <div class="p-tools">
       <button type="button" id="sucheBtn" aria-expanded="false" aria-controls="suche"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="m21 21-4.3-4.3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Suche</span></button>
-      <button type="button" class="bald" data-bald="Profil" aria-disabled="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Profil</span></button>
+      <button type="button" id="profilBtn" class="bald" data-bald="Profil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/></svg><span>Profil</span></button>
     </div>
   </div>
   <div class="suche" id="suche" role="search" hidden>
@@ -215,44 +232,44 @@
     <section class="block block-hot" id="hot" aria-labelledby="hot-titel">
       <div class="block-kopf"><h2 id="hot-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Hot</h2><p>Unsere Highlights</p></div>
       <ul class="kacheln" data-lay="hot">
-      <li class="kachel" data-slug="schraeglage" data-rec="schraeglage" data-name="Schräglage" data-arten="Fahren,Geschick" data-kat="hot"><a href="/spiele/schraeglage"><img src="/bilder/schraeglage.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Schräglage</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
-      <li class="kachel" data-slug="linke-spur" data-rec="linkespur" data-name="Linke Spur" data-arten="3D,Rennen" data-kat="hot"><a href="/spiele/linke-spur"><img src="/bilder/linke-spur.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Linke Spur</span></a></li>
-      <li class="kachel" data-slug="hochstapler" data-rec="hochstapler" data-name="Hochstapler" data-arten="Geschick,Ein Finger" data-kat="hot"><a href="/spiele/hochstapler"><img src="/bilder/hochstapler.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Hochstapler</span></a></li>
-      <li class="kachel" data-slug="schwindelfrei" data-rec="schwindelfrei" data-name="Schwindelfrei" data-arten="3D,Ein Finger" data-kat="hot"><a href="/spiele/schwindelfrei"><img src="/bilder/schwindelfrei.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Schwindelfrei</span></a></li>
-      <li class="kachel" data-slug="richtfest" data-rec="richtfest" data-name="Richtfest" data-arten="Retro,Abenteuer" data-kat="hot"><a href="/spiele/richtfest"><img src="/bilder/richtfest.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Richtfest</span></a></li>
-      <li class="kachel" data-slug="eiszeit" data-rec="eiszeit" data-name="Eiszeit" data-arten="3D,Für Kinder" data-kat="hot"><a href="/spiele/eiszeit"><img src="/bilder/eiszeit.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Eiszeit</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
-      <li class="kachel" data-slug="stellwerk" data-rec="stellwerk" data-name="Stellwerk" data-arten="Puzzle,Bahn" data-kat="hot"><a href="/spiele/stellwerk"><img src="/bilder/stellwerk.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Stellwerk</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
+      <li class="kachel" data-slug="schraeglage" data-kategorien="rennen,geschick" data-rec="schraeglage" data-name="Schräglage" data-arten="Fahren,Geschick" data-kat="hot"><a href="/spiele/schraeglage"><img src="/bilder/schraeglage.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Schräglage</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
+      <li class="kachel" data-slug="linke-spur" data-kategorien="rennen,geschick" data-rec="linkespur" data-name="Linke Spur" data-arten="3D,Rennen" data-kat="hot"><a href="/spiele/linke-spur"><img src="/bilder/linke-spur.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Linke Spur</span></a></li>
+      <li class="kachel" data-slug="hochstapler" data-kategorien="geschick" data-rec="hochstapler" data-name="Hochstapler" data-arten="Geschick,Ein Finger" data-kat="hot"><a href="/spiele/hochstapler"><img src="/bilder/hochstapler.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Hochstapler</span></a></li>
+      <li class="kachel" data-slug="schwindelfrei" data-kategorien="geschick" data-rec="schwindelfrei" data-name="Schwindelfrei" data-arten="3D,Ein Finger" data-kat="hot"><a href="/spiele/schwindelfrei"><img src="/bilder/schwindelfrei.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Schwindelfrei</span></a></li>
+      <li class="kachel" data-slug="richtfest" data-kategorien="abenteuer" data-rec="richtfest" data-name="Richtfest" data-arten="Retro,Abenteuer" data-kat="hot"><a href="/spiele/richtfest"><img src="/bilder/richtfest.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Richtfest</span></a></li>
+      <li class="kachel" data-slug="eiszeit" data-kategorien="aufbau,kinder" data-rec="eiszeit" data-name="Eiszeit" data-arten="3D,Für Kinder" data-kat="hot"><a href="/spiele/eiszeit"><img src="/bilder/eiszeit.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Eiszeit</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
+      <li class="kachel" data-slug="stellwerk" data-kategorien="raetsel" data-rec="stellwerk" data-name="Stellwerk" data-arten="Puzzle,Bahn" data-kat="hot"><a href="/spiele/stellwerk"><img src="/bilder/stellwerk.jpg" width="960" height="600" alt="" decoding="async"><span class="name">Stellwerk</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
     </ul>
     </section>
 
     <section class="block block-neu" id="neu" aria-labelledby="neu-titel">
       <div class="block-kopf"><h2 id="neu-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Neu</h2><p>Neu bei PlaySaal</p></div>
       <ul class="kacheln" data-lay="neu">
-      <li class="kachel" data-slug="wasser-marsch" data-rec="wassermarsch" data-name="Wasser Marsch!" data-arten="Für Kinder,Feuerwehr,Geschick" data-kat="neu"><a href="/spiele/wasser-marsch"><img src="/bilder/wasser-marsch.webp" width="720" height="720" alt="Wasser Marsch!: Kleiner Feuerwehrmann löscht mit dem Wasserstrahl, eine Katze schaut zu" decoding="async" loading="lazy"><span class="name">Wasser Marsch!</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
-      <li class="kachel" data-slug="turmschicht" data-rec="turmschicht" data-name="Turmschicht" data-arten="Retro,Arcade,Geschick" data-kat="neu"><a href="/spiele/turmschicht"><img src="/bilder/turmschicht.png" width="960" height="600" alt="Turmschicht: Pixel-Dino klettert durch einen Stahlturm mit Leitern und Monstern" decoding="async" loading="lazy"><span class="name">Turmschicht</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
-      <li class="kachel" data-slug="dino-leiterhelden" data-rec="dinoleiter" data-name="Dino-Leiterhelden" data-arten="Für Kinder,Puzzle,Abenteuer" data-kat="neu"><a href="/spiele/dino-leiterhelden"><img src="/bilder/dino-leiterhelden.webp" width="960" height="600" alt="Dino-Leiterhelden: Dinos, Leitern und ein schlafendes Monster im Baumhaus" decoding="async" loading="lazy"><span class="name">Dino-Leiterhelden</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
-      <li class="kachel" data-slug="geisterschloss" data-rec="geisterschloss" data-name="Geisterschloss" data-arten="3D,Action,Halloween" data-kat="neu"><a href="/spiele/geisterschloss"><img src="/bilder/geisterschloss.png" width="1199" height="675" alt="Gelbe Geister im Halloween-Schloss" decoding="async" loading="lazy"><span class="name">Geisterschloss</span><span class="badge" title="Neu">★</span></a></li>
-      <li class="kachel" data-slug="kristallrausch" data-rec="kristallrausch" data-name="Kristallrausch" data-arten="Arcade,Retro,Abenteuer,Puzzle" data-kat="neu"><a href="/spiele/kristallrausch"><img src="/bilder/kristallrausch.svg" width="960" height="600" alt="Kristallrausch: ein Bergarbeiter und funkelnde Kristalle" decoding="async" loading="lazy"><span class="name">Kristallrausch</span></a></li>
-      <li class="kachel" data-slug="mysupermarkt" data-rec="mysupermarkt" data-name="MySupermarkt" data-arten="3D,Aufbau,Simulation" data-kat="neu"><a href="/spiele/mysupermarkt"><img src="/bilder/mysupermarkt.webp" width="960" height="504" alt="MySupermarkt: Baue deinen eigenen 3D-Supermarkt" decoding="async" loading="lazy"><span class="name">MySupermarkt</span></a></li>
-      <li class="kachel" data-slug="sprungsebi" data-rec="sprungsebi" data-name="SprungSebi" data-arten="Jump and Run,Abenteuer,Für Kinder" data-kat="neu"><a href="/spiele/sprungsebi"><img src="/bilder/sprungsebi.svg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">SprungSebi</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
-      <li class="kachel" data-slug="jungle-runner" data-rec="jungle-runner" data-name="Jungle Runner" data-arten="3D,Laufspiel,Abenteuer" data-kat="neu"><a href="/spiele/jungle-runner"><img src="/bilder/jungle-runner.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Jungle Runner</span></a></li>
-      <li class="kachel" data-slug="zahlensturm" data-rec="zahlensturm" data-name="Zahlensturm" data-arten="3D,Rechnen,Laufspiel" data-kat="neu"><a href="/spiele/zahlensturm"><img src="/bilder/zahlensturm.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Zahlensturm</span></a></li>
-      <li class="kachel" data-slug="schraeglage" data-rec="schraeglage" data-name="Schräglage" data-arten="Fahren,Geschick" data-kat="neu"><a href="/spiele/schraeglage"><img src="/bilder/schraeglage.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Schräglage</span></a></li>
-      <li class="kachel" data-slug="stammvoelker" data-rec="stammvoelker" data-name="Stammvölker" data-arten="3D,Aufbau" data-kat="neu"><a href="/spiele/stammvoelker"><img src="/bilder/stammvoelker.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Stammvölker</span></a></li>
-      <li class="kachel" data-slug="sondengaenger" data-rec="sondengaenger" data-name="Sondengänger" data-arten="3D,Schatzsuche" data-kat="neu"><a href="/spiele/sondengaenger"><img src="/bilder/sondengaenger.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Sondengänger</span></a></li>
-      <li class="kachel" data-slug="anbiss" data-rec="anbiss" data-name="Anbiss" data-arten="3D,Angeln" data-kat="neu"><a href="/spiele/anbiss"><img src="/bilder/anbiss.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Anbiss</span></a></li>
-      <li class="kachel" data-slug="hau-die-kakerlake" data-rec="kakerlake" data-name="Hau die Kakerlake!" data-arten="Arcade,Geschick,Ein Finger" data-kat="neu"><a href="/spiele/hau-die-kakerlake"><img src="/bilder/hau-die-kakerlake.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Hau die Kakerlake!</span></a></li>
+      <li class="kachel" data-slug="wasser-marsch" data-kategorien="geschick,kinder" data-rec="wassermarsch" data-name="Wasser Marsch!" data-arten="Für Kinder,Feuerwehr,Geschick" data-kat="neu"><a href="/spiele/wasser-marsch"><img src="/bilder/wasser-marsch.webp" width="720" height="720" alt="Wasser Marsch!: Kleiner Feuerwehrmann löscht mit dem Wasserstrahl, eine Katze schaut zu" decoding="async" loading="lazy"><span class="name">Wasser Marsch!</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
+      <li class="kachel" data-slug="turmschicht" data-kategorien="geschick,action" data-rec="turmschicht" data-name="Turmschicht" data-arten="Retro,Arcade,Geschick" data-kat="neu"><a href="/spiele/turmschicht"><img src="/bilder/turmschicht.png" width="960" height="600" alt="Turmschicht: Pixel-Dino klettert durch einen Stahlturm mit Leitern und Monstern" decoding="async" loading="lazy"><span class="name">Turmschicht</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
+      <li class="kachel" data-slug="dino-leiterhelden" data-kategorien="raetsel,kinder" data-rec="dinoleiter" data-name="Dino-Leiterhelden" data-arten="Für Kinder,Puzzle,Abenteuer" data-kat="neu"><a href="/spiele/dino-leiterhelden"><img src="/bilder/dino-leiterhelden.webp" width="960" height="600" alt="Dino-Leiterhelden: Dinos, Leitern und ein schlafendes Monster im Baumhaus" decoding="async" loading="lazy"><span class="name">Dino-Leiterhelden</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
+      <li class="kachel" data-slug="geisterschloss" data-kategorien="action" data-rec="geisterschloss" data-name="Geisterschloss" data-arten="3D,Action,Halloween" data-kat="neu"><a href="/spiele/geisterschloss"><img src="/bilder/geisterschloss.png" width="1199" height="675" alt="Gelbe Geister im Halloween-Schloss" decoding="async" loading="lazy"><span class="name">Geisterschloss</span><span class="badge" title="Neu">★</span></a></li>
+      <li class="kachel" data-slug="kristallrausch" data-kategorien="raetsel,geschick" data-rec="kristallrausch" data-name="Kristallrausch" data-arten="Arcade,Retro,Abenteuer,Puzzle" data-kat="neu"><a href="/spiele/kristallrausch"><img src="/bilder/kristallrausch.svg" width="960" height="600" alt="Kristallrausch: ein Bergarbeiter und funkelnde Kristalle" decoding="async" loading="lazy"><span class="name">Kristallrausch</span></a></li>
+      <li class="kachel" data-slug="mysupermarkt" data-kategorien="aufbau" data-rec="mysupermarkt" data-name="MySupermarkt" data-arten="3D,Aufbau,Simulation" data-kat="neu"><a href="/spiele/mysupermarkt"><img src="/bilder/mysupermarkt.webp" width="960" height="504" alt="MySupermarkt: Baue deinen eigenen 3D-Supermarkt" decoding="async" loading="lazy"><span class="name">MySupermarkt</span></a></li>
+      <li class="kachel" data-slug="sprungsebi" data-kategorien="geschick,abenteuer" data-rec="sprungsebi" data-name="SprungSebi" data-arten="Jump and Run,Abenteuer,Für Kinder" data-kat="neu"><a href="/spiele/sprungsebi"><img src="/bilder/sprungsebi.svg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">SprungSebi</span><span class="badge" title="Neu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="sr">Neu</span></span></a></li>
+      <li class="kachel" data-slug="jungle-runner" data-kategorien="geschick,abenteuer" data-rec="jungle-runner" data-name="Jungle Runner" data-arten="3D,Laufspiel,Abenteuer" data-kat="neu"><a href="/spiele/jungle-runner"><img src="/bilder/jungle-runner.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Jungle Runner</span></a></li>
+      <li class="kachel" data-slug="zahlensturm" data-kategorien="raetsel,geschick" data-rec="zahlensturm" data-name="Zahlensturm" data-arten="3D,Rechnen,Laufspiel" data-kat="neu"><a href="/spiele/zahlensturm"><img src="/bilder/zahlensturm.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Zahlensturm</span></a></li>
+      <li class="kachel" data-slug="schraeglage" data-kategorien="rennen,geschick" data-rec="schraeglage" data-name="Schräglage" data-arten="Fahren,Geschick" data-kat="neu"><a href="/spiele/schraeglage"><img src="/bilder/schraeglage.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Schräglage</span></a></li>
+      <li class="kachel" data-slug="stammvoelker" data-kategorien="aufbau" data-rec="stammvoelker" data-name="Stammvölker" data-arten="3D,Aufbau" data-kat="neu"><a href="/spiele/stammvoelker"><img src="/bilder/stammvoelker.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Stammvölker</span></a></li>
+      <li class="kachel" data-slug="sondengaenger" data-kategorien="abenteuer" data-rec="sondengaenger" data-name="Sondengänger" data-arten="3D,Schatzsuche" data-kat="neu"><a href="/spiele/sondengaenger"><img src="/bilder/sondengaenger.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Sondengänger</span></a></li>
+      <li class="kachel" data-slug="anbiss" data-kategorien="abenteuer" data-rec="anbiss" data-name="Anbiss" data-arten="3D,Angeln" data-kat="neu"><a href="/spiele/anbiss"><img src="/bilder/anbiss.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Anbiss</span></a></li>
+      <li class="kachel" data-slug="hau-die-kakerlake" data-kategorien="geschick,action" data-rec="kakerlake" data-name="Hau die Kakerlake!" data-arten="Arcade,Geschick,Ein Finger" data-kat="neu"><a href="/spiele/hau-die-kakerlake"><img src="/bilder/hau-die-kakerlake.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Hau die Kakerlake!</span></a></li>
     </ul>
     </section>
 
     <section class="ueber" id="ueber" aria-labelledby="ueber-titel">
       <h2 id="ueber-titel">Über PlaySaal</h2>
       <p>PlaySaal ist eine kleine Sammlung kostenloser Browserspiele. Du öffnest ein Spiel und spielst sofort: ohne Download, ohne Konto, am Handy wie am Rechner.</p>
-      <p><b>Deine Rekorde gehören dir.</b> Sie liegen nur im Speicher dieses Browsers. Keine Tracker, keine Werbung. Wer die Browserdaten löscht, fängt wieder bei null an.</p>
+      <p><b>Deine Rekorde gehören dir.</b> Sie liegen im Speicher dieses Browsers. Wer möchte, sichert sie mit einem freiwilligen Konto zusätzlich online und nimmt sie auf andere Geräte mit. Keine Werbung. Wer ohne Konto die Browserdaten löscht, fängt wieder bei null an.</p>
     </section>
 
     <section class="seo" aria-labelledby="seo-titel">
-      <h2 id="seo-titel">Spielekategorien <em>bald verfügbar</em></h2>
+      <h2 id="seo-titel">Spielarten</h2>
       <ul class="seo-chips" aria-label="Geplante Kategorien">
         <li>3D-Spiele</li><li>Puzzle-Spiele</li><li>Aufbauspiele</li><li>Rennspiele</li><li>Angelspiele</li><li>Retro-Spiele</li><li>Spiele für Kinder</li><li>Ein-Finger-Spiele</li>
       </ul>
@@ -264,10 +281,12 @@
   <div class="pf-marke"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="830" height="244" alt="PlaySaal"><p>Browserspiele ohne Anmeldung.</p></div>
   <nav aria-label="Spiele"><h3>Spiele</h3><a href="#hot">Hot</a><a href="#neu">Neu</a><a href="/umzug" data-umzug hidden>Spielstände umziehen</a></nav>
   <nav aria-label="Rechtliches"><h3>Rechtliches</h3><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
-  <div class="pf-bald"><h3>Bald</h3><span>Freunde</span><span>Profil</span></div>
+  <div class="pf-bald"><h3>Bald</h3><span>Freunde</span></div>
 </div></footer>
 
 <script src="/assets/umzug-config.js"></script>
+<script src="/assets/playsaal-config.js"></script>
+<script src="/assets/playsaal.js"></script>
 <script>
 // Startseite: Suche, "Bald verfügbar", Weiter spielen, Navigation
 (function () {
@@ -279,14 +298,20 @@
   const spiele = [];
   document.querySelectorAll('.kachel').forEach((li) => {
     let s = spiele.find((x) => x.slug === li.dataset.slug);
-    if (!s) { s = { slug: li.dataset.slug, name: li.dataset.name, rec: li.dataset.rec, bild: li.querySelector('img').getAttribute('src'), arten: li.dataset.arten.split(','), kat: [] }; spiele.push(s); }
+    if (!s) { s = { slug: li.dataset.slug, name: li.dataset.name, rec: li.dataset.rec, bild: li.querySelector('img').getAttribute('src'), arten: li.dataset.arten.split(','), kat: [], el: li }; spiele.push(s); }
     if (!s.kat.includes(li.dataset.kat)) s.kat.push(li.dataset.kat);
   });
 
-  // "Bald verfügbar"
+  // "Bald verfügbar" (Freunde) und Profil/Konto
   const toast = $('#toast'); let tt;
+  const hinweis = (t) => { toast.textContent = t; toast.hidden = false; clearTimeout(tt); tt = setTimeout(() => { toast.hidden = true; }, 2600); };
   document.querySelectorAll('[data-bald]').forEach((b) => b.addEventListener('click', () => {
-    toast.textContent = b.dataset.bald + ': bald verfügbar'; toast.hidden = false; clearTimeout(tt); tt = setTimeout(() => { toast.hidden = true; }, 2600);
+    if (b.id === 'profilBtn' && window.PlaySaal && window.PlaySaal.hostOk) {
+      if (window.PlaySaal.user()) { location.href = '/konto'; return; }
+      window.PlaySaal.anbieter().then((a) => { if (a.email || a.google || a.apple) window.PlaySaal.anmelden(); else hinweis('Profil: bald verfügbar'); });
+      return;
+    }
+    hinweis(b.dataset.bald + ': bald verfügbar');
   }));
 
   // Suche
@@ -297,13 +322,14 @@
     const q = varianten(feld.value.trim());
     liste.textContent = ''; leer.hidden = true;
     if (!q[0]) return;
-    const treffer = spiele.filter((s) => { const h = varianten([s.name, ...s.arten, ...s.kat].join(' ')); return h.some((x) => q.some((y) => x.includes(y))); });
+    const katNamen = (s) => (s.el.dataset.kategorien || '').split(',').map((k) => (window.__katNamen || {})[k] || '');
+    const treffer = spiele.filter((s) => { if (s.el.dataset.gelistet === '0') return false; const h = varianten([s.name, ...s.arten, ...s.kat, ...katNamen(s)].join(' ')); return h.some((x) => q.some((y) => x.includes(y))); });
     treffer.forEach((s) => {
       const li = document.createElement('li'), a = document.createElement('a'), i = document.createElement('img'), d = document.createElement('div'), b = document.createElement('b'), k = document.createElement('small');
       a.href = '/spiele/' + s.slug; i.src = s.bild; i.alt = ''; i.width = 64; i.height = 64; b.textContent = s.name; k.textContent = s.arten.join(' · ');
       d.append(b, k); a.append(i, d); li.appendChild(a); liste.appendChild(li);
     });
-    if (!treffer.length) { leer.textContent = 'Kein Spiel für „' + feld.value.trim() + '“ gefunden. Probier es mit einer Art wie 3D, Retro oder Puzzle.'; leer.hidden = false; }
+    if (!treffer.length) { leer.textContent = 'Kein Spiel für „' + feld.value.trim() + '“ gefunden. Probier es mit einer Art wie 3D, Retro oder Rätsel.'; leer.hidden = false; }
   }
   function auf() { panel.hidden = false; knopf.setAttribute('aria-expanded', 'true'); feld.focus(); zeige(); }
   function zu(fokus) { panel.hidden = true; knopf.setAttribute('aria-expanded', 'false'); if (fokus) knopf.focus(); }
@@ -416,4 +442,5 @@
   window.__weiter(REC);
 })();
 </script>
+<script src="/assets/katalog.js"></script>
 </body></html>

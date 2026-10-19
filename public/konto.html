@@ -1,0 +1,90 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Mein Konto · PlaySaal</title><meta name="robots" content="noindex"><link rel="icon" type="image/svg+xml" href="/favicon.svg"><link rel="icon" href="/favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest"><meta name="theme-color" content="#11121A"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/assets/site.css"><style>body{margin:0;background:#11121A;color:#f5f4ff;font:17px/1.6 "Barlow","Segoe UI",system-ui,sans-serif}main{max-width:720px;margin:0 auto;padding:20px 16px 40px}a{color:#FFD21C}h1{font-family:"Dela Gothic One","Arial Black",sans-serif;font-weight:400;font-size:36px;line-height:1.1;margin:18px 0 22px}h2{font-size:19px;margin:28px 0 6px}p,li{color:#d6d8e2}.ph{background:rgba(255,146,0,.16);color:#FF9200;padding:0 4px;border-radius:3px}.todo{border:1px dashed rgba(255,146,0,.55);border-radius:10px;padding:12px 14px;color:#FF9200;font-size:15px}.karte{background:#1a1b26;border:1px solid rgba(246,247,249,.12);border-radius:16px;padding:14px 16px;margin:0 0 14px}
+.karte h2{margin:0 0 8px;font-size:19px}
+.zeile{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid rgba(246,247,249,.08)}
+.zeile:first-of-type{border-top:0}
+.zeile small,.klein{color:#b6b9c8;font-size:14px}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(246,247,249,.2);background:#232534;color:#f6f7f9;font:700 16px/1 "Barlow","Segoe UI",system-ui,sans-serif;cursor:pointer;text-decoration:none}
+.btn.ja{background:#FFD21C;border-color:#FFD21C;color:#11121A}
+.btn.gefahr{border-color:rgba(255,146,0,.7);color:#FF9200}
+.btn[disabled]{opacity:.5;cursor:default}
+.btn.klein{min-height:36px;padding:0 14px;font-size:14px}
+.avatar{display:grid;place-items:center;width:56px;height:56px;border-radius:16px;background:#232534;font-size:30px}
+.kopfzeile{display:flex;gap:14px;align-items:center}
+input[type=text],input[type=email]{width:100%;min-height:44px;border-radius:12px;border:1px solid rgba(246,247,249,.2);background:#11121A;color:#f6f7f9;font:inherit;padding:8px 12px}
+.f{min-height:20px;font-size:14px;margin:6px 0 0}.f.e{color:#FFB366}.f.g{color:#FFD21C}
+.stat{display:inline-flex;gap:8px;align-items:center}
+.stat::before{content:"";width:9px;height:9px;border-radius:50%;background:#FF9200}
+.stat[data-s=ok]::before,.stat[data-s=gast]::before{background:#FFD21C}
+.reihe{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+</style></head><body><header class="site-head">
+  <div class="site-head-in">
+    <a class="site-logo" href="/" aria-label="PlaySaal, alle Spiele"><img src="/brand/playsaal-logo-horizontal-dark.svg" width="830" height="244" alt="PlaySaal"></a>
+    <nav class="site-nav" aria-label="Hauptmenü"><a href="/#spiele">Alle Spiele</a><a href="/#neu">Neue Spiele</a></nav>
+    <button class="menu-btn" type="button" aria-controls="menu" aria-expanded="false" aria-label="Menü öffnen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </div>
+</header>
+<dialog class="menu" id="menu" aria-label="Menü"><div class="menu-in">
+  <div class="menu-top"><span>Menü</span><button class="menu-close" type="button" aria-label="Menü schließen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+  <nav aria-label="Spiele"><a href="/#spiele">Alle Spiele</a><a href="/#neu">Neue Spiele</a><a href="/umzug" data-umzug hidden>Spielstände umziehen</a></nav>
+  <nav class="menu-recht" aria-label="Rechtliches"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
+</div></dialog>
+<main id="konto">
+<h1>Mein Konto</h1>
+<p id="laden" class="klein" role="status">Wird geladen …</p>
+
+<section id="gast" hidden>
+  <div class="karte">
+    <h2>Nicht angemeldet</h2>
+    <p>Spielen geht immer ohne Konto. Mit einem Konto bleiben Fortschritt und Favoriten auf all deinen Geräten erhalten. Die Anmeldung ist freiwillig.</p>
+    <p class="klein" id="gastHinweis"></p>
+    <div class="reihe"><button class="btn ja" id="anmelden" type="button">Anmelden</button></div>
+  </div>
+</section>
+
+<section id="angemeldet" hidden>
+  <div class="karte" aria-labelledby="profilTitel">
+    <h2 id="profilTitel">Profil</h2>
+    <div class="kopfzeile"><div class="avatar" id="avatar" aria-hidden="true"></div>
+      <div><b id="spielername"></b><br><span class="klein" id="profilHinweis">Dein Spielername ist öffentlich sichtbar. Deine E-Mail-Adresse und dein Klarname sind es nie.</span></div></div>
+    <div class="reihe"><button class="btn" id="profilBearbeiten" type="button">Name und Bild ändern</button></div>
+  </div>
+
+  <div class="karte" aria-labelledby="artTitel">
+    <h2 id="artTitel">Anmeldearten</h2>
+    <div id="identitaeten"></div>
+    <p class="klein" id="artHinweis"></p>
+    <div class="reihe" id="verknuepfen"></div>
+    <div id="mailBox" hidden>
+      <p class="klein">Wir schicken einen Bestätigungscode an die neue Adresse.</p>
+      <input type="email" id="mailNeu" autocomplete="email" placeholder="deine@email.de" aria-label="Neue E-Mail-Adresse">
+      <div class="reihe"><button class="btn ja klein" id="mailSenden" type="button">Code senden</button></div>
+      <div id="mailCodeZeile" hidden><input type="text" id="mailCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="Code" aria-label="Code aus der E-Mail"><div class="reihe"><button class="btn ja klein" id="mailBestaetigen" type="button">Bestätigen</button></div></div>
+      <p class="f" id="mailMeldung" role="status"></p>
+    </div>
+  </div>
+
+  <div class="karte" aria-labelledby="stTitel">
+    <h2 id="stTitel">Spielstände</h2>
+    <p>Status: <span class="stat" id="syncStatus" data-s="gast"></span></p>
+    <div id="staende"></div>
+    <div class="reihe"><button class="btn klein" id="syncJetzt" type="button">Jetzt synchronisieren</button></div>
+  </div>
+
+  <div class="karte" aria-labelledby="favTitel">
+    <h2 id="favTitel">Favoriten</h2>
+    <div id="favoriten"><p class="klein">Noch keine Favoriten. Tippe auf der Startseite bei einem Spiel auf das Herz.</p></div>
+  </div>
+
+  <div class="karte" aria-labelledby="kontoTitel">
+    <h2 id="kontoTitel">Konto</h2>
+    <p class="f" id="kontoMeldung" role="status"></p>
+    <div class="reihe"><button class="btn" id="abmelden" type="button">Abmelden</button><button class="btn gefahr" id="loeschen" type="button">Konto löschen</button></div>
+  </div>
+</section>
+</main>
+<footer class="site-foot"><div class="site-foot-in">
+  <span>PlaySaal · Browserspiele ohne Anmeldung</span>
+  <nav aria-label="Rechtliches"><a href="/impressum">Impressum</a><a href="/datenschutz">Datenschutz</a></nav>
+</div></footer>
+<script src="/assets/umzug-config.js"></script><script src="/assets/site.js"></script><script src="/assets/playsaal-config.js"></script><script src="/assets/playsaal.js"></script><script src="/assets/konto.js"></script>
+</body></html>
