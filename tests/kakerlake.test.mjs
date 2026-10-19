@@ -119,8 +119,8 @@ test('Maus: Treffer sofort bei pointerdown, Abklingzeit verhindert Dauerfeuer, F
   let z = null;
   for (let i = 0; i < 60 && !z; i++) { await warte(100); z = await ziel(page); }
   assert.ok(z, 'Gegner erscheint');
-  // Fehlschlag in eine leere Ecke
-  await page.mouse.click(30, 700);
+  // Fehlschlag in eine leere Ecke (rechts unten; links unten sitzt der Fehler-melden-Knopf)
+  await page.mouse.click(1250, 700);
   let s = await page.evaluate(() => __pk.game.summary());
   assert.equal(s.strikes, 1); assert.equal(await page.evaluate(() => __pk.game.defense), 5);
   await warte(250);

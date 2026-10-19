@@ -171,10 +171,10 @@
 
 
 /* Kategorien, Favoriten */
-.kat{margin-top:16px}
-.kat-chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.kat{margin:2px auto -20px;position:relative;z-index:1}
+.kat-chips{display:flex;gap:8px;overflow-x:auto;padding:0 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .kat-chips::-webkit-scrollbar{display:none}
-.kat-chips button{flex:none;font:600 15px/1 var(--f-text);color:var(--leise);background:var(--flaeche-hell);border:1px solid var(--linie);border-radius:999px;padding:0 16px;min-height:40px;cursor:pointer;white-space:nowrap}
+.kat-chips button{flex:none;font:600 15px/1 var(--f-text);color:var(--leise);background:var(--flaeche-hell);border:1px solid var(--linie);border-radius:999px;padding:0 14px;min-height:32px;cursor:pointer;white-space:nowrap}
 .kat-chips button:hover{color:var(--text)}
 .kat-chips button[aria-pressed="true"]{background:var(--aktion);border-color:var(--aktion);color:var(--basis)}
 .kat-leer{margin-top:20px;color:var(--leise)}
@@ -270,7 +270,7 @@
 
     <section class="seo" aria-labelledby="seo-titel">
       <h2 id="seo-titel">Spielarten</h2>
-      <ul class="seo-chips" aria-label="Geplante Kategorien">
+      <ul class="seo-chips" aria-label="Spielarten">
         <li>3D-Spiele</li><li>Puzzle-Spiele</li><li>Aufbauspiele</li><li>Rennspiele</li><li>Angelspiele</li><li>Retro-Spiele</li><li>Spiele für Kinder</li><li>Ein-Finger-Spiele</li>
       </ul>
     </section>
@@ -308,6 +308,8 @@
   document.querySelectorAll('[data-bald]').forEach((b) => b.addEventListener('click', () => {
     if (b.id === 'profilBtn' && window.PlaySaal && window.PlaySaal.hostOk) {
       if (window.PlaySaal.user()) { location.href = '/konto'; return; }
+      const f = (window.PLAYSAAL_CFG && window.PLAYSAAL_CFG.anmelden) || {};
+      if (!(f.email || f.google || f.apple)) { hinweis('Profil: bald verfügbar'); return; }
       window.PlaySaal.anbieter().then((a) => { if (a.email || a.google || a.apple) window.PlaySaal.anmelden(); else hinweis('Profil: bald verfügbar'); });
       return;
     }

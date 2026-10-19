@@ -183,7 +183,7 @@ test('Startseite: feste Kopfzeile mit Icons, Neu/Top nacheinander, jede Kachel f
   assert.ok(page.url().endsWith('/'));
   await page.click('[data-bald="Profil"]', { force: true });
   assert.match(await page.textContent('#toast'), /Profil.*bald verfügbar/);
-  assert.match(await page.textContent('.seo'), /bald verfügbar/);
+  assert.match(await page.textContent('.seo'), /Spielarten/); // Kategorien gibt es jetzt; nur Freunde ist noch "bald"
   // Aktiver Bereich: am Anfang Hot, nach dem Springen zu Neu Neu
   assert.equal(await page.getAttribute('.p-tabs a[href="#hot"]', 'aria-current'), 'true');
   await page.evaluate(() => document.getElementById('neu').scrollIntoView());

@@ -4,7 +4,7 @@
 // Ratenbegrenzung, Statistik-Deduplizierung und Kontolöschung.
 // Start:  npm i --no-save @electric-sql/pglite && node --test tests/db.test.mjs
 //         (oder PGLITE_PATH=/pfad/zu/node_modules/@electric-sql/pglite node --test tests/db.test.mjs)
-import { test, before } from 'node:test';
+import { test as echterTest, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -12,7 +12,8 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const MIG = join(ROOT, 'supabase/migrations');
-let db;
+let db, ohnePglite = false;
+const test = (name, fn) => echterTest(name, (t) => (ohnePglite ? t.skip('PGlite nicht installiert (npm i --no-save @electric-sql/pglite)') : fn(t)));
 const A = '11111111-1111-4111-8111-111111111111';
 const B = '22222222-2222-4222-8222-222222222222';
 const ADM = '33333333-3333-4333-8333-333333333333';
@@ -37,7 +38,8 @@ const rpc = async (rolle, uid, fn, ...args) => {
 const ADMIN_UID = ADM;
 
 before(async () => {
-  const { PGlite } = await ladePglite();
+  let pg; try { pg = await ladePglite(); } catch (e) { ohnePglite = true; return; }
+  const { PGlite } = pg;
   const { pgcrypto } = await import(process.env.PGLITE_PATH ? pathToFileURL(join(process.env.PGLITE_PATH, 'dist/contrib/pgcrypto.js')).href : '@electric-sql/pglite/contrib/pgcrypto');
   db = new PGlite({ extensions: { pgcrypto } });
   await db.exec(`
