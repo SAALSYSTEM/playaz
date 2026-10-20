@@ -426,7 +426,7 @@
 .w{font:16px/1.45 "Barlow","Segoe UI",system-ui,sans-serif;color:#f6f7f9;-webkit-user-select:text;user-select:text;-webkit-text-size-adjust:100%}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #FFD21C;outline-offset:2px}
-.fab{position:fixed;left:calc(env(safe-area-inset-left,0px) + 10px);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);display:flex;gap:6px;align-items:center;pointer-events:none}
+.fab{position:fixed;left:calc(env(safe-area-inset-left,0px) + 62px);top:calc(env(safe-area-inset-top,0px) + 16px);display:flex;gap:6px;align-items:center;pointer-events:none}
 .fab>*{pointer-events:auto}
 .fab button{height:36px;min-width:36px;border-radius:18px;border:1px solid rgba(246,247,249,.22);background:rgba(17,18,26,.72);color:#f6f7f9;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;opacity:.6;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 .fab button:hover,.fab button:focus-visible{opacity:1}
