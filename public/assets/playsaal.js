@@ -530,11 +530,14 @@ label.ck input{width:20px;height:20px;margin-top:2px;accent-color:#FFD21C}
             if (a.google || a.apple) box.append(el('div', { class: 'trenn', text: 'oder' }));
             const inp = el('input', { type: 'email', inputmode: 'email', autocomplete: 'email', placeholder: 'deine@email.de', 'aria-label': 'E-Mail-Adresse', maxlength: '254' });
             const senden = el('button', { class: 'btn ja', type: 'button', text: 'Code per E-Mail senden' });
-            const form = el('form', { novalidate: true, style: 'display:grid;gap:10px' }, inp, senden, fb);
+            const alter = el('input', { type: 'checkbox', 'aria-label': 'Ich bin mindestens 16 Jahre alt' });
+            const alterZeile = el('label', { class: 'ck' }, alter, el('span', {}, 'Ich bin mindestens 16 Jahre alt.', el('br'), el('small', { text: 'Ein Konto ist erst ab 16 Jahren möglich. Spielen geht ohne Konto in jedem Alter.' })));
+            const form = el('form', { novalidate: true, style: 'display:grid;gap:10px' }, inp, alterZeile, senden, fb);
             form.addEventListener('submit', (e) => { e.preventDefault(); senden.click(); });
             senden.addEventListener('click', async () => {
               const mail = inp.value.trim();
               if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(mail)) { fb.className = 'f e'; fb.textContent = 'Bitte gib eine gültige E-Mail-Adresse ein.'; inp.focus(); return; }
+              if (!alter.checked) { fb.className = 'f e'; fb.textContent = 'Bitte bestätige, dass du mindestens 16 Jahre alt bist.'; return; }
               senden.disabled = true; fb.className = 'f'; fb.textContent = 'Code wird gesendet …';
               const r = await codeSenden(mail).catch(() => ({ fehler: 'senden' }));
               senden.disabled = false;

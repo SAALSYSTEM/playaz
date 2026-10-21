@@ -148,6 +148,7 @@ async function einloggen(page, mail, code = '123456') {
   if (!(await ui(page).locator('dialog[open]').count())) await page.evaluate(() => { window.PlaySaal.anmelden(); });
   const d = ui(page).locator('dialog[open]');
   await d.locator('input[type=email]').fill(mail);
+  await d.locator('label.ck input[type=checkbox]').check();
   await d.getByRole('button', { name: 'Code per E-Mail senden' }).click();
   await d.locator('input.code').fill(code);
   await d.getByRole('button', { name: 'Bestätigen' }).click();
@@ -233,6 +234,10 @@ test('Anmeldung per E-Mail-Code: falscher und abgelaufener Code scheitern, richt
   await d.getByRole('button', { name: 'Code per E-Mail senden' }).click();
   await expect_text(d.locator('.f'), 'gültige E-Mail');
   await d.locator('input[type=email]').fill('anna@example.org');
+  await d.getByRole('button', { name: 'Code per E-Mail senden' }).click();
+  await expect_text(d.locator('.f.e'), '16 Jahre');
+  assert.equal(S.codes.size, 0, 'ohne Altersbestätigung wird kein Code gesendet');
+  await d.locator('label.ck input[type=checkbox]').check();
   await d.getByRole('button', { name: 'Code per E-Mail senden' }).click();
   await d.locator('input.code').fill('000000');
   await d.getByRole('button', { name: 'Bestätigen' }).click();

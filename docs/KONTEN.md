@@ -17,7 +17,7 @@ Statische Seite auf Cloudflare (unverändert) + ein Supabase-Projekt (`cphwxikfr
 ## Schalter (`playsaal-config.js`)
 Alle Wege sind **aus**, bis du sie freigibst. Ein Anmeldeweg erscheint nur, wenn der Schalter `true` ist **und** Supabase ihn als aktiv meldet.
 
-- `anmelden.email`: erst `true`, wenn eigener E-Mail-Versand läuft (Schritt 3).
+- `anmelden.email`: an (Versand über Brevo-SMTP, Absender noreply@playsaal.com).
 - `anmelden.google` / `anmelden.apple`: erst `true`, wenn der Anbieter eingerichtet und getestet ist.
 - `fehlermelden`: an. Knopf „Fehler melden“ auf jeder Spielseite.
 - `statistik`: **aus.** Nicht einschalten, bevor die Punkte unter „Offene Rechtsfragen“ geklärt sind.
@@ -58,14 +58,11 @@ Spielstarts (erste Spielaktion je Seitenaufruf), abgeschlossene Schritte (Spiels
 - Aufräumen: `private.aufraeumen()` läuft von selbst gelegentlich mit (bei Fehlermeldungen und Statistik-Meldungen, zufällig 1 bis 5 %). Bei sehr wenig Verkehr bleibt Altes länger liegen; optional zusätzlich täglich per Dashboard → Integrations → Cron: `select private.aufraeumen();`.
 - Neue Spiele: Zeile in `public.games` (Seiten-Name, `save_id`, Präfix) **und** Einträge in `playsaal-config.js` (`spiele`, `namen`, `praefixe`) sowie in `assets/umzug.js` ergänzen.
 
-## Offene Rechtsfragen (bewusst nicht entschieden)
-Diese Punkte brauchen deine Entscheidung oder juristische Prüfung, bevor die betroffenen Funktionen live gehen:
-1. **Kinder**: Die Seite richtet sich teils an Kinder („Für Kinder“). Für Konten gilt in Deutschland die Altersgrenze 16 (Art. 8 DSGVO): Einwilligung der Eltern oder Konten erst ab 16. Aktuell ist die Anmeldung dadurch **abgeschaltet** (alle Schalter aus). Vorschlag: Konten nur mit Altershinweis „ab 16“ und Kinderspiele ohne Aufforderung zur Anmeldung.
-2. **Statistik**: Rechtsgrundlage (berechtigtes Interesse vs. Einwilligung; ggf. ist ein Banner nötig, wenn Endgeräteinformationen gelesen werden) und Datenschutztext sind offen. Schalter bleibt aus.
-3. **Auftragsverarbeitung**: AV-Vertrag mit Supabase (im Dashboard unter Organisation → Legal abrufbar/annehmbar) und ggf. Standardvertragsklauseln. Das Annehmen eines Vertrags macht nur du.
-4. **Google/Apple**: Datenschutzhinweise der Anbieter verlinken, wenn aktiviert.
-5. **Verantwortlicher, Hoster, Logaufbewahrung** in `datenschutz.html`: Platzhalter prüfen (dort als offene Punkte aufgeführt).
-6. Die Seite „Datenschutz“ nennt jetzt auch die Verbindung zu Supabase beim bloßen Besuch (Spieleliste); bitte gegenlesen.
+## Rechtliches (Stand 2026-10-21)
+- Impressum und Datenschutz sind mit den Angaben des Betreibers ausgefüllt (Cloudflare, Supabase, Brevo, Aufsicht NRW).
+- Konten nur ab 16 Jahren: Pflicht-Häkchen im Anmeldedialog, Hinweis im Datenschutztext. Spielen geht ohne Konto in jedem Alter.
+- Google und Apple werden nicht angeboten (Schalter aus). Nutzungsstatistik ist aus; der Datenschutztext sagt, dass keine erfasst wird. Vor dem Einschalten muss der Text angepasst werden.
+- Supabase-AVV ist Teil der Nutzungsbedingungen; Brevo-AVV ist Teil der Brevo-Bedingungen.
 
 ## Tests
 - `PGLITE_PATH=… node --test tests/db.test.mjs` bzw. `npm i --no-save @electric-sql/pglite` – prüft SQL lokal (RLS, Admin-Schutz, Revisionen, Namensregeln, Rate-Limits, Statistik, Kontolöschung). Ohne PGlite werden die Tests übersprungen.
