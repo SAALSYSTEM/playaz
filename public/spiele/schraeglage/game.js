@@ -1315,8 +1315,27 @@ function zeigeGarage() {
   const nf = $('#gName'); nf.value = stand.settings.name;
 }
 
+// Bestzeiten, die noch nicht vom Server bestätigt sind (z. B. ohne Anmeldung oder offline gefahren), nachreichen.
+let nachreichenLaeuft = false;
+async function nachreichen() {
+  if (nachreichenLaeuft) return;
+  nachreichenLaeuft = true;
+  try {
+    let geaendert = false;
+    for (const l of LEVELS) {
+      const ld = stand.levels[l.id];
+      if (!ld || !ld.best || ld.ver || !ld.inputs || ld.sv !== SIM_VERSION) continue;
+      const r = await online.meldeLauf({ v: SIM_VERSION, level: l.id, ms: ld.best, inputs: ld.inputs, vehicle: l.vehicle });
+      if (r.status === 'gast' || r.status === 'lokal' || r.status === 'fehler') break;
+      if (r.status === 'verifiziert') { ld.ver = true; geaendert = true; }
+    }
+    if (geaendert) { speichern(); if (!$('#sZeiten').hidden) zeigeZeiten(); }
+  } catch (e) {} finally { nachreichenLaeuft = false; }
+}
+
 function zeigeZeiten() {
   zeigeNur('#sZeiten');
+  nachreichen();
   const tb = $('#zListe'); tb.textContent = '';
   for (const l of LEVELS) {
     const ld = stand.levels[l.id];

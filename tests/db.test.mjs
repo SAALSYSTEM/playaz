@@ -61,8 +61,8 @@ before(async () => {
 const keys = (o) => ({ keys: o });
 const speichern = (uid, game, data, base = 0, fortschritt = 1) => rpc('authenticated', uid, 'spielstand_speichern', game, 1, JSON.stringify(data), fortschritt, 'Test', base, 'Test-Gerät', '2026-10-19T12:00:00Z');
 
-test('Stammdaten: 21 Spiele, 7 Kategorien, Spiele ohne Kollision', async () => {
-  assert.equal((await als('anon', null, 'select count(*)::int n from public.games'))[0].n, 21);
+test('Stammdaten: 22 Spiele, 7 Kategorien, Spiele ohne Kollision', async () => {
+  assert.equal((await als('anon', null, 'select count(*)::int n from public.games'))[0].n, 22);
   assert.equal((await als('anon', null, 'select count(*)::int n from public.categories'))[0].n, 7);
   assert.equal((await als('anon', null, `select count(*)::int n from public.games where hot`))[0].n, 7);
 });
@@ -160,7 +160,7 @@ test('Admin: Selbstfreischaltung unmöglich, serverseitige Prüfung, erst nach p
   await db.exec(`insert into private.admins (user_id, note) values ('${ADM}', 'Test')`);
   assert.equal(await rpc('authenticated', ADM, 'ist_admin'), true);
   const st = await rpc('authenticated', ADM, 'admin_statistik', 7);
-  assert.equal(typeof st.summe.starts, 'number'); assert.equal(st.spiele.length, 21);
+  assert.equal(typeof st.summe.starts, 'number'); assert.equal(st.spiele.length, 22);
   assert.deepEqual(await rpc('authenticated', ADM, 'admin_kategorie_speichern', 'neu-kat', 'Neu', 9, true), { ok: true });
   assert.deepEqual(await rpc('authenticated', ADM, 'admin_spiel_speichern', 'anbiss', ['abenteuer', 'neu-kat'], true, 8, true), { ok: true });
   assert.match(String((await fehler('authenticated', ADM, `select public.admin_spiel_speichern('anbiss','{gibtsnicht}',true,1,true)`)).message), /Unbekannte Kategorie/);
@@ -277,22 +277,64 @@ test('SCHRÄGLAGE-Rangliste: nur die Prüf-Funktion trägt ein, Browser nie; Wer
   // Öffentliche Rangliste: Name, Zeit, Platz; eigener Eintrag markiert; keine Kennungen
   const r = await rang('anon', null, 1, 'monat', 50);
   assert.deepEqual(r.map((x) => [x.platz, x.name, x.ms, x.ich]).map(String), ['1,Anna,11000,false', '2,Bernd,11500,false']);
-  assert.deepEqual(Object.keys(r[0]).sort(), ['erreicht', 'ich', 'ms', 'name', 'platz']);
+  assert.deepEqual(Object.keys(r[0]).sort(), ['avatar', 'erreicht', 'ich', 'ms', 'name', 'platz']);
   const meine = await rang('authenticated', B, 1, 'gesamt', 1);
   assert.equal(meine.find((x) => x.ich).name, 'Bernd');       // eigener Platz auch außerhalb der Top-Anzahl
   assert.equal((await rang('anon', null, 2, 'jahr', 50)).length, 0);
   for (const x of [['x', 1], ['monat', 0], ['monat', 99]]) assert.match(String((await fehler('anon', null, `select * from public.schraeglage_rangliste(${x[1]}, '${x[0]}', 5)`)).message), /unbekannt/);
+  assert.equal(r[0].avatar, 'a1');
+  // Gesamtwertung: Anzahl Level, dann Zeitsumme
+  await eintragen(A, 2, 15000);
+  const ges = await als('anon', null, 'select * from public.schraeglage_gesamt(50)');
+  assert.deepEqual(ges.map((x) => [x.platz, x.name, x.level_anzahl, Number(x.summe_ms)]).map(String), ['1,Anna,2,26000', '2,Bernd,1,11500']);
   // Alte Läufe: Wertung des Vormonats zählt nicht für "monat", aber für "gesamt"
   await db.exec(`insert into private.schraeglage_laeufe (user_id, level, ms, sim_version, inputs, created_at) values ('${B}', 1, 9000, 1, '0g', now() - interval '70 days')`);
   assert.equal((await rang('anon', null, 1, 'monat', 50)).find((x) => x.name === 'Bernd').ms, 11500);
   assert.equal((await rang('anon', null, 1, 'gesamt', 50))[0].name, 'Bernd');
   // Aufräumen behält je Spieler/Level/Monat nur die beste Zeit
   await db.exec('select private.aufraeumen()');
-  assert.equal((await db.query(`select count(*)::int n from private.schraeglage_laeufe where user_id = '${A}'`)).rows[0].n, 1);
+  assert.equal((await db.query(`select count(*)::int n from private.schraeglage_laeufe where user_id = '${A}' and level = 1`)).rows[0].n, 1);
   // Ratenbegrenzung der Prüf-Funktion
   let zuOft = null; for (let i = 0; i < 8 && !zuOft; i++) { const x = await eintragen(B, 2, 20000 + i); if (!x.ok) zuOft = x.grund; }
   assert.equal(zuOft, 'zu_oft');
   // Kontolöschung entfernt die Zeiten
   await rpc('authenticated', A, 'konto_loeschen', 'LÖSCHEN');
   assert.equal((await db.query(`select count(*)::int n from private.schraeglage_laeufe where user_id = '${A}'`)).rows[0].n, 0);
+});
+
+test('SEITENWECHSEL-Rangliste: nur die Prüf-Funktion trägt ein; Tage, Wertung, Rate, Aufräumen, Löschung', async () => {
+  const A = '77777777-7777-4777-8777-777777777777', B = '88888888-8888-4888-8888-888888888888', K = '99999999-9999-4999-8999-999999999999';
+  await db.exec(`insert into auth.users (id, email) values ('${A}', 'f@example.org'), ('${B}', 'g@example.org'), ('${K}', 'h@example.org')`);
+  await rpc('authenticated', A, 'profil_speichern', 'Anja', 'a3');
+  await rpc('authenticated', B, 'profil_speichern', 'Bodo', 'a4');
+  const heute = Number((await db.query(`select to_char(private.berlin_heute(), 'YYYYMMDD') d`)).rows[0].d);
+  const gestern = Number((await db.query(`select to_char(private.berlin_heute() - 1, 'YYYYMMDD') d`)).rows[0].d);
+  const eintragen = (uid, seed, punkte) => rpc('service_role', null, 'seitenwechsel_eintragen', uid, seed, punkte, punkte * 6, 1, '1c');
+  const rang = (rolle, uid, zr) => als(rolle, uid, 'select * from public.seitenwechsel_rangliste($1, 50)', [zr]);
+  for (const rolle of ['anon', 'authenticated']) {
+    const e = await fehler(rolle, A, `select public.seitenwechsel_eintragen('${A}', ${heute}, 10, 60, 1, '1c')`);
+    assert.match(String(e && e.message), /permission denied/, 'eintragen als ' + rolle);
+    assert.match(String((await fehler(rolle, A, 'select * from private.seitenwechsel_laeufe')).message), /permission denied/);
+    assert.match(String((await fehler(rolle, A, `select * from private.seitenwechsel_wertung('heute')`)).message), /permission denied/);
+  }
+  assert.equal((await eintragen(A, heute, 0)).grund, 'ungueltig');
+  assert.equal((await eintragen(A, 20200101, 10)).grund, 'tag');
+  assert.equal((await eintragen(A, heute + 1000, 10)).grund, 'tag');
+  assert.equal((await eintragen(A, 20261399, 10)).grund, 'tag');
+  assert.equal((await eintragen(K, heute, 10)).grund, 'kein_profil');
+  assert.equal((await eintragen(A, heute, 40)).ok, true);
+  const b = await eintragen(B, heute, 55); assert.equal(b.platz_heute, 1); assert.equal(b.spieler_heute, 2);
+  assert.equal((await eintragen(A, gestern, 90)).ok, true);   // Läufe über Mitternacht zählen für ihren Kurstag
+  const h = await rang('anon', null, 'heute');
+  assert.deepEqual(h.map((x) => [x.platz, x.name, x.avatar, x.punkte, x.ich]).map(String), ['1,Bodo,a4,55,false', '2,Anja,a3,40,false']);
+  assert.deepEqual(Object.keys(h[0]).sort(), ['avatar', 'ich', 'name', 'platz', 'punkte']);
+  assert.equal((await rang('authenticated', A, 'heute')).find((x) => x.ich).name, 'Anja');
+  assert.equal((await rang('anon', null, 'gesamt'))[0].name, 'Anja');   // 90 gestern
+  assert.match(String((await fehler('anon', null, `select * from public.seitenwechsel_rangliste('x', 5)`)).message), /unbekannt/);
+  await db.exec('select private.aufraeumen()');
+  assert.equal((await db.query(`select count(*)::int n from private.seitenwechsel_laeufe where user_id = '${A}'`)).rows[0].n, 2);
+  let zuOft = null; for (let i = 0; i < 12 && !zuOft; i++) { const x = await eintragen(B, heute, 10 + i); if (!x.ok) zuOft = x.grund; }
+  assert.equal(zuOft, 'zu_oft');
+  await rpc('authenticated', A, 'konto_loeschen', 'LÖSCHEN');
+  assert.equal((await db.query(`select count(*)::int n from private.seitenwechsel_laeufe where user_id = '${A}'`)).rows[0].n, 0);
 });

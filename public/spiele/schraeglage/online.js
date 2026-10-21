@@ -62,23 +62,28 @@ export function createOnline() {
       for (const l of levels) { const o = document.createElement('option'); o.value = l.id; o.textContent = 'Level ' + l.id; sel.appendChild(o); }
       const liste = document.createElement('ol'); liste.style.cssText = 'max-width:720px;margin:0 auto 18px;padding-left:28px';
       let zeitraum = 'monat';
+      const emoji = (a) => { const l = p.avatare || []; return l[(parseInt(String(a || 'a1').slice(1), 10) || 1) - 1] || '🙂'; };
       const laden = async () => {
         liste.textContent = 'Lädt …';
+        sel.hidden = zeitraum === 'gesamt';
         try {
-          const res = await p.rpc('schraeglage_rangliste', { p_level: +sel.value, p_zeitraum: zeitraum, p_anzahl: 50 });
+          const res = zeitraum === 'gesamt'
+            ? await p.rpc('schraeglage_gesamt', { p_anzahl: 50 })
+            : await p.rpc('schraeglage_rangliste', { p_level: +sel.value, p_zeitraum: zeitraum, p_anzahl: 50 });
           if (!res || res.fehler) throw new Error('rangliste');
           const rows = res.daten;
           liste.textContent = '';
           if (!rows || !rows.length) { liste.textContent = 'Noch keine verifizierten Zeiten.'; return; }
           for (const r of rows) {
             const li = document.createElement('li'); li.value = r.platz;
-            li.textContent = r.name + ' – ' + (r.ms / 1000).toFixed(2).replace('.', ',') + ' s' + (r.ich ? ' (du)' : '');
+            const wert = zeitraum === 'gesamt' ? r.level_anzahl + ' Level · ' + (r.summe_ms / 1000).toFixed(1).replace('.', ',') + ' s' : (r.ms / 1000).toFixed(2).replace('.', ',') + ' s';
+            li.textContent = emoji(r.avatar) + ' ' + r.name + ' – ' + wert + (r.ich ? ' (du)' : '');
             if (r.ich) li.style.color = '#FF9200';
             liste.appendChild(li);
           }
         } catch (e) { liste.textContent = 'Rangliste gerade nicht erreichbar.'; }
       };
-      for (const [id, name] of [['monat', 'Monat'], ['jahr', 'Jahr']]) {
+      for (const [id, name] of [['monat', 'Monat'], ['jahr', 'Jahr'], ['gesamt', 'Gesamt']]) {
         const b = document.createElement('button'); b.type = 'button'; b.textContent = name; b.setAttribute('aria-pressed', String(id === zeitraum));
         b.addEventListener('click', () => { zeitraum = id; tabs.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); laden(); });
         tabs.appendChild(b);
