@@ -32,6 +32,7 @@ after(async () => { await browser?.close(); try { process.kill(-wrangler.pid); }
 
 async function seite(opts = {}, url = SPIEL + '?test') {
   const ctx = await browser.newContext(opts);
+  await ctx.route(/supabase\.co/, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{"external":{"email":false}}' })); // Tests ohne Netz zu Supabase
   const page = await ctx.newPage();
   const fehler = [];
   page.on('pageerror', (e) => fehler.push(e.message));
@@ -256,6 +257,7 @@ test('Mobil: Touch-Pedale, Gas/Bremse per Finger, kein Scrollen, Vollbild-Knopf 
 
 test('Speicher gesperrt (Privatmodus): Spiel läuft trotzdem, Hinweis statt Absturz', async () => {
   const ctx = await browser.newContext();
+  await ctx.route(/supabase\.co/, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{"external":{"email":false}}' })); // Tests ohne Netz zu Supabase
   await ctx.addInitScript(() => { Object.defineProperty(window, 'localStorage', { get() { throw new DOMException('gesperrt', 'SecurityError'); } }); });
   const page = await ctx.newPage(); const fehler = [];
   page.on('pageerror', (e) => fehler.push(e.message));
@@ -297,7 +299,7 @@ for (const [w, h, touch] of [[320, 568, true], [390, 844, true], [844, 390, true
 }
 
 test('Portal: Kachel unter „Neu“, Weiter spielen zeigt Fortschritt', async () => {
-  const ctx = await browser.newContext(); const page = await ctx.newPage();
+  const ctx = await browser.newContext(); await ctx.route(/supabase\.co/, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' })); const page = await ctx.newPage();
   await page.goto(BASE + '/');
   assert.equal(await page.locator('#neu .kachel a[href="/spiele/schraeglage"]').count(), 1);   // neueste Spiele stehen vorn, Schräglage bleibt unter „Neu“
   await page.goto(SPIEL);

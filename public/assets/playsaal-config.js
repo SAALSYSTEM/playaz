@@ -24,7 +24,7 @@ window.PLAYSAAL_CFG = {
   statistik: true,
 
   // Geprüfte Rangliste (SCHRÄGLAGE): erst auf true, wenn Migration und Edge Function "schraeglage-lauf" eingerichtet sind.
-  rangliste: false,
+  rangliste: true,
 
   // Spiel-Kennungen: Seiten-Name -> Speicher-Kennung (identisch zu public.games.save_id)
   spiele: {
