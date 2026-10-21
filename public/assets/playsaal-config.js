@@ -15,7 +15,7 @@ window.PLAYSAAL_CFG = {
   //  email:  erst auf true setzen, wenn eigener SMTP-Versand (Absender + Domainprüfung) eingerichtet ist,
   //          sonst gehen Codes nur an Supabase-Teammitglieder.
   //  google/apple: erst auf true, wenn der Anbieter im Supabase-Dashboard eingerichtet und getestet ist.
-  anmelden: { email: false, google: false, apple: false },
+  anmelden: { email: true, google: false, apple: false },
 
   // Fehler melden: auf jeder Spielseite (Text, Spiel, Version, grobe Technikangaben; keine Pflicht-E-Mail)
   fehlermelden: true,
