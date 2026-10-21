@@ -7,12 +7,13 @@ Statische Seite auf Cloudflare (unverändert) + ein Supabase-Projekt (`cphwxikfr
 
 | Teil | Datei |
 |---|---|
-| Datenbank (Tabellen, RLS, Funktionen) | `supabase/migrations/*.sql` (zwei Dateien, in Reihenfolge) |
+| Datenbank (Tabellen, RLS, Funktionen) | `supabase/migrations/*.sql` (in Reihenfolge) |
 | Einstellungen und Schalter | `public/assets/playsaal-config.js` |
 | Anmeldung, Sync, Dialoge, Fehler melden, Statistik | `public/assets/playsaal.js` (+ `supabase.min.js`, selbst gehostet) |
 | Konto-Seite / Admin-Seite | `public/konto.html`, `public/admin.html` |
 | Kategorien, Favoriten auf der Startseite | `public/assets/katalog.js` |
-| Tests | `tests/db.test.mjs` (Datenbank lokal), `tests/konten.test.mjs` (Browser) |
+| Rangliste-Prüfung | `supabase/functions/schraeglage-lauf/` (Kopien der Physik: `node tools/edge-sync.mjs`) |
+| Tests | `tests/db.test.mjs` (Datenbank lokal), `tests/konten.test.mjs` (Browser), `tests/schraeglage-pruefung.test.mjs` (Prüf-Funktion) |
 
 ## Schalter (`playsaal-config.js`)
 Alle Wege sind **aus**, bis du sie freigibst. Ein Anmeldeweg erscheint nur, wenn der Schalter `true` ist **und** Supabase ihn als aktiv meldet.
@@ -38,6 +39,17 @@ Alle Wege sind **aus**, bis du sie freigibst. Ein Anmeldeweg erscheint nur, wenn
 
 ## Was gemessen wird
 Spielstarts (erste Spielaktion je Seitenaufruf), abgeschlossene Schritte (Spielstand-Wert steigt, grobe Heuristik), aktive Spielzeit (Sekunden mit Eingabe, sichtbarer Tab, 15 s Leerlaufgrenze), Fehler je Spiel. Keine Frame-Ereignisse, keine Fingerprints, keine Geräte-ID; die Sitzungs-ID lebt nur im Speicher der Seite. Testverkehr (`navigator.webdriver`, `?playsaal-test`) wird als Test markiert und nicht gezählt. **Eindeutige oder wiederkehrende Besucher werden bewusst nicht gemessen**, weil das ohne Kennung oder Cookie nicht zuverlässig geht. Aufbewahrung: Tageswerte 400 Tage, Sperr- und Dedup-Daten 2 Tage, erledigte Fehlermeldungen 180 Tage (Funktion `private.aufraeumen`, siehe unten).
+
+## Geprüfte Rangliste (SCHRÄGLAGE)
+Nur Konten (ab 16) können Zeiten eintragen. Der Browser schickt nicht die Zeit, sondern die **Eingabefolge** (Gas/Bremse je Takt). Die Supabase Edge Function `schraeglage-lauf` fährt sie mit derselben Physik (`sim.js`, bitgenau deterministisch) nach, prüft die Sitzung und trägt nur bestätigte Zeiten über `schraeglage_eintragen` ein (nur `service_role`; Browser haben keinen Schreibzugriff). Unplausibel schnelle Zeiten (unter Goldzeit/2), falsche Physik-Version und mehr als 6 Einträge pro Minute werden abgelehnt. Lesen: `schraeglage_rangliste` (Spielername, Zeit, Platz; Monat/Jahr/gesamt). Nach einer Physik-Änderung `SIM_VERSION` in `sim.js` erhöhen und `node tools/edge-sync.mjs` ausführen, dann die Funktion neu deployen; die Wertung beginnt dann neu.
+
+**Grenze, ehrlich:** Das Nachfahren beweist, dass die Zeit mit diesen Eingaben physikalisch möglich ist, nicht dass ein Mensch gefahren ist (ein Programm, das Eingaben berechnet, wäre technisch möglich). Manipulierte Spielstände im Browser oder erfundene Zeiten kommen nicht durch.
+
+Einrichtung (einmalig, nur du):
+1. SQL aus `supabase/migrations/20261021200000_schraeglage_rangliste.sql` im SQL Editor ausführen.
+2. Edge Function deployen (Rechner mit Node, im Repo-Ordner): `npx supabase login`, dann `npx supabase functions deploy schraeglage-lauf --project-ref cphwxikfrxgejiqghlwn --no-verify-jwt`. `verify_jwt` ist aus, weil die Funktion die Sitzung selbst gegen Supabase prüft. Einen Schlüssel brauchst du dafür nicht eintragen (`SUPABASE_SERVICE_ROLE_KEY` stellt Supabase der Funktion selbst bereit).
+3. In `public/assets/playsaal-config.js` `rangliste: true` setzen (oder mir sagen, dann ergänze ich auch den Datenschutztext).
+Grenzen: Free-Plan erlaubt 2 s Rechenzeit je Aufruf; die längsten Läufe brauchen im Test bis ca. 1,3 s. Zu lange Läufe würden abgelehnt (Zeit bleibt lokal).
 
 ## Spielstand-Sync, Regeln
 - Gast: alles bleibt im Browser. Nach der Anmeldung wird vorhandener lokaler Fortschritt **angeboten**, nie still hochgeladen oder überschrieben.
