@@ -426,16 +426,20 @@
 .w{font:16px/1.45 "Barlow","Segoe UI",system-ui,sans-serif;color:#f6f7f9;-webkit-user-select:text;user-select:text;-webkit-text-size-adjust:100%}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,input:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid #FFD21C;outline-offset:2px}
-.fab{position:fixed;left:calc(env(safe-area-inset-left,0px) + 62px);top:calc(env(safe-area-inset-top,0px) + 16px);display:flex;gap:6px;align-items:center;pointer-events:none}
-.fab>*{pointer-events:auto}
-.fab button{height:36px;min-width:36px;border-radius:18px;border:1px solid rgba(246,247,249,.22);background:rgba(17,18,26,.72);color:#f6f7f9;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:13px;opacity:.6;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
-.fab button:hover,.fab button:focus-visible{opacity:1}
-.fab svg{width:16px;height:16px}
-.fab .pill[hidden]{display:none}
-.fab .pill{max-width:46vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fab .pill[data-s="ok"]::before{content:"";width:8px;height:8px;border-radius:50%;background:#FFD21C;display:inline-block}
-.fab .pill[data-s="ausstehend"]::before,.fab .pill[data-s="offline"]::before,.fab .pill[data-s="speichert"]::before{content:"";width:8px;height:8px;border-radius:50%;background:#FF9200;display:inline-block}
-.fab .pill[data-s="fehler"]::before,.fab .pill[data-s="konflikt"]::before{content:"";width:8px;height:8px;border-radius:50%;background:#FF4A13;display:inline-block}
+.tab{position:fixed;left:env(safe-area-inset-left,0px);top:50%;transform:translateY(-50%);width:22px;height:58px;border:1px solid rgba(246,247,249,.22);border-left:0;border-radius:0 14px 14px 0;background:rgba(17,18,26,.62);color:#f6f7f9;padding:0;display:flex;align-items:center;justify-content:center;opacity:.5;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.tab:hover,.tab:focus-visible,.tab[aria-expanded="true"]{opacity:1}
+.tab i{width:8px;height:8px;border-radius:50%;background:rgba(246,247,249,.5);display:block}
+.tab[data-s="ok"] i{background:#FFD21C}
+.tab[data-s="ausstehend"] i,.tab[data-s="offline"] i,.tab[data-s="speichert"] i{background:#FF9200}
+.tab[data-s="fehler"] i,.tab[data-s="konflikt"] i{background:#FF4A13}
+.menue{position:fixed;left:calc(env(safe-area-inset-left,0px) + 30px);top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.menue[hidden]{display:none}
+.menue button{height:40px;border-radius:20px;border:1px solid rgba(246,247,249,.22);background:rgba(17,18,26,.92);color:#f6f7f9;padding:0 14px;display:inline-flex;align-items:center;gap:8px;font-size:14px}
+.menue svg{width:16px;height:16px}
+.menue .pill[hidden]{display:none}
+.menue .pill[data-s="ok"]::before{content:"";width:8px;height:8px;border-radius:50%;background:#FFD21C;display:inline-block}
+.menue .pill[data-s="ausstehend"]::before,.menue .pill[data-s="offline"]::before,.menue .pill[data-s="speichert"]::before{content:"";width:8px;height:8px;border-radius:50%;background:#FF9200;display:inline-block}
+.menue .pill[data-s="fehler"]::before,.menue .pill[data-s="konflikt"]::before{content:"";width:8px;height:8px;border-radius:50%;background:#FF4A13;display:inline-block}
 dialog{border:1px solid rgba(246,247,249,.14);border-radius:20px;background:#1a1b26;color:#f6f7f9;padding:0;width:min(440px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.6)}
 dialog::backdrop{background:rgba(5,6,10,.72)}
 .in{padding:20px 18px 18px;display:grid;gap:12px}
@@ -650,26 +654,33 @@ label.ck input{width:20px;height:20px;margin-top:2px;accent-color:#FFD21C}
     // ---- Knopf und Speicherstatus auf Spielseiten
     function leiste() {
       montieren();
-      const fab = el('div', { class: 'fab' });
-      if (C.fehlermelden !== false && SLUG) fab.append(el('button', { type: 'button', 'aria-label': 'Fehler melden', title: 'Fehler melden', onclick: melden }, svg(ICON.flagge)));
+      // Ein schmaler Reiter am linken Rand (Mitte) statt schwebender Knöpfe über dem Spiel. Der Punkt zeigt den Speicherstatus.
+      const tab = el('button', { type: 'button', class: 'tab', 'aria-label': 'PlaySaal-Menü', 'aria-expanded': 'false', title: 'Menü' }, el('i'));
+      const menue = el('div', { class: 'menue', hidden: true });
+      if (C.fehlermelden !== false && SLUG) menue.append(el('button', { type: 'button', 'aria-label': 'Fehler melden', title: 'Fehler melden', onclick: () => { zu(); melden(); } }, svg(ICON.flagge), el('span', { text: 'Fehler melden' })));
       const pill = el('button', { type: 'button', class: 'pill' });
       const zeigePill = () => {
         const st = S.sync;
+        tab.dataset.s = S.user ? st : '';
         const a = S.anbieterCache; if (!S.user && (!HOST_OK || !a || !(a.email || a.google || a.apple))) { pill.hidden = true; return; }
         pill.hidden = false; pill.dataset.s = st; pill.textContent = SYNC_TEXT[st] || ''; pill.title = S.user ? 'Konto öffnen' : 'Anmelden, um Fortschritt zu sichern';
       };
-      pill.addEventListener('click', () => { if (S.user) location.href = '/konto'; else anmelden(); });
-      fab.append(pill); wrap.append(fab); zeigePill();
+      const zu = () => { menue.hidden = true; tab.setAttribute('aria-expanded', 'false'); };
+      tab.addEventListener('click', () => { const auf = menue.hidden; menue.hidden = !auf; tab.setAttribute('aria-expanded', String(auf)); });
+      pill.addEventListener('click', () => { zu(); if (S.user) location.href = '/konto'; else anmelden(); });
+      document.addEventListener('pointerdown', (e) => { if (!menue.hidden && !e.composedPath().includes(menue) && !e.composedPath().includes(tab)) zu(); }, true);
+      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menue.hidden) zu(); });
+      menue.append(pill); wrap.append(tab, menue); zeigePill();
       if (HOST_OK && C.anmelden && (C.anmelden.email || C.anmelden.google || C.anmelden.apple)) anbieter().then(zeigePill);
       on('sync', zeigePill); on('auth', zeigePill);
-      return fab;
+      return tab;
     }
     return { anmelden, profil, uebernahme, konflikt, melden, toast, leiste, dialog, el };
   }
 
   // ---------------------------------------------------------------- API
   window.PlaySaal = {
-    online: false, // altes Ranglisten-Konzept (SCHRÄGLAGE) bleibt aus; Ranglisten gehören nicht zu diesem Paket
+    online: !!C.rangliste, // geprüfte Rangliste (SCHRÄGLAGE), Schalter in playsaal-config.js
     cfg: C, avatare: AVATARE,
     hatSitzung, on, client, anbieter, anmelden: (o) => ui().anmelden(o), abmelden, oauth,
     profil: async () => S.profil, profilBearbeiten: () => ui().profil({}), profilSpeichern, nameFrei,

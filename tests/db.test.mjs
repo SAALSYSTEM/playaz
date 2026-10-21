@@ -246,3 +246,53 @@ test('Ratenbegrenzung für angemeldete Nutzer (Spielstände, Profil)', async () 
   for (let i = 0; i < 42; i++) { const r = await speichern(B, 'jungle-runner', keys({ 'jungle.v1': '{"n":' + i + '}' }), i === 0 ? 1 : i + 1); if (r.status === 'zu_oft') gesperrt++; }
   assert.ok(gesperrt >= 1, 'mehr als 40 Schreibvorgänge pro Minute werden gebremst');
 });
+
+test('SCHRÄGLAGE-Rangliste: nur die Prüf-Funktion trägt ein, Browser nie; Wertung, Platz, Zeitraum, Löschung', async () => {
+  const A = '44444444-4444-4444-8444-444444444444', B = '55555555-5555-4555-8555-555555555555', ADM = '66666666-6666-4666-8666-666666666666';
+  await db.exec(`insert into auth.users (id, email) values ('${A}', 'c@example.org'), ('${B}', 'd@example.org'), ('${ADM}', 'e@example.org')`);
+  // Profile anlegen (Namen sind Voraussetzung für einen Eintrag)
+  await rpc('authenticated', A, 'profil_speichern', 'Anna', 'a1');
+  await rpc('authenticated', B, 'profil_speichern', 'Bernd', 'a2');
+  const rang = (rolle, uid, level, zr, n) => als(rolle, uid, 'select * from public.schraeglage_rangliste($1, $2, $3)', [level, zr, n]);
+  const eintragen = (uid, level, ms) => rpc('service_role', null, 'schraeglage_eintragen', uid, level, ms, 1, '0g');
+  // Browser/Anonyme: weder eintragen noch Tabelle lesen
+  for (const rolle of ['anon', 'authenticated']) {
+    const e = await fehler(rolle, A, `select public.schraeglage_eintragen('${A}', 1, 12000, 1, '0g')`);
+    assert.match(String(e && e.message), /permission denied/, 'eintragen als ' + rolle);
+    const e2 = await fehler(rolle, A, 'select * from private.schraeglage_laeufe');
+    assert.match(String(e2 && e2.message), /permission denied/, 'Tabelle als ' + rolle);
+    const e3 = await fehler(rolle, A, `select * from private.schraeglage_wertung(1, 'monat')`);
+    assert.match(String(e3 && e3.message), /permission denied/, 'Wertung als ' + rolle);
+  }
+  // Ungültiges und fehlendes Profil
+  assert.equal((await eintragen(A, 99, 12000)).grund, 'ungueltig');
+  assert.equal((await eintragen(A, 1, 500)).grund, 'ungueltig');
+  assert.equal((await eintragen(ADM, 1, 12000)).grund, 'kein_profil');
+  // Einträge: Anna 12,0 s, Bernd 11,5 s, Anna später 11,0 s
+  assert.equal((await eintragen(A, 1, 12000)).ok, true);
+  const b = await eintragen(B, 1, 11500);
+  assert.equal(b.platz_monat, 1); assert.equal(b.spieler_monat, 2);
+  const a2 = await eintragen(A, 1, 11000);
+  assert.equal(a2.platz_monat, 1);
+  // Öffentliche Rangliste: Name, Zeit, Platz; eigener Eintrag markiert; keine Kennungen
+  const r = await rang('anon', null, 1, 'monat', 50);
+  assert.deepEqual(r.map((x) => [x.platz, x.name, x.ms, x.ich]).map(String), ['1,Anna,11000,false', '2,Bernd,11500,false']);
+  assert.deepEqual(Object.keys(r[0]).sort(), ['erreicht', 'ich', 'ms', 'name', 'platz']);
+  const meine = await rang('authenticated', B, 1, 'gesamt', 1);
+  assert.equal(meine.find((x) => x.ich).name, 'Bernd');       // eigener Platz auch außerhalb der Top-Anzahl
+  assert.equal((await rang('anon', null, 2, 'jahr', 50)).length, 0);
+  for (const x of [['x', 1], ['monat', 0], ['monat', 99]]) assert.match(String((await fehler('anon', null, `select * from public.schraeglage_rangliste(${x[1]}, '${x[0]}', 5)`)).message), /unbekannt/);
+  // Alte Läufe: Wertung des Vormonats zählt nicht für "monat", aber für "gesamt"
+  await db.exec(`insert into private.schraeglage_laeufe (user_id, level, ms, sim_version, inputs, created_at) values ('${B}', 1, 9000, 1, '0g', now() - interval '70 days')`);
+  assert.equal((await rang('anon', null, 1, 'monat', 50)).find((x) => x.name === 'Bernd').ms, 11500);
+  assert.equal((await rang('anon', null, 1, 'gesamt', 50))[0].name, 'Bernd');
+  // Aufräumen behält je Spieler/Level/Monat nur die beste Zeit
+  await db.exec('select private.aufraeumen()');
+  assert.equal((await db.query(`select count(*)::int n from private.schraeglage_laeufe where user_id = '${A}'`)).rows[0].n, 1);
+  // Ratenbegrenzung der Prüf-Funktion
+  let zuOft = null; for (let i = 0; i < 8 && !zuOft; i++) { const x = await eintragen(B, 2, 20000 + i); if (!x.ok) zuOft = x.grund; }
+  assert.equal(zuOft, 'zu_oft');
+  // Kontolöschung entfernt die Zeiten
+  await rpc('authenticated', A, 'konto_loeschen', 'LÖSCHEN');
+  assert.equal((await db.query(`select count(*)::int n from private.schraeglage_laeufe where user_id = '${A}'`)).rows[0].n, 0);
+});

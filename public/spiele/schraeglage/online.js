@@ -2,11 +2,13 @@
 // Nutzt window.PlaySaal aus /assets/playsaal.js (Branch "rangliste"), sobald es eingebunden ist.
 // Ohne PlaySaal-Konto bleibt alles lokal: Spielen, Bestzeiten, Awards und Teilen funktionieren vollständig.
 //
-// Offizielle Zeiten: Der Browser schickt nur die Eingabefolge (Gas/Bremse je Takt). Der Prüfdienst
-// (Cloudflare Worker, siehe docs/SCHRAEGLAGE.md) fährt den Lauf mit sim.js nach und trägt nur bestätigte
+// Offizielle Zeiten: Der Browser schickt nur die Eingabefolge (Gas/Bremse je Takt). Die Prüf-Funktion
+// (Supabase Edge Function supabase/functions/schraeglage-lauf) fährt den Lauf mit sim.js nach und trägt nur bestätigte
 // Zeiten ein. Eine vom Browser behauptete Zeit wird nie übernommen.
 
-const ENDPOINT = '/api/schraeglage/lauf';
+// Prüf-Funktion (Supabase Edge Function), Adresse und öffentlicher Schlüssel kommen aus assets/playsaal-config.js
+const cfg = () => (typeof window !== 'undefined' && window.PLAYSAAL_CFG) || {};
+const endpoint = () => (cfg().url ? cfg().url + '/functions/v1/schraeglage-lauf' : '');
 
 export function createOnline() {
   const ps = () => (typeof window !== 'undefined' ? window.PlaySaal : null);
@@ -38,8 +40,9 @@ export function createOnline() {
       try {
         const t = await token();
         if (!t) return { status: 'gast' };
-        const r = await fetch(ENDPOINT, { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + t }, body: JSON.stringify(run) });
-        if (r.status === 404) return { status: 'lokal' };          // Prüfdienst noch nicht eingerichtet
+        if (!endpoint()) return { status: 'lokal' };
+        const r = await fetch(endpoint(), { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + t, apikey: cfg().key || '' }, body: JSON.stringify(run) });
+        if (r.status === 404) return { status: 'lokal' };          // Prüf-Funktion nicht erreichbar/eingerichtet
         const j = await r.json().catch(() => ({}));
         if (r.ok && j.verifiziert) return { status: 'verifiziert', platz: j.platz_monat || null };
         if (r.ok) return { status: 'abgelehnt', grund: j.grund || '' };
@@ -62,7 +65,9 @@ export function createOnline() {
       const laden = async () => {
         liste.textContent = 'Lädt …';
         try {
-          const rows = await p.rpc('schraeglage_rangliste', { p_level: +sel.value, p_zeitraum: zeitraum, p_anzahl: 50 });
+          const res = await p.rpc('schraeglage_rangliste', { p_level: +sel.value, p_zeitraum: zeitraum, p_anzahl: 50 });
+          if (!res || res.fehler) throw new Error('rangliste');
+          const rows = res.daten;
           liste.textContent = '';
           if (!rows || !rows.length) { liste.textContent = 'Noch keine verifizierten Zeiten.'; return; }
           for (const r of rows) {

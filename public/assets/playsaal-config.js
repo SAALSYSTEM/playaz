@@ -23,6 +23,9 @@ window.PLAYSAAL_CFG = {
   // Nutzungsstatistik (anonyme Tageswerte: Spielstarts, aktive Spielzeit, Fehler). Datenschutztext beschreibt sie.
   statistik: true,
 
+  // Geprüfte Rangliste (SCHRÄGLAGE): erst auf true, wenn Migration und Edge Function "schraeglage-lauf" eingerichtet sind.
+  rangliste: false,
+
   // Spiel-Kennungen: Seiten-Name -> Speicher-Kennung (identisch zu public.games.save_id)
   spiele: {
     'schraeglage': 'schraeglage', 'linke-spur': 'linkespur', 'hochstapler': 'hochstapler', 'schwindelfrei': 'schwindelfrei',

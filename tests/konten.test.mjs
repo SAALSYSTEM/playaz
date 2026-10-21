@@ -143,6 +143,7 @@ async function kontext(S, opts = {}, cfg = {}) {
   return ctx;
 }
 const ui = (page) => page.locator('#playsaal-ui');
+const menue = async (page) => { const tab = ui(page).locator('.tab'); await tab.waitFor(); if ((await tab.getAttribute('aria-expanded')) !== 'true') await tab.click(); };
 async function einloggen(page, mail, code = '123456') {
   await page.evaluate(() => localStorage.removeItem('playsaal.otp.t')); // 60-s-Wartezeit für neue Codes überspringen
   if (!(await ui(page).locator('dialog[open]').count())) await page.evaluate(() => { window.PlaySaal.anmelden(); });
@@ -191,6 +192,7 @@ test('Gast: Spielen ohne Konto, nichts geht an Supabase außer dem Anbieter-Chec
   await page.goto(BASE + '/spiele/eiszeit', { waitUntil: 'load' });
   await page.evaluate((v) => localStorage.setItem('eiszeit.v1', v), eis(7));
   await page.waitForSelector('#playsaal-ui', { state: 'attached' });
+  await menue(page);
   await expect_text(ui(page).locator('.pill'), 'Nur auf diesem Gerät');
   await ui(page).locator('button[aria-label="Fehler melden"]').waitFor();
   await warte(600);
@@ -203,6 +205,7 @@ test('Gast: Spielen ohne Konto, nichts geht an Supabase außer dem Anbieter-Chec
 test('Gast ohne freigegebene Anmeldung: kein Knopf zum Anmelden, Spiel und Fehlermeldung bleiben', async () => {
   const S = neuerServer(); S.settings.email = false; const ctx = await kontext(S); const page = await ctx.newPage();
   await page.goto(BASE + '/spiele/eiszeit', { waitUntil: 'load' });
+  await menue(page);
   await ui(page).locator('button[aria-label="Fehler melden"]').waitFor();
   assert.equal(await ui(page).locator('.pill').isHidden(), true, 'Statusknopf nur, wenn Anmeldung wirklich verfügbar ist');
   await page.goto(BASE + '/konto', { waitUntil: 'load' });
@@ -219,6 +222,7 @@ test('Supabase-Ausfall: Startseite, Spiel und Katalog bleiben benutzbar', async 
   await page.waitForSelector('#kategorien .kat-chips button');
   assert.equal(await page.locator('.kachel:not([hidden])').count() > 15, true);
   await page.goto(BASE + '/spiele/eiszeit', { waitUntil: 'load' });
+  await menue(page);
   await ui(page).locator('button[aria-label="Fehler melden"]').waitFor();
   assert.deepEqual(fehler, []);
   await ctx.close();
@@ -393,6 +397,7 @@ test('Offline spielen, später synchronisieren; Status zeigt Offline/Ausstehend/
   const S = neuerServer(); const ctx = await kontext(S); const page = await ctx.newPage();
   const u = await kontoMitStand(page, S, 'o@example.org', 1);
   await page.goto(BASE + '/spiele/eiszeit', { waitUntil: 'load' });
+  await menue(page);
   await expect_text(ui(page).locator('.pill'), 'Gespeichert');
   await ctx.setOffline(true); S.ausfall = true; // Playwright-Routen umgehen das Netz, daher fällt der Ersatz-Server mit aus
   await page.evaluate((v) => localStorage.setItem('eiszeit.v1', v), eis(8));
@@ -496,6 +501,7 @@ test('Fehler melden: ohne Login, validiert, ohne Token/Spielstand, Spiel läuft 
   const fehler = []; page.on('pageerror', (e) => fehler.push(e.message));
   await page.goto(BASE + '/spiele/eiszeit', { waitUntil: 'load' });
   await page.evaluate((v) => localStorage.setItem('eiszeit.v1', v), eis(12));
+  await menue(page);
   const knopf = ui(page).locator('button[aria-label="Fehler melden"]'); await knopf.waitFor();
   await knopf.click();
   const d = ui(page).locator('dialog[open]');
@@ -514,6 +520,7 @@ test('Fehler melden: ohne Login, validiert, ohne Token/Spielstand, Spiel läuft 
   assert.equal((await speicher(page))['eiszeit.v1'], eis(12), 'Fortschritt unverändert');
   // Spam-Limit des Servers wird freundlich angezeigt
   for (let i = 0; i < 4; i++) S.bugs.push({ p_test: true });
+  await menue(page);
   await knopf.click();
   await ui(page).locator('dialog[open] textarea').fill('Noch ein Fehler');
   await ui(page).locator('dialog[open]').getByRole('button', { name: 'Fehler senden' }).click();
@@ -526,6 +533,7 @@ test('Fehler melden: ohne Login, validiert, ohne Token/Spielstand, Spiel läuft 
 test('Fehler melden bei Netzfehler: Text bleibt stehen, nichts geht verloren', async () => {
   const S = neuerServer(); const ctx = await kontext(S); const page = await ctx.newPage();
   await page.goto(BASE + '/spiele/eiszeit', { waitUntil: 'load' });
+  await menue(page);
   await ui(page).locator('button[aria-label="Fehler melden"]').click();
   S.ausfall = true;
   await ui(page).locator('dialog[open] textarea').fill('Es ruckelt');
@@ -539,6 +547,7 @@ test('Fehlermeldung, Anmeldedialog und Tastatur: Eingaben im Dialog steuern das 
   const S = neuerServer(); const ctx = await kontext(S); const page = await ctx.newPage();
   await page.goto(BASE + '/spiele/stellwerk', { waitUntil: 'load' });
   await page.evaluate(() => { window.__tasten = []; window.addEventListener('keydown', (e) => window.__tasten.push(e.key)); });
+  await menue(page);
   await ui(page).locator('button[aria-label="Fehler melden"]').click();
   await ui(page).locator('dialog[open] textarea').pressSequentially('wasd ');
   assert.deepEqual(await page.evaluate(() => window.__tasten), [], 'Tastendrücke erreichen das Spiel nicht');
