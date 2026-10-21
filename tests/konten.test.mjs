@@ -135,7 +135,7 @@ async function kontext(S, opts = {}, cfg = {}) {
   await ctx.route('**/assets/playsaal-config.js', (r) => r.fulfill({ contentType: 'application/javascript', body:
     CFG_ORIGINAL.replace(/url: '[^']+'/, `url: '${FAKE}'`).replace(/siteUrl: '[^']+'/, `siteUrl: '${BASE}'`)
       .replace('anmelden: { email: false, google: false, apple: false }', `anmelden: { email: ${cfg.email !== false}, google: false, apple: false }`)
-      .replace('statistik: false', `statistik: ${!!cfg.statistik}`) }));
+      .replace('statistik: true', `statistik: ${!!cfg.statistik}`) }));
   // Katalog-Grafiken und Schriften sind für diese Tests egal
   await ctx.route(/\.(woff2?|mp3|ogg)(\?.*)?$/, (r) => r.abort());
   // Die Frage nach dem Spielernamen ist ein eigener Test; sonst wird sie weggeklickt, damit sie keine anderen Abläufe verdeckt.

@@ -20,7 +20,7 @@ Alle Wege sind **aus**, bis du sie freigibst. Ein Anmeldeweg erscheint nur, wenn
 - `anmelden.email`: an (Versand über Brevo-SMTP, Absender noreply@playsaal.com).
 - `anmelden.google` / `anmelden.apple`: erst `true`, wenn der Anbieter eingerichtet und getestet ist.
 - `fehlermelden`: an. Knopf „Fehler melden“ auf jeder Spielseite.
-- `statistik`: **aus.** Nicht einschalten, bevor die Punkte unter „Offene Rechtsfragen“ geklärt sind.
+- `statistik`: **an** (anonyme Tageswerte, Do-Not-Track wird respektiert; Datenschutztext beschreibt sie).
 
 ## Deine Schritte (in dieser Reihenfolge)
 1. **Zweite Migration einspielen** (die erste ist schon drin): Supabase Dashboard → SQL Editor → Inhalt von `supabase/migrations/20261019200000_spielstand_pruefung.sql` einfügen → „Run“ (mit „Run and enable RLS“, falls gefragt). Sie ersetzt nur eine Funktion und ändert keine Daten.
@@ -36,7 +36,7 @@ Alle Wege sind **aus**, bis du sie freigibst. Ein Anmeldeweg erscheint nur, wenn
 ## Admin erreichen
 `https://playsaal.com/admin`, angemeldet mit dem freigeschalteten Konto. Ohne Recht sieht man „Kein Zugriff“. Die Prüfung läuft in der Datenbank (`ist_admin()` in jeder Admin-Funktion), nicht nur in der Oberfläche. Tabs: Übersicht (Heute / 7 / 30 Tage, Europe/Berlin), Spiele, Kategorien und Startseite (Hot-Auswahl, Sichtbarkeit), Fehlermeldungen (offen / in Arbeit / erledigt).
 
-## Was gemessen wird (wenn Statistik an ist)
+## Was gemessen wird
 Spielstarts (erste Spielaktion je Seitenaufruf), abgeschlossene Schritte (Spielstand-Wert steigt, grobe Heuristik), aktive Spielzeit (Sekunden mit Eingabe, sichtbarer Tab, 15 s Leerlaufgrenze), Fehler je Spiel. Keine Frame-Ereignisse, keine Fingerprints, keine Geräte-ID; die Sitzungs-ID lebt nur im Speicher der Seite. Testverkehr (`navigator.webdriver`, `?playsaal-test`) wird als Test markiert und nicht gezählt. **Eindeutige oder wiederkehrende Besucher werden bewusst nicht gemessen**, weil das ohne Kennung oder Cookie nicht zuverlässig geht. Aufbewahrung: Tageswerte 400 Tage, Sperr- und Dedup-Daten 2 Tage, erledigte Fehlermeldungen 180 Tage (Funktion `private.aufraeumen`, siehe unten).
 
 ## Spielstand-Sync, Regeln
@@ -61,7 +61,7 @@ Spielstarts (erste Spielaktion je Seitenaufruf), abgeschlossene Schritte (Spiels
 ## Rechtliches (Stand 2026-10-21)
 - Impressum und Datenschutz sind mit den Angaben des Betreibers ausgefüllt (Cloudflare, Supabase, Brevo, Aufsicht NRW).
 - Konten nur ab 16 Jahren: Pflicht-Häkchen im Anmeldedialog, Hinweis im Datenschutztext. Spielen geht ohne Konto in jedem Alter.
-- Google und Apple werden nicht angeboten (Schalter aus). Nutzungsstatistik ist aus; der Datenschutztext sagt, dass keine erfasst wird. Vor dem Einschalten muss der Text angepasst werden.
+- Google und Apple werden nicht angeboten (Schalter aus). Nutzungsstatistik ist an und im Datenschutztext beschrieben (Art. 6 Abs. 1 lit. f). Kontaktadresse: hi@playsaal.com (Postfach muss Mails empfangen können).
 - Supabase-AVV ist Teil der Nutzungsbedingungen; Brevo-AVV ist Teil der Brevo-Bedingungen.
 
 ## Tests

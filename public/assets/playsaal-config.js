@@ -20,8 +20,8 @@ window.PLAYSAAL_CFG = {
   // Fehler melden: auf jeder Spielseite (Text, Spiel, Version, grobe Technikangaben; keine Pflicht-E-Mail)
   fehlermelden: true,
 
-  // Nutzungsstatistik (Spielstarts, aktive Spielzeit). AUS, bis Datenschutzerklärung und Rechtsgrundlage geklärt sind.
-  statistik: false,
+  // Nutzungsstatistik (anonyme Tageswerte: Spielstarts, aktive Spielzeit, Fehler). Datenschutztext beschreibt sie.
+  statistik: true,
 
   // Spiel-Kennungen: Seiten-Name -> Speicher-Kennung (identisch zu public.games.save_id)
   spiele: {

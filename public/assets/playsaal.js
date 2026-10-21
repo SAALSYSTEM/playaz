@@ -384,7 +384,7 @@
 
   // ---------------------------------------------------------------- Statistik (nur wenn C.statistik)
   const Stat = (function () {
-    if (!C.statistik || !SPIEL_ID || !SLUG) return null;
+    if (!C.statistik || !SPIEL_ID || !SLUG || navigator.doNotTrack === '1' || window.doNotTrack === '1') return null;
     const sid = (crypto.randomUUID && crypto.randomUUID()) || ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
     const queue = []; let aktivSek = 0, zeitNr = 0, letzteAktion = 0, gestartet = false, letzterWert = null;
     const aktivJetzt = () => document.visibilityState === 'visible' && Date.now() - letzteAktion < 15000;
