@@ -32,6 +32,7 @@ after(async () => { await browser?.close(); try { process.kill(-wrangler.pid); }
 
 async function seite(opts = {}, url = SPIEL + '?test', vorher) {
   const ctx = await browser.newContext(opts);
+  await ctx.route(/supabase\.co/, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{"external":{"email":false}}' })); // Tests ohne Netz zu Supabase
   const page = await ctx.newPage();
   const fehler = [];
   page.on('pageerror', (e) => fehler.push(e.message));

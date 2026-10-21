@@ -56,6 +56,7 @@ after(async () => {
 
 async function kontext(opts = {}) {
   const ctx = await browser.newContext(opts);
+  await ctx.route(/supabase\.co/, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{"external":{"email":false}}' })); // Tests ohne Netz zu Supabase
   // Test-Origins statt produktiver Adressen
   await ctx.route('**/assets/umzug-config.js', (r) => r.fulfill({ contentType: 'application/javascript',
     body: `window.PLAYSAAL_UMZUG = { ziel: '${NEU}', quellen: ['${ALT}'], aktiv: true };` }));
