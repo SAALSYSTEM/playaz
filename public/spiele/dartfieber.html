@@ -1,0 +1,152 @@
+<!doctype html><html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>DARTFIEBER · Dart-Tageschallenge mit Rangliste · PlaySaal</title>
+<link rel="canonical" href="https://playsaal.com/spiele/dartfieber">
+<meta name="robots" content="noindex"><!-- Testphase: beim Freigeben entfernen (siehe docs/DARTFIEBER.md) -->
+<meta name="description" content="Dartfieber: Zwei Tipps pro Wurf, fünf Pfeile, Wind und goldene Bonusziele. Jeden Tag eine neue Challenge für alle, mit geprüfter Tagesrangliste. Kostenlos im Browser, ohne Anmeldung.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="DARTFIEBER · Dart-Tageschallenge mit Rangliste · PlaySaal"><meta property="og:description" content="Zielen mit zwei Linien, Wind einrechnen, Bonus-Pfeile holen. Jeden Tag eine neue Challenge für alle."><meta property="og:url" content="https://playsaal.com/spiele/dartfieber"><meta property="og:locale" content="de_DE">
+<meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="DARTFIEBER · Dart-Tageschallenge mit Rangliste · PlaySaal"><meta name="twitter:description" content="Zielen mit zwei Linien, Wind einrechnen, Bonus-Pfeile holen.">
+<meta name="theme-color" content="#0C1823">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="modulepreload" href="dartfieber/game.js?v=1"><link rel="modulepreload" href="dartfieber/sim.js">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"DARTFIEBER","url":"https://playsaal.com/spiele/dartfieber","inLanguage":"de","description":"Dart-Geschicklichkeitsspiel mit zwei Tipps pro Wurf, Wind und Bonuszielen. Jeden Tag eine neue Challenge mit geprüfter Tagesrangliste.","genre":["Arcade","Geschicklichkeit","Darts"],"gamePlatform":"Web","applicationCategory":"Game","playMode":"SinglePlayer","isAccessibleForFree":true,"publisher":{"@type":"Organization","name":"PlaySaal","url":"https://playsaal.com"}}</script>
+<script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'dartfieber',t:Date.now()}))}catch(e){}</script>
+<style>
+:root{--basis:#0C1823;--flaeche:#101E2B;--flaeche-hell:#1B3145;--tuerkis:#2FD6C4;--orange:#FF8A1F;--orange-dunkel:#E06A00;--gold:#FFD36B;--text:#F6F4EE;--leise:#A9BAC8;--linie:rgba(246,244,238,.16);
+  --f-display:"Dela Gothic One","Arial Black",Impact,sans-serif;--f-text:"Barlow","Segoe UI",system-ui,sans-serif;--f-zahl:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);color-scheme:dark}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:var(--basis);color:var(--text);font:16px/1.4 var(--f-text);overflow:hidden;-webkit-text-size-adjust:100%}
+body{background:radial-gradient(120% 80% at 50% 30%,#3a2a1a 0%,#1d1710 55%,#0C1823 100%)}
+body.bild{background-color:#0C1823;background-size:cover;background-position:center;background-repeat:no-repeat}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+:focus-visible{outline:3px solid var(--tuerkis);outline-offset:3px}
+#app{position:fixed;inset:0;margin:0 auto;max-width:560px;display:flex;flex-direction:column;touch-action:none;-webkit-user-select:none;user-select:none;padding:0 8px}
+/* Kopf: Punkte, Pfeile, Wind. Links bleibt Platz für die Rückkehr-Taste, rechts für den Ton-Knopf. */
+#kopf{display:flex;gap:6px;padding:calc(var(--st) + 8px) 46px 6px 46px;justify-content:center;pointer-events:none}
+.box{flex:1 1 0;max-width:132px;min-width:0;background:rgba(16,30,43,.86);border:1px solid var(--linie);border-radius:12px;padding:5px 8px;text-align:center}
+.box small{display:block;font:600 11px/1 var(--f-zahl);letter-spacing:.1em;text-transform:uppercase;color:var(--leise)}
+.box b{font:700 28px/1.05 var(--f-zahl);font-variant-numeric:tabular-nums}
+.box .unter{font:600 11px/1.1 var(--f-zahl);color:var(--leise);letter-spacing:.04em;white-space:nowrap}
+#bPfeile{display:flex;align-items:center;justify-content:center;gap:5px}#icoPf{width:22px;height:22px}
+#bPfeile.plus b{color:var(--gold)}
+#windBox{display:flex;align-items:center;justify-content:center;gap:6px}#windPfeil{width:34px;height:34px;flex:none}
+#windBox b{font-size:24px}
+#brett{flex:1 1 0;min-height:0;position:relative}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#unten{padding:4px 4px calc(var(--sb) + 8px)}
+#schritte{display:flex;gap:6px;justify-content:center;margin:0 0 6px}
+#schritte span{flex:1;max-width:140px;text-align:center;font:700 14px/1 var(--f-zahl);letter-spacing:.08em;text-transform:uppercase;color:var(--leise);border:1px solid var(--linie);border-radius:999px;padding:7px 4px;background:rgba(16,30,43,.7)}
+#schritte span.an{color:#0C1823;background:var(--tuerkis);border-color:var(--tuerkis)}
+#bStopp{display:block;width:100%;min-height:64px;border:0;border-radius:18px;background:linear-gradient(#FFA040,var(--orange) 55%,var(--orange-dunkel));color:#fff;font:400 34px/1 var(--f-display);letter-spacing:.04em;text-shadow:0 2px 0 rgba(0,0,0,.25);box-shadow:0 5px 0 #A94A00,0 10px 22px rgba(0,0,0,.4)}
+#bStopp:active{transform:translateY(3px);box-shadow:0 2px 0 #A94A00,0 5px 12px rgba(0,0,0,.4)}
+#bStopp[aria-disabled=true]{filter:saturate(.35) brightness(.8)}
+#rang{margin:9px 0 0;min-height:26px;text-align:center;font:600 16px/1.2 var(--f-zahl);letter-spacing:.04em;color:var(--leise);background:rgba(16,30,43,.78);border:1px solid var(--linie);border-radius:10px;padding:6px 10px}
+#rang b{color:var(--gold)}
+#bTon{position:fixed;right:12px;top:calc(var(--st) + 13px);width:34px;height:34px;border-radius:9px;border:1px solid rgba(246,244,238,.25);background:rgba(16,30,43,.82);display:grid;place-items:center;z-index:5;padding:0}
+#bTon svg{width:18px;height:18px}#bTon[aria-pressed=false] .welle{display:none}
+#platzhalter{position:absolute;left:50%;transform:translateX(-50%);top:2px;font:600 10px/1 var(--f-zahl);letter-spacing:.06em;text-transform:uppercase;color:#ffb3a0;background:rgba(80,20,10,.75);border:1px dashed #ff7a5c;border-radius:6px;padding:3px 6px;pointer-events:none;z-index:4}
+.schirm{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:calc(var(--st) + 52px) 14px calc(var(--sb) + 14px);background:rgba(8,16,24,.82);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);z-index:3;overflow:auto}
+.karte{width:100%;max-width:430px;max-height:100%;overflow:auto;background:var(--flaeche);border:1px solid var(--linie);border-radius:20px;padding:20px 18px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.55)}
+h1{font:400 clamp(30px,9vw,40px)/1.05 var(--f-display);margin:0 0 8px;color:var(--text)}h1 em{font-style:normal;color:var(--orange)}
+h2{font:400 24px/1.1 var(--f-display);margin:0 0 10px}
+.klein{color:var(--leise);font-size:15px;margin:0 0 14px}
+.btn{display:block;width:100%;min-height:50px;border-radius:14px;border:2px solid var(--linie);background:var(--flaeche-hell);font:700 19px/1 var(--f-zahl);letter-spacing:.06em;text-transform:uppercase;padding:0 14px;margin:8px 0}
+.btn.ja{background:linear-gradient(#FFA040,var(--orange));border-color:var(--orange);color:#1a0d00;box-shadow:0 4px 0 #A94A00}
+.btn:active{transform:scale(.98)}.btn:disabled{opacity:.6}
+.zeile{display:flex;gap:8px}.zeile .btn{flex:1}
+.zahl{font:700 88px/1 var(--f-zahl);color:var(--gold);font-variant-numeric:tabular-nums}
+#eKopf{font:400 25px/1.1 var(--f-display);margin:0 0 2px}#eKopf.rek{color:var(--orange)}
+.status{min-height:40px;color:var(--leise);font-size:15px;margin:4px 0}.status.ok{color:#7fe8c0}.status.fehler{color:#ffb3a0}
+.kennzahlen{display:flex;gap:8px;margin:6px 0 4px}.kennzahlen div{flex:1;background:rgba(0,0,0,.25);border-radius:10px;padding:7px 4px}
+.kennzahlen small{display:block;font:600 12px/1 var(--f-zahl);letter-spacing:.08em;text-transform:uppercase;color:var(--leise)}.kennzahlen b{font:700 24px/1.1 var(--f-zahl)}
+#tBest{color:var(--gold);font:700 18px/1.2 var(--f-zahl);margin:0 0 10px;letter-spacing:.04em}
+.regelliste{text-align:left;margin:0 0 12px;padding-left:20px;font-size:15px;color:var(--leise)}.regelliste li{margin:0 0 7px}.regelliste b{color:var(--text)}
+.tag-nav{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 10px}
+.tag-nav button{width:44px;height:44px;border-radius:12px;border:1px solid var(--linie);background:var(--flaeche-hell);font:700 22px/1 var(--f-zahl)}.tag-nav button:disabled{opacity:.3}
+#rTag{font:700 22px/1 var(--f-zahl);min-width:140px;letter-spacing:.05em}
+#rListe{list-style:none;margin:0 0 8px;padding:0;max-height:46vh;overflow:auto;text-align:left}
+#rListe li{display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px solid var(--linie)}
+#rListe li.ich{background:rgba(47,214,196,.16);border-radius:8px}
+#rListe li.luecke{justify-content:center;color:var(--leise);padding:2px;border-bottom:0}
+#rListe .pl{width:28px;text-align:right;font:700 18px/1 var(--f-zahl);color:var(--leise)}
+#rListe .av{font-size:24px;width:30px;text-align:center}#rListe .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#rListe b{font:700 22px/1 var(--f-zahl);color:var(--gold)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* Kleine Bildschirme: zuerst Dekoration und Kopfhöhe sparen */
+@media (max-height:700px){#kopf{padding-top:calc(var(--st) + 6px);padding-bottom:4px}.box b{font-size:24px}#bStopp{min-height:56px;font-size:30px}#schritte{margin-bottom:4px}#rang{margin-top:6px;padding:4px 8px;min-height:22px;font-size:15px}.box .unter{display:none}}
+@media (max-height:600px){.box small{display:none}.box{padding:3px 6px}.box b{font-size:22px}#windPfeil{width:28px;height:28px}#schritte span{padding:5px 4px;font-size:13px}#bStopp{min-height:50px;font-size:27px;border-radius:14px}#rang{font-size:14px}.karte{padding:14px}.zahl{font-size:64px}h1{font-size:28px}}
+@media (max-height:520px){#rang{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<main class="sr"><h2>Dartfieber – die Dart-Tageschallenge mit Rangliste</h2>
+<p>Dartfieber ist ein kostenloses Browserspiel für Handy und Rechner. Du hast fünf Pfeile. Für jeden Wurf stoppst du zuerst eine senkrechte Linie (Seite) und dann eine waagerechte Linie (Höhe). Der Pfeil fliegt danach von selbst, der Wind verschiebt ihn. Gewertet wird wie beim Darts: Einfach, Doppel, Triple, Bull. Goldene Bonusziele geben drei zusätzliche Pfeile.</p>
+<h3>Tageschallenge und Rangliste</h3><p>Jeden Tag gibt es eine neue Challenge, die alle Spieler gleich spielen: gleiche Scheibe, gleiche Geschwindigkeit, gleicher Wind, gleiche Bonusziele. Mit einem PlaySaal-Konto kommt dein bester Wert des Tages in die Tagesrangliste. Der Server rechnet jede Runde nach. Ohne Konto spielst du ebenfalls, dein Ergebnis bleibt dann auf deinem Gerät.</p></main>
+<div id="app">
+  <div id="kopf" aria-live="off">
+    <div class="box"><small>Punkte</small><b id="hP">0</b><div class="unter" id="hWurf">Wurf 1 von 30</div></div>
+    <div class="box" id="bPfeile"><div><small>Pfeile</small><b id="hPf">5</b></div><img id="icoPf" alt="" hidden></div>
+    <div class="box" id="windBox" role="img" aria-label="Wind"><canvas id="windPfeil" width="68" height="68"></canvas><div><small>Wind</small><b id="hWind">0</b><div class="unter">m/s</div></div></div>
+  </div>
+  <div id="brett"><canvas id="c" aria-label="Dartscheibe"></canvas><div id="platzhalter" hidden>Platzhalter-Grafik · Bilder folgen</div></div>
+  <div id="unten">
+    <div id="schritte" aria-hidden="true"><span id="s1">1 Seite</span><span id="s2">2 Höhe</span><span id="s3">Flug</span></div>
+    <button id="bStopp" type="button" aria-disabled="true">STOPP</button>
+    <div id="rang" role="status"></div>
+  </div>
+</div>
+<button id="bTon" type="button" aria-pressed="true" aria-label="Ton"><svg viewBox="0 0 24 24" fill="none" stroke="#F6F4EE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="#F6F4EE"/><path class="welle" d="M16 9a4 4 0 010 6M18.5 6.5a8 8 0 010 11"/></svg></button>
+
+<section class="schirm" id="sTitel"><div class="karte">
+  <h1>DART<em>FIEBER</em></h1>
+  <p class="klein">Fünf Pfeile, zwei Tipps pro Wurf: erst die Seite stoppen, dann die Höhe. Der Wind schiebt mit. Triff goldene Ziele für 3 Extra-Pfeile. Jeden Tag eine neue Challenge für alle.</p>
+  <p id="tBest"></p>
+  <button class="btn ja" id="bTag" type="button">Tageschallenge <span id="tTag"></span></button>
+  <p class="status" id="tStatus" role="status"></p>
+  <div class="zeile"><button class="btn" id="bUeben" type="button">Üben</button><button class="btn" id="bRang" type="button">Rangliste</button></div>
+  <button class="btn" id="bRegeln" type="button">Regeln</button>
+</div></section>
+
+<section class="schirm" id="sRegeln" hidden><div class="karte">
+  <h2>Regeln</h2>
+  <ol class="regelliste">
+    <li><b>Zwei Tipps pro Wurf.</b> Die senkrechte Linie läuft hin und her: tippe oder drücke Leertaste, um die Seite festzulegen. Dann läuft die waagerechte Linie: tippe noch einmal für die Höhe. Der Pfeil fliegt von selbst. Es gibt keine Kraftanzeige und keine Zufallsstreuung.</li>
+    <li><b>Wind.</b> Richtung und Stärke stehen oben. Pro m/s verschiebt er den Treffer um 3 mm auf der Scheibe. Er bleibt während eines Wurfs gleich und wechselt alle 5 Würfe, für alle Spieler an dieser Stelle gleich.</li>
+    <li><b>Wertung wie beim Darts.</b> Zahlen im Uhrzeigersinn ab oben 20, 1, 18, 4 … Doppelring ×2, Triple-Ring ×3, äußeres Bull 25, inneres Bull 50, außerhalb des Doppelrings 0. Liegt ein Treffer genau auf einer Ringgrenze, zählt das innere Feld; genau auf einer Sektorgrenze zählt der Sektor im Uhrzeigersinn danach.</li>
+    <li><b>Bonus.</b> Manchmal erscheint vor dem Wurf ein goldener Kreis. Triffst du ihn, bekommst du die normalen Punkte und 3 zusätzliche Pfeile. Die Kreise werden mit der Zeit kleiner, die Linien etwas schneller.</li>
+    <li><b>Ende.</b> Die Runde endet, wenn keine Pfeile mehr übrig sind. Wegen der Bonus-Pfeile gibt es eine Obergrenze: höchstens <b>30 Würfe</b> pro Runde.</li>
+    <li><b>Tageschallenge.</b> Scheibenposition und -größe, Tempo, Wind und Bonusziele sind für alle am selben Tag gleich (Tageswechsel um Mitternacht, Zeit in Berlin). Du kannst beliebig oft spielen, nur dein bester Wert des Tages zählt. Eine begonnene Runde bleibt bei ihrer Challenge.</li>
+    <li><b>Rangliste.</b> Nur mit PlaySaal-Konto. Der Server rechnet jede Runde mit denselben Regeln nach. Das kann Fehlbedienung und gefälschte Ergebnisse verhindern, aber keinen Bot, der die Tipps passend zum Spiel auslöst.</li>
+  </ol>
+  <button class="btn ja" id="bRegelnZu" type="button">Verstanden</button>
+</div></section>
+
+<section class="schirm" id="sEnde" hidden><div class="karte">
+  <h2 id="eKopf">Runde vorbei</h2>
+  <div class="zahl" id="ePunkte">0</div>
+  <p class="klein" id="eModus" style="margin:0 0 6px"></p>
+  <div class="kennzahlen"><div><small>Beste heute</small><b id="eBest">0</b></div><div><small>Würfe</small><b id="eWuerfe">0</b></div><div><small>Bonus</small><b id="eBoni">0</b></div></div>
+  <p class="status" id="eStatus" role="status"></p>
+  <button class="btn ja" id="bNochmal" type="button">Noch einmal</button>
+  <div class="zeile"><button class="btn" id="bRang2" type="button">Rangliste</button><button class="btn" id="bTeilen" type="button">Teilen</button></div>
+  <button class="btn" id="bErneut" type="button" hidden>Erneut senden</button>
+  <button class="btn" id="bAnmelden" type="button" hidden>Anmelden</button>
+  <button class="btn" id="bMenue" type="button">Menü</button>
+</div></section>
+
+<section class="schirm" id="sRang" hidden><div class="karte">
+  <h2>Tagesrangliste</h2>
+  <div class="tag-nav"><button type="button" id="rZurueck" aria-label="Früherer Tag">‹</button><span id="rTag"></span><button type="button" id="rVor" aria-label="Späterer Tag">›</button></div>
+  <ol id="rListe"></ol>
+  <p class="klein" style="margin:6px 0 10px" id="rHinweis">Bester geprüfter Wert je Konto. Gleiche Punkte = gleicher Platz.</p>
+  <button class="btn" id="bRangZu" type="button">Zurück</button>
+</div></section>
+
+<script type="module" src="dartfieber/game.js?v=1"></script>
+<a class="pz-home" href="../" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a><style>.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 13px);left:calc(env(safe-area-inset-left,0px) + 12px);width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(17,18,26,.78);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}.pz-home:focus-visible{outline:3px solid #FFD21C;outline-offset:2px}</style>
+<script src="../assets/playsaal-config.js" defer></script><script src="../assets/playsaal.js" defer></script></body></html>

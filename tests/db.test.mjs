@@ -61,8 +61,8 @@ before(async () => {
 const keys = (o) => ({ keys: o });
 const speichern = (uid, game, data, base = 0, fortschritt = 1) => rpc('authenticated', uid, 'spielstand_speichern', game, 1, JSON.stringify(data), fortschritt, 'Test', base, 'Test-Gerät', '2026-10-19T12:00:00Z');
 
-test('Stammdaten: 24 Spiele, 7 Kategorien, Spiele ohne Kollision', async () => {
-  assert.equal((await als('anon', null, 'select count(*)::int n from public.games'))[0].n, 24);
+test('Stammdaten: 25 Spiele, 7 Kategorien, Spiele ohne Kollision', async () => {
+  assert.equal((await als('anon', null, 'select count(*)::int n from public.games'))[0].n, 25);
   assert.equal((await als('anon', null, 'select count(*)::int n from public.categories'))[0].n, 7);
   assert.equal((await als('anon', null, `select count(*)::int n from public.games where hot`))[0].n, 12);
 });
@@ -89,7 +89,7 @@ test('HOT automatisch: immer genau 12, Spielzeit der letzten 30 Tage rückt ein 
 
 test('NEU: jedes Spiel hat ein Hinzufügedatum (added_on), öffentlich lesbar', async () => {
   const r = await als('anon', null, `select count(*)::int n from public.games where added_on = (now() at time zone 'Europe/Berlin')::date`);
-  assert.equal(r[0].n, 24);
+  assert.equal(r[0].n, 25);
 });
 
 test('Anonyme Besucher: keine privaten Tabellen, keine privaten Funktionen', async () => {
@@ -185,7 +185,7 @@ test('Admin: Selbstfreischaltung unmöglich, serverseitige Prüfung, erst nach p
   await db.exec(`insert into private.admins (user_id, note) values ('${ADM}', 'Test')`);
   assert.equal(await rpc('authenticated', ADM, 'ist_admin'), true);
   const st = await rpc('authenticated', ADM, 'admin_statistik', 7);
-  assert.equal(typeof st.summe.starts, 'number'); assert.equal(st.spiele.length, 24);
+  assert.equal(typeof st.summe.starts, 'number'); assert.equal(st.spiele.length, 25);
   assert.deepEqual(await rpc('authenticated', ADM, 'admin_kategorie_speichern', 'neu-kat', 'Neu', 9, true), { ok: true });
   assert.deepEqual(await rpc('authenticated', ADM, 'admin_spiel_speichern', 'anbiss', ['abenteuer', 'neu-kat'], true, 8, true), { ok: true });
   assert.match(String((await fehler('authenticated', ADM, `select public.admin_spiel_speichern('anbiss','{gibtsnicht}',true,1,true)`)).message), /Unbekannte Kategorie/);
@@ -440,4 +440,92 @@ test('PAPIERPILOT-Rangliste: nur die Prüf-Funktion trägt ein; Distanz vor Zeit
   assert.equal(zuOft, 'zu_oft');
   await rpc('authenticated', A, 'konto_loeschen', 'LÖSCHEN');
   assert.equal((await db.query(`select count(*)::int n from private.papierpilot_fluege where user_id = '${A}'`)).rows[0].n, 0);
+});
+
+test('DARTFIEBER: Challenge pro Tag fest, Run-ID einmalig, nur Prüf-Funktion schließt ab; Rangliste, Gleichstand, Archiv, Löschung', async () => {
+  const { VERSION } = await import(pathToFileURL(join(ROOT, 'public/spiele/dartfieber/sim.js')).href);
+  assert.equal((await db.query('select private.dartfieber_version() v')).rows[0].v, VERSION, 'Version in SQL und sim.js gleich');
+  const U = ['a2a2a2a2-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'b2b2b2b2-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'c2c2c2c2-cccc-4ccc-8ccc-cccccccccccc', 'd2d2d2d2-dddd-4ddd-8ddd-dddddddddddd'];
+  await db.exec(`insert into auth.users (id, email) values ${U.map((u, i) => `('${u}', 'df${i}@example.org')`).join(',')}`);
+  const [P, Q, R, K] = U;
+  await rpc('authenticated', P, 'profil_speichern', 'Dora', 'a3');
+  await rpc('authenticated', Q, 'profil_speichern', 'Dirk', 'a4');
+  await rpc('authenticated', R, 'profil_speichern', 'Dana', 'a5');
+  const heute = (await db.query(`select to_char(private.berlin_heute(), 'YYYYMMDD') d`)).rows[0].d;
+  // Challenge: auch für Gäste, pro Tag unveränderlich
+  const t1 = await rpc('anon', null, 'dartfieber_tag'), t2 = await rpc('authenticated', P, 'dartfieber_tag');
+  assert.equal(t1.tag, heute); assert.deepEqual(t1, t2); assert.ok(Number.isInteger(t1.seed) && t1.seed >= 1);
+  assert.equal(t1.version, VERSION);
+  // Start: nur angemeldet mit Profil; jede Runde bekommt eine eigene Run-ID, gleiche Bedingungen
+  assert.ok(await fehler('anon', null, 'select public.dartfieber_start()'));
+  assert.equal((await rpc('authenticated', K, 'dartfieber_start')).grund, 'kein_profil');
+  const s1 = await rpc('authenticated', P, 'dartfieber_start'), s2 = await rpc('authenticated', P, 'dartfieber_start');
+  assert.equal(s1.ok, true); assert.notEqual(s1.run_id, s2.run_id); assert.equal(s1.seed, t1.seed); assert.equal(s2.seed, t1.seed);
+  // Prüf-Funktionen nur für service_role, Tabellen privat
+  for (const rolle of ['anon', 'authenticated']) {
+    assert.match(String((await fehler(rolle, P, `select public.dartfieber_abschliessen('${P}', '${s1.run_id}', 100, 10, 3000, '4.5')`)).message), /permission denied/);
+    assert.match(String((await fehler(rolle, P, `select public.dartfieber_run_lesen('${P}', '${s1.run_id}')`)).message), /permission denied/);
+    assert.match(String((await fehler(rolle, P, 'select * from private.dartfieber_runden')).message), /permission denied/);
+    assert.match(String((await fehler(rolle, P, `select * from private.dartfieber_wertung(private.berlin_heute())`)).message), /permission denied/);
+  }
+  const lesen = (u, r) => rpc('service_role', null, 'dartfieber_run_lesen', u, r);
+  const fertig = (u, r, p, w = 10, t = 100) => rpc('service_role', null, 'dartfieber_abschliessen', u, r, p, w, t, '4.5');
+  // fremde oder unbekannte Run-ID
+  assert.equal((await lesen(Q, s1.run_id)).grund, 'unbekannt');
+  assert.equal((await lesen(P, '99999999-9999-4999-8999-999999999999')).grund, 'unbekannt');
+  const l = await lesen(P, s1.run_id); assert.equal(l.ok, true); assert.equal(l.seed, t1.seed);
+  // ungültige Werte
+  assert.equal((await fertig(P, s1.run_id, -1)).grund, 'ungueltig');
+  assert.equal((await fertig(P, s1.run_id, 3001)).grund, 'ungueltig');
+  assert.equal((await fertig(P, s1.run_id, 100, 31)).grund, 'ungueltig');
+  // Zeitprüfung: Runde mit 3000 Takten (50 s) ist direkt nach dem Start zu schnell
+  assert.equal((await fertig(P, s1.run_id, 100, 10, 3000)).grund, 'zu_schnell');
+  // zu alt
+  await db.exec(`update private.dartfieber_runden set issued_at = now() - interval '31 minutes' where id = '${s2.run_id}'`);
+  assert.equal((await fertig(P, s2.run_id, 100)).grund, 'abgelaufen');
+  // Versuchsgrenze (ein Versuch durch lesen oben; vier weitere, dann gesperrt)
+  for (let i = 0; i < 4; i++) assert.equal((await lesen(P, s1.run_id)).ok, true);
+  assert.equal((await lesen(P, s1.run_id)).grund, 'zu_viele_versuche');
+  // gültige Abschlüsse; Run-ID einmalig
+  const a = await fertig(P, s1.run_id, 300); assert.equal(a.ok, true); assert.equal(a.tag, heute); assert.equal(a.rang.platz, 1);
+  assert.equal((await fertig(P, s1.run_id, 900)).grund, 'schon_abgeschlossen');
+  assert.equal((await lesen(P, s1.run_id)).grund, 'schon_abgeschlossen');
+  const q1 = await rpc('authenticated', Q, 'dartfieber_start'); assert.equal((await fertig(Q, q1.run_id, 300)).rang.platz, 1);   // Gleichstand = gleicher Platz
+  const r1 = await rpc('authenticated', R, 'dartfieber_start'); const rr = await fertig(R, r1.run_id, 120);
+  assert.equal(rr.rang.platz, 3); assert.equal(rr.rang.luecke, 180); assert.equal(rr.rang.naechster_platz, 1); assert.equal(rr.rang.spieler, 3);
+  // weitere, schlechtere Runde von P zählt nicht; bessere ersetzt
+  const p3 = await rpc('authenticated', P, 'dartfieber_start'); await fertig(P, p3.run_id, 50);
+  assert.equal((await rpc('authenticated', P, 'dartfieber_rangliste', null, 10)).ich.punkte, 300);
+  const p4 = await rpc('authenticated', P, 'dartfieber_start'); await fertig(P, p4.run_id, 310);
+  const rl = await rpc('authenticated', R, 'dartfieber_rangliste', null, 10);
+  assert.deepEqual(rl.zeilen.map((z) => [z.platz, z.name, z.punkte, z.ich]).map(String), ['1,Dora,310,false', '2,Dirk,300,false', '3,Dana,120,true']);
+  assert.equal(rl.spieler, 3); assert.equal(rl.ich.luecke, 180); assert.equal(rl.tag, heute);
+  assert.deepEqual(Object.keys(rl.zeilen[0]).sort(), ['avatar', 'ich', 'name', 'platz', 'pos', 'punkte']);
+  assert.equal((await rpc('anon', null, 'dartfieber_rangliste', null, 10)).ich, null);
+  assert.equal((await rpc('anon', null, 'dartfieber_rangliste', heute, 1)).zeilen.length, 1, 'Anzahl begrenzt');
+  assert.match(String((await fehler('anon', null, `select public.dartfieber_rangliste('x', 5)`)).message), /tag_unbekannt/);
+  assert.match(String((await fehler('anon', null, `select public.dartfieber_rangliste('20261345', 5)`)).message), /tag_unbekannt/);
+  // Archiv: gestern angelegter Tag bleibt abrufbar und unverändert
+  await db.exec(`insert into private.dartfieber_tage (tag, seed, version) values (private.berlin_heute() - 1, 777, 1)`);
+  await db.exec(`insert into private.dartfieber_runden (user_id, tag, finished_at, punkte, wuerfe, ticks, inputs) values ('${Q}', private.berlin_heute() - 1, now(), 500, 12, 4000, '1')`);
+  const gestern = (await db.query(`select to_char(private.berlin_heute() - 1, 'YYYYMMDD') d`)).rows[0].d;
+  const ar = await rpc('anon', null, 'dartfieber_rangliste', gestern, 10); assert.equal(ar.zeilen[0].name, 'Dirk'); assert.equal(ar.zeilen.length, 1);
+  assert.deepEqual(await rpc('anon', null, 'dartfieber_tage_liste', 10), [heute, gestern]);
+  assert.equal((await rpc('anon', null, 'dartfieber_tag')).seed, t1.seed, 'heutiger Seed bleibt');
+  // Nachbarn: eigene Platzierung samt zwei Nachbarn auch außerhalb der Top-N
+  const ws = [];
+  for (let i = 0; i < 6; i++) { const u = `e${i}e${i}e${i}e${i}-eeee-4eee-8eee-eeeeeeeeeeee`; ws.push(u); await db.exec(`insert into auth.users (id, email) values ('${u}', 'dfe${i}@example.org')`); await rpc('authenticated', u, 'profil_speichern', 'Eli' + i, 'a1'); const x = await rpc('authenticated', u, 'dartfieber_start'); await fertig(u, x.run_id, 1000 - i * 100); }
+  const nb = await rpc('authenticated', R, 'dartfieber_rangliste', null, 3);
+  assert.deepEqual(nb.zeilen.map((z) => z.pos), [1, 2, 3, 7, 8, 9].filter((p) => p <= 9)); assert.equal(nb.ich.platz, 9);
+  // Rate-Limit beim Start
+  let zuOft = null; for (let i = 0; i < 10 && !zuOft; i++) { const x = await rpc('authenticated', K === R ? R : R, 'dartfieber_start'); if (!x.ok) zuOft = x.grund; }
+  assert.equal(zuOft, 'zu_oft');
+  // Aufräumen: nie beendete alte Runden weg, je Spieler/Tag bleibt die beste
+  await db.exec(`update private.dartfieber_runden set issued_at = now() - interval '3 days' where finished_at is null`);
+  await db.exec('select private.aufraeumen()');
+  assert.equal((await db.query(`select count(*)::int n from private.dartfieber_runden where finished_at is null`)).rows[0].n, 0);
+  assert.deepEqual((await db.query(`select punkte from private.dartfieber_runden where user_id = '${P}' and finished_at is not null`)).rows.map((x) => x.punkte), [310]);
+  // Löschung des Kontos entfernt die Runden
+  await rpc('authenticated', P, 'konto_loeschen', 'LÖSCHEN');
+  assert.equal((await db.query(`select count(*)::int n from private.dartfieber_runden where user_id = '${P}'`)).rows[0].n, 0);
 });
