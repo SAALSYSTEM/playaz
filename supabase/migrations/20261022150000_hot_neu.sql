@@ -1,6 +1,6 @@
--- Hot automatisch (immer 10 Spiele) und Neu mit Datum.
--- Hot = die 10 Spiele mit der meisten Spielzeit der letzten 30 Tage (private.stat_daily). Spiele ohne Spielzeit werden
--- pro Tag zufällig (aber für alle gleich) einsortiert, damit es immer genau 10 sind. Wird bei jeder Statistik-Meldung
+-- Hot automatisch (immer 12 Spiele) und Neu mit Datum.
+-- Hot = die 12 Spiele mit der meisten Spielzeit der letzten 30 Tage (private.stat_daily). Spiele ohne Spielzeit werden
+-- pro Tag zufällig (aber für alle gleich) einsortiert, damit es immer genau 12 sind. Wird bei jeder Statistik-Meldung
 -- neu berechnet (ändert nur Zeilen, die sich wirklich ändern). Neu = hinzugefügt vor höchstens 30 Tagen (Auswertung in katalog.js).
 -- Hinweis: Die Hot-Haken im Admin werden dadurch bei der nächsten Berechnung überschrieben.
 
@@ -24,7 +24,7 @@ begin
   ), r as (
     select slug, row_number() over (order by sek desc, md5(slug || heute::text)) as platz from w where listed
   ), ziel as (
-    select w.slug, (r.platz <= 10) as hot, case when r.platz <= 10 then r.platz::smallint end as rang
+    select w.slug, (r.platz <= 12) as hot, case when r.platz <= 12 then r.platz::smallint end as rang
     from w left join r on r.slug = w.slug
   )
   update public.games g
