@@ -23,7 +23,7 @@ Darstellung: Boden ist eine echte 3D-Fläche (gekachelte Parktextur), alle Objek
 Kollisionen hängen an einfachen Formen in `TYPEN` (Säule bzw. Quader mit Höhe), bewusst etwas kleiner als das Bild.
 
 ## Bilder (Charge 1, ChatGPT)
-Flieger gerade/Kurve (Rechtskurve = gespiegelt), Boden Park, Panorama, Baum rund, Zypresse, Haus, Turm. Zweitversionen von Zypresse und Turm liegen als `*-alt.png` bei (ungenutzt).
+Flieger gerade/Kurve (Rechtskurve = gespiegelt), Boden Park, Panorama, Baum rund, Zypresse, Haus, Turm. Charge 2: schmales hohes Haus (`hausHoch`, kaum zu überfliegen) und flaches breites Landhaus (`hausFlach`, mit etwas Höhe überfliegbar). Zweitversionen von Zypresse und Turm liegen als `*-alt.png` bei (ungenutzt).
 
 ## Als Nächstes (V2)
 Tagesstrecke aus geprüften Abschnitten (Startwert = Datum in Europe/Berlin, wie Seitenwechsel/Punktlandung), Geisterflieger aus der gespeicherten Eingabefolge, geprüfte Tagesrangliste (Migration + Edge Function `papierpilot-lauf`, Eintrag in `tools/edge-sync.mjs`), danach Registrierung in `playsaal-config.js`, `umzug.js`, `public.games` und Startseite.

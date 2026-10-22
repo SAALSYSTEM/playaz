@@ -71,7 +71,7 @@ let DUNST = new T.Color(0xb5c5a1);
 scene.fog = new T.Fog(DUNST, 60, SICHT + 60);
 
 const IMG = (n) => new URL('img/' + n + '.webp', import.meta.url).href;
-let ASP = { 'baum-rund': 0.967, 'baum-zypresse': 0.208, haus: 1.032, turm: 0.247, 'flieger-gerade': 1.365, panorama: 1.5 };
+let ASP = { 'baum-rund': 0.967, 'baum-zypresse': 0.208, haus: 1.032, 'haus-schmal': 0.494, 'haus-flach': 2.6, turm: 0.247, 'flieger-gerade': 1.365, panorama: 1.5 };
 const ladeTex = (n, fn) => new T.TextureLoader().load(IMG(n), (t) => { t.needsUpdate = true; fn && fn(t); }, undefined, () => {});
 const canvasTex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new T.CanvasTexture(c); };
 
@@ -164,7 +164,7 @@ function kulisse() {
   for (const seite of [-1, 1]) {
     for (let z = -20; z < ende; z += 5 + zz() * 6) {
       const x = seite * (15.5 + zz() * 4), w = zz();
-      stelle(w < 0.62 ? 'baum' : w < 0.92 ? 'zypresse' : 'haus', x, z, 0.85 + zz() * 0.35);
+      stelle(w < 0.58 ? 'baum' : w < 0.84 ? 'zypresse' : w < 0.9 ? 'haus' : w < 0.95 ? 'hausHoch' : 'hausFlach', x + (w >= 0.95 ? seite * 4 : 0), z, 0.85 + zz() * 0.35);
       if (zz() < 0.55) stelle(zz() < 0.7 ? 'baum' : 'zypresse', seite * (22 + zz() * 30), z + zz() * 5, 0.9 + zz() * 0.5);
     }
   }
@@ -286,7 +286,7 @@ function ende() {
   store.fluege++;
   if (rekord) { store.best = cm; store.bestT = s.ft; store.bestIn = kodiere(eingaben); }
   speichern();
-  const namen = { baum: 'Baum', zypresse: 'Zypresse', haus: 'Haus', turm: 'Turm' };
+  const namen = { baum: 'Baum', zypresse: 'Zypresse', haus: 'Haus', hausHoch: 'Haus', hausFlach: 'Haus', turm: 'Turm' };
   $('eKopf').textContent = rekord && cm > 0 ? 'Neuer Bestflug!' : s.grund === 'hindernis' ? 'Gegen ' + (s.treffer >= 0 ? (s.treffer >= 0 && namen[STRECKE.o[s.treffer].t]) : 'Hindernis') + '!' : 'Gelandet';
   $('eKopf').className = rekord && cm > 0 ? 'rek' : '';
   $('eDist').innerHTML = meter(cm) + '<small> m</small>';

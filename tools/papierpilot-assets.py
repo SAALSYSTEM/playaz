@@ -27,6 +27,8 @@ SPRITES = [
     ('baum-rund', 'pp-baum-rund.png', 512, 512),
     ('baum-zypresse', 'pp-baum-zypresse.png', 256, 640),
     ('haus', 'pp-haus.png', 512, 512),
+    ('haus-schmal', 'pp-haus-schmal.png', 320, 640),
+    ('haus-flach', 'pp-haus-flach.png', 640, 320),
     ('turm', 'pp-turm.png', 256, 768),
 ]
 FLIEGER = [('flieger-gerade', 'pp-flieger-gerade.png'), ('flieger-kurve', 'pp-flieger-kurve.png')]
