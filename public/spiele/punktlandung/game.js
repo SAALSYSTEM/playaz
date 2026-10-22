@@ -218,6 +218,14 @@ $('bTag').addEventListener('click', () => startLauf('tag'));
 $('bUeben').addEventListener('click', () => startLauf('ueben'));
 $('bNochmal').addEventListener('click', () => startLauf(modus));
 $('bMenue').addEventListener('click', titel);
+$('bTeilen').addEventListener('click', async () => {
+  const url = location.origin + location.pathname.replace(/\/$/, '');
+  const text = 'Ich habe ' + $('ePunkte').textContent + ' Punkte bei Punktlandung geschafft. Schaffst du mehr?';
+  try { if (navigator.share) { await navigator.share({ title: 'Punktlandung', text, url }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+  const b = $('bTeilen');
+  try { await navigator.clipboard.writeText(text + ' ' + url); b.textContent = 'Link kopiert ✓'; } catch (e) { b.textContent = url; }
+  setTimeout(() => { b.textContent = 'Teilen'; }, 2500);
+});
 $('bTon').addEventListener('click', () => { store.sound = !store.sound; speichern(); $('bTon').setAttribute('aria-pressed', String(store.sound)); $('bTon').textContent = store.sound ? 'Ton an' : 'Ton aus'; ton.start(); });
 for (const id of ['bRang', 'bRang2']) $(id).addEventListener('click', () => rangliste('heute'));
 $('bRangZu').addEventListener('click', () => ($('sRang').dataset.von === 'ende' && lauf ? ansichtWechsel('ende') : titel()));

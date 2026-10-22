@@ -48,6 +48,7 @@ test('Titel, SEO-Angaben und Üben bis zum Ende', async () => {
   await page.waitForFunction(() => window.__pl.zustand === 'ende', null, { timeout: 15000 });   // ohne Tippen verpasst man das erste Ziel
   assert.equal(await page.textContent('#ePunkte'), '0');
   assert.match(await page.textContent('#eKopf'), /Verfehlt|Bestwert/);
+  assert.equal(await page.isVisible('#bTeilen'), true);   // Teilen-Knopf (Web Share oder Link kopieren)
   assert.deepEqual(fehler, []);
   await ctx.close();
 });
