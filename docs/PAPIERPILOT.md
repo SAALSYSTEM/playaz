@@ -25,5 +25,8 @@ Kollisionen hängen an einfachen Formen in `TYPEN` (Säule bzw. Quader mit Höhe
 ## Bilder (Charge 1, ChatGPT)
 Flieger gerade/Kurve (Rechtskurve = gespiegelt), Boden Park, Panorama, Baum rund, Zypresse, Haus, Turm. Charge 2: schmales hohes Haus (`hausHoch`, kaum zu überfliegen) und flaches breites Landhaus (`hausFlach`, mit etwas Höhe überfliegbar). Zweitversionen von Zypresse und Turm liegen als `*-alt.png` bei (ungenutzt).
 
+## Kachel und Teilen-Vorschau
+Kachel für die Startseite: `public/bilder/papierpilot.webp` (720×720, ohne Schrift, aus `design/papierpilot/pp-kachel.png`). Teilen-Vorschau: `public/bilder/papierpilot-og.jpg` (1200×630) per `node tools/papierpilot-cover.mjs` aus `pp-social.png`; der Schriftzug wird dort in der PlaySaal-Schrift gesetzt, nicht von der Bild-KI. Die Kachel kommt erst mit der Freigabe auf die Startseite.
+
 ## Als Nächstes (V2)
 Tagesstrecke aus geprüften Abschnitten (Startwert = Datum in Europe/Berlin, wie Seitenwechsel/Punktlandung), Geisterflieger aus der gespeicherten Eingabefolge, geprüfte Tagesrangliste (Migration + Edge Function `papierpilot-lauf`, Eintrag in `tools/edge-sync.mjs`), danach Registrierung in `playsaal-config.js`, `umzug.js`, `public.games` und Startseite.
