@@ -1,5 +1,7 @@
 # PlaySaal
 
+**Papierpilot:** Papierflieger-Spiel im Hochformat: vom Dach werfen, links/rechts steuern, Aufwinde und Ringe nutzen, Bäumen und Türmen ausweichen; Ziel ist die größte Flugweite. V1 mit fester Teststrecke, noch `noindex` (Test über `/spiele/papierpilot`). Details: [`docs/PAPIERPILOT.md`](docs/PAPIERPILOT.md). Test: `node --test tests/papierpilot-sim.test.mjs`.
+
 **Wasser Marsch!:** Feuerwehrspiel für Kinder ab 4 im Hochformat: Finger halten = Wasser spritzt zum Finger, Feuer löschen, danach Katzen antippen – die Drehleiter holt sie herunter. 20 feste Level in 6 Szenen, kein Scheitern, keine Zeit. Noch `noindex` und nicht auf der Startseite (Test über `/spiele/wasser-marsch`). Regeln/Layout: `public/spiele/wasser-marsch/engine.js`, Level: `levels.js`, Oberfläche: `game.js`, Bilder aus `design/wasser-marsch/` per `tools/wasser-marsch-assets.py`. Details und Abweichungen: [`docs/WASSER_MARSCH.md`](docs/WASSER_MARSCH.md). Test: `node --test tests/wasser-marsch-sim.test.mjs`.
 
 **Jungle Runner:** 3D-Dschungel-Läufer mit 30 festen Leveln in 5 Welten, Junge oder Mädchen, Tieren, Power-ups, Awards, Teilen und Endlosmodus; Figuren und Tiere sind deklarierte Platzhalter. Details, Asset-Liste und Teststand in [`docs/JUNGLE_RUNNER.md`](docs/JUNGLE_RUNNER.md); Module in `public/spiele/jungle-runner/`.

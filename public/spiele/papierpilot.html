@@ -1,0 +1,100 @@
+<!doctype html><html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>PAPIERPILOT · Papierflieger-Spiel · PlaySaal</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="canonical" href="https://playsaal.com/spiele/papierpilot">
+<meta name="description" content="Papierpilot: Wirf den Papierflieger vom Dach, nutze Aufwinde, weiche Bäumen und Türmen aus und fliege so weit wie möglich. Kostenlos im Browser, ohne Anmeldung.">
+<meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="PAPIERPILOT · Papierflieger-Spiel · PlaySaal"><meta property="og:description" content="Wirf den Papierflieger vom Dach, nutze Aufwinde und fliege so weit wie möglich."><meta property="og:url" content="https://playsaal.com/spiele/papierpilot"><meta property="og:locale" content="de_DE">
+<meta name="theme-color" content="#11121A">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="icon" href="../favicon.ico" sizes="any">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="manifest" href="../site.webmanifest">
+<link rel="stylesheet" href="../assets/fonts.css">
+<link rel="modulepreload" href="papierpilot/game.js?v=1"><link rel="modulepreload" href="papierpilot/sim.js"><link rel="modulepreload" href="papierpilot/strecke.js">
+<script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'papierpilot',t:Date.now()}))}catch(e){}</script>
+<style>
+:root{--basis:#11121A;--flaeche:#1a1b26;--flaeche-hell:#262838;--marke:#FF9200;--aktion:#FFD21C;--text:#f6f7f9;--leise:#b6b9c8;--linie:rgba(246,247,249,.16);--tuerkis:#3fe3dc;
+  --f-display:"Dela Gothic One","Arial Black",Impact,sans-serif;--f-text:"Barlow","Segoe UI",system-ui,sans-serif;--f-zahl:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);color-scheme:dark}
+*{box-sizing:border-box}[hidden]{display:none!important}
+html,body{height:100%;margin:0;background:#9cc6ea;color:var(--text);font:16px/1.4 var(--f-text);overflow:hidden;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#game{position:fixed;inset:0;touch-action:none;-webkit-user-select:none;user-select:none}
+#c{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+:focus-visible{outline:3px solid var(--aktion);outline-offset:3px}
+.glas{background:rgba(17,18,26,.62);border:1px solid var(--linie);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+#hud{position:absolute;inset:0;pointer-events:none}
+#hDist{position:absolute;left:14px;top:calc(var(--st) + 56px);font:700 clamp(46px,14vw,64px)/.9 var(--f-zahl);font-variant-numeric:tabular-nums;text-shadow:0 2px 12px rgba(0,0,0,.45)}
+#hDist small{font-size:.55em;margin-left:4px}
+#hBest{position:absolute;left:14px;top:calc(var(--st) + 56px + clamp(48px,14.5vw,66px));border-radius:999px;padding:4px 12px;font:700 15px/1.2 var(--f-zahl);letter-spacing:.06em;text-transform:uppercase}
+#hZiel{position:absolute;left:0;right:0;bottom:calc(var(--sb) + 74px);text-align:center;font:600 15px/1 var(--f-text);text-shadow:0 1px 6px rgba(0,0,0,.7)}
+#hHoehe{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--sb) + 22px);width:min(62vw,300px);height:40px;border-radius:999px;display:flex;align-items:center;gap:10px;padding:0 14px}
+#hHoehe span{font:700 14px/1 var(--f-zahl);letter-spacing:.08em}
+#hHoehe i{flex:1;height:10px;border-radius:6px;background:rgba(255,255,255,.18);overflow:hidden;display:block}
+#hHoehe b{display:block;height:100%;width:50%;background:var(--tuerkis);border-radius:6px;transition:background .2s}
+#hHoehe b.tief{background:var(--marke)}
+.pfeil{position:absolute;bottom:calc(var(--sb) + 16px);width:clamp(64px,19vw,84px);height:clamp(64px,19vw,84px);border-radius:50%;display:grid;place-items:center;border:2px solid rgba(255,255,255,.75);background:rgba(17,18,26,.35);transition:background .08s,transform .08s}
+.pfeil svg{width:44%;height:44%}
+.pfeil.an{background:rgba(255,210,28,.55);transform:scale(.94)}
+#pL{left:14px}#pR{right:14px}
+#wurf{position:absolute;left:0;right:0;top:44%;display:flex;flex-direction:column;align-items:center;gap:12px;pointer-events:none}
+#wurf p{margin:0;font:700 24px/1.1 var(--f-zahl);letter-spacing:.05em;text-transform:uppercase;color:var(--aktion);text-shadow:0 2px 10px rgba(0,0,0,.6)}
+#wBalken{position:relative;width:min(70vw,320px);height:22px;border-radius:12px;overflow:hidden;background:linear-gradient(90deg,rgba(255,255,255,.15),rgba(255,255,255,.15) 75%,rgba(255,146,0,.55) 75%,rgba(255,210,28,.9))}
+#wZeiger{position:absolute;top:-3px;bottom:-3px;width:6px;margin-left:-3px;border-radius:3px;background:#fff;box-shadow:0 0 8px #fff;left:0}
+#wurf small{font:600 14px/1.2 var(--f-text);color:var(--text);text-shadow:0 1px 6px rgba(0,0,0,.7)}
+#bTon{position:absolute;right:12px;top:calc(var(--st) + 13px);height:34px;border-radius:17px;padding:0 12px;font:600 14px/1 var(--f-zahl);letter-spacing:.05em;text-transform:uppercase;z-index:3}
+.schirm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:calc(var(--st) + 56px) 16px calc(var(--sb) + 16px);background:rgba(13,14,21,.45)}
+.karte{width:100%;max-width:400px;background:rgba(26,27,38,.94);border:1px solid var(--linie);border-radius:20px;padding:22px 20px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+h1{font:400 clamp(32px,10vw,44px)/1.05 var(--f-display);margin:0 0 10px}
+h2{font:400 26px/1.1 var(--f-display);margin:0 0 4px}
+.klein{color:var(--leise);font-size:15px;margin:0 0 14px}
+.btn{display:block;width:100%;min-height:52px;border-radius:14px;border:2px solid var(--linie);background:var(--flaeche-hell);font:700 19px/1 var(--f-zahl);letter-spacing:.05em;text-transform:uppercase;padding:0 16px;margin:8px 0}
+.btn.ja{background:var(--aktion);border-color:var(--aktion);color:#11121A}
+.btn:active{transform:scale(.98)}
+.zahl{font:700 78px/1 var(--f-zahl);color:var(--aktion);font-variant-numeric:tabular-nums}
+.zahl small{font-size:.45em}
+#eKopf.rek{color:var(--marke)}
+.werte{display:flex;justify-content:center;gap:18px;margin:6px 0 14px;color:var(--leise);font:600 16px/1.2 var(--f-zahl);letter-spacing:.04em;text-transform:uppercase}
+.werte b{display:block;color:var(--text);font-size:22px}
+#tBest{color:var(--aktion);font:700 18px/1.2 var(--f-zahl);margin:0 0 10px;letter-spacing:.04em}
+.hinweis{font-size:13px;color:var(--leise);margin:10px 0 0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#laden{position:absolute;inset:0;display:grid;place-items:center;font:700 20px/1 var(--f-zahl);letter-spacing:.06em;text-transform:uppercase;color:#11121A}
+</style></head><body>
+<main class="sr"><h2>Papierpilot – Papierflieger-Spiel</h2>
+<p>Papierpilot ist ein kostenloses Browserspiel für Handy und Rechner. Wirf den Papierflieger vom Dach, steuere ihn nach links und rechts, nutze türkise Aufwinde und goldene Ringe und weiche Bäumen, Häusern und Türmen aus. Ziel ist die größte Flugweite.</p></main>
+<div id="game">
+  <canvas id="c" aria-label="Spielfeld"></canvas>
+  <div id="laden">Lädt …</div>
+  <div id="hud" hidden>
+    <div id="hDist">0<small>m</small></div>
+    <div id="hBest" class="glas">Beste: 0 m</div>
+    <div id="hZiel"></div>
+    <div id="hHoehe" class="glas"><span>HÖHE</span><i><b id="hHb"></b></i></div>
+    <div class="pfeil" id="pL" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 4 7 12l8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="pfeil" id="pR" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 4 8 8-8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div id="wurf" hidden><p>Tippen zum Werfen</p><div id="wBalken"><div id="wZeiger"></div></div><small>Ganz rechts im gelben Bereich wirfst du am weitesten</small></div>
+  </div>
+  <button id="bTon" class="glas" type="button" aria-pressed="true">Ton an</button>
+
+  <section class="schirm" id="sTitel" hidden><div class="karte">
+    <h1>PAPIER&shy;PILOT</h1>
+    <p class="klein">Wirf den Flieger vom Dach und steuere ihn mit links und rechts. Türkise Aufwinde tragen dich nach oben, goldene Ringe geben Schwung. Kurven kosten etwas Höhe. Weiche Bäumen, Häusern und Türmen aus.</p>
+    <p id="tBest"></p>
+    <button class="btn ja" id="bStart" type="button">Fliegen</button>
+    <p class="hinweis">Testversion: feste Teststrecke. Tagesstrecke und Rangliste folgen.</p>
+  </div></section>
+
+  <section class="schirm" id="sEnde" hidden><div class="karte">
+    <h2 id="eKopf">Gelandet</h2>
+    <div class="zahl" id="eDist">0<small> m</small></div>
+    <div class="werte"><div>Zeit<b id="eZeit">0,0 s</b></div><div>Ringe<b id="eRinge">0</b></div><div>Beste<b id="eBest">0 m</b></div></div>
+    <button class="btn ja" id="bNochmal" type="button">Nochmal</button>
+    <button class="btn" id="bMenue" type="button">Menü</button>
+  </div></section>
+</div>
+<script src="../assets/three.min.js"></script>
+<script type="module" src="papierpilot/game.js?v=1"></script>
+<a class="pz-home" href="../" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a><style>.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 13px);left:calc(env(safe-area-inset-left,0px) + 12px);width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(17,18,26,.78);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}.pz-home:focus-visible{outline:3px solid #FFD21C;outline-offset:2px}</style>
+<script src="../assets/playsaal-config.js" defer></script><script src="../assets/playsaal.js" defer></script></body></html>
