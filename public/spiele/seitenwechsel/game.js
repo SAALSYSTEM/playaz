@@ -223,12 +223,16 @@ $('bUeben').addEventListener('click', () => startLauf('ueben'));
 $('bNochmal').addEventListener('click', () => startLauf(modus));
 $('bMenue').addEventListener('click', titel);
 $('bTeilen').addEventListener('click', async () => {
+  const b = $('bTeilen');
   const url = location.origin + location.pathname.replace(/\/$/, '');
   const text = 'Ich habe ' + $('ePunkte').textContent + ' Punkte bei Seitenwechsel geschafft. Schaffst du mehr?';
-  try { if (navigator.share) { await navigator.share({ title: 'Seitenwechsel', text, url }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
-  const b = $('bTeilen');
-  try { await navigator.clipboard.writeText(text + ' ' + url); b.textContent = 'Link kopiert ✓'; } catch (e) { b.textContent = url; }
-  setTimeout(() => { b.textContent = 'Teilen'; }, 2500);
+  const fertig = (msg) => { b.textContent = msg; setTimeout(() => { b.textContent = 'Teilen'; }, 2500); };
+  b.textContent = 'Teilen …';
+  try {
+    if (navigator.share) { await navigator.share({ title: 'Seitenwechsel', text, url }); b.textContent = 'Teilen'; return; }
+  } catch (e) { if (e && e.name === 'AbortError') { b.textContent = 'Teilen'; return; } }
+  try { await navigator.clipboard.writeText(text + ' ' + url); fertig('Link kopiert ✓'); }
+  catch (e) { try { const ta = document.createElement('textarea'); ta.value = text + ' ' + url; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); fertig('Link kopiert ✓'); } catch (e2) { fertig(url); } }
 });
 $('bTon').addEventListener('click', () => { store.sound = !store.sound; speichern(); $('bTon').setAttribute('aria-pressed', String(store.sound)); $('bTon').textContent = store.sound ? 'Ton an' : 'Ton aus'; ton.start(); });
 for (const id of ['bRang', 'bRang2']) $(id).addEventListener('click', () => rangliste('heute'));
