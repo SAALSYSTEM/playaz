@@ -30,7 +30,9 @@ SPRITES = [
     ('haus-schmal', 'pp-haus-schmal.png', 320, 640),
     ('haus-flach', 'pp-haus-flach.png', 640, 320),
     ('turm', 'pp-turm.png', 256, 768),
+    ('bruecke', 'pp-bruecke.png', 768, 320),
 ]
+PANORAMA, PANORAMA_HORIZONT = 'pp-panorama-kueste.png', 0.46   # vorher pp-panorama.png, 0.56
 FLIEGER = [('flieger-gerade', 'pp-flieger-gerade.png'), ('flieger-kurve', 'pp-flieger-kurve.png')]
 
 
@@ -74,12 +76,22 @@ def main():
     g = Image.open(os.path.join(SRC, 'pp-boden-park.png')).convert('RGB').resize((512, 512), Image.LANCZOS)
     g.save(os.path.join(OUT, 'boden-park.webp'), 'WEBP', quality=80, method=6)
     manifest['boden-park'] = {'w': 512, 'h': 512}
-    # Panorama: deckend; Dunstfarbe am unteren Rand für den Bodennebel
-    p = Image.open(os.path.join(SRC, 'pp-panorama.png')).convert('RGB')
+    # Fluss: deckend, oben/unten nahtlos (Ränder mit der um die halbe Höhe verschobenen Kopie überblenden)
+    f = np.array(Image.open(os.path.join(SRC, 'pp-fluss.png')).convert('RGB')).astype(np.float32)
+    h = f.shape[0]; band = int(h * 0.12)
+    m = np.ones(h, np.float32)
+    ramp = np.linspace(0, 1, band, dtype=np.float32)
+    m[:band] = ramp; m[h - band:] = ramp[::-1]
+    f = f * m[:, None, None] + np.roll(f, h // 2, axis=0) * (1 - m[:, None, None])
+    f = Image.fromarray(f.clip(0, 255).astype(np.uint8)).resize((512, 768), Image.LANCZOS)
+    f.save(os.path.join(OUT, 'fluss.webp'), 'WEBP', quality=82, method=6)
+    manifest['fluss'] = {'w': 512, 'h': 768, 'wasser': [182 / 1024, 833 / 1024]}
+    # Panorama (Küste): deckend; Dunstfarbe am unteren Rand für den Bodennebel; Horizont = Meereslinie
+    p = Image.open(os.path.join(SRC, PANORAMA)).convert('RGB')
     dunst = np.array(p)[-24:].reshape(-1, 3).mean(0).round().astype(int).tolist()
     p = p.resize((1024, round(1024 * p.height / p.width)), Image.LANCZOS)
     p.save(os.path.join(OUT, 'panorama.webp'), 'WEBP', quality=82, method=6)
-    manifest['panorama'] = {'w': p.width, 'h': p.height, 'horizont': 0.56, 'dunst': '#%02x%02x%02x' % tuple(dunst)}
+    manifest['panorama'] = {'w': p.width, 'h': p.height, 'horizont': PANORAMA_HORIZONT, 'dunst': '#%02x%02x%02x' % tuple(dunst)}
     with open(os.path.join(OUT, 'manifest.json'), 'w', encoding='utf-8') as f:
         json.dump(manifest, f, indent=1)
     for k, v in manifest.items():

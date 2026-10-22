@@ -13,7 +13,7 @@ function bewerte(f, plan, horizont) {
 }
 
 // wurf = Ziel der Kraftanzeige (0..1000), zittern = Anteil zufälliger Fehlgriffe (Mensch-Ersatz)
-export function botFlug(namen, { wurf = 1000, horizont = 150, zittern = 0, seed = 1 } = {}) {
+export function botFlug(namen, { wurf = 1000, horizont = 220, zittern = 0, seed = 1 } = {}) {
   const S = vorbereiteteStrecke(namen), f = neuerFlug(S), s = f.s, ein = [];
   let r = seed >>> 0; const zz = () => { r = (Math.imul(r, 1664525) + 1013904223) >>> 0; return r / 4294967296; };
   let plan = PLAENE[0], pt = 0;

@@ -12,12 +12,16 @@ export const TYPEN = {
   haus:     { bild: 'haus',          bildH: 9.7,  form: 'kasten', hx: 4.4, hz: 2.0, h: 9.0 },
   hausHoch: { bild: 'haus-schmal',   bildH: 13.0, form: 'kasten', hx: 2.9, hz: 2.0, h: 12.0 },   // kaum zu überfliegen
   hausFlach:{ bild: 'haus-flach',    bildH: 5.6,  form: 'kasten', hx: 6.6, hz: 2.5, h: 5.0 },    // flach: mit etwas Höhe drüber
-  turm:     { bild: 'turm',          bildH: 23.5, form: 'kasten', hx: 2.2, hz: 2.2, h: 20.5 }
+  turm:     { bild: 'turm',          bildH: 23.5, form: 'kasten', hx: 2.2, hz: 2.2, h: 20.5 },
+  bruecke:  { bild: 'bruecke',       bildH: 4.6,  form: 'kasten', hx: 8.0, hz: 1.0, h: 3.8 }      // niedrig: drüber oder links vorbei
 };
+
+export const FLUSS_B = 16;   // Breite des Flussbilds (Wasser ca. 10,5 m in der Mitte, Rest Ufermauer und Rasen)
 
 export const LAENGE = 40;   // Länge eines Abschnitts
 
-// o: [typ, x, z]   a: Aufwind [x, zAnfang, Länge]   r: Ring [x, y, z]   (z relativ zum Abschnitt)
+// o: [typ, x, z]   a: Aufwind [x, zAnfang, Länge]   r: Ring [x, y, z]   w: Fluss [xMitte, zAnfang, Länge] (nur Optik)
+// (z relativ zum Abschnitt)
 export const ABSCHNITTE = {
   start:    { o: [['haus', -8, 10], ['hausFlach', 6, 22], ['hausHoch', -2, 36]], a: [[-5, 16, 14]], r: [[-5, 15, 14]] },
   allee:    { o: [['baum', -7, 8], ['baum', 7, 8], ['baum', -7, 24], ['baum', 7, 24], ['zypresse', 0, 32]], a: [[0, 8, 14]], r: [[0, 13, 8]] },
@@ -26,22 +30,25 @@ export const ABSCHNITTE = {
   lichtung: { o: [['baum', -9, 12], ['baum', 9, 22]], a: [[2, 6, 16], [-6, 30, 10]], r: [[2, 12, 6]] },
   tuerme:   { o: [['turm', -5, 10], ['turm', 5, 28], ['zypresse', 6, 12]], a: [[-1, 14, 12]], r: [[0, 11, 19]] },
   hecke:    { o: [['baum', -9, 20], ['baum', -3.5, 20], ['baum', 8.5, 20], ['zypresse', -8, 36]], a: [[3, 24, 12]], r: [[2.5, 10, 20]] },
-  haeuser:  { o: [['hausHoch', -6, 8], ['hausFlach', 5, 18], ['haus', -5, 30], ['baum', 8, 36]], a: [[0, 30, 10]], r: [[0, 11, 30]] }
+  haeuser:  { o: [['hausHoch', -6, 8], ['hausFlach', 5, 18], ['haus', -5, 30], ['baum', 8, 36]], a: [[0, 30, 10]], r: [[0, 11, 30]] },
+  // Fluss rechts neben der Flugbahn, Brücken an beiden Enden verdecken die Wasserenden; über dem Wasser ist es frei
+  fluss:    { o: [['bruecke', 8, 2], ['bruecke', 8, 38], ['baum', -8.5, 12], ['zypresse', -4, 26]], a: [[7, 12, 14]], r: [[7, 7, 20]], w: [[8, 2, 36]] }
 };
 
 // Teststrecke für V1 (fest). "-" vor dem Namen = gespiegelt (x * -1).
-export const TESTSTRECKE = ['start', 'allee', 'turm', 'slalom', 'lichtung', 'tuerme', 'hecke', 'haeuser',
-  '-allee', '-turm', '-slalom', '-lichtung', '-tuerme', '-hecke', '-haeuser'];
+export const TESTSTRECKE = ['start', 'allee', 'turm', 'slalom', 'lichtung', 'fluss', 'tuerme', 'hecke', 'haeuser',
+  '-allee', '-turm', '-slalom', '-fluss', '-lichtung', '-tuerme', '-hecke', '-haeuser'];
 
 // Strecke als flache Listen mit absoluten Koordinaten (Meter), nach z sortiert.
 export function baueStrecke(namen) {
-  const o = [], a = [], r = [];
+  const o = [], a = [], r = [], w = [];
   namen.forEach((n, i) => {
     const sp = n[0] === '-' ? -1 : 1, ab = ABSCHNITTE[sp < 0 ? n.slice(1) : n], z0 = i * LAENGE;
     for (const [t, x, z] of ab.o) o.push({ t, x: x * sp, z: z0 + z });
     for (const [x, z, l] of ab.a) a.push({ x: x * sp, z: z0 + z, l });
     for (const [x, y, z] of ab.r) r.push({ x: x * sp, y, z: z0 + z });
+    for (const [x, z, l] of ab.w || []) w.push({ x: x * sp, z: z0 + z, l });
   });
   const nachZ = (p, q) => p.z - q.z;
-  return { o: o.sort(nachZ), a: a.sort(nachZ), r: r.sort(nachZ), laenge: namen.length * LAENGE };
+  return { o: o.sort(nachZ), a: a.sort(nachZ), r: r.sort(nachZ), w, laenge: namen.length * LAENGE };
 }

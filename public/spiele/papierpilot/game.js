@@ -1,7 +1,7 @@
 // PAPIERPILOT: Darstellung (three.js, global THREE), Steuerung, Ton, Speicherstand.
 // Spielregeln stehen ausschließlich in sim.js; hier wird nur gezeigt und eingegeben.
 import { neuerFlug, vorbereiteteStrecke, kraftBei, kodiere, M, TAKT_HZ, LINKS, RECHTS, TIPP, AUF_R, RING_R, START_Y } from './sim.js';
-import { TYPEN, TESTSTRECKE, baueStrecke } from './strecke.js';
+import { TYPEN, TESTSTRECKE, FLUSS_B, baueStrecke } from './strecke.js';
 
 const T = window.THREE;
 const $ = (id) => document.getElementById(id);
@@ -71,7 +71,7 @@ let DUNST = new T.Color(0xb5c5a1);
 scene.fog = new T.Fog(DUNST, 60, SICHT + 60);
 
 const IMG = (n) => new URL('img/' + n + '.webp', import.meta.url).href;
-let ASP = { 'baum-rund': 0.967, 'baum-zypresse': 0.208, haus: 1.032, 'haus-schmal': 0.494, 'haus-flach': 2.6, turm: 0.247, 'flieger-gerade': 1.365, panorama: 1.5 };
+let ASP = { 'baum-rund': 0.967, 'baum-zypresse': 0.208, haus: 1.032, 'haus-schmal': 0.494, 'haus-flach': 2.6, turm: 0.247, bruecke: 3.67, 'flieger-gerade': 1.365, panorama: 1.5 };
 const ladeTex = (n, fn) => new T.TextureLoader().load(IMG(n), (t) => { t.needsUpdate = true; fn && fn(t); }, undefined, () => {});
 const canvasTex = (w, h, draw) => { const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h); return new T.CanvasTexture(c); };
 
@@ -94,7 +94,7 @@ const PANO_D = 320, PANO_B = 640;
 const panoMat = new T.MeshBasicMaterial({ map: ladeTex('panorama'), fog: false, depthWrite: false });
 const pano = new T.Mesh(new T.PlaneGeometry(PANO_B, PANO_B / 1.5), panoMat);
 pano.renderOrder = -1; scene.add(pano);
-let panoHorizont = 0.56;
+let panoHorizont = 0.46;
 
 // Schatten (weicher Fleck)
 const schattenTex = canvasTex(64, 64, (x, w, h) => { const g = x.createRadialGradient(w / 2, h / 2, 2, w / 2, h / 2, w / 2); g.addColorStop(0, 'rgba(20,40,10,.55)'); g.addColorStop(1, 'rgba(20,40,10,0)'); x.fillStyle = g; x.fillRect(0, 0, w, h); });
@@ -145,6 +145,39 @@ for (const a of WELT.a) {
   const g = new T.CylinderGeometry(1, 1, AUF_H, 28, 1, true); g.translate(0, AUF_H / 2, 0);
   const m = new T.Mesh(g, aufMat); m.renderOrder = 2; m.position.set(a.x, 0, -(a.z + a.l / 2)); m.scale.set(AUF_R / M, 1, a.l / 2); scene.add(m);
   const fleck = schatten(a.x, a.z + a.l / 2, AUF_R / M * 2.4, a.l * 1.1, 1); fleck.material = new T.MeshBasicMaterial({ map: schattenTex, color: 0x3fe3dc, transparent: true, opacity: 0.55, depthWrite: false, blending: T.AdditiveBlending });
+}
+
+// Fluss: flacher Streifen über dem Rasen; die Brücken an beiden Enden verdecken die Wasserkanten
+const flussTex = ladeTex('fluss'); flussTex.wrapS = T.ClampToEdgeWrapping; flussTex.wrapT = T.RepeatWrapping;
+flussTex.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+const flussMat = new T.MeshBasicMaterial({ map: flussTex });
+for (const w of WELT.w) {
+  const g = new T.PlaneGeometry(FLUSS_B, w.l), uv = g.attributes.uv;
+  for (let i = 0; i < uv.count; i++) uv.setY(i, uv.getY(i) * w.l / (FLUSS_B * 1.5));   // Bild ist 1 : 1,5
+  const m = new T.Mesh(g, flussMat); m.rotation.x = -Math.PI / 2; m.position.set(w.x, 0.02, -(w.z + w.l / 2)); m.renderOrder = 0; scene.add(m);
+}
+
+// Möwen: nur Optik, im Code gezeichnet (zwei Flügelstellungen), kreisen hoch über der Strecke
+const moeweTex = [0, 1].map((oben) => canvasTex(128, 64, (x, w, h) => {
+  const y0 = oben ? 18 : 40, y1 = oben ? 46 : 30;
+  x.lineCap = 'round'; x.lineJoin = 'round';
+  for (const [farbe, breite] of [['#5b6470', 11], ['#ffffff', 7]]) {
+    x.strokeStyle = farbe; x.lineWidth = breite; x.beginPath();
+    x.moveTo(8, y0); x.quadraticCurveTo(36, oben ? 8 : 26, 64, y1); x.quadraticCurveTo(92, oben ? 8 : 26, 120, y0); x.stroke();
+  }
+  x.fillStyle = '#3a3f47'; x.beginPath(); x.arc(9, y0, 4, 0, 7); x.arc(119, y0, 4, 0, 7); x.fill();
+}));
+const moeweMat = moeweTex.map((tx) => ausblenden(new T.MeshBasicMaterial({ map: tx, alphaTest: 0.5, side: T.DoubleSide })));
+const moewen = [];
+{
+  let r = 0x51a7; const zz = () => { r = (Math.imul(r, 1664525) + 1013904223) >>> 0; return r / 4294967296; };
+  for (let z = 30; z < WELT.laenge + 100; z += 45 + zz() * 40) {
+    const n = 1 + Math.floor(zz() * 3), cx = (zz() - 0.5) * 30, cy = 25 + zz() * 12;
+    for (let i = 0; i < n; i++) {
+      const m = new T.Mesh(new T.PlaneGeometry(1.15, 0.58), moeweMat[0]); scene.add(m);
+      moewen.push({ m, cx: cx + (zz() - 0.5) * 6, cz: z + (zz() - 0.5) * 6, y: cy + zz() * 3, r: 5 + zz() * 8, w: (zz() < 0.5 ? -1 : 1) * (0.25 + zz() * 0.2), ph: zz() * 6.28, fl: 7 + zz() * 3 });
+    }
+  }
 }
 
 // Ringe: goldener Torus mit Schein
@@ -286,7 +319,7 @@ function ende() {
   store.fluege++;
   if (rekord) { store.best = cm; store.bestT = s.ft; store.bestIn = kodiere(eingaben); }
   speichern();
-  const namen = { baum: 'Baum', zypresse: 'Zypresse', haus: 'Haus', hausHoch: 'Haus', hausFlach: 'Haus', turm: 'Turm' };
+  const namen = { baum: 'Baum', zypresse: 'Zypresse', haus: 'Haus', hausHoch: 'Haus', hausFlach: 'Haus', turm: 'Turm', bruecke: 'Brücke' };
   $('eKopf').textContent = rekord && cm > 0 ? 'Neuer Bestflug!' : s.grund === 'hindernis' ? 'Gegen ' + (s.treffer >= 0 ? (s.treffer >= 0 && namen[STRECKE.o[s.treffer].t]) : 'Hindernis') + '!' : 'Gelandet';
   $('eKopf').className = rekord && cm > 0 ? 'rek' : '';
   $('eDist').innerHTML = meter(cm) + '<small> m</small>';
@@ -366,6 +399,14 @@ function bild(now) {
   // Spuren
   const sp = spitzen(p);
   spuren.forEach((q, i) => { q.m.visible = zustand !== 'wurf' && zustand !== 'titel'; if (q.m.visible) spurZeichnen(q, sp[i]); });
+
+  // Möwen
+  for (const g of moewen) {
+    const a = g.ph + zeit * g.w;
+    g.m.position.set(g.cx + Math.cos(a) * g.r, g.y + Math.sin(zeit * 0.8 + g.ph) * 0.7, -(g.cz + Math.sin(a) * g.r));
+    g.m.quaternion.copy(camera.quaternion);
+    g.m.material = moeweMat[Math.sin(zeit * g.fl + g.ph) > -0.2 ? 1 : 0];
+  }
 
   // Aufwind-Animation und Ringe
   aufMat.uniforms.t.value = zeit;
