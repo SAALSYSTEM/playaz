@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
 <link rel="manifest" href="../site.webmanifest">
 <link rel="stylesheet" href="../assets/fonts.css">
-<link rel="modulepreload" href="papierpilot/game.js?v=1"><link rel="modulepreload" href="papierpilot/sim.js"><link rel="modulepreload" href="papierpilot/strecke.js">
+<link rel="modulepreload" href="papierpilot/game.js?v=2"><link rel="modulepreload" href="papierpilot/sim.js"><link rel="modulepreload" href="papierpilot/strecke.js">
 <script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'papierpilot',t:Date.now()}))}catch(e){}</script>
 <style>
 :root{--basis:#11121A;--flaeche:#1a1b26;--flaeche-hell:#262838;--marke:#FF9200;--aktion:#FFD21C;--text:#f6f7f9;--leise:#b6b9c8;--linie:rgba(246,247,249,.16);--tuerkis:#3fe3dc;
@@ -61,6 +61,24 @@ h2{font:400 26px/1.1 var(--f-display);margin:0 0 4px}
 #tBest{color:var(--aktion);font:700 18px/1.2 var(--f-zahl);margin:0 0 10px;letter-spacing:.04em}
 .hinweis{font-size:13px;color:var(--leise);margin:10px 0 0}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#hRang{position:absolute;right:12px;top:calc(var(--st) + 56px);min-width:150px;border-radius:14px;padding:8px 10px 6px;font:600 15px/1.2 var(--f-zahl)}
+#hRang h3{margin:0 0 4px 2px;font:700 13px/1 var(--f-zahl);letter-spacing:.1em;color:var(--leise)}
+#hRangL{list-style:none;margin:0;padding:0}
+#hRangL li{display:flex;gap:8px;align-items:center;padding:4px 4px;border-top:1px solid var(--linie)}
+#hRangL li.ich{background:rgba(63,227,220,.28);border-radius:8px;border-top-color:transparent}
+#hRangL .nm{flex:1;max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#hRangL b{font-variant-numeric:tabular-nums}
+.status{min-height:40px;color:var(--leise);font-size:15px;margin:0 0 6px}.status.ok{color:#7fe08a}
+.zeile{display:flex;gap:8px}.zeile .btn{flex:1}
+.tabs{display:flex;gap:8px;justify-content:center;margin:0 0 12px}
+.tabs button{border:1px solid var(--linie);background:var(--flaeche-hell);border-radius:999px;padding:8px 16px;font:700 16px/1 var(--f-zahl);letter-spacing:.05em;text-transform:uppercase}
+.tabs button[aria-pressed=true]{background:var(--aktion);color:#11121A;border-color:var(--aktion)}
+#rListe{list-style:none;margin:0 0 8px;padding:0;max-height:48vh;overflow:auto;text-align:left}
+#rListe li{display:flex;align-items:center;gap:10px;padding:9px 6px;border-bottom:1px solid var(--linie)}
+#rListe li.ich{background:rgba(255,146,0,.14);border-radius:8px}
+#rListe .pl{width:28px;text-align:right;font:700 18px/1 var(--f-zahl);color:var(--leise)}
+#rListe .av{font-size:24px;width:30px;text-align:center}#rListe .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#rListe b{font:700 22px/1 var(--f-zahl);color:var(--aktion)}#rListe small{width:52px;text-align:right;color:var(--leise);font:600 14px/1 var(--f-zahl)}
 #laden{position:absolute;inset:0;display:grid;place-items:center;font:700 20px/1 var(--f-zahl);letter-spacing:.06em;text-transform:uppercase;color:#11121A}
 </style></head><body>
 <main class="sr"><h2>Papierpilot – Papierflieger-Spiel</h2>
@@ -72,6 +90,7 @@ h2{font:400 26px/1.1 var(--f-display);margin:0 0 4px}
     <div id="hDist">0<small>m</small></div>
     <div id="hBest" class="glas">Beste: 0 m</div>
     <div id="hZiel"></div>
+    <div id="hRang" class="glas" hidden><h3>HEUTE</h3><ol id="hRangL"></ol></div>
     <div id="hHoehe" class="glas"><span>HÖHE</span><i><b id="hHb"></b></i></div>
     <div class="pfeil" id="pL" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M15 4 7 12l8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <div class="pfeil" id="pR" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m9 4 8 8-8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -83,19 +102,29 @@ h2{font:400 26px/1.1 var(--f-display);margin:0 0 4px}
     <h1>PAPIER&shy;PILOT</h1>
     <p class="klein">Wirf den Flieger vom Dach und steuere ihn mit links und rechts. Türkise Aufwinde tragen dich nach oben, goldene Ringe geben Schwung. Kurven kosten etwas Höhe. Weiche Bäumen, Häusern und Türmen aus.</p>
     <p id="tBest"></p>
-    <button class="btn ja" id="bStart" type="button">Fliegen</button>
-    <p class="hinweis">Testversion: feste Teststrecke. Tagesstrecke und Rangliste folgen.</p>
+    <button class="btn ja" id="bStart" type="button">Tagesflug <span id="tTag"></span></button>
+    <button class="btn" id="bRang" type="button">Rangliste</button>
+    <p class="hinweis">Jeden Tag eine neue Strecke, für alle gleich. Mit Konto kommt dein bester Tagesflug in die Rangliste; der Server fliegt jeden Flug nach.</p>
   </div></section>
 
   <section class="schirm" id="sEnde" hidden><div class="karte">
     <h2 id="eKopf">Gelandet</h2>
     <div class="zahl" id="eDist">0<small> m</small></div>
-    <div class="werte"><div>Zeit<b id="eZeit">0,0 s</b></div><div>Ringe<b id="eRinge">0</b></div><div>Beste<b id="eBest">0 m</b></div></div>
+    <div class="werte"><div>Zeit<b id="eZeit">0,0 s</b></div><div>Ringe<b id="eRinge">0</b></div><div>Heute<b id="eBest">0 m</b></div></div>
+    <p class="status" id="eStatus" role="status"></p>
     <button class="btn ja" id="bNochmal" type="button">Nochmal</button>
-    <button class="btn" id="bMenue" type="button">Menü</button>
+    <div class="zeile"><button class="btn" id="bRang2" type="button">Rangliste</button><button class="btn" id="bMenue" type="button">Menü</button></div>
+  </div></section>
+
+  <section class="schirm" id="sRang" hidden><div class="karte">
+    <h2 style="margin:0 0 12px">Rangliste</h2>
+    <div class="tabs" id="rTabs"><button type="button" data-z="heute" aria-pressed="true">Heute</button><button type="button" data-z="monat" aria-pressed="false">Monat</button><button type="button" data-z="gesamt" aria-pressed="false">Gesamt</button></div>
+    <ol id="rListe"></ol>
+    <p class="klein" style="margin:6px 0 10px">Weiteste Flüge, bei gleicher Weite zählt die kürzere Flugzeit. Jeder Flug wird vom Server nachgeflogen.</p>
+    <button class="btn" id="bRangZu" type="button">Zurück</button>
   </div></section>
 </div>
 <script src="../assets/three.min.js"></script>
-<script type="module" src="papierpilot/game.js?v=1"></script>
+<script type="module" src="papierpilot/game.js?v=2"></script>
 <a class="pz-home" href="../" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a><style>.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 13px);left:calc(env(safe-area-inset-left,0px) + 12px);width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(17,18,26,.78);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}.pz-home:focus-visible{outline:3px solid #FFD21C;outline-offset:2px}</style>
 <script src="../assets/playsaal-config.js" defer></script><script src="../assets/playsaal.js" defer></script></body></html>

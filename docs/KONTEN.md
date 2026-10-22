@@ -88,3 +88,7 @@ Einrichtung je Spiel, in dieser Reihenfolge:
 1. SQL aus `supabase/migrations/20261021213000_seitenwechsel.sql` bzw. `20261022070000_punktlandung.sql` im SQL Editor ausführen (Seitenwechsel zuerst, die Punktlandung-Migration baut darauf auf).
 2. Edge Function deployen: `npx supabase functions deploy seitenwechsel-lauf --project-ref cphwxikfrxgejiqghlwn --no-verify-jwt` bzw. `punktlandung-lauf` (mit temporärem Access Token, danach löschen).
 Ehrliche Grenze: Der Server beweist, dass die Eingaben das Ergebnis tatsächlich ergeben, nicht, dass ein Mensch gespielt hat. Ein Bot mit gültigen Eingaben würde nicht erkannt.
+
+## PAPIERPILOT (Tages-Rangliste nach Distanz)
+Gleiches Prinzip wie Seitenwechsel/Punktlandung: Tagesstrecke aus dem Berliner Datum, der Browser meldet die Eingabefolge, die Edge Function `papierpilot-lauf` fliegt sie nach (`sim.js` + `strecke.js`, Kopie per `node tools/edge-sync.mjs`). Wertung: Distanz, bei Gleichstand kürzere Flugzeit.
+Einrichtung: 1. SQL aus `supabase/migrations/20261022130000_papierpilot.sql` im SQL Editor ausführen (nach der Punktlandung-Migration). 2. `npx supabase functions deploy papierpilot-lauf --project-ref cphwxikfrxgejiqghlwn --no-verify-jwt`. Details: [PAPIERPILOT.md](PAPIERPILOT.md).

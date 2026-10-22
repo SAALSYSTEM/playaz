@@ -39,6 +39,24 @@ export const ABSCHNITTE = {
 export const TESTSTRECKE = ['start', 'allee', 'turm', 'slalom', 'lichtung', 'fluss', 'tuerme', 'hecke', 'haeuser',
   '-allee', '-turm', '-slalom', '-fluss', '-lichtung', '-tuerme', '-hecke', '-haeuser'];
 
+// Tagesstrecke: Startwert = Datum in Berlin (JJJJMMTT). Alle Spieler fliegen am selben Tag dieselbe Strecke.
+// Immer zuerst der Dachabschnitt, danach geprüfte Abschnitte (zufällig gespiegelt), kein Abschnitt direkt zweimal,
+// der Fluss höchstens alle vier Abschnitte. 26 Abschnitte = 1 040 m, weiter als jeder bisherige Flug.
+export const TAGES_ABSCHNITTE = 26;
+const POOL = ['allee', 'turm', 'slalom', 'lichtung', 'tuerme', 'hecke', 'haeuser', 'fluss'];
+export function tagesStrecke(seed) {
+  let a = (seed ^ 0x5eed1a7) >>> 0;
+  const zz = () => { a = (a + 0x6D2B79F5) >>> 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const namen = ['start']; let vor = 'start', flussVor = -9;
+  while (namen.length < TAGES_ABSCHNITTE) {
+    const n = POOL[Math.floor(zz() * POOL.length)];
+    if (n === vor || (n === 'fluss' && namen.length - flussVor < 4)) continue;
+    if (n === 'fluss') flussVor = namen.length;
+    namen.push((zz() < 0.5 ? '-' : '') + n); vor = n;
+  }
+  return namen;
+}
+
 // Strecke als flache Listen mit absoluten Koordinaten (Meter), nach z sortiert.
 export function baueStrecke(namen) {
   const o = [], a = [], r = [], w = [];

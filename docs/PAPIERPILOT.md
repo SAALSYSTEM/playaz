@@ -28,5 +28,13 @@ Flieger gerade/Kurve (Rechtskurve = gespiegelt), Boden Park, Panorama, Baum rund
 ## Kachel und Teilen-Vorschau
 Kachel für die Startseite: `public/bilder/papierpilot.webp` (720×720, ohne Schrift, aus `design/papierpilot/pp-kachel.png`). Teilen-Vorschau: `public/bilder/papierpilot-og.jpg` (1200×630) per `node tools/papierpilot-cover.mjs` aus `pp-social.png`; der Schriftzug wird dort in der PlaySaal-Schrift gesetzt, nicht von der Bild-KI. Die Kachel kommt erst mit der Freigabe auf die Startseite.
 
-## Als Nächstes (V2)
-Tagesstrecke aus geprüften Abschnitten (Startwert = Datum in Europe/Berlin, wie Seitenwechsel/Punktlandung), Geisterflieger aus der gespeicherten Eingabefolge, geprüfte Tagesrangliste (Migration + Edge Function `papierpilot-lauf`, Eintrag in `tools/edge-sync.mjs`), danach Registrierung in `playsaal-config.js`, `umzug.js`, `public.games` und Startseite.
+## Tagesflug, Geist und Rangliste (V2)
+- **Tagesstrecke:** `tagesStrecke(seed)` in `strecke.js`, Startwert = Datum in Europe/Berlin (JJJJMMTT). Immer zuerst der Dachabschnitt, dann 25 geprüfte Abschnitte (zufällig gespiegelt, kein Abschnitt zweimal hintereinander, Fluss höchstens alle 4 Abschnitte), 1 040 m. Test: 365 Tage Regeln, 40 Tage per Bot fliegbar. Um Mitternacht lädt „Nochmal“ die neue Strecke.
+- **Geisterflieger:** Der eigene Tagesbestflug wird als Eingabefolge gespeichert (`papierpilot.v1` → `tage`, die letzten 7 Tage) und beim nächsten Flug mit denselben Regeln mitgeflogen (türkis, halb durchsichtig).
+- **Rangliste:** Nur mit Konto. Gemeldet wird die Eingabefolge; die Edge Function `papierpilot-lauf` fliegt sie mit `sim.js` + `strecke.js` nach (ca. 3 ms) und trägt nur bestätigte Flüge ein. Wertung: weiteste Distanz, bei Gleichstand kürzere Flugzeit. Zeiträume Heute/Monat/Gesamt. Im Flug zeigt eine kleine Tabelle „HEUTE“ die Top 3 (und dich) und unten „Noch X m bis Platz N“.
+- **Einrichtung (einmalig, nur du):** 1. SQL aus `supabase/migrations/20261022130000_papierpilot.sql` im SQL Editor ausführen (das Spiel wird mit `listed = false` angelegt). 2. `npx supabase functions deploy papierpilot-lauf --project-ref cphwxikfrxgejiqghlwn --no-verify-jwt`. Ohne diese Schritte läuft das Spiel normal, Flüge bleiben dann nur auf dem Gerät.
+- **Ehrliche Grenze:** wie bei den anderen Ranglisten. Der Server beweist, dass die Eingaben die Distanz ergeben, nicht dass ein Mensch geflogen ist.
+- **Tests:** `node --test tests/papierpilot-pruefung.test.mjs` (Prüf-Funktion), `tests/db.test.mjs` (Datenbank, mit PGlite).
+
+## Vor der Veröffentlichung
+`noindex` entfernen, Kachel auf die Startseite, `listed = true` in `public.games`, Einträge in `playsaal-config.js` (`spiele`, `namen`, `praefixe`) und `assets/umzug.js`, Sitemap.

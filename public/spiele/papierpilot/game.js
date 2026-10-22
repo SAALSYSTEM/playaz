@@ -1,7 +1,7 @@
-// PAPIERPILOT: Darstellung (three.js, global THREE), Steuerung, Ton, Speicherstand.
+// PAPIERPILOT: Darstellung (three.js, global THREE), Steuerung, Ton, Speicherstand, Tagesflug, Geist und Rangliste.
 // Spielregeln stehen ausschließlich in sim.js; hier wird nur gezeigt und eingegeben.
-import { neuerFlug, vorbereiteteStrecke, kraftBei, kodiere, M, TAKT_HZ, LINKS, RECHTS, TIPP, AUF_R, RING_R, START_Y } from './sim.js';
-import { TYPEN, TESTSTRECKE, FLUSS_B, baueStrecke } from './strecke.js';
+import { neuerFlug, vorbereiteteStrecke, kraftBei, kodiere, dekodiere, SIM_VERSION, M, TAKT_HZ, LINKS, RECHTS, TIPP, AUF_R, RING_R, START_Y } from './sim.js';
+import { TYPEN, FLUSS_B, baueStrecke, tagesStrecke } from './strecke.js';
 
 const T = window.THREE;
 const $ = (id) => document.getElementById(id);
@@ -11,7 +11,7 @@ const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 const lerp = (a, b, t) => a + (b - a) * t;
 
 // ---------- Speicherstand ----------
-const store = { v: 1, best: 0, bestT: 0, bestIn: '', fluege: 0, sound: true };
+const store = { v: 1, best: 0, bestT: 0, bestIn: '', fluege: 0, sound: true, tage: {} };   // tage: JJJJMMTT -> { cm, ft, in }
 try {
   const d = JSON.parse(localStorage.getItem(KEY) || 'null');
   if (d && typeof d === 'object') {
@@ -20,9 +20,24 @@ try {
     store.bestIn = typeof d.bestIn === 'string' && d.bestIn.length < 60000 ? d.bestIn : '';
     store.fluege = clamp(Math.floor(Number(d.fluege) || 0), 0, 1e9);
     store.sound = d.sound !== false;
+    if (d.tage && typeof d.tage === 'object') for (const k of Object.keys(d.tage).sort().slice(-7)) {
+      const x = d.tage[k]; if (!/^\d{8}$/.test(k) || !x || typeof x !== 'object') continue;
+      store.tage[k] = { cm: clamp(Math.floor(Number(x.cm) || 0), 0, 1e8), ft: clamp(Math.floor(Number(x.ft) || 0), 0, 1e6), in: typeof x.in === 'string' && x.in.length < 60000 ? x.in : '' };
+    }
   }
 } catch (e) {}
-const speichern = () => { try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+const speichern = () => { const k = Object.keys(store.tage).sort(); while (k.length > 7) delete store.tage[k.shift()]; try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) {} };
+const CFG = () => window.PLAYSAAL_CFG || {};
+const PS = () => window.PlaySaal || null;
+
+// Tagesstrecke: Datum in Berlin als Zahl (JJJJMMTT). Alle Spieler fliegen am selben Tag dieselbe Strecke.
+function heute() {
+  try {
+    const p = new Intl.DateTimeFormat('de-DE', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date());
+    const g = (x) => p.find((y) => y.type === x).value; return Number(g('year') + g('month') + g('day'));
+  } catch (e) { const d = new Date(); return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate(); }
+}
+const tagText = (n) => { const s = String(n); return s.slice(6, 8) + '.' + s.slice(4, 6) + '.'; };
 const meter = (cm) => Math.floor(cm / 100);
 
 // ---------- Ton ----------
@@ -55,7 +70,8 @@ const ton = {
 };
 
 // ---------- Strecke ----------
-const NAMEN = TESTSTRECKE;
+const SEED = heute();
+const NAMEN = tagesStrecke(SEED);
 const STRECKE = vorbereiteteStrecke(NAMEN);      // ganzzahlig, für die Regeln
 const WELT = baueStrecke(NAMEN);                  // in Metern, für die Darstellung
 
@@ -213,6 +229,10 @@ const fliegerMat = new T.MeshBasicMaterial({ map: fliegerTex.g, alphaTest: 0.4, 
 const FLIEGER_B = 1.35;
 const flieger = new T.Mesh(new T.PlaneGeometry(1, 1), fliegerMat); flieger.renderOrder = 5; scene.add(flieger);
 const fliegerSchatten = schatten(0, 0, 1.4, 1.1, 0.8);
+// Geisterflieger: eigener Tagesbestflug, halb durchsichtig (Eingaben werden mit denselben Regeln nachgeflogen)
+const geistMat = new T.MeshBasicMaterial({ map: fliegerTex.g, transparent: true, opacity: 0.5, depthWrite: false, color: 0x9fe6ff });
+const geistMesh = new T.Mesh(new T.PlaneGeometry(1, 1), geistMat); geistMesh.renderOrder = 4; geistMesh.visible = false; scene.add(geistMesh);
+let geist = null;   // { f, ein, i, vor, jetzt }
 
 // Flugspuren: zwei Bänder hinter den Flügelspitzen
 const SPUR_N = 34;
@@ -265,21 +285,28 @@ const kam = { x: 0, y: START_Y / M + 3, ruck: 0 };
 
 function zustandKopie(s) { return { x: s.x / M, y: s.y / M, z: s.z / M, neig: s.neig / 1000 }; }
 
-function zeige(id) { for (const s of ['sTitel', 'sEnde']) $(s).hidden = s !== id; $('hud').hidden = !(zustand === 'wurf' || zustand === 'flug' || zustand === 'aus'); }
+function zeige(id) { for (const s of ['sTitel', 'sEnde', 'sRang']) $(s).hidden = s !== id; $('hud').hidden = !(zustand === 'wurf' || zustand === 'flug' || zustand === 'aus'); }
 
 function titel() {
   zustand = 'titel'; flug = neuerFlug(STRECKE); jetzt = vorher = zustandKopie(flug.s);
-  $('tBest').textContent = store.best ? 'Dein Bestflug: ' + meter(store.best) + ' m' : '';
+  const tb = store.tage[SEED];
+  $('tTag').textContent = tagText(SEED);
+  $('tBest').textContent = tb && tb.cm ? 'Heute: ' + meter(tb.cm) + ' m · Bestflug: ' + meter(store.best) + ' m' : store.best ? 'Dein Bestflug: ' + meter(store.best) + ' m' : '';
   zeige('sTitel');
+  ladeTabelle();
 }
 
 function start() {
+  if (heute() !== SEED) { location.reload(); return; }   // neuer Tag, neue Strecke
   ton.start();
+  const tb = store.tage[SEED], ge = tb && tb.in ? dekodiere(tb.in) : null;
+  geist = ge && ge.length ? { f: neuerFlug(STRECKE), ein: ge, i: 0, vor: null, jetzt: null } : null;
+  geistMesh.visible = false;
   flug = neuerFlug(STRECKE); eingaben = []; akku = 0; tippOffen = false; warImAuf = false;
   jetzt = vorher = zustandKopie(flug.s); spuren.forEach((s) => (s.pts = []));
   for (const r of ringe) { r.weg = -1; r.grp.visible = true; r.grp.scale.setScalar(1); r.schein.material.opacity = 0.28; }
   zustand = 'wurf'; zeige(null); $('wurf').hidden = false;
-  $('hBest').textContent = 'Beste: ' + meter(store.best) + ' m';
+  $('hBest').textContent = 'Heute: ' + meter((store.tage[SEED] || {}).cm || 0) + ' m';
   halten.clear();
 }
 
@@ -294,6 +321,9 @@ function takt() {
   const s = flug.s, phase = s.phase, e = eingabe();
   eingaben.push(e); flug.schritt(e);
   vorher = jetzt; jetzt = zustandKopie(s);
+  if (geist && geist.f.s.phase !== 'ende' && geist.i < geist.ein.length) {
+    geist.f.schritt(geist.ein[geist.i++]); geist.vor = geist.jetzt || zustandKopie(geist.f.s); geist.jetzt = zustandKopie(geist.f.s);
+  }
   if (phase === 'wurf' && s.phase === 'flug') { zustand = 'flug'; $('wurf').hidden = true; ton.wurf(); }
   if (s.ringNeu >= 0) { ringe[s.ringNeu].weg = performance.now(); ton.ring(s.ringe); }
   const imAuf = s.lift > 60; if (imAuf && !warImAuf) ton.auf(); warImAuf = imAuf;
@@ -316,17 +346,101 @@ function ende() {
   zustand = 'aus'; endeZeit = performance.now();
   if (s.grund === 'hindernis') { ton.crash(); kam.ruck = 1; } else ton.landung();
   const rekord = cm > store.best || (cm === store.best && s.ft < store.bestT);
+  const tb = store.tage[SEED] || { cm: 0, ft: 0, in: '' };
+  const tagRekord = cm > tb.cm || (cm === tb.cm && cm > 0 && s.ft < tb.ft);
   store.fluege++;
-  if (rekord) { store.best = cm; store.bestT = s.ft; store.bestIn = kodiere(eingaben); }
+  const text = kodiere(eingaben);
+  if (rekord) { store.best = cm; store.bestT = s.ft; store.bestIn = text; }
+  if (tagRekord) store.tage[SEED] = { cm, ft: s.ft, in: text };
   speichern();
+  const meldung = tagRekord && cm >= 100 ? { v: SIM_VERSION, seed: SEED, inputs: text, ticks: s.t, cm, ft: s.ft } : null;
   const namen = { baum: 'Baum', zypresse: 'Zypresse', haus: 'Haus', hausHoch: 'Haus', hausFlach: 'Haus', turm: 'Turm', bruecke: 'Brücke' };
-  $('eKopf').textContent = rekord && cm > 0 ? 'Neuer Bestflug!' : s.grund === 'hindernis' ? 'Gegen ' + (s.treffer >= 0 ? (s.treffer >= 0 && namen[STRECKE.o[s.treffer].t]) : 'Hindernis') + '!' : 'Gelandet';
-  $('eKopf').className = rekord && cm > 0 ? 'rek' : '';
+  $('eKopf').textContent = rekord && cm > 0 ? 'Neuer Bestflug!' : tagRekord && tb.cm ? 'Neuer Tagesbestflug!' : s.grund === 'hindernis' ? 'Gegen ' + (s.treffer >= 0 ? (s.treffer >= 0 && namen[STRECKE.o[s.treffer].t]) : 'Hindernis') + '!' : 'Gelandet';
+  $('eKopf').className = (rekord || tagRekord) && cm > 0 ? 'rek' : '';
   $('eDist').innerHTML = meter(cm) + '<small> m</small>';
   $('eZeit').textContent = (s.ft / TAKT_HZ).toFixed(1).replace('.', ',') + ' s';
   $('eRinge').textContent = String(s.ringe);
-  $('eBest').textContent = meter(store.best) + ' m';
-  setTimeout(() => { if (zustand === 'aus') { zustand = 'ende'; zeige('sEnde'); if (rekord && cm > 0) ton.rekord(); $('bNochmal').focus({ preventScroll: true }); } }, s.grund === 'hindernis' ? 650 : 900);
+  $('eBest').textContent = meter((store.tage[SEED] || {}).cm || 0) + ' m';
+  const st = $('eStatus'); st.className = 'status'; st.textContent = '';
+  if (meldung) {
+    st.textContent = 'Wird geprüft …';
+    melden(meldung).then((r) => {
+      if (r.status === 'verifiziert') { st.className = 'status ok'; st.textContent = '✓ Vom Server nachgeflogen' + (r.platz ? ' · Platz ' + r.platz + (r.von ? ' von ' + r.von : '') + ' heute' : ''); ladeTabelle(); }
+      else if (r.status === 'gast') st.textContent = 'Melde dich an (Reiter links am Rand), dann kommst du in die Rangliste.';
+      else if (r.status === 'abgelehnt') st.textContent = r.grund === 'zu_oft' ? 'Zu viele Meldungen. Gleich wieder versuchen.' : r.grund === 'kein_profil' ? 'Lege zuerst einen Spielernamen an (Konto).' : 'Nicht in die Rangliste übernommen.';
+      else if (r.status === 'fehler') st.textContent = 'Rangliste gerade nicht erreichbar. Dein Flug bleibt auf diesem Gerät.';
+      else st.textContent = 'Nur auf diesem Gerät gespeichert.';
+    });
+  } else if (tb.cm) st.textContent = 'Dein Tagesbestflug (' + meter(tb.cm) + ' m) steht noch.';
+  setTimeout(() => { if (zustand === 'aus') { zustand = 'ende'; zeige('sEnde'); if ((rekord || tagRekord) && cm > 0) ton.rekord(); $('bNochmal').focus({ preventScroll: true }); } }, s.grund === 'hindernis' ? 650 : 900);
+}
+
+// ---------- Rangliste ----------
+async function melden(l) {
+  const p = PS(); if (!p || !p.online) return { status: 'lokal' };
+  if (!(p.hatSitzung && p.hatSitzung())) return { status: 'gast' };
+  try {
+    const tk = p.token && p.token(); if (!tk) return { status: 'gast' };
+    const r = await fetch(CFG().url + '/functions/v1/papierpilot-lauf', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tk, apikey: CFG().key || '' }, body: JSON.stringify(l) });
+    if (r.status === 404) return { status: 'lokal' };
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.verifiziert) return { status: 'verifiziert', platz: j.platz_heute || null, von: j.spieler_heute || null };
+    if (r.ok) return { status: 'abgelehnt', grund: j.grund || '' };
+    return { status: 'fehler' };
+  } catch (e) { return { status: 'fehler' }; }
+}
+const avatar = (p, a) => ((p && p.avatare) || [])[(parseInt(String(a || 'a1').slice(1), 10) || 1) - 1] || '🙂';
+async function holeRangliste(zeit) {
+  const p = PS(); if (!p || !p.online || !p.rpc) return null;
+  const res = await p.rpc('papierpilot_rangliste', { p_zeitraum: zeit, p_anzahl: 50 }).catch(() => null);
+  if (!res || res.fehler) return null;
+  return res.daten || [];
+}
+// Kleine Tabelle "HEUTE" oben rechts (wie im Referenzbild) und das Ziel "Noch X m bis Platz N"
+let tabelle = [];
+async function ladeTabelle() {
+  if (!PS()) { setTimeout(ladeTabelle, 800); return; }   // playsaal.js lädt verzögert
+  const rows = await holeRangliste('heute'); if (!rows) return;
+  tabelle = rows; const box = $('hRang'), ol = $('hRangL'); ol.textContent = '';
+  const zeilen = rows.slice(0, 3), ich = rows.find((r) => r.ich);
+  if (ich && ich.platz > 3) zeilen.push(ich);
+  for (const r of zeilen) {
+    const li = document.createElement('li'); if (r.ich) li.className = 'ich';
+    const a = document.createElement('span'); a.textContent = String(r.platz);
+    const b = document.createElement('span'); b.className = 'nm'; b.textContent = r.ich ? 'Du' : r.name;
+    const c = document.createElement('b'); c.textContent = meter(r.cm) + ' m';
+    li.append(a, b, c); ol.appendChild(li);
+  }
+  box.hidden = !zeilen.length;
+}
+function zielText(m) {
+  // nächster Platz vor mir in der heutigen Tabelle (ohne mich selbst)
+  const vor = tabelle.filter((r) => !r.ich && meter(r.cm) >= m).sort((a, b) => a.cm - b.cm)[0];
+  if (vor) return 'Noch ' + (meter(vor.cm) - m + 1) + ' m bis Platz ' + vor.platz;
+  if (tabelle.some((r) => !r.ich) && zustand === 'flug') return 'Du führst heute!';
+  const bm = meter((store.tage[SEED] || {}).cm || 0);
+  return bm > 0 && m < bm ? 'Noch ' + (bm - m) + ' m bis zu deinem Tagesbestflug' : bm > 0 && zustand === 'flug' ? 'Neuer Tagesbestflug!' : '';
+}
+let rangZeit = 'heute';
+async function rangliste(zeit) {
+  rangZeit = zeit; const von = zustand === 'ende' ? 'sEnde' : 'sTitel'; $('sRang').dataset.von = von; zeige('sRang');
+  for (const b of document.querySelectorAll('#rTabs button')) b.setAttribute('aria-pressed', String(b.dataset.z === zeit));
+  const liste = $('rListe'); liste.textContent = 'Lädt …';
+  const rows = await holeRangliste(zeit);
+  if (zeit !== rangZeit) return;
+  if (!rows) { liste.textContent = 'Die Rangliste ist gerade nicht erreichbar.'; return; }
+  liste.textContent = '';
+  if (!rows.length) { liste.textContent = zeit === 'heute' ? 'Heute noch kein Eintrag. Flieg vor!' : 'Noch keine Einträge.'; return; }
+  const p = PS();
+  for (const r of rows) {
+    const li = document.createElement('li'); if (r.ich) li.className = 'ich';
+    const a = document.createElement('span'); a.className = 'pl'; a.textContent = String(r.platz);
+    const b = document.createElement('span'); b.className = 'av'; b.textContent = avatar(p, r.avatar);
+    const c = document.createElement('span'); c.className = 'nm'; c.textContent = r.name + (r.ich ? ' (du)' : '');
+    const d = document.createElement('b'); d.textContent = meter(r.cm) + ' m';
+    const e = document.createElement('small'); e.textContent = (r.ticks / TAKT_HZ).toFixed(1).replace('.', ',') + ' s';
+    li.append(a, b, c, d, e); liste.appendChild(li);
+  }
 }
 
 // ---------- Eingabe ----------
@@ -355,6 +469,9 @@ addEventListener('keyup', (ev) => { const k = ev.key; if (k === 'ArrowLeft' || k
 $('bStart').addEventListener('click', start);
 $('bNochmal').addEventListener('click', start);
 $('bMenue').addEventListener('click', titel);
+for (const id of ['bRang', 'bRang2']) $(id).addEventListener('click', () => rangliste('heute'));
+for (const b of document.querySelectorAll('#rTabs button')) b.addEventListener('click', () => rangliste(b.dataset.z));
+$('bRangZu').addEventListener('click', () => { const von = $('sRang').dataset.von || 'sTitel'; if (von === 'sEnde') zeige('sEnde'); else titel(); });
 function tonText() { $('bTon').textContent = store.sound ? 'Ton an' : 'Ton aus'; $('bTon').setAttribute('aria-pressed', String(store.sound)); }
 $('bTon').addEventListener('click', () => { store.sound = !store.sound; speichern(); tonText(); ton.start(); });
 tonText();
@@ -396,6 +513,18 @@ function bild(now) {
   fliegerSchatten.position.set(p.x + p.y * 0.08, 0.04, -p.z + 0.2);
   const sh = 1 + p.y * 0.05; fliegerSchatten.scale.set(1.3 * sh, 1.0 * sh, 1); fliegerSchatten.material.opacity = clamp(0.95 - p.y * 0.025, 0.2, 0.9);
 
+  // Geist
+  if (geist && geist.jetzt && geist.f.s.phase !== 'wurf' && zustand !== 'titel') {
+    const gp = { x: lerp(geist.vor.x, geist.jetzt.x, f), y: lerp(geist.vor.y, geist.jetzt.y, f), z: lerp(geist.vor.z, geist.jetzt.z, f), neig: lerp(geist.vor.neig, geist.jetzt.neig, f) };
+    const gk = Math.abs(gp.neig) > 0.38, gt = gk ? fliegerTex.k : fliegerTex.g;
+    if (geistMat.map !== gt) { geistMat.map = gt; geistMat.needsUpdate = true; }
+    geistMesh.visible = gp.z - p.z > -5;   // hinter der Kamera ausblenden
+    geistMesh.position.set(gp.x, gp.y, -gp.z); geistMesh.quaternion.copy(camera.quaternion);
+    geistMesh.rotateZ(gk ? -gp.neig * 0.18 + Math.sign(gp.neig) * 0.06 : -gp.neig * 0.35);
+    geistMesh.scale.set(FLIEGER_B * (gk && gp.neig > 0 ? -1 : 1), FLIEGER_B / (ASP['flieger-gerade'] || 1.365), 1);
+    geistMat.opacity = geist.f.s.phase === 'ende' ? Math.max(0, geistMat.opacity - dt / 1500) : 0.5;
+  } else geistMesh.visible = false;
+
   // Spuren
   const sp = spitzen(p);
   spuren.forEach((q, i) => { q.m.visible = zustand !== 'wurf' && zustand !== 'titel'; if (q.m.visible) spurZeichnen(q, sp[i]); });
@@ -430,8 +559,7 @@ function hud(p, s) {
   if (txt === hudAlt) return; hudAlt = txt;
   $('hDist').innerHTML = m + '<small>m</small>';
   const hoehe = clamp(p.y / 30, 0, 1), hb = $('hHb'); hb.style.width = (hoehe * 100).toFixed(1) + '%'; hb.classList.toggle('tief', p.y < 4);
-  const bm = meter(store.best);
-  $('hZiel').textContent = bm > 0 && m < bm ? 'Noch ' + (bm - m) + ' m bis zum Bestflug' : bm > 0 && zustand === 'flug' ? 'Neuer Bestflug!' : '';
+  $('hZiel').textContent = zustand === 'wurf' ? '' : zielText(m);
 }
 const eingabe_links = () => zustand === 'flug' && (tasten.l || [...halten.values()].some((v) => v < 0));
 const eingabe_rechts = () => zustand === 'flug' && (tasten.r || [...halten.values()].some((v) => v > 0));

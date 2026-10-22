@@ -1,0 +1,72 @@
+// PAPIERPILOT: Hindernistypen und Streckenabschnitte (alle Angaben in Metern).
+// Wird von sim.js (Regeln) und game.js (Darstellung) gemeinsam genutzt.
+// Koordinaten: x = seitlich (links negativ), z = Flugrichtung, y = Höhe über dem Boden.
+// Fliegbarer Korridor: |x| <= 11 m. Alles mit |x| >= 15 m ist reine Kulisse.
+
+// Kollision: rund = Säule mit Radius r; kasten = Quader mit halber Breite hx und halber Tiefe hz.
+// h = Kollisionshöhe (darüber kann man hinwegfliegen). Bewusst etwas kleiner als das Bild (fair).
+// bildH = Höhe der Grafik im Spiel; die Breite ergibt sich aus dem Seitenverhältnis des Bildes.
+export const TYPEN = {
+  baum:     { bild: 'baum-rund',     bildH: 7.0,  form: 'rund',   r: 2.5, h: 6.3 },
+  zypresse: { bild: 'baum-zypresse', bildH: 12.5, form: 'rund',   r: 1.0, h: 11.5 },
+  haus:     { bild: 'haus',          bildH: 9.7,  form: 'kasten', hx: 4.4, hz: 2.0, h: 9.0 },
+  hausHoch: { bild: 'haus-schmal',   bildH: 13.0, form: 'kasten', hx: 2.9, hz: 2.0, h: 12.0 },   // kaum zu überfliegen
+  hausFlach:{ bild: 'haus-flach',    bildH: 5.6,  form: 'kasten', hx: 6.6, hz: 2.5, h: 5.0 },    // flach: mit etwas Höhe drüber
+  turm:     { bild: 'turm',          bildH: 23.5, form: 'kasten', hx: 2.2, hz: 2.2, h: 20.5 },
+  bruecke:  { bild: 'bruecke',       bildH: 4.6,  form: 'kasten', hx: 8.0, hz: 1.0, h: 3.8 }      // niedrig: drüber oder links vorbei
+};
+
+export const FLUSS_B = 16;   // Breite des Flussbilds (Wasser ca. 10,5 m in der Mitte, Rest Ufermauer und Rasen)
+
+export const LAENGE = 40;   // Länge eines Abschnitts
+
+// o: [typ, x, z]   a: Aufwind [x, zAnfang, Länge]   r: Ring [x, y, z]   w: Fluss [xMitte, zAnfang, Länge] (nur Optik)
+// (z relativ zum Abschnitt)
+export const ABSCHNITTE = {
+  start:    { o: [['haus', -8, 10], ['hausFlach', 6, 22], ['hausHoch', -2, 36]], a: [[-5, 16, 14]], r: [[-5, 15, 14]] },
+  allee:    { o: [['baum', -7, 8], ['baum', 7, 8], ['baum', -7, 24], ['baum', 7, 24], ['zypresse', 0, 32]], a: [[0, 8, 14]], r: [[0, 13, 8]] },
+  turm:     { o: [['turm', 0, 18], ['baum', 8, 6], ['baum', -9.5, 34]], a: [[-5, 22, 14]], r: [[-5, 12, 22]] },
+  slalom:   { o: [['zypresse', -4, 6], ['zypresse', 4, 16], ['zypresse', -4, 26], ['zypresse', 4, 36]], a: [[7, 4, 12]], r: [[0, 11, 21]] },
+  lichtung: { o: [['baum', -9, 12], ['baum', 9, 22]], a: [[2, 6, 16], [-6, 30, 10]], r: [[2, 12, 6]] },
+  tuerme:   { o: [['turm', -5, 10], ['turm', 5, 28], ['zypresse', 6, 12]], a: [[-1, 14, 12]], r: [[0, 11, 19]] },
+  hecke:    { o: [['baum', -9, 20], ['baum', -3.5, 20], ['baum', 8.5, 20], ['zypresse', -8, 36]], a: [[3, 24, 12]], r: [[2.5, 10, 20]] },
+  haeuser:  { o: [['hausHoch', -6, 8], ['hausFlach', 5, 18], ['haus', -5, 30], ['baum', 8, 36]], a: [[0, 30, 10]], r: [[0, 11, 30]] },
+  // Fluss rechts neben der Flugbahn, Brücken an beiden Enden verdecken die Wasserenden; über dem Wasser ist es frei
+  fluss:    { o: [['bruecke', 8, 2], ['bruecke', 8, 38], ['baum', -8.5, 12], ['zypresse', -4, 26]], a: [[7, 12, 14]], r: [[7, 7, 20]], w: [[8, 2, 36]] }
+};
+
+// Teststrecke für V1 (fest). "-" vor dem Namen = gespiegelt (x * -1).
+export const TESTSTRECKE = ['start', 'allee', 'turm', 'slalom', 'lichtung', 'fluss', 'tuerme', 'hecke', 'haeuser',
+  '-allee', '-turm', '-slalom', '-fluss', '-lichtung', '-tuerme', '-hecke', '-haeuser'];
+
+// Tagesstrecke: Startwert = Datum in Berlin (JJJJMMTT). Alle Spieler fliegen am selben Tag dieselbe Strecke.
+// Immer zuerst der Dachabschnitt, danach geprüfte Abschnitte (zufällig gespiegelt), kein Abschnitt direkt zweimal,
+// der Fluss höchstens alle vier Abschnitte. 26 Abschnitte = 1 040 m, weiter als jeder bisherige Flug.
+export const TAGES_ABSCHNITTE = 26;
+const POOL = ['allee', 'turm', 'slalom', 'lichtung', 'tuerme', 'hecke', 'haeuser', 'fluss'];
+export function tagesStrecke(seed) {
+  let a = (seed ^ 0x5eed1a7) >>> 0;
+  const zz = () => { a = (a + 0x6D2B79F5) >>> 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  const namen = ['start']; let vor = 'start', flussVor = -9;
+  while (namen.length < TAGES_ABSCHNITTE) {
+    const n = POOL[Math.floor(zz() * POOL.length)];
+    if (n === vor || (n === 'fluss' && namen.length - flussVor < 4)) continue;
+    if (n === 'fluss') flussVor = namen.length;
+    namen.push((zz() < 0.5 ? '-' : '') + n); vor = n;
+  }
+  return namen;
+}
+
+// Strecke als flache Listen mit absoluten Koordinaten (Meter), nach z sortiert.
+export function baueStrecke(namen) {
+  const o = [], a = [], r = [], w = [];
+  namen.forEach((n, i) => {
+    const sp = n[0] === '-' ? -1 : 1, ab = ABSCHNITTE[sp < 0 ? n.slice(1) : n], z0 = i * LAENGE;
+    for (const [t, x, z] of ab.o) o.push({ t, x: x * sp, z: z0 + z });
+    for (const [x, z, l] of ab.a) a.push({ x: x * sp, z: z0 + z, l });
+    for (const [x, y, z] of ab.r) r.push({ x: x * sp, y, z: z0 + z });
+    for (const [x, z, l] of ab.w || []) w.push({ x: x * sp, z: z0 + z, l });
+  });
+  const nachZ = (p, q) => p.z - q.z;
+  return { o: o.sort(nachZ), a: a.sort(nachZ), r: r.sort(nachZ), w, laenge: namen.length * LAENGE };
+}

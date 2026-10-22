@@ -1,7 +1,7 @@
 // PAPIERPILOT: Flugregeln. Nur ganze Zahlen (+ − × und abgeschnittene Division, alle Werte < 2^53),
 // fester 60-Hz-Takt. Dadurch rechnet später die Prüf-Funktion auf dem Server jeden Flug bitgleich nach.
 // Einheiten: u = 0,1 mm, Geschwindigkeiten in u je Takt.
-import { TYPEN, baueStrecke } from './strecke.js';
+import { TYPEN, baueStrecke, tagesStrecke } from './strecke.js';
 
 export const SIM_VERSION = 1;
 export const TAKT_HZ = 60;
@@ -134,4 +134,30 @@ export function dekodiere(text) {
   const e = []; if (!text) return e;
   for (const teil of text.split(',')) { const [w, n] = teil.split(':'); const v = parseInt(w, 36), k = n ? parseInt(n, 36) : 1; if (!(v >= 0 && v < 8 && k > 0 && k <= MAX_TICKS)) return null; for (let i = 0; i < k; i++) e.push(v); if (e.length > MAX_TICKS + 1) return null; }
   return e;
+}
+
+// Seed (Datum JJJJMMTT) -> vorbereitete Tagesstrecke
+export function tagesKurs(seed) { return vorbereiteteStrecke(tagesStrecke(seed)); }
+
+// Nachfliegen: Eingaben (je Takt) auf der Tagesstrecke. Der Flug muss genau mit der letzten Eingabe enden.
+export function nachfliegen(seed, eingaben) {
+  const f = neuerFlug(tagesKurs(seed));
+  for (let i = 0; i < eingaben.length; i++) { if (f.s.phase === 'ende') return { ok: false, grund: 'zu_viele_eingaben' }; f.schritt(eingaben[i]); }
+  if (f.s.phase !== 'ende') return { ok: false, grund: 'kein_ende' };
+  return { ok: true, cm: f.distanzCm(), ft: f.s.ft, ticks: f.s.t, grund: f.s.grund, ringe: f.s.ringe };
+}
+
+// Serverseitige Prüfung einer gemeldeten Leistung: { v, seed, inputs, ticks, cm, ft }
+export function pruefeFlug(lauf) {
+  try {
+    if (!lauf || lauf.v !== SIM_VERSION) return { ok: false, grund: 'version' };
+    if (!Number.isInteger(lauf.seed) || lauf.seed < 20200101 || lauf.seed > 20991231) return { ok: false, grund: 'seed' };
+    const e = dekodiere(lauf.inputs);
+    if (!e || !e.length) return { ok: false, grund: 'eingaben' };
+    const r = nachfliegen(lauf.seed, e);
+    if (!r.ok) return r;
+    if (r.ticks !== lauf.ticks || r.cm !== lauf.cm || r.ft !== lauf.ft) return { ok: false, grund: 'ergebnis_weicht_ab', cm: r.cm, ft: r.ft };
+    if (r.cm < 100) return { ok: false, grund: 'zu_kurz' };
+    return { ok: true, cm: r.cm, ft: r.ft, ticks: r.ticks };
+  } catch (err) { return { ok: false, grund: 'fehler' }; }
 }

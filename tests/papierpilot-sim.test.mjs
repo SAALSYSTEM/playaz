@@ -75,3 +75,26 @@ test('jeder Abschnitt lässt eine Lücke in Bodennähe', () => {
     }
   }
 });
+
+test('Tagesstrecke: gleich für alle am selben Tag, jeden Tag anders, Regeln eingehalten', async () => {
+  const { tagesStrecke, TAGES_ABSCHNITTE } = await import('../public/spiele/papierpilot/strecke.js');
+  assert.deepEqual(tagesStrecke(20261022), tagesStrecke(20261022));
+  assert.notDeepEqual(tagesStrecke(20261022), tagesStrecke(20261023));
+  for (let d = 0; d < 365; d++) {
+    const t = new Date(Date.UTC(2026, 0, 1) + d * 86400000), seed = Number(t.toISOString().slice(0, 10).replace(/-/g, ''));
+    const n = tagesStrecke(seed), basis = n.map((x) => x.replace('-', ''));
+    assert.equal(n.length, TAGES_ABSCHNITTE); assert.equal(n[0], 'start');
+    for (let i = 1; i < n.length; i++) assert.notEqual(basis[i], basis[i - 1], seed + ': doppelt');
+    const fl = basis.flatMap((b, i) => (b === 'fluss' ? [i] : []));
+    for (let i = 1; i < fl.length; i++) assert.ok(fl[i] - fl[i - 1] >= 4, seed + ': Fluss zu dicht');
+  }
+});
+
+test('Tagesstrecken der nächsten 40 Tage sind fliegbar (Bot kommt weit genug)', async () => {
+  const { tagesStrecke } = await import('../public/spiele/papierpilot/strecke.js');
+  for (let d = 0; d < 40; d++) {
+    const t = new Date(Date.UTC(2026, 9, 22) + d * 86400000), seed = Number(t.toISOString().slice(0, 10).replace(/-/g, ''));
+    const best = Math.max(botFlug(tagesStrecke(seed)).m, botFlug(tagesStrecke(seed), { zittern: 0.1, seed: 2 }).m);
+    assert.ok(best > 280, seed + ': nur ' + best.toFixed(0) + ' m');
+  }
+});
