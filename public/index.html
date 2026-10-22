@@ -260,6 +260,7 @@
       <li class="kachel" data-slug="sondengaenger" data-kategorien="abenteuer" data-rec="sondengaenger" data-name="Sondengänger" data-arten="3D,Schatzsuche" data-kat="neu"><a href="/spiele/sondengaenger"><img src="/bilder/sondengaenger.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Sondengänger</span></a></li>
       <li class="kachel" data-slug="anbiss" data-kategorien="abenteuer" data-rec="anbiss" data-name="Anbiss" data-arten="3D,Angeln" data-kat="neu"><a href="/spiele/anbiss"><img src="/bilder/anbiss.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Anbiss</span></a></li>
       <li class="kachel" data-slug="punktlandung" data-kategorien="geschick,action" data-rec="punktlandung" data-name="Punktlandung" data-arten="Arcade,Timing,Ein Finger" data-kat="neu"><a href="/spiele/punktlandung"><img src="/bilder/punktlandung.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Punktlandung</span></a></li>
+      <li class="kachel" data-slug="dartfieber" data-kategorien="geschick,action" data-rec="dartfieber" data-name="Dartfieber" data-arten="Darts,Tagesrangliste,Wind" data-kat="neu"><a href="/spiele/dartfieber"><img src="/bilder/dartfieber.webp" width="720" height="720" alt="" decoding="async" loading="lazy"><span class="name">Dartfieber</span></a></li>
       <li class="kachel" data-slug="seitenwechsel" data-kategorien="geschick,action" data-rec="seitenwechsel" data-name="Seitenwechsel" data-arten="Arcade,Geschick,Ein Finger" data-kat="neu"><a href="/spiele/seitenwechsel"><img src="/bilder/seitenwechsel.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Seitenwechsel</span></a></li>
       <li class="kachel" data-slug="hau-die-kakerlake" data-kategorien="geschick,action" data-rec="kakerlake" data-name="Hau die Kakerlake!" data-arten="Arcade,Geschick,Ein Finger" data-kat="neu"><a href="/spiele/hau-die-kakerlake"><img src="/bilder/hau-die-kakerlake.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Hau die Kakerlake!</span></a></li>
     </ul>
@@ -425,6 +426,8 @@
   if (hs) show('hochstapler', 'Rekord ' + n(hs));
   const pp = read('papierpilot.v1');
   if (pp && Number(pp.best) >= 100) show('papierpilot', 'Bestflug ' + n(Math.floor(pp.best / 100)) + ' m');
+  const df = read('dartfieber.v1');
+  if (df && Number(df.best) > 0) show('dartfieber', 'Bestwert ' + n(df.best));
   const pl = read('punktlandung.v1');
   if (pl && Number(pl.best) > 0) show('punktlandung', 'Bestwert ' + n(pl.best));
   const swl = read('seitenwechsel.v1');

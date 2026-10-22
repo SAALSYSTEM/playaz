@@ -1,6 +1,6 @@
 # DARTFIEBER
 
-Dart-Geschicklichkeitsspiel mit Tageschallenge und geprüfter Tagesrangliste. Stand: in Entwicklung auf Branch `dartfieber` (nicht auf `main`). Stilreferenz: `design/dartfieber/vorschau-stilreferenz.png`.
+Dart-Geschicklichkeitsspiel mit Tageschallenge und geprüfter Tagesrangliste. Stand: veröffentlicht auf `main` am 22.10.2026; in der Übersicht sichtbar, sobald `listed = true` gesetzt ist. Stilreferenz: `design/dartfieber/vorschau-stilreferenz.png`.
 
 ## 1. Bestandsaufnahme PlaySaal (22.10.2026)
 
