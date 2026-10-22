@@ -14,6 +14,26 @@
   const registry = new Map();
   $$('.kachel').forEach((li) => { if (!registry.has(li.dataset.slug)) registry.set(li.dataset.slug, li); });
 
+  const NEU_TAGE = 30;   // „Neu“ zeigt ein Spiel höchstens so lange (Datum: games.added_on)
+  const alleSec = document.createElement('section'); alleSec.className = 'block block-alle'; alleSec.id = 'alle'; alleSec.setAttribute('aria-labelledby', 'alle-titel'); alleSec.hidden = true;
+  const alleKopf = document.createElement('div'); alleKopf.className = 'block-kopf';
+  const alleH = document.createElement('h2'); alleH.id = 'alle-titel'; alleH.textContent = 'Alle Spiele';
+  const alleP = document.createElement('p'); alleP.textContent = 'Von A bis Z';
+  alleKopf.append(alleH, alleP);
+  const alleUl = document.createElement('ul'); alleUl.className = 'kacheln'; alleUl.dataset.lay = 'filter';
+  alleSec.append(alleKopf, alleUl);
+  $('#neu').after(alleSec);
+  const ueber = new Map();   // Stand aus der Datenbank je Spiel (Kategorien, gelistet)
+  function alleBauen() {
+    const li = Array.from(registry.values()).sort((a, b) => (a.dataset.name || a.dataset.slug).localeCompare(b.dataset.name || b.dataset.slug, 'de')).map((q) => {
+      const c = q.cloneNode(true), u = ueber.get(q.dataset.slug);
+      $$('.fav', c).forEach((b) => b.remove()); c.hidden = false;
+      if (u) { c.dataset.kategorien = u.categories.join(','); c.dataset.gelistet = u.listed ? '1' : '0'; }
+      return c;
+    });
+    alleUl.replaceChildren.apply(alleUl, li);
+  }
+
   let kats = C.kategorien.map((k) => ({ slug: k[0], name: k[1], active: true }));
   window.__katNamen = Object.fromEntries(kats.map((k) => [k.slug, k.name]));
   let auswahl = 'alle';
@@ -23,7 +43,7 @@
   function pruefen(d) {
     if (!d || !Array.isArray(d.games) || !Array.isArray(d.categories) || d.games.length > 200 || d.categories.length > 50) return null;
     const games = d.games.filter((g) => g && SLUG.test(String(g.slug)) && Array.isArray(g.categories) && g.categories.every((c) => SLUG.test(String(c))) && typeof g.hot === 'boolean' && typeof g.listed === 'boolean')
-      .map((g) => ({ slug: g.slug, categories: g.categories.slice(0, 8), hot: g.hot, rank: Number.isFinite(g.hot_rank) ? g.hot_rank : 99, listed: g.listed }));
+      .map((g) => ({ slug: g.slug, categories: g.categories.slice(0, 8), hot: g.hot, rank: Number.isFinite(g.hot_rank) ? g.hot_rank : 99, listed: g.listed, added: /^\d{4}-\d\d-\d\d$/.test(String(g.added_on)) ? g.added_on : null }));
     const categories = d.categories.filter((c) => c && SLUG.test(String(c.slug)) && typeof c.name === 'string' && c.name.length >= 2 && c.name.length <= 40)
       .map((c) => ({ slug: c.slug, name: c.name, rank: Number(c.rank) || 0, active: c.active !== false }));
     return games.length ? { games, categories } : null;
@@ -40,6 +60,15 @@
       hotUl.replaceChildren.apply(hotUl, neu);
       hotUl.dataset.lay = neu.length === BASIS_HOT && auswahl === 'alle' ? 'hot' : 'filter';
     }
+    // Neu: nur Spiele, die höchstens NEU_TAGE Tage alt sind, neueste zuerst
+    d.games.forEach((g) => {
+      ueber.set(g.slug, g);
+      if (!g.added) return;
+      const alter = (Date.now() - Date.parse(g.added)) / 864e5;
+      $$('.kachel[data-slug="' + g.slug + '"]', neuUl).forEach((li) => { if (alter > NEU_TAGE) li.remove(); else li.dataset.neuab = g.added; });
+    });
+    neuUl.append.apply(neuUl, $$('.kachel', neuUl).sort((a, b) => (b.dataset.neuab || '').localeCompare(a.dataset.neuab || '')));
+    alleBauen();
     d.games.forEach((g) => { if (!g.listed) $$('.kachel[data-slug="' + g.slug + '"]').forEach((li) => { li.hidden = true; }); });
     herzen(); chips(); filtern();
   }
@@ -66,7 +95,7 @@
     const favs = window.PlaySaal ? window.PlaySaal.favoriten() : new Set();
     const gesehen = new Set(); let sichtbar = 0;
     const filtert = auswahl !== 'alle';
-    [hotUl, neuUl].forEach((ul) => {
+    [hotUl, neuUl, alleUl].forEach((ul) => {
       let n = 0;
       $$('.kachel', ul).forEach((li) => {
         const ok = li.dataset.gelistet !== '0' && (!filtert || (auswahl === 'fav' ? favs.has(li.dataset.slug) : (li.dataset.kategorien || '').split(',').includes(auswahl)));
@@ -75,7 +104,7 @@
         if (!li.hidden) { n++; gesehen.add(li.dataset.slug); }
       });
       ul.closest('.block').hidden = n === 0;
-      ul.dataset.lay = filtert ? 'filter' : (ul === hotUl ? (hotUl.children.length === BASIS_HOT ? 'hot' : 'filter') : 'neu');
+      ul.dataset.lay = filtert || ul === alleUl ? 'filter' : (ul === hotUl ? (hotUl.children.length === BASIS_HOT ? 'hot' : 'filter') : 'neu');
       sichtbar += n;
     });
     leer.hidden = sichtbar > 0;
@@ -119,7 +148,7 @@
       const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 4000);
       const h = { apikey: C.key };
       const [g, k] = await Promise.all([
-        fetch(C.url + '/rest/v1/games?select=slug,categories,hot,hot_rank,listed', { headers: h, signal: ctl.signal }).then((r) => r.ok ? r.json() : Promise.reject(new Error('games'))),
+        fetch(C.url + '/rest/v1/games?select=slug,categories,hot,hot_rank,listed,added_on', { headers: h, signal: ctl.signal }).then((r) => r.ok ? r.json() : Promise.reject(new Error('games'))),
         fetch(C.url + '/rest/v1/categories?select=slug,name,rank,active', { headers: h, signal: ctl.signal }).then((r) => r.ok ? r.json() : Promise.reject(new Error('categories')))
       ]);
       clearTimeout(t);
@@ -128,7 +157,7 @@
     } catch (e) { /* Grundstand bleibt */ }
   }
 
-  chips(); filtern();
+  alleBauen(); chips(); filtern();
   laden();
   const PS0 = window.PlaySaal;
   if (PS0) {

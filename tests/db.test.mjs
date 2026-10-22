@@ -64,7 +64,32 @@ const speichern = (uid, game, data, base = 0, fortschritt = 1) => rpc('authentic
 test('Stammdaten: 24 Spiele, 7 Kategorien, Spiele ohne Kollision', async () => {
   assert.equal((await als('anon', null, 'select count(*)::int n from public.games'))[0].n, 24);
   assert.equal((await als('anon', null, 'select count(*)::int n from public.categories'))[0].n, 7);
-  assert.equal((await als('anon', null, `select count(*)::int n from public.games where hot`))[0].n, 7);
+  assert.equal((await als('anon', null, `select count(*)::int n from public.games where hot`))[0].n, 10);
+});
+
+test('HOT automatisch: immer genau 10, Spielzeit der letzten 30 Tage rückt ein Spiel nach vorn, ein anderes fliegt raus', async () => {
+  const hot = async () => (await als('anon', null, `select slug, hot_rank from public.games where hot order by hot_rank`));
+  const vorher = await hot();
+  assert.equal(vorher.length, 10); assert.deepEqual(vorher.map((x) => x.hot_rank), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  assert.equal((await als('anon', null, `select count(*)::int n from public.games where hot and not listed`))[0].n, 0);
+  const neuer = (await db.query(`select slug from public.games where listed and not hot order by slug limit 1`)).rows[0].slug;
+  await db.exec(`insert into private.stat_daily (day, game_slug, sessions, starts, completions, play_seconds) values (private.berlin_heute(), '${neuer}', 1, 1, 0, 99999) on conflict (day, game_slug) do update set play_seconds = 99999`);
+  const nachher = await hot();
+  assert.equal(nachher.length, 10); assert.equal(nachher[0].slug, neuer);
+  assert.equal(vorher.filter((x) => !nachher.some((y) => y.slug === x.slug)).length, 1);
+  // Spielzeit älter als 7 Tage zählt nicht
+  await db.exec(`update private.stat_daily set day = private.berlin_heute() - 30 where game_slug = '${neuer}'; select private.hot_berechnen()`);
+  assert.equal((await hot()).length, 10);
+  await db.exec(`delete from private.stat_daily where game_slug = '${neuer}'`);
+  // ausgeblendetes Spiel wird nie Hot
+  await db.exec(`update public.games set listed = false where slug = '${nachher[1].slug}'; select private.hot_berechnen()`);
+  const ohne = await hot(); assert.equal(ohne.length, 10); assert.ok(!ohne.some((x) => x.slug === nachher[1].slug));
+  await db.exec(`update public.games set listed = true where slug = '${nachher[1].slug}'; select private.hot_berechnen()`);
+});
+
+test('NEU: jedes Spiel hat ein Hinzufügedatum (added_on), öffentlich lesbar', async () => {
+  const r = await als('anon', null, `select count(*)::int n from public.games where added_on = (now() at time zone 'Europe/Berlin')::date`);
+  assert.equal(r[0].n, 24);
 });
 
 test('Anonyme Besucher: keine privaten Tabellen, keine privaten Funktionen', async () => {
