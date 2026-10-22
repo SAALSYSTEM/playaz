@@ -61,8 +61,8 @@ before(async () => {
 const keys = (o) => ({ keys: o });
 const speichern = (uid, game, data, base = 0, fortschritt = 1) => rpc('authenticated', uid, 'spielstand_speichern', game, 1, JSON.stringify(data), fortschritt, 'Test', base, 'Test-Gerät', '2026-10-19T12:00:00Z');
 
-test('Stammdaten: 22 Spiele, 7 Kategorien, Spiele ohne Kollision', async () => {
-  assert.equal((await als('anon', null, 'select count(*)::int n from public.games'))[0].n, 22);
+test('Stammdaten: 23 Spiele, 7 Kategorien, Spiele ohne Kollision', async () => {
+  assert.equal((await als('anon', null, 'select count(*)::int n from public.games'))[0].n, 23);
   assert.equal((await als('anon', null, 'select count(*)::int n from public.categories'))[0].n, 7);
   assert.equal((await als('anon', null, `select count(*)::int n from public.games where hot`))[0].n, 7);
 });
@@ -160,7 +160,7 @@ test('Admin: Selbstfreischaltung unmöglich, serverseitige Prüfung, erst nach p
   await db.exec(`insert into private.admins (user_id, note) values ('${ADM}', 'Test')`);
   assert.equal(await rpc('authenticated', ADM, 'ist_admin'), true);
   const st = await rpc('authenticated', ADM, 'admin_statistik', 7);
-  assert.equal(typeof st.summe.starts, 'number'); assert.equal(st.spiele.length, 22);
+  assert.equal(typeof st.summe.starts, 'number'); assert.equal(st.spiele.length, 23);
   assert.deepEqual(await rpc('authenticated', ADM, 'admin_kategorie_speichern', 'neu-kat', 'Neu', 9, true), { ok: true });
   assert.deepEqual(await rpc('authenticated', ADM, 'admin_spiel_speichern', 'anbiss', ['abenteuer', 'neu-kat'], true, 8, true), { ok: true });
   assert.match(String((await fehler('authenticated', ADM, `select public.admin_spiel_speichern('anbiss','{gibtsnicht}',true,1,true)`)).message), /Unbekannte Kategorie/);
@@ -337,4 +337,41 @@ test('SEITENWECHSEL-Rangliste: nur die Prüf-Funktion trägt ein; Tage, Wertung,
   assert.equal(zuOft, 'zu_oft');
   await rpc('authenticated', A, 'konto_loeschen', 'LÖSCHEN');
   assert.equal((await db.query(`select count(*)::int n from private.seitenwechsel_laeufe where user_id = '${A}'`)).rows[0].n, 0);
+});
+
+test('PUNKTLANDUNG-Rangliste: nur die Prüf-Funktion trägt ein; Tage, Wertung, Rate, Aufräumen, Löschung', async () => {
+  const A = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', B = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', K = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+  await db.exec(`insert into auth.users (id, email) values ('${A}', 'i@example.org'), ('${B}', 'j@example.org'), ('${K}', 'k@example.org')`);
+  await rpc('authenticated', A, 'profil_speichern', 'Anke', 'a3');
+  await rpc('authenticated', B, 'profil_speichern', 'Bernhard', 'a4');
+  const heute = Number((await db.query(`select to_char(private.berlin_heute(), 'YYYYMMDD') d`)).rows[0].d);
+  const gestern = Number((await db.query(`select to_char(private.berlin_heute() - 1, 'YYYYMMDD') d`)).rows[0].d);
+  const eintragen = (uid, seed, punkte) => rpc('service_role', null, 'punktlandung_eintragen', uid, seed, punkte, punkte * 6, 1, '1c');
+  const rang = (rolle, uid, zr) => als(rolle, uid, 'select * from public.punktlandung_rangliste($1, 50)', [zr]);
+  for (const rolle of ['anon', 'authenticated']) {
+    const e = await fehler(rolle, A, `select public.punktlandung_eintragen('${A}', ${heute}, 10, 60, 1, '1c')`);
+    assert.match(String(e && e.message), /permission denied/, 'eintragen als ' + rolle);
+    assert.match(String((await fehler(rolle, A, 'select * from private.punktlandung_laeufe')).message), /permission denied/);
+    assert.match(String((await fehler(rolle, A, `select * from private.punktlandung_wertung('heute')`)).message), /permission denied/);
+  }
+  assert.equal((await eintragen(A, heute, 0)).grund, 'ungueltig');
+  assert.equal((await eintragen(A, 20200101, 10)).grund, 'tag');
+  assert.equal((await eintragen(A, heute + 1000, 10)).grund, 'tag');
+  assert.equal((await eintragen(A, 20261399, 10)).grund, 'tag');
+  assert.equal((await eintragen(K, heute, 10)).grund, 'kein_profil');
+  assert.equal((await eintragen(A, heute, 40)).ok, true);
+  const b = await eintragen(B, heute, 55); assert.equal(b.platz_heute, 1); assert.equal(b.spieler_heute, 2);
+  assert.equal((await eintragen(A, gestern, 90)).ok, true);   // Läufe über Mitternacht zählen für ihren Kurstag
+  const h = await rang('anon', null, 'heute');
+  assert.deepEqual(h.map((x) => [x.platz, x.name, x.avatar, x.punkte, x.ich]).map(String), ['1,Bernhard,a4,55,false', '2,Anke,a3,40,false']);
+  assert.deepEqual(Object.keys(h[0]).sort(), ['avatar', 'ich', 'name', 'platz', 'punkte']);
+  assert.equal((await rang('authenticated', A, 'heute')).find((x) => x.ich).name, 'Anke');
+  assert.equal((await rang('anon', null, 'gesamt'))[0].name, 'Anke');   // 90 gestern
+  assert.match(String((await fehler('anon', null, `select * from public.punktlandung_rangliste('x', 5)`)).message), /unbekannt/);
+  await db.exec('select private.aufraeumen()');
+  assert.equal((await db.query(`select count(*)::int n from private.punktlandung_laeufe where user_id = '${A}'`)).rows[0].n, 2);
+  let zuOft = null; for (let i = 0; i < 12 && !zuOft; i++) { const x = await eintragen(B, heute, 10 + i); if (!x.ok) zuOft = x.grund; }
+  assert.equal(zuOft, 'zu_oft');
+  await rpc('authenticated', A, 'konto_loeschen', 'LÖSCHEN');
+  assert.equal((await db.query(`select count(*)::int n from private.punktlandung_laeufe where user_id = '${A}'`)).rows[0].n, 0);
 });

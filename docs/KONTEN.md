@@ -80,3 +80,11 @@ Grenzen: Free-Plan erlaubt 2 s Rechenzeit je Aufruf; die längsten Läufe brauch
 - `PGLITE_PATH=… node --test tests/db.test.mjs` bzw. `npm i --no-save @electric-sql/pglite` – prüft SQL lokal (RLS, Admin-Schutz, Revisionen, Namensregeln, Rate-Limits, Statistik, Kontolöschung). Ohne PGlite werden die Tests übersprungen.
 - `node --test tests/konten.test.mjs` – Browser gegen einen Ersatz-Server im Speicher.
 - **Nicht getestet** gegen das echte Supabase: tatsächlicher E-Mail-Versand, Google/Apple, die echten Auth-Antworten, das produktive Netz. Diese Punkte müssen nach der Einrichtung einmal von Hand geprüft werden (Testkonto, danach `supabase/test-aufraeumen.sql`).
+
+
+## Weitere geprüfte Ranglisten (SEITENWECHSEL, PUNKTLANDUNG)
+Gleiches Prinzip wie bei Schräglage, aber mit **Tageskurs** (Seed = Datum in Berlin, JJJJMMTT; erlaubt sind heute und gestern). Die Spiellogik ist je Spiel ganzzahlig (`public/spiele/<spiel>/sim.js`) und wird mit `node tools/edge-sync.mjs` nach `supabase/functions/<spiel>-lauf/` kopiert (`--check` prüft das).
+Einrichtung je Spiel, in dieser Reihenfolge:
+1. SQL aus `supabase/migrations/20261021213000_seitenwechsel.sql` bzw. `20261022070000_punktlandung.sql` im SQL Editor ausführen (Seitenwechsel zuerst, die Punktlandung-Migration baut darauf auf).
+2. Edge Function deployen: `npx supabase functions deploy seitenwechsel-lauf --project-ref cphwxikfrxgejiqghlwn --no-verify-jwt` bzw. `punktlandung-lauf` (mit temporärem Access Token, danach löschen).
+Ehrliche Grenze: Der Server beweist, dass die Eingaben das Ergebnis tatsächlich ergeben, nicht, dass ein Mensch gespielt hat. Ein Bot mit gültigen Eingaben würde nicht erkannt.

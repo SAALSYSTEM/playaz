@@ -7,7 +7,8 @@ import { fileURLToPath } from 'node:url';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const FUNKTIONEN = [
   { quelle: 'public/spiele/schraeglage', ziel: 'supabase/functions/schraeglage-lauf', dateien: ['sim.js', 'levels.js', 'det.js', 'planck.js'] },
-  { quelle: 'public/spiele/seitenwechsel', ziel: 'supabase/functions/seitenwechsel-lauf', dateien: ['sim.js'] }
+  { quelle: 'public/spiele/seitenwechsel', ziel: 'supabase/functions/seitenwechsel-lauf', dateien: ['sim.js'] },
+  { quelle: 'public/spiele/punktlandung', ziel: 'supabase/functions/punktlandung-lauf', dateien: ['sim.js'] }
 ];
 let veraltet = 0;
 for (const fn of FUNKTIONEN) for (const f of fn.dateien) {

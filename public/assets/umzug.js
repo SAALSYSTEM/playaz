@@ -46,6 +46,8 @@
       info: (g) => { const d = J(g['blocksaal.v1']) || {}; return { text: zahl(d.lines) + ' Reihen · ' + zahl(d.score) + ' Punkte', wert: Number(d.score) || 0 }; } },
     { id: 'seitenwechsel', name: 'Seitenwechsel', prefix: 'seitenwechsel.', haupt: ['seitenwechsel.v1'],
       info: (g) => { const d = J(g['seitenwechsel.v1']) || {}; return { text: zahl(d.best) + ' Punkte Bestwert · ' + zahl(d.runs) + ' Läufe', wert: Number(d.best) || 0 }; } },
+    { id: 'punktlandung', name: 'Punktlandung', prefix: 'punktlandung.', haupt: ['punktlandung.v1'],
+      info: (g) => { const d = J(g['punktlandung.v1']) || {}; return { text: zahl(d.best) + ' Punkte Bestwert · ' + zahl(d.runs) + ' Läufe', wert: Number(d.best) || 0 }; } },
     { id: 'turmschicht', name: 'Turmschicht', prefix: 'turmschicht.', haupt: ['turmschicht.v1'],
       info: (g) => { const d = J(g['turmschicht.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
     { id: 'dinoleiter', name: 'Dino-Leiterhelden', prefix: 'dinoleiter.', haupt: ['dinoleiter.v1'],
