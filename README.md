@@ -1,3 +1,5 @@
+**Dartfieber:** Dart-Geschicklichkeitsspiel (5 Pfeile, zwei Tipps pro Wurf, Wind, goldene Bonusziele) mit Tageschallenge und geprüfter Tagesrangliste samt Archiv. Status: Testphase auf Branch `dartfieber`, noch nicht in der Übersicht gelistet. Details: [`docs/DARTFIEBER.md`](docs/DARTFIEBER.md). Tests: `node --test tests/dartfieber-sim.test.mjs tests/dartfieber-pruefung.test.mjs tests/dartfieber.test.mjs`.
+
 # PlaySaal
 
 **Papierpilot:** Papierflieger-Spiel im Hochformat: vom Dach werfen, links/rechts steuern, Aufwinde und Ringe nutzen, Bäumen und Türmen ausweichen; Ziel ist die größte Flugweite. Täglich neue Strecke für alle, eigener Geisterflieger und geprüfte Tagesrangliste (Distanz, dann Zeit). Veröffentlicht am 22.10.2026. Details: [`docs/PAPIERPILOT.md`](docs/PAPIERPILOT.md). Tests: `node --test tests/papierpilot-sim.test.mjs tests/papierpilot-pruefung.test.mjs`.

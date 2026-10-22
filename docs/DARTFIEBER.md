@@ -125,6 +125,60 @@ Komposition: Die linken 40 % sind eine ruhige Fläche (weicher Terrassen-Hinterg
 KEIN Text, KEIN Logo, KEINE Zahlen und keine Schrift irgendwo (den Zahlenring der Scheibe weglassen oder unlesbar unscharf lassen).
 ```
 
-## 5. Dateien (im Aufbau)
+## 5. Dateien
 
-Wird mit dem Fortschritt der Umsetzung ergänzt.
+| Datei | Inhalt |
+|---|---|
+| `public/spiele/dartfieber.html` | Seite, Oberfläche, Regeltext (Testphase: `noindex`) |
+| `public/spiele/dartfieber/sim.js` | alle Regeln, ganzzahlig und deterministisch: Wertung, Sektoren, Challenge aus Seed + Version, Linien, Wind, Bonus, Rundenablauf, Nachrechnen. Kopie läuft auf dem Server |
+| `public/spiele/dartfieber/game.js` | Zeichnen (Scheibe aus den Regel-Konstanten), Eingabe, Ton, lokaler Stand, Tageschallenge, Rangliste |
+| `public/spiele/dartfieber/img/` | die ChatGPT-Bilder in Laufzeitgröße (Hintergrund `.jpg`, Holzfassung `.webp`, Pfeile `.png`); fehlt eine Datei, zeichnet das Spiel einen technischen Platzhalter und zeigt „Platzhalter-Grafik“ an |
+| `design/dartfieber/` | Originale der Bilder und die Stilreferenz |
+| `supabase/migrations/20261022170000_dartfieber.sql` | Tabellen, Funktionen, Rechte, Katalogeintrag (`listed = false`) |
+| `supabase/functions/dartfieber-lauf/` | Prüf-Funktion (`handler.js`, `index.ts`, `sim.js` = Kopie per `node tools/edge-sync.mjs`) |
+| `tools/dartfieber-bot.mjs` | Bot (Tests, Messung der Rundenlänge: `node tools/dartfieber-bot.mjs`) |
+| `tools/dartfieber-cover.mjs` | Social-Vorschau `public/bilder/dartfieber-og.jpg` aus `df-social.png` + Schriftzug |
+| `public/bilder/dartfieber.webp` | Kachel (720 × 720) für die Übersicht, aus `df-kachel.png` |
+| `tests/dartfieber-sim.test.mjs`, `tests/dartfieber-pruefung.test.mjs`, Abschnitt „DARTFIEBER“ in `tests/db.test.mjs`, `tests/dartfieber.test.mjs` | Regeln, Prüf-Funktion, Datenbank, Browser |
+
+## 6. Ablauf Tageschallenge und Prüfung
+
+1. Beim Start holt der Browser die Challenge: Gast `dartfieber_tag()` (Seed + Version des Berliner Tages), Konto `dartfieber_start()` (zusätzlich eine einmalige Run-ID). Der Seed wird beim ersten Abruf des Tages **vom Server zufällig festgelegt** und nie geändert; alle Bedingungen entstehen daraus (`challengeAus(seed, version)`).
+2. Der Browser spielt die Runde mit festem 60-Hz-Takt (bildratenunabhängig) und merkt nur die Tipp-Takte.
+3. Am Ende geht `{run_id, inputs, ticks, score, throws}` an `dartfieber-lauf`. Seed und Version holt die Funktion selbst aus der Datenbank (nie vom Browser), fährt die Runde nach und trägt nur bei exakter Übereinstimmung ein. Die Run-ID schließt genau einmal; höchstens 5 Prüfversuche je Run-ID; Rate-Limits beim Start und beim Abschluss.
+4. Zeitprüfung mit der Datenbankuhr: Abschluss höchstens 30 Minuten nach Ausgabe und nicht schneller, als das Spiel selbst lief (Takte / 60 s, 3 s Toleranz).
+5. Eine begonnene Runde bleibt bei ihrem Tag (der Tag hängt an der Run-ID, nicht an der Uhr beim Abschluss).
+6. Wertung: bester Wert je Konto und Tag, gleiche Punkte = gleicher Platz, kein Gesamtranking über Tage. Frühere Tage bleiben im Archiv (`dartfieber_tage_liste`, `dartfieber_rangliste(tag)`).
+
+**Ehrliche Grenzen:** Der Server beweist, dass die Eingaben zum Ergebnis führen und zeitlich möglich waren. Er erkennt keinen Bot, der die Tipps passend zur bekannten Challenge auslöst, und keine gezielt zeitlich präzise manipulierte Eingabe. Wer das Ergebnis frei erfindet oder die Punkte im Browser ändert, scheitert an der Nachrechnung.
+
+## 7. Abweichungen von den bisherigen Tagesspielen (Seitenwechsel, Punktlandung, Papierpilot)
+
+- **Seed vom Server statt Datum:** dort ist der Kurs das Berliner Datum (rechenbar im Voraus). Hier legt der Server den Seed fest, weil die Anforderung einen serverseitig gesetzten Tages-Seed und versionierte Challenge-Konfiguration verlangt. Folge: ein Spieler kann die Challenge von morgen nicht vorab ausrechnen.
+- **Einmalige Run-ID** statt „Seed = Datum, gestern/heute erlaubt“, damit eine begonnene Runde bei ihrer Challenge bleibt und nur einmal abgeschlossen werden kann.
+- **Zeitprüfung** (neu) und **Archiv** der Tage (neu). Sonst unverändert: eigene Edge Function, `sim.js`-Kopie, `service_role`-Eintrag, Anzeige über `window.PlaySaal`.
+
+## 8. Rundenlänge (gemessen mit dem Bot, `node tools/dartfieber-bot.mjs`)
+
+Streuung des Tippzeitpunkts in Takten (1 Takt = 17 ms), 100 Tage:
+
+| Spielertyp | Würfe Ø | Dauer Ø |
+|---|---|---|
+| sehr präzise (σ 0–1) | 30 (Obergrenze) | ca. 110 s (91–144 s) |
+| geübt (σ 2) | 29 | ca. 108 s |
+| ordentlich (σ 3) | 25 | ca. 92 s |
+| lockerer Spieler (σ 5 = ±83 ms) | 13 | ca. 51 s |
+| ungenau (σ 8) | 8 | ca. 30 s |
+
+Das Ziel „1–3 Minuten“ erreichen geübte Spieler; Gelegenheitsspieler liegen eher bei 30–60 s. Menschliche Tests konnten hier nicht stattfinden, die Zahlen sind Modellwerte. Nachjustieren: neue Version in `KONFIG` (`sim.js`) + `private.dartfieber_version()` in einer neuen Migration; alte Tage bleiben nachrechenbar.
+
+## 9. Einrichtung und Freigabe
+
+1. SQL aus `supabase/migrations/20261022170000_dartfieber.sql` im Supabase-SQL-Editor ausführen (nach den Migrationen bis `20261022150000`).
+2. `npx supabase functions deploy dartfieber-lauf --project-ref cphwxikfrxgejiqghlwn --no-verify-jwt` (temporärer Access Token, danach löschen).
+3. Auf dem Branch-Preview mit Testkonto spielen: Tageschallenge, Rang, Archiv.
+4. Freigabe (erst nach deinem Okay): `update public.games set listed = true where slug = 'dartfieber';`, in `public/spiele/dartfieber.html` die Zeile `<meta name="robots" content="noindex">` entfernen, in `public/index.html` die Kachel ergänzen (Vorlage unten) samt Zeile `read('dartfieber.v1')` bei den Bestwerten, `public/sitemap.xml` ergänzen, dann Merge nach `main`.
+
+```html
+<li class="kachel" data-slug="dartfieber" data-kategorien="geschick,action" data-rec="dartfieber" data-name="Dartfieber" data-arten="Darts,Tagesrangliste,Wind" data-kat="neu"><a href="/spiele/dartfieber"><img src="/bilder/dartfieber.webp" width="720" height="720" alt="" decoding="async" loading="lazy"><span class="name">Dartfieber</span></a></li>
+```

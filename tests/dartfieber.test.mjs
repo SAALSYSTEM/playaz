@@ -11,7 +11,7 @@ import { pruefeLauf, challengeAus, kodiere } from '../public/spiele/dartfieber/s
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.DF_PORT || 8797);
-const BASE = `http://127.0.0.1:${PORT}`;
+const BASE = process.env.DF_BASE || `http://127.0.0.1:${PORT}`;   // DF_BASE: vorhandenen statischen Server nutzen (schneller Lauf)
 function ladePlaywright() {
   const req = createRequire(import.meta.url);
   try { return req('playwright'); } catch (e) {}
@@ -22,11 +22,11 @@ const { chromium } = ladePlaywright();
 let wrangler, browser;
 const warte = (ms) => new Promise((r) => setTimeout(r, ms));
 before(async () => {
-  wrangler = spawn('npx', ['-y', 'wrangler@4', 'dev', '--port', String(PORT), '--ip', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore', detached: true });
-  for (let i = 0; i < 90; i++) { try { if ((await fetch(BASE + '/')).ok) break; } catch (e) {} await warte(1000); }
+  if (!process.env.DF_BASE) wrangler = spawn('npx', ['-y', 'wrangler@4', 'dev', '--port', String(PORT), '--ip', '127.0.0.1'], { cwd: ROOT, stdio: 'ignore', detached: true });
+  for (let i = 0; i < (process.env.DF_BASE ? 1 : 90); i++) { try { if ((await fetch(BASE + '/')).ok) break; } catch (e) {} await warte(1000); }
   browser = await chromium.launch();
 });
-after(async () => { await browser?.close(); try { process.kill(-wrangler.pid); } catch (e) {} });
+after(async () => { await browser?.close(); try { if (wrangler) process.kill(-wrangler.pid); } catch (e) {} });
 
 const SEED = 424242, RUN = '22222222-2222-4222-8222-222222222222';
 const antworte = (body, status = 200) => (r) => r.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
@@ -44,7 +44,7 @@ async function seite(o = {}) {
   await ctx.route(/supabase\.co\/functions\/v1\/dartfieber-lauf$/, async (r) => { aufrufe.push(JSON.parse(r.request().postData())); await (o.edge ? o.edge(r) : r.fulfill({ status: 500, body: '{}' })); });
   const page = await ctx.newPage(); const fehler = [];
   page.on('pageerror', (e) => fehler.push(e.message));
-  await page.goto(BASE + '/spiele/dartfieber?test');
+  await page.goto(BASE + (process.env.DF_BASE ? '/spiele/dartfieber.html' : '/spiele/dartfieber') + '?test');
   if (o.angemeldet) await page.evaluate(() => { window.PlaySaal.hatSitzung = () => true; window.PlaySaal.token = () => 'tok'; });
   return { ctx, page, fehler, aufrufe };
 }
@@ -113,7 +113,7 @@ test('Tageschallenge als Gast: gleiche Bedingungen bei jedem Versuch, lokales Er
   assert.equal(await page.evaluate(() => window.__df.runId), null);
   await page.mouse.click(195, 300); await botLaeuft(page);
   await page.waitForFunction(() => window.__df.zustand === 'ende');
-  assert.match(await page.textContent('#eStatus'), /nur auf diesem Gerät/);
+  assert.match(await page.textContent('#eStatus'), /nur auf diesem Gerät/i);
   assert.equal(await page.isVisible('#bAnmelden'), true);
   assert.equal(aufrufe.length, 0, 'ohne Konto nichts an die Prüf-Funktion');
   const punkte = await page.evaluate(() => window.__df.lauf.s.punkte);
@@ -170,9 +170,9 @@ test('Eingabesperren: Tipp nur in den Zielphasen, nie doppelt, nicht im Flug', a
     const f = () => {
       const s = d.lauf.s;
       if (schritt === 0 && s.phase === 'x' && s.k > 10) { tap(); tap(); tap(); schritt = 1; }           // dreifaches Tippen im selben Moment
-      else if (schritt === 1 && s.phase === 'y' && s.k > 10) { tap(); schritt = 2; vorFlug = d.tipps.length; }
-      else if (schritt === 2 && s.phase === 'flug') { for (let i = 0; i < 5; i++) tap(); flugTipps = d.tipps.length; schritt = 3; }
-      else if (schritt === 3 && s.phase === 'nach') { tap(); schritt = 4; }
+      else if (schritt === 1 && s.phase === 'y' && s.k > 10) { tap(); schritt = 2; }
+      else if (schritt === 2 && s.phase === 'flug') { vorFlug = d.tipps.length; for (let i = 0; i < 5; i++) tap(); schritt = 3; }
+      else if (schritt === 3 && s.phase === 'nach') { flugTipps = d.tipps.length; tap(); schritt = 4; }
       else if (schritt === 4 && s.phase === 'x') return fertig({ tipps: d.tipps.length, vorFlug, flugTipps, wuerfe: s.wuerfe, pfeile: s.pfeile });
       if (performance.now() - t0 > 15000) return fertig(null);
       requestAnimationFrame(f);
@@ -194,12 +194,12 @@ test('Zeichnung = Wertung: Farben der gezeichneten Scheibe passen zu treffer()/f
     let n = 0, falsch = [];
     const pruefe = (dx, dy) => {
       const t = sim.treffer(Math.round(dx), Math.round(dy), ch.s); const soll = sim.feldFarbe(t.ring, t.sektor);
-      const x = (off.D / 2 + dx * s * sc) * dpr, y = (off.D / 2 + dy * s * sc) * dpr, p = g.getImageData(Math.round(x), Math.round(y), 1, 1).data;
+      const x = (off.D / 2 + dx * sc) * dpr, y = (off.D / 2 + dy * sc) * dpr, p = g.getImageData(Math.round(x), Math.round(y), 1, 1).data;
       n++; const ist = nah([p[0], p[1], p[2]]); if (ist !== soll) falsch.push([dx, dy, t.ring, soll, ist]);
     };
-    pruefe(0, 0); pruefe(1000, 0);
+    pruefe(0, 0); pruefe(1000 * s, 0);
     const mitten = [(sim.RING.aussenBull + sim.RING.dreifachInnen) / 2, (sim.RING.dreifachInnen + sim.RING.dreifachAussen) / 2, (sim.RING.dreifachAussen + sim.RING.doppelInnen) / 2, (sim.RING.doppelInnen + sim.RING.doppelAussen) / 2];
-    for (let k = 0; k < 20; k++) for (const rad of mitten) { const a = (k * 18 * Math.PI) / 180; pruefe(Math.sin(a) * rad / s, -Math.cos(a) * rad / s); }
+    for (let k = 0; k < 20; k++) for (const rad of mitten) { const a = (k * 18 * Math.PI) / 180; pruefe(Math.sin(a) * rad * s, -Math.cos(a) * rad * s); }
     return { n, falsch };
   });
   assert.equal(r.n, 82); assert.deepEqual(r.falsch, []);

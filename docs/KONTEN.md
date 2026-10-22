@@ -92,3 +92,6 @@ Ehrliche Grenze: Der Server beweist, dass die Eingaben das Ergebnis tatsächlich
 ## PAPIERPILOT (Tages-Rangliste nach Distanz)
 Gleiches Prinzip wie Seitenwechsel/Punktlandung: Tagesstrecke aus dem Berliner Datum, der Browser meldet die Eingabefolge, die Edge Function `papierpilot-lauf` fliegt sie nach (`sim.js` + `strecke.js`, Kopie per `node tools/edge-sync.mjs`). Wertung: Distanz, bei Gleichstand kürzere Flugzeit.
 Einrichtung: 1. SQL aus `supabase/migrations/20261022130000_papierpilot.sql` im SQL Editor ausführen (nach der Punktlandung-Migration). 2. `npx supabase functions deploy papierpilot-lauf --project-ref cphwxikfrxgejiqghlwn --no-verify-jwt`. Details: [PAPIERPILOT.md](PAPIERPILOT.md).
+
+## DARTFIEBER (Tageschallenge mit Server-Seed)
+Wie die anderen Tagesspiele, aber der Seed des Tages kommt vom Server und jede Runde hat eine einmalige Run-ID (`dartfieber_start`). Edge Function `dartfieber-lauf`, Einrichtung und Grenzen: [DARTFIEBER.md](DARTFIEBER.md).
