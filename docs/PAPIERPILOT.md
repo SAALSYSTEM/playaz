@@ -1,6 +1,6 @@
 # PAPIERPILOT
 
-Papierflieger-Spiel im Hochformat (auch am Rechner spielbar). Stand: V1, feste Teststrecke, noch `noindex` und nicht auf der Startseite. Test über `/spiele/papierpilot`.
+Papierflieger-Spiel im Hochformat (auch am Rechner spielbar). Stand: veröffentlicht auf playsaal.com/spiele/papierpilot (22.10.2026).
 
 ## Spielablauf
 - Kraftanzeige pendelt, Tippen (Leertaste) wirft. Weiter rechts = schneller und etwas Steigen am Anfang.
@@ -36,5 +36,5 @@ Kachel für die Startseite: `public/bilder/papierpilot.webp` (720×720, ohne Sch
 - **Ehrliche Grenze:** wie bei den anderen Ranglisten. Der Server beweist, dass die Eingaben die Distanz ergeben, nicht dass ein Mensch geflogen ist.
 - **Tests:** `node --test tests/papierpilot-pruefung.test.mjs` (Prüf-Funktion), `tests/db.test.mjs` (Datenbank, mit PGlite).
 
-## Vor der Veröffentlichung
-`noindex` entfernen, Kachel auf die Startseite, `listed = true` in `public.games`, Einträge in `playsaal-config.js` (`spiele`, `namen`, `praefixe`) und `assets/umzug.js`, Sitemap.
+## Veröffentlichung (22.10.2026)
+Auf `main` freigegeben: `noindex` entfernt, Kachel auf der Startseite (Neu), Sitemap, Einträge in `playsaal-config.js` und `assets/umzug.js`. In der Datenbank einmalig `update public.games set listed = true where slug = 'papierpilot';` ausführen, sonst blendet die Startseite die Kachel aus.

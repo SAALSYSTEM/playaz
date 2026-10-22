@@ -46,6 +46,8 @@
       info: (g) => { const d = J(g['blocksaal.v1']) || {}; return { text: zahl(d.lines) + ' Reihen · ' + zahl(d.score) + ' Punkte', wert: Number(d.score) || 0 }; } },
     { id: 'seitenwechsel', name: 'Seitenwechsel', prefix: 'seitenwechsel.', haupt: ['seitenwechsel.v1'],
       info: (g) => { const d = J(g['seitenwechsel.v1']) || {}; return { text: zahl(d.best) + ' Punkte Bestwert · ' + zahl(d.runs) + ' Läufe', wert: Number(d.best) || 0 }; } },
+    { id: 'papierpilot', name: 'Papierpilot', prefix: 'papierpilot.', haupt: ['papierpilot.v1'],
+      info: (g) => { const d = J(g['papierpilot.v1']) || {}; return { text: zahl(Math.floor((Number(d.best) || 0) / 100)) + ' m Bestflug · ' + zahl(d.fluege) + ' Flüge', wert: Number(d.best) || 0 }; } },
     { id: 'punktlandung', name: 'Punktlandung', prefix: 'punktlandung.', haupt: ['punktlandung.v1'],
       info: (g) => { const d = J(g['punktlandung.v1']) || {}; return { text: zahl(d.best) + ' Punkte Bestwert · ' + zahl(d.runs) + ' Läufe', wert: Number(d.best) || 0 }; } },
     { id: 'turmschicht', name: 'Turmschicht', prefix: 'turmschicht.', haupt: ['turmschicht.v1'],

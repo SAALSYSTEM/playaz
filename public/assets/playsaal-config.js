@@ -33,7 +33,7 @@ window.PLAYSAAL_CFG = {
     'turmschicht': 'turmschicht', 'dino-leiterhelden': 'dinoleiter', 'geisterschloss': 'geisterschloss',
     'kristallrausch': 'kristallrausch', 'mysupermarkt': 'mysupermarkt', 'sprungsebi': 'sprungsebi',
     'jungle-runner': 'jungle-runner', 'zahlensturm': 'zahlensturm', 'stammvoelker': 'stammvoelker',
-    'sondengaenger': 'sondengaenger', 'anbiss': 'anbiss', 'hau-die-kakerlake': 'kakerlake', 'blocksaal': 'blocksaal', 'seitenwechsel': 'seitenwechsel', 'punktlandung': 'punktlandung'
+    'sondengaenger': 'sondengaenger', 'anbiss': 'anbiss', 'hau-die-kakerlake': 'kakerlake', 'blocksaal': 'blocksaal', 'seitenwechsel': 'seitenwechsel', 'punktlandung': 'punktlandung', 'papierpilot': 'papierpilot'
   },
 
   // Anzeigenamen (nur für Konto-Seite und Admin; Portal nutzt seine eigenen Kacheln)
@@ -42,7 +42,7 @@ window.PLAYSAAL_CFG = {
     'eiszeit': 'Eiszeit', 'stellwerk': 'Stellwerk', 'wasser-marsch': 'Wasser Marsch!', 'turmschicht': 'Turmschicht', 'dino-leiterhelden': 'Dino-Leiterhelden',
     'geisterschloss': 'Geisterschloss', 'kristallrausch': 'Kristallrausch', 'mysupermarkt': 'MySupermarkt', 'sprungsebi': 'SprungSebi',
     'jungle-runner': 'Jungle Runner', 'zahlensturm': 'Zahlensturm', 'stammvoelker': 'Stammvölker', 'sondengaenger': 'Sondengänger',
-    'anbiss': 'Anbiss', 'hau-die-kakerlake': 'Hau die Kakerlake!', 'blocksaal': 'BlockSaal', 'seitenwechsel': 'Seitenwechsel', 'punktlandung': 'Punktlandung'
+    'anbiss': 'Anbiss', 'hau-die-kakerlake': 'Hau die Kakerlake!', 'blocksaal': 'BlockSaal', 'seitenwechsel': 'Seitenwechsel', 'punktlandung': 'Punktlandung', 'papierpilot': 'Papierpilot'
   },
 
   // Schlüssel-Präfixe im localStorage je Spiel (identisch zu public.games.save_prefix)
@@ -51,7 +51,7 @@ window.PLAYSAAL_CFG = {
     eiszeit: 'eiszeit.', stellwerk: 'stellwerk.', wassermarsch: 'wassermarsch.', turmschicht: 'turmschicht.', dinoleiter: 'dinoleiter.',
     geisterschloss: 'geisterschloss.', kristallrausch: 'kristallrausch.', mysupermarkt: 'mysupermarkt.', sprungsebi: 'sprungssebi.',
     'jungle-runner': 'jungle.', zahlensturm: 'zahlensturm.', stammvoelker: 'stammvoelker.', sondengaenger: 'sondengaenger.',
-    anbiss: 'anbiss.', kakerlake: 'kakerlake.', blocksaal: 'blocksaal.', seitenwechsel: 'seitenwechsel.', punktlandung: 'punktlandung.'
+    anbiss: 'anbiss.', kakerlake: 'kakerlake.', blocksaal: 'blocksaal.', seitenwechsel: 'seitenwechsel.', punktlandung: 'punktlandung.', papierpilot: 'papierpilot.'
   },
 
   // Kategorien (Grundstand, identisch zur Datenbank; die Datenbank überschreibt, solange sie erreichbar ist)
