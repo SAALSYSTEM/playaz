@@ -100,6 +100,7 @@ test('Üben: komplette Runde mit Bot; Ergebnis stimmt mit der serverseitigen Pr�
   const r = pruefeLauf(d.seed, d.v, { inputs: kodiere(d.inputs), ticks: d.ticks, score: d.punkte, throws: d.wuerfe });
   assert.equal(r.ok, true, 'Browser-Runde = Server-Nachrechnung: ' + JSON.stringify(r));
   assert.match(await page.textContent('#eModus'), /Übung/);
+  assert.match(await page.textContent('#eGrund'), /Obergrenze von 30 Würfen|Alle Pfeile verbraucht/);
   assert.equal(await page.isVisible('#bNochmal'), true); assert.equal(await page.isVisible('#bRang2'), true);
   assert.deepEqual(fehler, []); await ctx.close();
 });

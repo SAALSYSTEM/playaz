@@ -252,6 +252,7 @@ function ergebnis() {
   zustand = 'ende'; zeige('sEnde');
   $('ePunkte').textContent = String(p); $('eWuerfe').textContent = String(s.wuerfe); $('eBoni').textContent = String(s.boni);
   $('eModus').textContent = modus === 'tag' ? 'Tageschallenge ' + tagText(tagKey) : 'Übungsrunde (zählt nicht für die Rangliste)';
+  $('eGrund').textContent = s.pfeile > 0 ? 'Obergrenze von ' + ch.K.maxWuerfe + ' Würfen erreicht, ' + s.pfeile + (s.pfeile === 1 ? ' Pfeil' : ' Pfeile') + ' übrig.' : 'Alle Pfeile verbraucht.';
   $('eBest').textContent = String(modus === 'tag' ? store.tage[tagKey] || 0 : store.best);
   const k = $('eKopf'); k.textContent = tagRekord && vorherTag ? 'Neuer Tagesbestwert!' : rekord ? 'Neuer Bestwert!' : 'Runde vorbei'; k.className = tagRekord || rekord ? 'rek' : '';
   for (const id of ['bErneut', 'bAnmelden']) $(id).hidden = true;
