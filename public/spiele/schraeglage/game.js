@@ -165,7 +165,12 @@ const PAL = {
   gletscher: { sky: ['#6aa6e6', '#e6f3ff'], sonne: '#ffffff', fern: '#d2e4f6', mitte: '#a9c9e8', nah: '#86afd8', face: ['#8db2d8', '#5f86b2'], stein: 'rgba(30,60,110,.25)', top: '#ffffff', wolken: 0.7 },
   insel: { sky: ['#2ec5ea', '#c9f5ff'], sonne: '#fff9d2', fern: '#86d6c8', mitte: '#49bf9d', nah: '#2fa07f', face: ['#d9a65a', '#b07d38'], stein: 'rgba(120,70,20,.3)', top: '#f2d28b', wolken: 0.85 },
   gipfel: { sky: ['#5b3f9e', '#ffc2d4'], sonne: '#fff0d6', fern: '#b9a2d8', mitte: '#8f7fc2', nah: '#6d5fa6', face: ['#8a86a8', '#5a5778'], stein: 'rgba(40,30,80,.3)', top: '#ffffff', wolken: 0.6 },
-  vulkan: { sky: ['#2a1633', '#b2452f'], sonne: '#ffb36b', fern: '#4a2438', mitte: '#3b1f2c', nah: '#2d1820', face: ['#43302f', '#241a1b'], stein: 'rgba(0,0,0,.35)', top: '#5d4a48', wolken: 0.25 }
+  vulkan: { sky: ['#2a1633', '#b2452f'], sonne: '#ffb36b', fern: '#4a2438', mitte: '#3b1f2c', nah: '#2d1820', face: ['#43302f', '#241a1b'], stein: 'rgba(0,0,0,.35)', top: '#5d4a48', wolken: 0.25 },
+  wald: { sky: ['#7cc4a8', '#e4f4d0'], sonne: '#fff6c8', fern: '#7fae8c', mitte: '#4f8a5e', nah: '#336b45', face: ['#8a5a32', '#5e3a1d'], stein: 'rgba(50,30,10,.35)', top: '#5aa047', wolken: 0.7 },
+  wueste: { sky: ['#f6a24a', '#ffe7b0'], sonne: '#fff3c4', fern: '#eec08a', mitte: '#e0a766', nah: '#cf8f4d', face: ['#d9a35c', '#a8732f'], stein: 'rgba(120,70,20,.3)', top: '#f4d896', wolken: 0.35 },
+  hafen: { sky: ['#3f8fd0', '#d6ecfa'], sonne: '#fffbe0', fern: '#9fb6cc', mitte: '#6f8aa6', nah: '#4d6884', face: ['#7d8794', '#565f6c'], stein: 'rgba(30,40,55,.3)', top: '#4b505d', wolken: 0.85 },
+  mine: { sky: ['#1d1512', '#4a3527'], sonne: '#ffcf7a', fern: '#3a2a20', mitte: '#2e211a', nah: '#241913', face: ['#5e4a3c', '#3a2c22'], stein: 'rgba(0,0,0,.35)', top: '#7a6858', wolken: 0 },
+  nacht: { sky: ['#0b1030', '#3a2a6b'], sonne: '#f4f1ff', fern: '#2a2c5a', mitte: '#1f2048', nah: '#171637', face: ['#3b3f58', '#24273a'], stein: 'rgba(0,0,0,.3)', top: '#3f4456', wolken: 0.15 }
 };
 const SURF_COL = {
   gras: ['#6fcf4f', '#3f9c34'], erde: ['#b97c45', '#875628'], asphalt: ['#4b505d', '#31343d'], holz: ['#c98f4e', '#8e5c2b'], stein: ['#9b948d', '#6b655f'],
@@ -266,6 +271,13 @@ function zeichneHimmel(sz, t) {
   const g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, pal.sky[0]); g.addColorStop(1, pal.sky[1]);
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  if (sz.level.theme === 'nacht') { // Sterne
+    const rs = rng(sz.level.id * 131), off = cam.x * cam.ppm * 0.02;
+    for (let i = 0; i < 70; i++) {
+      const x = (((rs() * (W + 200) - off) % (W + 200)) + W + 200) % (W + 200) - 100, y = rs() * H * 0.55, a = 0.35 + 0.45 * rs();
+      ctx.fillStyle = 'rgba(255,255,255,' + (a * (0.75 + 0.25 * Math.sin(t * 2 + i))).toFixed(2) + ')'; ctx.fillRect(x, y, 2, 2);
+    }
+  }
   // Sonne
   const sx = W * 0.78 - cam.x * 0.4, sy = H * 0.2 + cam.y * 0.6;
   const sxm = ((sx % (W * 1.6)) + W * 1.6) % (W * 1.6) - W * 0.2;
@@ -287,6 +299,11 @@ function zeichneHimmel(sz, t) {
   ebene(0.12, pal.fern, base - 0.0 * ppm, 0.9, sz.ph[0], sz.level.theme, 0, ppm);
   ebene(0.28, pal.mitte, base + 1.5 * ppm, 0.65, sz.ph[1], sz.level.theme, 1, ppm);
   ebene(0.5, pal.nah, base + 3.5 * ppm, 0.45, sz.ph[2], sz.level.theme, 2, ppm);
+  if (sz.level.theme === 'mine') { // Laternenschein von unten
+    const lg = ctx.createLinearGradient(0, H * 0.4, 0, H);
+    lg.addColorStop(0, 'rgba(255,190,90,0)'); lg.addColorStop(1, 'rgba(255,190,90,.12)');
+    ctx.fillStyle = lg; ctx.fillRect(0, H * 0.4, W, H * 0.6);
+  }
   if (sz.level.theme === 'vulkan') { // Glühen am Horizont
     const lg = ctx.createLinearGradient(0, H * 0.4, 0, H);
     lg.addColorStop(0, 'rgba(255,90,30,0)'); lg.addColorStop(1, 'rgba(255,90,30,.25)');
@@ -309,9 +326,13 @@ function ebene(f, farbe, base, hoehe, phase, theme, idx, ppm) {
   for (let sx = 0; sx <= W + step; sx += step) {
     const x = (sx + off) / 160;
     let y;
-    if (theme === 'baustelle' && idx < 2) { // Skyline
+    if ((theme === 'baustelle' || theme === 'nacht' || (theme === 'hafen' && idx === 0)) && idx < 2) { // Skyline
       const b = Math.floor(x * 1.6 + phase), hgt = 0.35 + 0.65 * frac(Math.sin(b * 12.9898 + idx) * 43758.5);
       y = yb - amp * hgt * 1.4;
+    } else if (theme === 'wueste') { // Dünen: weiche, lange Wellen
+      y = yb - amp * (0.5 + 0.35 * Math.sin(x * 0.45 + phase) + 0.12 * Math.sin(x * 1.1 + phase * 1.3));
+    } else if (theme === 'mine' && idx === 0) { // Stollenwand mit Stützbalken
+      y = yb - amp * (frac(x * 1.2 + phase) < 0.12 ? 1.6 : 0.9 + 0.2 * Math.sin(x * 2 + phase));
     } else if (theme === 'canyon' && idx === 0) { // Tafelberge
       const v = Math.sin(x * 0.7 + phase) + 0.5 * Math.sin(x * 1.9 + phase * 2);
       y = yb - amp * (v > 0.3 ? 1.1 : 0.35);
@@ -349,6 +370,11 @@ function silhouette(theme, x, y, s) {
     case 'insel': ctx.moveTo(x, y); ctx.quadraticCurveTo(x + s * 0.2, y - s * 0.6, x + s * 0.1, y - s * 1.2); ctx.lineTo(x + s * 0.18, y - s * 1.2); ctx.quadraticCurveTo(x + s * 0.3, y - s * 0.6, x + s * 0.1, y);
       for (let i = 0; i < 5; i++) { const a = -2.6 + i * 0.55; ctx.moveTo(x + s * 0.14, y - s * 1.2); ctx.quadraticCurveTo(x + s * 0.14 + Math.cos(a) * s * 0.5, y - s * 1.35 + Math.sin(a) * s * 0.3, x + s * 0.14 + Math.cos(a) * s * 0.8, y - s * 1.0 + Math.sin(a) * s * 0.2); ctx.lineTo(x + s * 0.14, y - s * 1.16); } break;
     case 'vulkan': ctx.moveTo(x - s, y); ctx.lineTo(x - s * 0.2, y - s * 1.3); ctx.lineTo(x + s * 0.2, y - s * 1.3); ctx.lineTo(x + s, y); break;
+    case 'wald': for (let i = 0; i < 4; i++) { ctx.moveTo(x - s * (0.45 - i * 0.08), y - s * i * 0.4); ctx.lineTo(x, y - s * (0.7 + i * 0.4)); ctx.lineTo(x + s * (0.45 - i * 0.08), y - s * i * 0.4); } break;
+    case 'wueste': ctx.rect(x - s * 0.08, y - s * 1.0, s * 0.16, s * 1.0); ctx.rect(x - s * 0.38, y - s * 0.7, s * 0.1, s * 0.3); ctx.rect(x - s * 0.38, y - s * 0.45, s * 0.3, s * 0.08); ctx.rect(x + s * 0.24, y - s * 0.85, s * 0.1, s * 0.35); ctx.rect(x + s * 0.08, y - s * 0.55, s * 0.26, s * 0.08); break;
+    case 'hafen': ctx.rect(x, y - s * 2.4, s * 0.12, s * 2.4); ctx.moveTo(x - s * 0.9, y - s * 2.3); ctx.lineTo(x + s * 1.4, y - s * 2.3); ctx.lineTo(x + s * 1.4, y - s * 2.15); ctx.lineTo(x - s * 0.9, y - s * 2.15); ctx.rect(x - s * 0.7, y - s * 0.6, s * 1.6, s * 0.6); break;
+    case 'mine': ctx.rect(x - s * 0.5, y - s * 1.2, s * 0.12, s * 1.2); ctx.rect(x + s * 0.38, y - s * 1.2, s * 0.12, s * 1.2); ctx.rect(x - s * 0.6, y - s * 1.3, s * 1.2, s * 0.14); break;
+    case 'nacht': ctx.rect(x - s * 0.3, y - s * 1.6, s * 0.6, s * 1.6); ctx.rect(x - s * 0.05, y - s * 1.9, s * 0.1, s * 0.3); break;
   }
   ctx.fill();
 }
@@ -457,6 +483,31 @@ function zeichneDeko(theme, d, t) {
       else if (v < 0.7) { ctx.fillStyle = '#ffffff'; ctx.fillRect(-0.02, 0, 0.04, 1.3); ctx.fillStyle = '#ff5a5a'; ctx.beginPath(); ctx.moveTo(-0.8, 1.3); ctx.quadraticCurveTo(0, 1.8, 0.8, 1.3); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(-0.27, 1.3); ctx.quadraticCurveTo(0, 1.75, 0.27, 1.3); ctx.closePath(); ctx.fill(); }
       else { ctx.fillStyle = '#f7a0a0'; blob(0, 0.1, 0.18, 0.12); }
       break;
+    case 'wald':
+      if (v < 0.45) { tanne(); }
+      else if (v < 0.75) { baum(0.0, '#3c8a4a', '#2c6b38'); }
+      else { ctx.fillStyle = '#f2ebe0'; ctx.fillRect(-0.06, 0, 0.12, 0.3); ctx.fillStyle = '#d93a2b'; ctx.beginPath(); ctx.ellipse(0, 0.3, 0.26, 0.17, 0, 0, Math.PI); ctx.fill(); ctx.fillStyle = '#fff'; blob(-0.09, 0.38, 0.04, 0.04); blob(0.08, 0.41, 0.035, 0.035); }
+      break;
+    case 'wueste':
+      if (v < 0.4) { ctx.fillStyle = '#4c8a3a'; rrect(-0.15, 0, 0.3, 1.5, 0.15); rrect(-0.55, 0.55, 0.2, 0.55, 0.1); rrect(-0.55, 0.55, 0.55, 0.17, 0.08); rrect(0.35, 0.75, 0.2, 0.5, 0.1); rrect(0.1, 0.75, 0.45, 0.17, 0.08); }
+      else if (v < 0.6) { palme(); }
+      else { ctx.fillStyle = '#c99a5a'; blob(0, 0.2, 0.55, 0.25); ctx.fillStyle = '#e2b877'; blob(-0.12, 0.28, 0.3, 0.14); }
+      break;
+    case 'hafen':
+      if (v < 0.35) { ctx.fillStyle = ['#d64a3a', '#2c6fd6', '#2f9e5b', '#e0a100'][Math.floor(d.t * 40) % 4]; ctx.fillRect(-1.1, 0, 2.2, 1.1); ctx.fillStyle = 'rgba(0,0,0,.2)'; for (let i = 0; i < 6; i++) ctx.fillRect(-1.0 + i * 0.36, 0.08, 0.08, 0.94); }
+      else if (v < 0.65) { ctx.fillStyle = '#3a3f4a'; ctx.fillRect(-0.2, 0, 0.4, 0.45); ctx.fillStyle = '#f2b81f'; ctx.fillRect(-0.24, 0.42, 0.48, 0.08); }
+      else { ctx.fillStyle = '#c8cfd8'; ctx.fillRect(-0.03, 0, 0.06, 1.6); ctx.fillStyle = '#ff7a1a'; ctx.fillRect(-0.16, 1.45, 0.32, 0.14); }
+      break;
+    case 'mine':
+      if (v < 0.4) { ctx.fillStyle = '#6b4a2b'; ctx.fillRect(-0.06, 0, 0.12, 1.4); ctx.fillStyle = `rgba(255,200,90,${0.75 + 0.2 * Math.sin(t * 5 + d.x)})`; blob(0.22, 1.25, 0.11, 0.13); ctx.fillStyle = 'rgba(255,200,90,.18)'; blob(0.22, 1.25, 0.5, 0.5); ctx.fillStyle = '#3a2c22'; ctx.fillRect(0, 1.38, 0.3, 0.05); }
+      else if (v < 0.7) { ctx.fillStyle = '#5a5f6a'; ctx.beginPath(); ctx.moveTo(-0.6, 0.15); ctx.lineTo(0.6, 0.15); ctx.lineTo(0.5, 0.65); ctx.lineTo(-0.5, 0.65); ctx.fill(); ctx.fillStyle = '#9a8f84'; blob(-0.2, 0.68, 0.22, 0.1); blob(0.15, 0.7, 0.2, 0.09); ctx.fillStyle = '#222'; blob(-0.35, 0.1, 0.1, 0.1); blob(0.35, 0.1, 0.1, 0.1); }
+      else { ctx.fillStyle = '#7fd6ff'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-0.15, 0.35); ctx.lineTo(0, 0.6); ctx.lineTo(0.15, 0.35); ctx.fill(); ctx.fillStyle = '#c38bff'; ctx.beginPath(); ctx.moveTo(0.25, 0); ctx.lineTo(0.15, 0.25); ctx.lineTo(0.3, 0.42); ctx.lineTo(0.4, 0.22); ctx.fill(); }
+      break;
+    case 'nacht':
+      if (v < 0.45) { ctx.fillStyle = '#2b2f3e'; ctx.fillRect(-0.04, 0, 0.08, 1.9); ctx.fillRect(-0.04, 1.84, 0.4, 0.06); ctx.fillStyle = '#fff2b3'; blob(0.34, 1.78, 0.1, 0.07); ctx.fillStyle = 'rgba(255,240,170,.16)'; ctx.beginPath(); ctx.moveTo(0.3, 1.75); ctx.lineTo(-0.2, 0); ctx.lineTo(0.9, 0); ctx.fill(); }
+      else if (v < 0.75) { const c = ['#ff4fa3', '#38e1ff', '#ffd21c'][Math.floor(d.t * 30) % 3]; ctx.strokeStyle = c; ctx.lineWidth = 0.07; ctx.strokeRect(-0.5, 0.5, 1.0, 0.5); ctx.fillStyle = c; ctx.fillRect(-0.03, 0, 0.06, 0.5); }
+      else { ctx.fillStyle = '#3a3f52'; ctx.fillRect(-0.3, 0, 0.6, 0.6); ctx.fillStyle = '#ffe28a'; ctx.fillRect(-0.2, 0.2, 0.15, 0.15); ctx.fillRect(0.05, 0.2, 0.15, 0.15); }
+      break;
     case 'vulkan':
       if (v < 0.5) { ctx.fillStyle = '#2a1e1f'; ctx.beginPath(); ctx.moveTo(-0.5, 0); ctx.lineTo(-0.1, 1.4); ctx.lineTo(0.15, 0.6); ctx.lineTo(0.3, 0.9); ctx.lineTo(0.5, 0); ctx.fill(); }
       else { ctx.strokeStyle = '#2a1e1f'; ctx.lineWidth = 0.1; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 1.2); ctx.lineTo(-0.35, 1.6); ctx.moveTo(0, 0.9); ctx.lineTo(0.4, 1.3); ctx.stroke();
@@ -527,7 +578,7 @@ function zeichneObjekte(sim, t) {
         break;
       }
       case 'rock': {
-        const c = lv.theme === 'insel' ? ['#b3a58f', '#7d705f'] : lv.theme === 'gletscher' ? ['#a9bdd1', '#6e86a0'] : lv.theme === 'vulkan' ? ['#4b3c3a', '#2c2223'] : ['#a99c90', '#71665c'];
+        const c = lv.theme === 'insel' ? ['#b3a58f', '#7d705f'] : lv.theme === 'gletscher' ? ['#a9bdd1', '#6e86a0'] : lv.theme === 'vulkan' || lv.theme === 'mine' ? ['#4b3c3a', '#2c2223'] : lv.theme === 'wald' ? ['#8d8a7c', '#5f5c50'] : lv.theme === 'wueste' ? ['#c99a5a', '#94682f'] : ['#a99c90', '#71665c'];
         const r0 = rng(Math.round(p.x * 13 + p.y * 7));
         const pts = []; for (let i = 0; i < 9; i++) { const a = (i / 9) * Math.PI * 2 + r0() * 0.3, rr = o.r * (0.88 + r0() * 0.2); pts.push([p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr]); }
         extrudiert(pts, c[1], c[0], 'rgba(0,0,0,.3)');
@@ -563,7 +614,7 @@ function zeichneObjekte(sim, t) {
           const cols = ['#ff5a5a', '#ffffff', '#3fa9f5', '#ffd23f'];
           for (let i = 0; i < 4; i++) { ctx.fillStyle = cols[i]; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, o.r, i * Math.PI / 2, (i + 1) * Math.PI / 2); ctx.fill(); }
         } else {
-          const fass = lv.theme === 'insel' || lv.theme === 'wiese' ? ['#a8723c', '#6e4520', '#c98f4e'] : ['#2c6fd6', '#1b4a96', '#5a95ef'];
+          const fass = lv.theme === 'insel' || lv.theme === 'wiese' || lv.theme === 'wald' ? ['#a8723c', '#6e4520', '#c98f4e'] : ['#2c6fd6', '#1b4a96', '#5a95ef'];
           ctx.fillStyle = fass[0]; ctx.beginPath(); ctx.arc(0, 0, o.r, 0, 7); ctx.fill();
           ctx.strokeStyle = fass[1]; ctx.lineWidth = o.r * 0.14; ctx.beginPath(); ctx.arc(0, 0, o.r * 0.86, 0, 7); ctx.stroke();
           ctx.beginPath(); ctx.arc(0, 0, o.r * 0.5, 0, 7); ctx.stroke();

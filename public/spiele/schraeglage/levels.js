@@ -12,7 +12,12 @@ export const THEMES = {
   gletscher: { name: 'Gletscher', surface: 'schnee' },
   insel:     { name: 'Insel',     surface: 'strand' },
   vulkan:    { name: 'Vulkan',    surface: 'stein' },
-  gipfel:    { name: 'Gipfel',    surface: 'schnee' }
+  gipfel:    { name: 'Gipfel',    surface: 'schnee' },
+  wald:      { name: 'Wald',      surface: 'erde' },
+  wueste:    { name: 'Wüste',     surface: 'strand' },
+  hafen:     { name: 'Hafen',     surface: 'asphalt' },
+  mine:      { name: 'Bergwerk',  surface: 'stein' },
+  nacht:     { name: 'Mitternacht', surface: 'asphalt' }
 };
 
 class Bau {
@@ -156,6 +161,11 @@ function L(id, name, opts, build) {
 // Level 21–25: Fahrzeugwechsel, große Räder, Balance
 // Level 26–30: alles zusammen
 // Level 31–35: Gipfel (Zusatzwelt): steile Hänge, Eis, lange Brücken, schwere Fahrzeuge, Finale mit allen fünf Fahrzeugen
+// Level 36–40: Wald: Schlamm, Baumstämme, Pilz-Trampoline, Baumwipfelpfad
+// Level 41–45: Wüste: Tiefsand, Dünen, Oasen, Sandsturm
+// Level 46–50: Hafen: Container, Fähren, Drehbrücken, Ladekräne
+// Level 51–55: Bergwerk: niedrige Stollendecken, Aufzüge, Loren, Glutnester
+// Level 56–60: Mitternacht: alles zusammen, großes Finale mit allen fünf Fahrzeugen
 export const LEVELS = [
   // ------------------------------------------------ Wiese
   L(1, 'Erste Runde', { theme: 'wiese', gold: 14, tip: 'Halte Gas gedrückt. Vor großen Kuppen kurz loslassen.' }, (b) => {
@@ -278,5 +288,85 @@ export const LEVELS = [
   }),
   L(35, 'Gipfelkreuz', { theme: 'gipfel', gold: 28, tip: 'Das große Finale: alle fünf Fahrzeuge, ein Berg. Viel Glück!' }, (b) => {
     b.flat(8).kicker(6, 1.2).gap(8, -0.5).flat(5).swap('strandfloh', 2).flat(6).fallBridge(12, 4).flat(4).swingGap(9, 6).flat(5).swap('pritsche', 2).flat(6).surf('boost').flat(5).surf().kicker(7, 1.5).gap(12, -1).flat(4).swap('brummi', 2).flat(8).bridge(12, 0, { density: 90 }).flat(5).seesaw(10, { limit: 10, density: 14 }).flat(5).swap('wummser', 2).flat(6).stairs(3, 3.5, 0.75).flat(4).elevator(7, 5, 3, 6).flat(5).kicker(7, 1.4).gap(9, -0.5).flat(6);
+  }),
+  // ------------------------------------------------ Wald
+  L(36, 'Waldweg', { theme: 'wald', gold: 17, tip: 'Schlamm bremst stark. Mit Schwung rein, Gas halten!' }, (b) => {
+    b.flat(8).bumps(10, 0.35, 3).flat(4).surf('schlamm').flat(5).surf().flat(4).curve(8, 1.2).flat(4).bridge(12, 0).flat(5).surf('schlamm').flat(4).surf().kicker(6, 1).gap(6, -0.8).flat(6).hill(12, 1.2).flat(4);
+  }),
+  L(37, 'Holzfäller', { theme: 'wald', gold: 10.5, vehicle: 'brummi', tip: 'Baumstämme liegen quer. Der Brummi rollt sie einfach weg.' }, (b) => {
+    b.flat(10).barrel(4, 0, 0.5).barrel(5.1, 0, 0.5).barrel(4.55, 0.95, 0.45).flat(12).surf('schlamm').flat(5).surf().flat(4).bridge(14, 0, { density: 90 }).flat(6).crate(3, 0, 1.2).crate(4.3, 0, 1.2).flat(12).curve(10, 1.5).flat(4).barrel(3, 0, 0.5).flat(8).curve(10, -1.5).flat(6);
+  }),
+  L(38, 'Pilzhüpfer', { theme: 'wald', gold: 9, vehicle: 'strandfloh', tip: 'Rote Pilze federn dich hoch. In der Luft gerade bleiben!' }, (b) => {
+    b.flat(8).curve(6, 1).flat(4).kicker(5, 0.6).gap(5, -0.6).surf('trampolin').flat(5).surf().curve(6, 0.6).flat(6).bumps(8, 0.3, 2).flat(4).kicker(5, 0.6).gap(5, -0.6).surf('trampolin').flat(5).surf().curve(6, 0.6).flat(5).surf('schlamm').flat(3).surf().flat(4).kicker(5, 0.8).gap(5, -0.8).flat(6);
+  }),
+  L(39, 'Wurzelwerk', { theme: 'wald', gold: 13.5, vehicle: 'wummser', tip: 'Wurzeln und Stufen: der Wummser klettert, aber nicht zu wild.' }, (b) => {
+    b.flat(8).rock(4, 0.8, -0.3).rock(8, 0.9, -0.35).flat(12).stairs(3, 3.5, 0.6).flat(4).surf('schlamm').flat(5).surf().seesaw(10).flat(5).rock(4, 1.0, -0.4).flat(8).curve(10, -2).flat(4).kicker(8, 1.6).gap(8, -1).flat(6);
+  }),
+  L(40, 'Baumwipfelpfad', { theme: 'wald', gold: 11, vehicle: 'pritsche', tip: 'Hoch oben in den Wipfeln: Hängebrücken, Schaukeln, morsche Bretter.' }, (b) => {
+    b.flat(8).curve(10, 2.5).flat(4).bridge(14, 0, { h: 0.26 }).flat(4).swingGap(10.5, 6.5).flat(5).fallBridge(12, 4, { delay: 16 }).flat(4).bridge(12, 0.4, { h: 0.26 }).flat(4).kicker(7, 1.2).gap(9, -1.5).flat(6);
+  }),
+  // ------------------------------------------------ Wüste
+  L(41, 'Dünenmeer', { theme: 'wueste', gold: 12, vehicle: 'strandfloh', tip: 'Weiche Dünen: oben kurz vom Gas, unten wieder drauf.' }, (b) => {
+    b.flat(8).hill(16, 2).flat(4).hill(18, 2.5).flat(3).kicker(7, 1.2).gap(8, -1.2).flat(4).hill(14, 1.6).flat(4).surf('sand').flat(4).surf().curve(10, 1.5).kicker(6, 0.8).gap(7, -1.8).flat(6);
+  }),
+  L(42, 'Treibsand', { theme: 'wueste', gold: 12, vehicle: 'wummser', tip: 'Tiefsand zieht dich runter. Turbo-Streifen helfen.' }, (b) => {
+    b.flat(8).surf('sand').flat(8).surf().flat(4).rock(3, 0.9, -0.3).flat(8).surf('boost').flat(5).surf('sand').flat(10).surf().curve(8, 1.5).flat(4).stairs(2, 3.5, 0.6).flat(4).surf('sand').curve(10, -2.5).surf().flat(4).kicker(8, 1.5).gap(8, -1).flat(6);
+  }),
+  L(43, 'Oase', { theme: 'wueste', gold: 10.5, tip: 'Wasserlöcher im Sand. Brücke und Wippe sind die trockenen Wege.' }, (b) => {
+    b.flat(8).curve(8, 1).flat(4).kicker(6, 1).water(7, -1).flat(5).bridge(12, 0, { unten: 'wasser' }).flat(5).surf('sand').flat(4).surf().seesaw(9, { unten: 'wasser' }).flat(5).kicker(6, 1.1).water(8, -0.5).flat(6);
+  }),
+  L(44, 'Karawane', { theme: 'wueste', gold: 13.5, vehicle: 'brummi', tip: 'Mit dem Brummi die Ladung wegschieben, dann mit dem Floh über die Dünen.' }, (b) => {
+    b.flat(10).bridge(14, 0, { density: 90 }).flat(6).crate(3, 0, 1.2).crate(3, 1.2, 1.2).crate(4.4, 0, 1.2).barrel(8, 0).barrel(9.2, 0).flat(14).surf('sand').flat(6).surf().flat(8).swap('strandfloh', 3).flat(8).hill(14, 2).flat(3).kicker(7, 1.3).gap(9, -1).flat(4).hill(12, 1.5).flat(6);
+  }),
+  L(45, 'Sandsturm', { theme: 'wueste', gold: 9.5, vehicle: 'pritsche', tip: 'Weite Sprünge über die Dünentäler. Turbo vorher mitnehmen.' }, (b) => {
+    b.flat(6).surf('boost').flat(6).surf().kicker(8, 1.5).gap(11, -0.5).flat(4).surf('sand').flat(4).surf().curve(10, 2).flat(3).kicker(8, 1.4).gap(10, -1.5).flat(4).fallBridge(12, 4).flat(4).surf('boost').flat(5).surf().kicker(8, 1.6).gap(12, -1).flat(6);
+  }),
+  // ------------------------------------------------ Hafen
+  L(46, 'Kaimauer', { theme: 'hafen', gold: 17.5, tip: 'Container im Weg, Fähre über das Becken. Erst schauen, dann fahren.' }, (b) => {
+    b.flat(8).barrel(5, 0).flat(10).stairs(2, 3, 0.6).flat(4).curve(8, -1.2).flat(4).ferry(13, 5.5, 5, { unten: 'wasser', wait: 0.3 }).flat(6).kicker(6, 1).water(7, -0.8).flat(6).crate(4, 0, 0.9).crate(5, 0, 0.9).flat(10);
+  }),
+  L(47, 'Drehbrücke', { theme: 'hafen', gold: 21, vehicle: 'pritsche', tip: 'Die Drehbrücke kreist. Warte, bis sie flach liegt, dann zügig drüber.' }, (b) => {
+    b.flat(10).rotorGap(6, 6.4, 0.35, { unten: 'wasser' }).flat(8).curve(8, 1).flat(4).kicker(7, 1.3).water(9, -1).flat(6).rotorGap(6, 6.4, 0.35, { unten: 'wasser' }).flat(8);
+  }),
+  L(48, 'Containerstapel', { theme: 'hafen', gold: 18.5, vehicle: 'wummser', tip: 'Containertürme hoch und runter. Große Räder, kleine Schritte.' }, (b) => {
+    b.flat(8).stairs(3, 4, 0.7).flat(4).crate(3, 0, 1.2).flat(6).line(8, -2.1).flat(4).box(3.5, 0.6, 3, 1.2, { surface: 'metall' }).flat(10).stairs(2, 4, 0.75).flat(4).curve(10, -1.5).flat(4).kicker(8, 1.5).water(8, -1).flat(6);
+  }),
+  L(49, 'Ladekran', { theme: 'hafen', gold: 22.5, tip: 'Kranplattformen schaukeln über dem Wasser. Sanft auffahren!' }, (b) => {
+    b.flat(8).swingGap(10.5, 6.5, { unten: 'wasser' }).flat(6).elevator(7, 5, 3, 6).flat(6).bridge(12, 0, { unten: 'wasser' }).flat(5).curve(8, -1.5).flat(4).kicker(6, 1).water(7, -1).flat(6);
+  }),
+  L(50, 'Leinen los!', { theme: 'hafen', gold: 24.5, vehicle: 'brummi', tip: 'Erst mit dem Brummi die Container wegschieben, dann mit dem Floh auf Fähre und Drehbrücke.' }, (b) => {
+    b.flat(10).crate(3, 0, 1.2).crate(3, 1.2, 1.2).crate(4.4, 0, 1.2).flat(12).bridge(14, 0, { density: 90, unten: 'wasser' }).flat(6).swap('strandfloh', 3).flat(8).ferry(12, 5, 5, { unten: 'wasser', wait: 0.3 }).flat(6).rotorGap(6, 6.4, 0.35, { unten: 'wasser' }).flat(6).kicker(7, 1.4).water(10, -1).flat(6);
+  }),
+  // ------------------------------------------------ Bergwerk
+  L(51, 'Stollen', { theme: 'mine', gold: 11, tip: 'Niedrige Decke! Nicht zu hoch springen, sonst stößt du dir den Kopf.' }, (b) => {
+    b.flat(8).ceiling(2, 26, 3.4).bumps(10, 0.35, 3).flat(4).kicker(4, 0.5).gap(4, -0.5).flat(8).curve(8, -1.5).ceiling(-1, 22, 3.4).flat(4).stairs(2, 3, 0.5).flat(8).kicker(6, 1).gap(6, -1).flat(6);
+  }),
+  L(52, 'Lorenbahn', { theme: 'mine', gold: 15.5, vehicle: 'pritsche', tip: 'Stahlschienen sind glatt. Aufzug abwarten, Bröckelboden nicht.' }, (b) => {
+    b.flat(8).surf('metall').flat(10).surf().elevator(7, 5, 3, 5).flat(6).fallBridge(12, 4).flat(4).surf('metall').curve(10, -2).surf().flat(4).ferry(12, 5.5, 5, { wait: 0.3 }).flat(5).kicker(6, 1).gap(6, -1.5).flat(6);
+  }),
+  L(53, 'Förderschacht', { theme: 'mine', gold: 20, vehicle: 'wummser', tip: 'Zwei Aufzüge nach oben. Oben angekommen: Gas!' }, (b) => {
+    b.flat(8).stairs(2, 3.5, 0.6).flat(4).elevator(8, 5.5, 3, 6).flat(6).rock(3, 0.9, -0.3).flat(8).stairs(3, 3.5, 0.7).flat(6).curve(12, -3).flat(4).kicker(8, 1.5).gap(8, -1).flat(6);
+  }),
+  L(54, 'Sprengkammer', { theme: 'mine', gold: 16, vehicle: 'strandfloh', tip: 'Federboden, Drehbalken, tiefe Decke: hier zählt Gefühl.' }, (b) => {
+    b.flat(8).kicker(6, 1).gap(5, 1).flat(6).rotorGap(6, 6.4, 0.35, {}).flat(6).ceiling(1, 20, 3.2).bumps(8, 0.3, 2).flat(4).kicker(4, 0.5).gap(4, -0.6).flat(6).curve(8, -1.5).flat(8);
+  }),
+  L(55, 'Glutnest', { theme: 'mine', gold: 13, vehicle: 'brummi', tip: 'Tief unten glüht es. Der Brummi ist schwer, die Bretter halten nicht lange.' }, (b) => {
+    b.flat(10).bridge(14, 0, { density: 90, unten: 'lava' }).flat(6).crate(3, 0, 1.2).crate(3, 1.2, 1.2).flat(10).seesaw(14, { limit: 10, density: 14, unten: 'lava' }).flat(8).elevator(8, 6.5, 3, 6, { unten: 'lava' }).flat(6).curve(10, -2).flat(6);
+  }),
+  // ------------------------------------------------ Mitternacht
+  L(56, 'Nachtschicht', { theme: 'nacht', gold: 14, tip: 'Im Dunkeln über die Stadt: Rampen, Brücken, Wippen.' }, (b) => {
+    b.flat(8).kicker(6, 1.2).gap(8, -0.5).flat(5).bridge(12, 0).flat(5).seesaw(9).flat(5).surf('boost').flat(5).surf().kicker(7, 1.4).gap(10, -1).flat(5).stairs(2, 3, 0.7).flat(4).kicker(6, 1).gap(7, -1.5).flat(6);
+  }),
+  L(57, 'Sternschnuppe', { theme: 'nacht', gold: 11, vehicle: 'strandfloh', tip: 'Riesensprünge unter dem Sternenhimmel. Nase leicht unten halten.' }, (b) => {
+    b.flat(6).curve(10, 4).flat(4).line(14, -5).kicker(6, 0.8).gap(14, -6).line(16, -4).curve(10, -1).flat(6).hill(12, 1.5).flat(4).kicker(8, 1.4).gap(10, -1).flat(6);
+  }),
+  L(58, 'Geisterbahn', { theme: 'nacht', gold: 18, vehicle: 'wummser', tip: 'Drehbalken, Wippen und Bröckelboden. Nicht erschrecken!' }, (b) => {
+    b.flat(8).rock(4, 0.9, -0.3).flat(8).seesaw(11, { limit: 12 }).flat(5).rotorGap(6, 6.4, 0.35, {}).flat(6).fallBridge(10, 3).flat(4).stairs(2, 3.5, 0.7).flat(4).curve(10, -2).flat(4).kicker(8, 1.5).gap(8, -1).flat(6);
+  }),
+  L(59, 'Neonmeile', { theme: 'nacht', gold: 12, vehicle: 'pritsche', tip: 'Turbo, Eis und Schlamm im Wechsel. Gefühl schlägt Vollgas.' }, (b) => {
+    b.flat(6).surf('boost').flat(6).surf().kicker(8, 1.5).gap(11, -0.5).flat(4).surf('eis').flat(8).surf('schlamm').flat(4).surf().flat(4).ferry(12, 5.5, 5, { wait: 0.3 }).flat(5).surf('boost').flat(5).surf().kicker(7, 1.5).gap(12, -1).flat(4).bridge(12, 0).flat(6);
+  }),
+  L(60, 'Grenzgänger', { theme: 'nacht', gold: 27, tip: 'Level 60: alle fünf Fahrzeuge, alle Tricks. Respekt, wenn du hier ankommst!' }, (b) => {
+    b.flat(8).kicker(6, 1.2).gap(8, -0.5).flat(5).surf('schlamm').flat(4).surf().flat(3).swap('strandfloh', 2).flat(6).surf('feder').flat(3).surf().flat(5).gap(6, 2.5).flat(5).swingGap(9, 6).flat(5).swap('pritsche', 2).flat(6).surf('boost').flat(5).surf().kicker(7, 1.5).gap(12, -1).flat(4).rotorGap(6, 6.4, 0.35, {}).flat(5).swap('brummi', 2).flat(8).bridge(12, 0, { density: 90 }).flat(5).swap('wummser', 2).flat(6).stairs(3, 3.5, 0.75).flat(4).elevator(7, 5, 3, 6).flat(5).kicker(7, 1.4).gap(9, -0.5).flat(6);
   })
 ];

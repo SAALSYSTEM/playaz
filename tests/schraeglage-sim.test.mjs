@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createSim, replay, verifyRun, decodeInputs, encodeInputs, SIM_VERSION, VEHICLES, DT } from '../public/spiele/schraeglage/sim.js';
-import { LEVELS } from '../public/spiele/schraeglage/levels.js';
+import { LEVELS, THEMES } from '../public/spiele/schraeglage/levels.js';
 import { dsin, dcos, datan2 } from '../public/spiele/schraeglage/det.js';
 import { AWARDS, evaluateAwards, progressOf } from '../public/spiele/schraeglage/awards.js';
 
@@ -27,8 +27,8 @@ test('deterministische Winkelfunktionen: genau genug und ohne Math.sin/cos', () 
   assert.doesNotMatch(readFileSync(join(ROOT, 'public/spiele/schraeglage/planck.js'), 'utf8'), /Math\.(sin|cos|atan2)\b/);
 });
 
-test('35 Level, aufsteigende IDs, jedes mit Ziel, Fahrzeug, Goldzeit und Tipp', () => {
-  assert.equal(LEVELS.length, 35);
+test('60 Level, aufsteigende IDs, jedes mit Ziel, Fahrzeug, Goldzeit und Tipp', () => {
+  assert.equal(LEVELS.length, 60);
   LEVELS.forEach((l, i) => {
     assert.equal(l.id, i + 1);
     assert.ok(VEHICLES[l.vehicle], 'Fahrzeug ' + l.id);
@@ -52,7 +52,7 @@ test('Simulation ist deterministisch: gleicher Lauf, gleiches Ergebnis bis aufs 
   }
 });
 
-test('jedes der 35 Level ist mit der gespeicherten Bot-Lösung lösbar, die Goldzeit ist erreichbar', () => {
+test('jedes der 60 Level ist mit der gespeicherten Bot-Lösung lösbar, die Goldzeit ist erreichbar', () => {
   for (const l of LEVELS) {
     const s = LOES[l.id];
     assert.ok(s, 'keine Lösung für Level ' + l.id);
@@ -166,4 +166,28 @@ test('Gipfel-Welt: Level 31–35 gehören zusammen, mit Gesamt-Fahrzeugwechsel i
   const g = LEVELS.filter((l) => l.theme === 'gipfel');
   assert.deepEqual(g.map((l) => l.id), [31, 32, 33, 34, 35]);
   assert.ok(LEVELS[34].swaps.length >= 4, 'Finale wechselt durch alle Fahrzeuge');
+});
+
+test('Neue Welten 36–60: je fünf Level, neue Elemente kommen vor, Finale 60 mit allen Fahrzeugen', () => {
+  const welten = { wald: [36, 40], wueste: [41, 45], hafen: [46, 50], mine: [51, 55], nacht: [56, 60] };
+  for (const [th, [a, b]] of Object.entries(welten)) {
+    assert.deepEqual(LEVELS.filter((l) => l.theme === th).map((l) => l.id), Array.from({ length: b - a + 1 }, (_, i) => a + i), th);
+    assert.ok(THEMES[th] && THEMES[th].name, 'Weltname ' + th);
+  }
+  const neu = LEVELS.slice(35);
+  const flaechen = new Set(neu.flatMap((l) => l.ground.flatMap((g) => g.surf)));
+  for (const f of ['schlamm', 'sand', 'trampolin']) assert.ok(flaechen.has(f), 'Untergrund ' + f);
+  assert.ok(neu.some((l) => l.objects.some((o) => o.type === 'rotor')), 'Drehbrücke');
+  assert.ok(LEVELS[59].swaps.length >= 4, 'Finale 60 wechselt durch alle Fahrzeuge');
+});
+
+test('Weltenbummler und Goldader brauchen alle 60 Level', () => {
+  const t = new Date('2026-10-23T12:00:00Z');
+  const voll = { levels: {}, stats: {}, awards: {} };
+  for (let i = 1; i <= 59; i++) voll.levels[i] = { done: true, gold: true };
+  const ohne = evaluateAwards(voll, 59, null, t).map((a) => a.id);
+  assert.ok(ohne.includes('meister') && !ohne.includes('weltenbummler') && !ohne.includes('goldader'));
+  voll.levels[60] = { done: true, gold: true };
+  const mit = evaluateAwards(voll, 60, null, t).map((a) => a.id);
+  assert.ok(mit.includes('weltenbummler') && mit.includes('goldader'));
 });

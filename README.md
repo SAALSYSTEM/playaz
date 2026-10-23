@@ -28,7 +28,7 @@ Früher PlayAZ; Umstellung siehe [`docs/PLAYSAAL_UMSTELLUNG.md`](docs/PLAYSAAL_U
 - `public/assets/` – selbst gehostete Schriften und three.js (keine externen CDNs, keine Google Fonts)
 - `design/` – Bildvorlagen in Originalgröße, `design/playsaal/` das Branding-Paket (wird nicht ausgeliefert)
 - `tools/domain.mjs` – kanonische Adresse prüfen bzw. beim Domainwechsel in einem Schritt umstellen
-- `tools/schraeglage-bot.mjs` – Lösungs-Bot für die 30 SCHRÄGLAGE-Level (Lösbarkeit, Timing-Toleranz, Goldzeiten), `tools/planck-vendor.mjs` – Physik-Engine neu einbinden
+- `tools/schraeglage-bot.mjs` – Lösungs-Bot für die 60 SCHRÄGLAGE-Level (Lösbarkeit, Timing-Toleranz, Goldzeiten), `tools/planck-vendor.mjs` – Physik-Engine neu einbinden
 - `tools/jungle-pruefer.mjs` – Streckenprüfer für die 30 JUNGLE-RUNNER-Level und den Endlosmodus (kollisionsfreie Route, Reaktionszeiten, Checkpoints, Sterne); schreibt `tests/jungle-loesungen.json`
 - `tools/zahlensturm-bot.mjs` – Lösungs-Bot für die 20 ZAHLENSTURM-Level (Lösbarkeit, Par, Münzrouten, Torvielfalt); schreibt `public/spiele/zahlensturm/par.js` und `tests/zahlensturm-loesungen.json`
 - `tests/` – Browser-Tests (Playwright gegen `wrangler dev`)

@@ -94,7 +94,7 @@ test('CORS: nur playsaal.com; Voranfrage und falsche Methode', async () => {
   assert.equal((await behandle(anfrage(null, { methode: 'GET' }), env, f)).status, 405);
 });
 
-test('Alle 35 Bot-Lösungen werden bestätigt und bleiben unter 2 s Rechenzeit je Lauf', async () => {
+test('Alle 60 Bot-Lösungen werden bestätigt und bleiben unter 2 s Rechenzeit je Lauf', async () => {
   const { f } = ersatz(); let max = 0;
   for (const id of Object.keys(L)) {
     const t = process.cpuUsage(); const r = await json(await behandle(anfrage(lauf(+id)), env, f)); const d = process.cpuUsage(t);

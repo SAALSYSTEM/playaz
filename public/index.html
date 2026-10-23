@@ -405,7 +405,7 @@
   const sg = read('sondengaenger.v1');
   if (sg && sg.stats && (sg.stats.finds || sg.stats.trash)) { const d = sg.daily || {}; show('sondengaenger', 'Stufe ' + (sg.lvl || 1) + ' · ' + n(sg.stats.finds || 0) + ' Funde' + (d.streak > 1 ? ' · Serie ' + d.streak : '')); }
   const sl = read('schraeglage.v1');
-  if (sl && sl.levels && typeof sl.levels === 'object') { const lv = Object.values(sl.levels).filter((l) => l && l.done); const g = lv.filter((l) => l.gold).length; if (lv.length) show('schraeglage', lv.length + ' von 35 Level' + (g ? ' · ' + g + ' Gold' : '')); }
+  if (sl && sl.levels && typeof sl.levels === 'object') { const lv = Object.values(sl.levels).filter((l) => l && l.done); const g = lv.filter((l) => l.gold).length; if (lv.length) show('schraeglage', lv.length + ' von 60 Level' + (g ? ' · ' + g + ' Gold' : '')); }
   const zs = read('zahlensturm.v1');
   if (zs && zs.levels && typeof zs.levels === 'object') { const lv = Object.values(zs.levels).filter((l) => l && l.done); const st = lv.reduce((a, l) => a + (l.stars || 0), 0); if (lv.length) show('zahlensturm', lv.length + ' von 20 Level · ' + st + ' Sterne'); }
   const jr = read('jungle.v1');

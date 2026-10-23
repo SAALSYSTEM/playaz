@@ -275,7 +275,8 @@
   "einfach": "0g.ecb.f6g",
   "einfachMs": 12850,
   "robust4": 1,
-  "robust8": 1
+  "robust8": 1,
+  "gold": 14
  },
  "32": {
   "ms": 7714,
@@ -283,7 +284,8 @@
   "einfach": "0g.a6b.gig",
   "einfachMs": 13962,
   "robust4": 0.8333333333333334,
-  "robust8": 0.5
+  "robust8": 0.5,
+  "gold": 9
  },
  "33": {
   "ms": 9098,
@@ -291,7 +293,8 @@
   "einfach": "0g.aib.b0n",
   "einfachMs": 9478,
   "robust4": 0.7333333333333333,
-  "robust8": 0.5333333333333333
+  "robust8": 0.5333333333333333,
+  "gold": 10.5
  },
  "34": {
   "ms": 21178,
@@ -310,5 +313,230 @@
   "robust4": 0.6,
   "robust8": 0.36666666666666664,
   "gold": 28
+ },
+ "36": {
+  "ms": 14806,
+  "inputs": "0g.a6b.aug.b0b.dcg.din.eig",
+  "einfach": "0g.a6b.din.eig",
+  "einfachMs": 14751,
+  "robust4": 0.9666666666666667,
+  "robust8": 0.7,
+  "gold": 17
+ },
+ "37": {
+  "ms": 9068,
+  "inputs": "0g",
+  "einfach": "0g",
+  "einfachMs": 9068,
+  "robust4": 1,
+  "robust8": 1,
+  "gold": 10.5
+ },
+ "38": {
+  "ms": 7955,
+  "inputs": "0g",
+  "einfach": "0g",
+  "einfachMs": 7955,
+  "robust4": 1,
+  "robust8": 1,
+  "gold": 9
+ },
+ "39": {
+  "ms": 11988,
+  "inputs": "0g",
+  "einfach": "0g",
+  "einfachMs": 11988,
+  "robust4": 1,
+  "robust8": 1,
+  "gold": 13.5
+ },
+ "40": {
+  "ms": 9813,
+  "inputs": "0g.46n.4cb.4ug.6on.76g.7cn.7ig.8cn.8ug.9in.a6g.acn.aob.b0n.b6g.bcn.bug.c6n.cig",
+  "einfach": "0g.4cb.4ug.8cn.aob.dug",
+  "einfachMs": 12469,
+  "robust4": 0.43333333333333335,
+  "robust8": 0.26666666666666666,
+  "gold": 11
+ },
+ "41": {
+  "ms": 10710,
+  "inputs": "0g.50n.5ib.5un.60g.66n.6og.6un.70g.76n.7cg.7un.80g.86n.8cg.8in.90g.9cn.9ig",
+  "einfach": "0g.50n.5ib.5un.aig",
+  "einfachMs": 15431,
+  "robust4": 0.5333333333333333,
+  "robust8": 0.3333333333333333,
+  "gold": 12
+ },
+ "42": {
+  "ms": 10368,
+  "inputs": "0g",
+  "einfach": "0g",
+  "einfachMs": 10368,
+  "robust4": 1,
+  "robust8": 1,
+  "gold": 12
+ },
+ "43": {
+  "ms": 9307,
+  "inputs": "0g.8on.8ub.9cg.9on.acg.aun.b0g",
+  "einfach": "0g.8ub.dug",
+  "einfachMs": 12589,
+  "robust4": 0.5666666666666667,
+  "robust8": 0.16666666666666666,
+  "gold": 10.5
+ },
+ "44": {
+  "ms": 11818,
+  "inputs": "0g.e6n.eug.iin.j6g",
+  "einfach": "0g.e6n.jug",
+  "einfachMs": 12956,
+  "robust4": 0.3,
+  "robust8": 0.3333333333333333,
+  "gold": 13.5
+ },
+ "45": {
+  "ms": 8281,
+  "inputs": "0g",
+  "einfach": "0g",
+  "einfachMs": 8281,
+  "robust4": 1,
+  "robust8": 1,
+  "gold": 9.5
+ },
+ "46": {
+  "ms": 15246,
+  "inputs": "0g.40n.46b.4cn.4ib.4on.6og.iin.iob.iug.j6n.jcg.jib.k6g.kub.l0g.mcn.mig",
+  "einfach": "0g.40n.46b.4cn.4ib.4on.6og.iob.l0g",
+  "einfachMs": 16169,
+  "robust4": 0,
+  "robust8": 0,
+  "gold": 17.5
+ },
+ "47": {
+  "ms": 18681,
+  "inputs": "0g.gcb.ion.j6b.kcn.l6g",
+  "einfach": "0g.gcb.l6g",
+  "einfachMs": 18677,
+  "robust4": 0.8666666666666667,
+  "robust8": 0.43333333333333335,
+  "gold": 21
+ },
+ "48": {
+  "ms": 16200,
+  "inputs": "0g.c0b.d6g",
+  "einfach": "0g.c0b.d6g",
+  "einfachMs": 16200,
+  "robust4": 0.3,
+  "robust8": 0.13333333333333333,
+  "gold": 18.5
+ },
+ "49": {
+  "ms": 19924,
+  "inputs": "0g.6b.cg.ib.ug.16n.2cb.3cg.46b.4ig.50b.5cg.5ib.60g.n0b.nug.o0b.ocn.pcb.pin.pog.pun.rog",
+  "einfach": "0g.6b.ug.16n.2cb.4ig.n0b.sug",
+  "einfachMs": 20890,
+  "robust4": 0.4666666666666667,
+  "robust8": 0.4666666666666667,
+  "gold": 22.5
+ },
+ "50": {
+  "ms": 21624,
+  "inputs": "0g.bub.cin.cug.d0b.din.eug.h0n.h6b.i6n.iig.kib.lin.m0g.mob.nin.scg.y0b.yug",
+  "einfach": "0g.bub.cin.cub.din.eug.h6b.i6n.iig.kib.lin.m0g.mob.nin.scg.y0b.11cg",
+  "einfachMs": 24595,
+  "robust4": 0.06666666666666667,
+  "robust8": 0,
+  "gold": 24.5
+ },
+ "51": {
+  "ms": 9723,
+  "inputs": "0g",
+  "einfach": "0g",
+  "einfachMs": 9723,
+  "robust4": 1,
+  "robust8": 1,
+  "gold": 11
+ },
+ "52": {
+  "ms": 13654,
+  "inputs": "0g.1ob.2cn.2ig.2on.56g.5cn.8cg",
+  "einfach": "0g.1ib.2cn.8cg",
+  "einfachMs": 20277,
+  "robust4": 0.1,
+  "robust8": 0.03333333333333333,
+  "gold": 15.5
+ },
+ "53": {
+  "ms": 17451,
+  "inputs": "0g.30b.3on.40g.4ob.56g.5cb.66g",
+  "einfach": "0g.30b.3on.5cb.66g",
+  "einfachMs": 17689,
+  "robust4": 0.13333333333333333,
+  "robust8": 0.13333333333333333,
+  "gold": 20
+ },
+ "54": {
+  "ms": 14068,
+  "inputs": "0g.ub.1un.3ig.3on.40g.46n.6og.6un.7cg",
+  "einfach": "0g.ub.7cg.iub.k0g",
+  "einfachMs": 14990,
+  "robust4": 0.9,
+  "robust8": 0.8,
+  "gold": 16
+ },
+ "55": {
+  "ms": 11188,
+  "inputs": "0g",
+  "einfach": "0g",
+  "einfachMs": 11188,
+  "robust4": 1,
+  "robust8": 1,
+  "gold": 13
+ },
+ "56": {
+  "ms": 12326,
+  "inputs": "0g.76b.7ug.80b.8og",
+  "einfach": "0g.76b.8og",
+  "einfachMs": 12328,
+  "robust4": 0.4666666666666667,
+  "robust8": 0.5,
+  "gold": 14
+ },
+ "57": {
+  "ms": 9632,
+  "inputs": "0g.4ib.4un.56g.86n.8cg.8in.9cb.9on.aig.aun.bug.c0n.cug",
+  "einfach": "0g.4ib.56g.86n.8cg.8in.9cb.9on.cug",
+  "einfachMs": 10014,
+  "robust4": 0.23333333333333334,
+  "robust8": 0.13333333333333333,
+  "gold": 11
+ },
+ "58": {
+  "ms": 16009,
+  "inputs": "0g.56n.6ug.8ob.9ug.a6n.acg",
+  "einfach": "0g.56n.6ug.8ob.acg",
+  "einfachMs": 17144,
+  "robust4": 0.36666666666666664,
+  "robust8": 0.23333333333333334,
+  "gold": 18
+ },
+ "59": {
+  "ms": 10685,
+  "inputs": "0g.86b.96n.9ig",
+  "einfach": "0g.80b.9ig",
+  "einfachMs": 10874,
+  "robust4": 1,
+  "robust8": 0.8333333333333334,
+  "gold": 12
+ },
+ "60": {
+  "ms": 24032,
+  "inputs": "0g.7cn.7ig.7ob.8cg.wcn.wug.x6n.xcg.y0n.y6g",
+  "einfach": "0g.7cn.7ig.7ob.8ig.wcn.yog",
+  "einfachMs": 24603,
+  "robust4": 0,
+  "robust8": 0,
+  "gold": 27
  }
 }

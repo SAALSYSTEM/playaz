@@ -33,7 +33,7 @@
     { id: 'jungle-runner', name: 'Jungle Runner', prefix: 'jungle.', haupt: ['jungle.v1'],
       info: (g) => { const d = J(g['jungle.v1']) || {}; const lv = Object.values(d.levels || {}).filter((l) => l && l.done); const st = lv.reduce((a, l) => a + (l.stars || 0), 0); const eb = (d.endless && d.endless.best) || 0; return { text: lv.length + ' von 30 Level · ' + st + ' Sterne' + (eb ? ' · Endlos ' + zahl(eb) + ' m' : ''), wert: lv.length * 100 + st * 10 + Object.keys(d.awards || {}).length + eb / 100 }; } },
     { id: 'schraeglage', name: 'Schräglage', prefix: 'schraeglage.', haupt: ['schraeglage.v1'],
-      info: (g) => { const d = J(g['schraeglage.v1']) || {}; const lv = Object.values(d.levels || {}).filter((l) => l && l.done); const gold = lv.filter((l) => l.gold).length; return { text: lv.length + ' von 35 Level · ' + gold + ' Gold', wert: lv.length * 100 + gold * 10 + Object.keys(d.awards || {}).length }; } },
+      info: (g) => { const d = J(g['schraeglage.v1']) || {}; const lv = Object.values(d.levels || {}).filter((l) => l && l.done); const gold = lv.filter((l) => l.gold).length; return { text: lv.length + ' von 60 Level · ' + gold + ' Gold', wert: lv.length * 100 + gold * 10 + Object.keys(d.awards || {}).length }; } },
     { id: 'sondengaenger', name: 'Sondengänger', prefix: 'sondengaenger.', haupt: ['sondengaenger.v1'],
       info: (g) => { const d = J(g['sondengaenger.v1']) || {}; const st = d.stats || {}; const serie = (d.daily && d.daily.streak) || 0; return { text: zahl(st.finds) + ' Funde · Stufe ' + zahl(d.lvl || 1) + (serie > 1 ? ' · Serie ' + zahl(serie) : ''), wert: (d.xp || 0) + (st.finds || 0) * 10 }; } },
     { id: 'stammvoelker', name: 'Stammvölker', prefix: 'stammvoelker.', haupt: ['stammvoelker.v1'],
