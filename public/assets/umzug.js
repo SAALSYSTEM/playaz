@@ -71,7 +71,7 @@
     { id: 'hochstapler', name: 'Hochstapler', prefix: 'hochstapler.', haupt: ['hochstapler.best', 'hochstapler.bestFloors'],
       info: (g) => { const b = Number(J(g['hochstapler.best'])) || 0; return { text: 'Rekord ' + zahl(b), wert: b }; } },
     { id: 'richtfest', name: 'Richtfest', prefix: 'richtfest.', haupt: ['richtfest.save.v1'],
-      info: (g) => { const d = J(g['richtfest.save.v1']) || {}; const c = Array.isArray(d.caught) ? d.caught.length : Object.keys(d.caught || {}).filter((k) => d.caught[k]).length; return { text: c + ' von 6 Baumonstern', wert: c * 100 + (Array.isArray(d.team) ? d.team.length : 0) }; } }
+      info: (g) => { const d = J(g['richtfest.save.v1']) || {}; const c = Array.isArray(d.caught) ? d.caught.length : Object.keys(d.caught || {}).filter((k) => d.caught[k]).length; return { text: c + ' von 12 Baumonstern', wert: c * 100 + (Array.isArray(d.team) ? d.team.length : 0) }; } }
   ];
   const KEY_RE = /^[a-z]+\.[A-Za-z0-9.]{1,40}$/;
   const spielFuer = (k) => SPIELE.find((s) => k.startsWith(s.prefix));

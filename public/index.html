@@ -451,7 +451,8 @@
   const rf = read('richtfest.save.v1');
   if (rf && rf.caught) {
     const c = Array.isArray(rf.caught) ? rf.caught.length : Object.keys(rf.caught).filter(k => rf.caught[k]).length;
-    show('richtfest', c + ' von 6 Baumonstern gefangen');
+    const o = Array.isArray(rf.orden) ? rf.orden.length : 0;
+    show('richtfest', c + ' von 12 Baumonstern gefangen' + (o ? ' · ' + o + '/3 Orden' : ''));
   }
   window.__weiter(REC);
 })();

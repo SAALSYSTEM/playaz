@@ -1,4 +1,4 @@
-<!doctype html><html><head><link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="icon" href="../favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png"><link rel="manifest" href="../site.webmanifest"><meta name="theme-color" content="#11121A"><meta name="description" content="Baumonster fangen im Gameboy-Stil. Sammle alle sechs."><link rel="canonical" href="https://playsaal.com/spiele/richtfest"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Richtfest · PlaySaal"><meta property="og:description" content="Baumonster fangen im Gameboy-Stil. Sammle alle sechs."><meta property="og:url" content="https://playsaal.com/spiele/richtfest"><meta property="og:image" content="https://playsaal.com/og-playsaal-1200x630.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playsaal.com/twitter-playsaal-1200x600.jpg"><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'richtfest',t:Date.now()}))}catch(e){}</script></head><body>
+<!doctype html><html><head><link rel="icon" type="image/svg+xml" href="../favicon.svg"><link rel="icon" href="../favicon.ico" sizes="any"><link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png"><link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png"><link rel="manifest" href="../site.webmanifest"><meta name="theme-color" content="#11121A"><meta name="description" content="Baumonster fangen im Gameboy-Stil: zwölf Baumonster, Trainer im Steinbruch und eine Kampfarena mit drei Orden."><link rel="canonical" href="https://playsaal.com/spiele/richtfest"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Richtfest · PlaySaal"><meta property="og:description" content="Baumonster fangen im Gameboy-Stil: zwölf Baumonster, Trainer im Steinbruch und eine Kampfarena mit drei Orden."><meta property="og:url" content="https://playsaal.com/spiele/richtfest"><meta property="og:image" content="https://playsaal.com/og-playsaal-1200x630.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="https://playsaal.com/twitter-playsaal-1200x600.jpg"><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'richtfest',t:Date.now()}))}catch(e){}</script></head><body>
 <title>Richtfest</title>
 <link rel="stylesheet" href="../assets/fonts.css">
 <style>
@@ -104,7 +104,11 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
 .info-stats,.info-moves{font-size:calc(var(--u)*6);line-height:1.3}
 .cat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--u)*3);margin-top:calc(var(--u)*3)}
 .cat{display:flex;flex-direction:column;align-items:center;gap:var(--u);font-size:calc(var(--u)*6);text-align:center;padding:var(--u);border:var(--u) solid var(--c1);min-width:0}
-.cat img{width:calc(var(--u)*24);height:calc(var(--u)*24)}
+.cat img{width:calc(var(--u)*20);height:calc(var(--u)*20)}
+.cat span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.orden-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:calc(var(--u)*3);margin-top:calc(var(--u)*3)}
+.orden-grid .cat img{width:calc(var(--u)*28);height:calc(var(--u)*28)}
+.orden-grid .cat span{white-space:normal}
 .cat small{font-size:calc(var(--u)*5);color:var(--c2)}
 .cat.got{border-color:var(--c3)}
 .end{text-align:center;display:flex;flex-direction:column;gap:calc(var(--u)*4);padding-top:calc(var(--u)*6)}
@@ -206,42 +210,73 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
     betonguss:    { name: "Betonguss",    type: "beton",  pow: 45, acc: 100 },
     ziegelregen:  { name: "Ziegelregen",  type: "beton",  pow: 70, acc: 90 },
     kranhaken:    { name: "Kranhaken",    type: "stahl",  pow: 45, acc: 100 },
-    stahltraeger: { name: "Stahlträger",  type: "stahl",  pow: 70, acc: 90 }
+    stahltraeger: { name: "Stahlträger",  type: "stahl",  pow: 70, acc: 90 },
+    akkord:       { name: "Akkordarbeit", type: "normal", pow: 0,  acc: 100, desc: "hebt Angriff", effect: { target: "self", stat: "atk", delta: 1 } },
+    staubwolke:   { name: "Staubwolke",   type: "normal", pow: 0,  acc: 100, desc: "senkt Verteidigung", effect: { target: "foe", stat: "def", delta: -1 } },
+    presslufthammer: { name: "Presslufthammer", type: "normal", pow: 60, acc: 95 },
+    saegeblatt:   { name: "Sägeblatt",    type: "holz",   pow: 90, acc: 85 },
+    fundament:    { name: "Fundament",    type: "beton",  pow: 90, acc: 85 },
+    abrissbirne:  { name: "Abrissbirne",  type: "stahl",  pow: 90, acc: 85 }
   };
 
   const SPECIES = {
     spanferkel:  { name: "Spanferkel",  g: "n", type: "holz",  hp: 45, atk: 52, def: 45, spd: 55, xp: 62, rate: 0.45,
-      learn: [[1, "rempler"], [1, "baulaerm"], [5, "spanflug"], [9, "verschalen"], [13, "balkenwurf"]],
+      learn: [[1, "rempler"], [1, "baulaerm"], [5, "spanflug"], [9, "verschalen"], [13, "balkenwurf"], [16, "akkord"], [19, "saegeblatt"]],
       dex: "Ein Ferkel aus Hobelspänen. Riecht nach frisch gesägter Fichte." },
     mischmasch:  { name: "Mischmasch",  g: "m", type: "beton", hp: 50, atk: 48, def: 55, spd: 40, xp: 64, rate: 0.45,
-      learn: [[1, "rempler"], [1, "verschalen"], [5, "betonguss"], [9, "baulaerm"], [13, "ziegelregen"]],
+      learn: [[1, "rempler"], [1, "verschalen"], [5, "betonguss"], [9, "baulaerm"], [13, "ziegelregen"], [16, "akkord"], [19, "fundament"]],
       dex: "Dreht sich ständig. Was es frisst, kommt als Beton wieder raus." },
     kranich:     { name: "Kranich",     g: "m", type: "stahl", hp: 42, atk: 55, def: 42, spd: 60, xp: 62, rate: 0.45,
-      learn: [[1, "rempler"], [1, "baulaerm"], [5, "kranhaken"], [9, "verschalen"], [13, "stahltraeger"]],
+      learn: [[1, "rempler"], [1, "baulaerm"], [5, "kranhaken"], [9, "verschalen"], [13, "stahltraeger"], [16, "akkord"], [19, "abrissbirne"]],
       dex: "Hebt Lasten mit dem Schnabel. Schläft nur auf Baukränen." },
     baggerling:  { name: "Baggerling",  g: "m", type: "stahl", hp: 40, atk: 50, def: 50, spd: 35, xp: 55, rate: 0.6,
-      learn: [[1, "rempler"], [3, "kranhaken"], [6, "verschalen"], [10, "stahltraeger"]],
+      learn: [[1, "rempler"], [3, "kranhaken"], [6, "verschalen"], [10, "stahltraeger"], [15, "presslufthammer"], [20, "abrissbirne"]],
       dex: "Gräbt Löcher, wo keine hingehören. Liebt Matsch." },
     ziegelzwerg: { name: "Ziegelzwerg", g: "m", type: "beton", hp: 38, atk: 45, def: 55, spd: 40, xp: 55, rate: 0.6,
-      learn: [[1, "hammerschlag"], [3, "verschalen"], [6, "betonguss"], [10, "ziegelregen"]],
+      learn: [[1, "hammerschlag"], [3, "verschalen"], [6, "betonguss"], [10, "ziegelregen"], [15, "staubwolke"], [20, "fundament"]],
       dex: "Mauert nachts heimlich weiter. Keiner weiß, für wen." },
     balkenbaer:  { name: "Balkenbär",   g: "m", type: "holz",  hp: 50, atk: 55, def: 40, spd: 38, xp: 58, rate: 0.55,
-      learn: [[1, "rempler"], [3, "baulaerm"], [6, "spanflug"], [10, "balkenwurf"]],
-      dex: "Brummt wie eine Kreissäge. Trägt Dachbalken auf dem Rücken." }
+      learn: [[1, "rempler"], [3, "baulaerm"], [6, "spanflug"], [10, "balkenwurf"], [15, "presslufthammer"], [20, "saegeblatt"]],
+      dex: "Brummt wie eine Kreissäge. Trägt Dachbalken auf dem Rücken." },
+    // Steinbruch (zweites Gebiet)
+    bretterbiber:  { name: "Bretterbiber",  g: "m", type: "holz",  hp: 55, atk: 50, def: 58, spd: 36, xp: 66, rate: 0.5,
+      learn: [[1, "rempler"], [1, "verschalen"], [8, "spanflug"], [12, "balkenwurf"], [17, "akkord"], [21, "saegeblatt"]],
+      dex: "Nagt Bretter in Rekordzeit zurecht. Baut Staudämme aus Gerüstbohlen." },
+    hobelhase:     { name: "Hobelhase",     g: "m", type: "holz",  hp: 42, atk: 60, def: 38, spd: 72, xp: 68, rate: 0.4,
+      learn: [[1, "rempler"], [1, "staubwolke"], [10, "spanflug"], [14, "balkenwurf"], [17, "presslufthammer"], [20, "saegeblatt"]],
+      dex: "Flitzt über Baustellen und hobelt dabei jede Kante glatt." },
+    moertelmolch:  { name: "Mörtelmolch",   g: "m", type: "beton", hp: 52, atk: 48, def: 52, spd: 48, xp: 64, rate: 0.5,
+      learn: [[1, "rempler"], [1, "baulaerm"], [8, "betonguss"], [12, "staubwolke"], [15, "ziegelregen"], [21, "fundament"]],
+      dex: "Schwimmt im Mörteleimer. Klebt an jeder frischen Wand." },
+    schotterkroete:{ name: "Schotterkröte", g: "f", type: "beton", hp: 65, atk: 55, def: 70, spd: 28, xp: 72, rate: 0.4,
+      learn: [[1, "hammerschlag"], [1, "verschalen"], [10, "betonguss"], [14, "ziegelregen"], [18, "akkord"], [21, "fundament"]],
+      dex: "Sitzt reglos im Kies. Wer drauftritt, merkt erst spät, dass es eine Kröte ist." },
+    duebeldachs:   { name: "Dübeldachs",    g: "m", type: "stahl", hp: 50, atk: 58, def: 50, spd: 45, xp: 64, rate: 0.5,
+      learn: [[1, "rempler"], [1, "baulaerm"], [8, "kranhaken"], [12, "presslufthammer"], [15, "stahltraeger"], [21, "abrissbirne"]],
+      dex: "Bohrt mit der Nase Löcher in jeden Beton. Hinterlässt immer Staub." },
+    schraubfalke:  { name: "Schraubfalke",  g: "m", type: "stahl", hp: 44, atk: 66, def: 42, spd: 78, xp: 74, rate: 0.35,
+      learn: [[1, "rempler"], [1, "akkord"], [10, "kranhaken"], [14, "stahltraeger"], [18, "staubwolke"], [20, "abrissbirne"]],
+      dex: "Kreist über dem Steinbruch und dreht sich im Sturzflug wie eine Schraube." }
   };
   const STARTERS = ["spanferkel", "mischmasch", "kranich"];
-  const ORDER = ["spanferkel", "mischmasch", "kranich", "baggerling", "ziegelzwerg", "balkenbaer"];
+  const ORDER = ["spanferkel", "mischmasch", "kranich", "baggerling", "ziegelzwerg", "balkenbaer", "bretterbiber", "hobelhase", "moertelmolch", "schotterkroete", "duebeldachs", "schraubfalke"];
+  const ALLE = ORDER.length;
+  const ORDEN = [
+    { id: "ziegel", name: "Ziegel-Orden", cup: "Bronze-Cup", lv: "Lv 10–13" },
+    { id: "stahl", name: "Stahl-Orden", cup: "Silber-Cup", lv: "Lv 14–16" },
+    { id: "kranz", name: "Richtkranz-Orden", cup: "Gold-Cup", lv: "Lv 17–20" }
+  ];
 
   // . Boden  , Weg  * Schutthaufen  # Bauzaun  G Tor  C Container  H Bauleiterin  P Polier
   // R Rohbau  E Eingang  W Richtbaum  K Kranmast  J/j Ausleger  B Ziegel  S Schild
-  const MAP = [
+  const MAP_BAU = [
     "########################",
     "#B.......WW....jJJJJJJK#",
     "#B....RRRRRRRR........K#",
     "#.....RRRRRRRR........K#",
     "#.....RRREERRR........K#",
     "#........,,..........BK#",
-    "#........,,............#",
+    "#........,,............X",
     "#########PG#############",
     "#........,,............#",
     "#****....,,...******...#",
@@ -262,16 +297,85 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
     "#BB......,,............#",
     "########################"
   ];
-  const MW = 24, MH = MAP.length;
-  const SIGNS = {
-    "14,13": "ACHTUNG! In den Schutthaufen hausen wilde Baumonster. Weiter nördlich sind sie stärker.",
-    "16,22": "BAUSTELLE HOCHSTAPLER. Zum Richtfest geht's nach Norden. Erst am Polier vorbei!"
+  // Steinbruch: Q Fels  ~ Baggersee  A Arena  D Arenator  k Imbisswagen  I Imbiss-Ilse
+  // 1 2 3 Trainer, die den Weg versperren  X Durchgang zur Baustelle
+  const MAP_STEIN = [
+    "QQQQQQQQQQQQQQQQQQQQQQQQ",
+    "Q.....AAAAAAAAAAAA.....Q",
+    "Q..B..AAAAAAAAAAAA..B..Q",
+    "Q.....AAAAADAAAAAA.....Q",
+    "Q..........,...........Q",
+    "Q....S.....,......BB...Q",
+    "Q~~~.......,...........Q",
+    "QQQQQQQQQQQ3QQQQQQQQQQQQ",
+    "Q~~~~*****.,.******....Q",
+    "Q~~~~******,*******.**.Q",
+    "Q~~~*******,****..****.Q",
+    "Q~~.**..***,****..****.Q",
+    "Q.....S....,,,,,,,,....Q",
+    "Q..................,...Q",
+    "QQQQQQQQQQQQQQQQQQQ2QQQQ",
+    "Q..................,...Q",
+    "Q.****.............,...Q",
+    "Q.****.............,***Q",
+    "Q.****..,,,,,,,,,,,,***Q",
+    "Q..**...,....S.....****Q",
+    "Q.......,..........****Q",
+    "QQQQQQQQ1QQQQQQQQQQQQQQQ",
+    "Q.......,.....kkkI.....Q",
+    "Q.......,...S..........Q",
+    "X,,,,,,,,..............Q",
+    "Q..B...................Q",
+    "Q.......**.....BB......Q",
+    "QQQQQQQQQQQQQQQQQQQQQQQQ"
+  ];
+  const MAPS = {
+    baustelle: {
+      rows: MAP_BAU, respawn: { x: 5, y: 22, dir: "up" },
+      signs: {
+        "14,13": "ACHTUNG! In den Schutthaufen hausen wilde Baumonster. Weiter nördlich sind sie stärker.",
+        "16,22": "BAUSTELLE HOCHSTAPLER. Zum Richtfest geht's nach Norden. Erst am Polier vorbei!"
+      },
+      warps: { "23,6": { to: "steinbruch", x: 1, y: 24, dir: "right", need: "ended" } }
+    },
+    steinbruch: {
+      rows: MAP_STEIN, respawn: { x: 17, y: 23, dir: "up" },
+      signs: {
+        "12,23": "STEINBRUCH. Imbiss Ilse gleich rechts. Je weiter nördlich, desto wilder die Baumonster.",
+        "13,19": "Weiter nach Norden? Zimmerin Zoe bewacht den Durchgang rechts.",
+        "6,12": "Vorsicht, Baggersee! Nördlich vom Felsen steht die Baumeister-Arena.",
+        "5,5": "BAUMEISTER-ARENA. Drei Cups, drei Orden. Wer den Richtkranz holt, ist Baumeister."
+      },
+      warps: { "0,24": { to: "baustelle", x: 22, y: 6, dir: "left" } }
+    }
   };
-  const WALK = new Set([".", ",", "*", "E"]);
+  const WALK = new Set([".", ",", "*", "E", "X"]);
+
+  // Trainer im Steinbruch: stehen im Durchgang, bis man sie besiegt
+  const TRAINERS = {
+    "1": { flag: "t1", name: "Maurer Moritz", short: "Moritz'", team: [["moertelmolch", 9], ["ziegelzwerg", 9], ["schotterkroete", 10]],
+      hi: "Maurer Moritz: Hier kommt keiner durch, der nicht ordentlich mauern kann!", bye: "Maurer Moritz: Respekt. Na gut, geh durch." },
+    "2": { flag: "t2", name: "Zimmerin Zoe", short: "Zoes", team: [["hobelhase", 11], ["balkenbaer", 11], ["bretterbiber", 12]],
+      hi: "Zimmerin Zoe: Meine Holzbande ist schneller, als du gucken kannst!", bye: "Zimmerin Zoe: Holla. Die Arena ist ganz im Norden. Pass auf Sven auf." },
+    "3": { flag: "t3", name: "Schweißer Sven", short: "Svens", team: [["duebeldachs", 12], ["baggerling", 12], ["schraubfalke", 13]],
+      hi: "Schweißer Sven: Vor die Arena kommt nur, wer an meinem Stahl vorbeikommt!", bye: "Schweißer Sven: Funkenflug! Die Arena gehört dir. Viel Glück." }
+  };
+  // Arena: je Cup drei Runden, ohne Pause dazwischen (nur eine kurze Trinkpause)
+  const CUPS = [
+    [ { name: "Kranfahrer Kalle", short: "Kalles", team: [["mischmasch", 10], ["kranich", 11]] },
+      { name: "Fliesenlegerin Fritzi", short: "Fritzis", team: [["spanferkel", 11], ["duebeldachs", 12]] },
+      { name: "Vorarbeiterin Vera", short: "Veras", boss: true, team: [["moertelmolch", 12], ["hobelhase", 13], ["schraubfalke", 13]] } ],
+    [ { name: "Dachdecker Dirk", short: "Dirks", team: [["schotterkroete", 14], ["bretterbiber", 14]] },
+      { name: "Statikerin Stella", short: "Stellas", team: [["kranich", 14], ["balkenbaer", 15]] },
+      { name: "Bauingenieur Ben", short: "Bens", boss: true, team: [["duebeldachs", 15], ["mischmasch", 15], ["hobelhase", 16]] } ],
+    [ { name: "Gerüstbauer Gregor", short: "Gregors", team: [["schraubfalke", 17], ["moertelmolch", 17]] },
+      { name: "Malerin Mia", short: "Mias", team: [["bretterbiber", 18], ["baggerling", 18]] },
+      { name: "Baumeisterin Berta", short: "Bertas", boss: true, team: [["schotterkroete", 19], ["schraubfalke", 19], ["hobelhase", 20], ["spanferkel", 20]] } ]
+  ];
 
   // ================= HELPERS =================
   const name = (m) => SPECIES[m.sp].name;
-  const ein = (m) => (SPECIES[m.sp].g === "n" ? "Ein wildes " : "Ein wilder ") + name(m);
+  const ein = (m) => { const g = SPECIES[m.sp].g; return (g === "n" ? "Ein wildes " : g === "f" ? "Eine wilde " : "Ein wilder ") + name(m); };
   function stats(m) {
     const s = SPECIES[m.sp], L = m.lvl;
     return {
@@ -375,6 +479,12 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
   for (const d of ["down", "up", "left", "right"]) for (const f of [0, 1, 2]) PLAYER[d + f] = charSprite(d, f);
   const NPC_BEA = charSprite("down", 0, { "1": 2, "2": 1 });
   const NPC_PAUL = charSprite("down", 0, { "1": 0, "2": 3 });
+  const NPC = {
+    "1": charSprite("down", 0, { "1": 2, "2": 2 }),
+    "2": charSprite("down", 0, { "1": 0, "2": 1 }),
+    "3": charSprite("down", 0, { "1": 3, "2": 3, "0": 1 }),
+    I: charSprite("down", 0, { "1": 0, "2": 0 })
+  };
 
   // Tiles (16×16)
   const TILES = {};
@@ -432,6 +542,35 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
   tile("S", (g) => { ground(g); px(g, 7, 9, 2, 7, 3); px(g, 2, 2, 12, 8, 3); px(g, 3, 3, 10, 6, 1); px(g, 4, 4, 8, 1, 3); px(g, 4, 6, 6, 1, 3); });
   tile("H", (g) => { ground(g); g.drawImage(NPC_BEA, 0, 0); });
   tile("P", (g) => { ground(g); g.drawImage(NPC_PAUL, 0, 0); });
+  for (const k of ["1", "2", "3", "I"]) tile(k, (g) => { ground(g); g.drawImage(NPC[k], 0, 0); });
+  tile("X", (g) => { fence(g); px(g, 3, 4, 10, 8, 3); for (let y = 5; y < 11; y++) for (let x = 4; x < 12; x++) px(g, x, y, 1, 1, (x + y) % 4 < 2 ? 2 : 3); px(g, 7, 3, 2, 10, 1); });
+  tile("Xopen", (g) => { px(g, 0, 0, 16, 16, 1); px(g, 0, 3, 2, 10, 3); px(g, 14, 3, 2, 10, 3); [[5, 6], [10, 11], [8, 2]].forEach(([x, y]) => px(g, x, y, 1, 1, 2)); });
+  tile("Q", (g) => {
+    px(g, 0, 0, 16, 16, 2);
+    px(g, 0, 0, 16, 1, 3); px(g, 0, 7, 9, 1, 3); px(g, 6, 12, 10, 1, 3); px(g, 8, 0, 1, 7, 3); px(g, 3, 8, 1, 8, 3); px(g, 12, 8, 1, 4, 3);
+    px(g, 1, 1, 6, 1, 1); px(g, 9, 1, 6, 1, 1); px(g, 4, 9, 5, 1, 1); px(g, 13, 9, 2, 1, 1);
+  });
+  tile("~", (g) => {
+    px(g, 0, 0, 16, 16, 2);
+    for (const [ox, oy] of [[1, 3], [9, 7], [3, 12]]) { px(g, ox, oy, 2, 1, 1); px(g, ox + 2, oy - 1, 2, 1, 1); px(g, ox + 4, oy, 2, 1, 1); }
+  });
+  function arena(g, top) {
+    px(g, 0, 0, 16, 16, 1);
+    for (let x = 0; x < 16; x += 4) px(g, x, 0, 2, 16, 0);
+    px(g, 0, 15, 16, 1, 3); px(g, 0, 10, 16, 1, 3);
+    if (top) { px(g, 0, 0, 16, 3, 3); px(g, 3, 3, 1, 4, 3); px(g, 4, 3, 3, 2, 2); px(g, 11, 3, 1, 4, 3); px(g, 12, 3, 3, 2, 0); }
+  }
+  tile("A", (g) => arena(g, false));
+  tile("Atop", (g) => arena(g, true));
+  tile("D", (g) => {
+    arena(g, false); px(g, 3, 2, 10, 14, 3); px(g, 4, 3, 8, 13, 2); px(g, 5, 4, 6, 1, 1);
+    px(g, 6, 7, 4, 4, 1); px(g, 7, 8, 2, 2, 3);
+  });
+  tile("k", (g) => {
+    px(g, 0, 0, 16, 16, 0); px(g, 0, 2, 16, 4, 3);
+    for (let x = 0; x < 16; x += 4) px(g, x, 3, 2, 2, 1);
+    px(g, 0, 6, 16, 8, 1); px(g, 2, 7, 12, 3, 3); px(g, 3, 8, 10, 1, 0); px(g, 0, 13, 16, 1, 3); px(g, 3, 14, 2, 2, 3); px(g, 11, 14, 2, 2, 3);
+  });
 
   // Monsters (32×32), drawn facing right
   const ART = {
@@ -500,6 +639,53 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
       box(8, 3, 16, 12, 1);
       R(11, 7, 2, 2, 3); R(19, 7, 2, 2, 3);
       box(13, 9, 6, 5, 0); R(15, 10, 2, 1, 3); R(15, 12, 2, 1, 3);
+    },
+    bretterbiber(R, box) {
+      box(0, 18, 10, 7, 1); R(3, 19, 1, 5, 3); R(6, 19, 1, 5, 3);
+      box(7, 11, 17, 15, 2); R(10, 14, 8, 1, 1); R(9, 19, 9, 1, 1);
+      R(9, 25, 5, 5, 3); R(18, 25, 5, 5, 3);
+      box(19, 7, 12, 12, 2); box(20, 4, 4, 4, 2);
+      R(26, 10, 2, 2, 3); R(29, 12, 3, 2, 3);
+      box(24, 17, 6, 6, 0); R(26, 18, 1, 4, 3);
+    },
+    hobelhase(R, box) {
+      box(18, 0, 4, 12, 1); R(19, 2, 2, 8, 0); box(23, 1, 4, 11, 1); R(24, 3, 2, 7, 0);
+      box(5, 15, 18, 11, 1);
+      box(6, 11, 14, 5, 2); R(10, 9, 4, 2, 3); R(7, 13, 12, 1, 0);
+      box(1, 16, 5, 5, 0);
+      box(17, 10, 12, 10, 1); R(24, 13, 2, 2, 3); R(28, 15, 3, 2, 3); R(22, 18, 4, 1, 3);
+      R(7, 26, 5, 3, 3); R(17, 26, 4, 5, 3); R(4, 29, 9, 2, 3);
+    },
+    moertelmolch(R, box) {
+      R(0, 20, 8, 3, 3); R(1, 21, 7, 1, 2); R(0, 18, 2, 2, 3);
+      box(6, 16, 18, 9, 1); R(9, 19, 2, 2, 2); R(14, 21, 2, 2, 2); R(18, 18, 2, 2, 2);
+      for (let x = 8; x < 22; x += 3) R(x, 14, 2, 2, 3);
+      R(8, 25, 3, 4, 3); R(6, 28, 5, 2, 3); R(19, 25, 3, 4, 3); R(19, 28, 5, 2, 3);
+      box(21, 12, 10, 10, 1); R(26, 14, 2, 2, 3); R(24, 19, 6, 1, 3);
+      R(15, 7, 1, 8, 3); box(10, 2, 10, 6, 0); R(12, 4, 6, 1, 1);
+    },
+    schotterkroete(R, box) {
+      box(3, 12, 26, 15, 2);
+      [[6, 15], [11, 19], [8, 23], [14, 15], [15, 22]].forEach(([x, y]) => { R(x, y, 3, 2, 0); R(x, y + 2, 3, 1, 3); });
+      box(15, 5, 7, 8, 0); R(18, 7, 2, 4, 3); box(22, 5, 7, 8, 0); R(25, 7, 2, 4, 3);
+      R(21, 19, 8, 1, 3); R(20, 18, 1, 1, 3);
+      box(1, 23, 9, 6, 2); box(21, 23, 9, 6, 2); R(0, 28, 11, 3, 3); R(20, 28, 11, 3, 3);
+    },
+    duebeldachs(R, box) {
+      R(0, 14, 4, 3, 3);
+      box(2, 12, 20, 14, 2); R(5, 15, 14, 2, 1); R(6, 19, 12, 1, 0);
+      R(4, 25, 4, 5, 3); R(15, 25, 4, 5, 3);
+      box(15, 8, 12, 14, 0); R(19, 8, 3, 14, 3); R(24, 12, 2, 2, 3);
+      R(26, 12, 2, 8, 3); R(28, 13, 2, 6, 3); R(30, 15, 2, 2, 3);
+      R(26, 13, 1, 1, 1); R(27, 15, 1, 1, 1); R(28, 17, 1, 1, 1); R(29, 14, 1, 1, 1);
+    },
+    schraubfalke(R, box) {
+      box(4, 1, 17, 9, 2); R(6, 3, 13, 1, 1); R(6, 6, 11, 1, 3);
+      R(0, 13, 9, 5, 3); R(1, 14, 1, 3, 1); R(3, 14, 1, 3, 1); R(5, 14, 1, 3, 1); R(7, 14, 1, 3, 1);
+      box(8, 9, 16, 12, 1); R(11, 12, 8, 1, 2); R(12, 15, 7, 1, 2); R(12, 18, 6, 1, 2);
+      box(20, 4, 10, 10, 1); R(24, 6, 2, 2, 3); R(21, 6, 3, 1, 3);
+      R(29, 8, 3, 2, 3); R(29, 10, 2, 2, 3);
+      R(12, 21, 2, 6, 3); R(18, 21, 2, 6, 3); R(10, 26, 6, 2, 3); R(16, 26, 6, 2, 3);
     }
   };
   function buildMonster(sp, flip) {
@@ -523,19 +709,27 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
   }
 
   // ================= STATE =================
-  const G = { scene: "title", busy: false, map: null, team: [], lager: [], items: { haken: 5, brotzeit: 3 }, flags: { polier: false, ended: false }, seen: [], caught: [], stats: { fights: 0, catches: 0 }, starter: null, starterSel: 0 };
+  const G = { scene: "title", busy: false, area: "baustelle", map: null, team: [], lager: [], items: { haken: 5, brotzeit: 3 }, flags: { polier: false, ended: false }, orden: [], seen: [], caught: [], stats: { fights: 0, catches: 0 }, starter: null, starterSel: 0 };
   const P = { x: 10, y: 23, fx: 10, fy: 23, t: 1, moving: false, dir: "up", step: 0, bumpT: 0 };
-  function freshMap() { G.map = MAP.map((r) => r.split("")); if (G.flags.polier) { G.map[7][9] = ","; G.map[7][10] = ","; } }
+  let MW = 24, MH = MAP_BAU.length;
+  const AREA = () => MAPS[G.area];
+  function freshMap() {
+    if (!MAPS[G.area]) G.area = "baustelle";
+    G.map = AREA().rows.map((r) => r.split(""));
+    MH = G.map.length; MW = G.map[0].length;
+    if (G.area === "baustelle" && G.flags.polier) { G.map[7][9] = ","; G.map[7][10] = ","; }
+    if (G.area === "steinbruch") G.map.forEach((row, y) => row.forEach((c, x) => { if (TRAINERS[c] && G.flags[TRAINERS[c].flag]) row[x] = ","; }));
+  }
   function tileAt(x, y) { return x < 0 || y < 0 || x >= MW || y >= MH ? "#" : G.map[y][x]; }
   function markSeen(sp) { if (!G.seen.includes(sp)) G.seen.push(sp); }
   function healAll() { for (const m of G.team) m.hp = stats(m).maxhp; }
   function resetState() {
-    G.team = []; G.lager = []; G.items = { haken: 5, brotzeit: 3 }; G.flags = { polier: false, ended: false };
-    G.seen = []; G.caught = []; G.stats = { fights: 0, catches: 0 }; G.starter = null;
+    G.team = []; G.lager = []; G.items = { haken: 5, brotzeit: 3 }; G.flags = { polier: false, ended: false }; G.orden = [];
+    G.seen = []; G.caught = []; G.stats = { fights: 0, catches: 0 }; G.starter = null; G.area = "baustelle";
     freshMap(); Object.assign(P, { x: 10, y: 23, fx: 10, fy: 23, t: 1, moving: false, dir: "up", step: 0 });
   }
   function save() {
-    store.set(SAVE_KEY, { v: 1, team: G.team, lager: G.lager, items: G.items, flags: G.flags, seen: G.seen, caught: G.caught, stats: G.stats, starter: G.starter, pos: { x: P.x, y: P.y, dir: P.dir } });
+    store.set(SAVE_KEY, { v: 1, team: G.team, lager: G.lager, items: G.items, flags: G.flags, orden: G.orden, seen: G.seen, caught: G.caught, stats: G.stats, starter: G.starter, area: G.area, pos: { x: P.x, y: P.y, dir: P.dir } });
   }
   function loadSave() {
     const s = store.get(SAVE_KEY, null);
@@ -547,9 +741,12 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
     G.team = s.team; G.lager = (s.lager || []).filter((m) => m && SPECIES[m.sp]);
     G.items = s.items || { haken: 5, brotzeit: 3 }; G.flags = s.flags || { polier: false, ended: false };
     G.seen = s.seen || []; G.caught = s.caught || []; G.stats = s.stats || { fights: 0, catches: 0 }; G.starter = s.starter || null;
+    G.orden = Array.isArray(s.orden) ? s.orden.filter((id) => ORDEN.some((o) => o.id === id)) : [];
+    G.area = MAPS[s.area] ? s.area : "baustelle";
     freshMap();
     const p = s.pos || { x: 10, y: 23, dir: "up" };
-    const ok = WALK.has(tileAt(p.x, p.y));
+    const ok = WALK.has(tileAt(p.x, p.y)) && tileAt(p.x, p.y) !== "X";
+    if (!ok) { G.area = "baustelle"; freshMap(); }
     Object.assign(P, { x: ok ? p.x : 10, y: ok ? p.y : 23, fx: ok ? p.x : 10, fy: ok ? p.y : 23, t: 1, moving: false, dir: p.dir || "up" });
   }
 
@@ -712,12 +909,38 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
     P.dir = dir;
     const [dx, dy] = DIRS[dir], nx = P.x + dx, ny = P.y + dy, t = tileAt(nx, ny);
     if (t === "P") { runScript(polierScript); return; }
+    if (TRAINERS[t] && G.area === "steinbruch") { runScript(() => trainerScript(t, nx, ny)); return; }
+    if (t === "D") { runScript(arenaScript); return; }
+    if (t === "X") {
+      const w = AREA().warps[nx + "," + ny];
+      if (w && w.need && !G.flags[w.need]) { runScript(() => say("Das Osttor bleibt zu, bis das Richtfest gefeiert ist.")); return; }
+    }
     if (!WALK.has(t)) { const now = performance.now(); if (now - P.bumpT > 320) { snd.bump(); P.bumpT = now; } return; }
     P.fx = P.x; P.fy = P.y; P.x = nx; P.y = ny; P.t = 0; P.moving = true;
   }
+  function warpTo(w) {
+    G.area = w.to; freshMap();
+    Object.assign(P, { x: w.x, y: w.y, fx: w.x, fy: w.y, t: 1, moving: false, dir: w.dir });
+    save();
+  }
+  function zone() {
+    if (G.area === "steinbruch") return P.y <= 13 ? "fels" : P.y <= 20 ? "bruch" : "rand";
+    return P.y <= 11 ? "nord" : "sued";
+  }
   function onArrive() {
     const t = tileAt(P.x, P.y);
-    if (t === "*" && Math.random() < 1 / 7) runScript(() => wildBattle(P.y <= 11 ? "nord" : "sued"));
+    if (t === "X") {
+      const w = AREA().warps[P.x + "," + P.y];
+      if (w) runScript(async () => {
+        await flash(); warpTo(w);
+        if (w.to === "steinbruch" && !G.flags.stein) {
+          G.flags.stein = true; save();
+          await say("Willkommen im Steinbruch! Hier leben Baumonster, die du noch nie gesehen hast.");
+          await say("Ganz im Norden steht die Baumeister-Arena. Dort gibt es Orden zu gewinnen.");
+        }
+      });
+    }
+    else if (t === "*" && Math.random() < 1 / 7) runScript(() => wildBattle(zone()));
     else if (t === "E") runScript(endingScript);
   }
   function updateWorld(dt) {
@@ -732,8 +955,16 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
   function interact() {
     const [dx, dy] = DIRS[P.dir], tx = P.x + dx, ty = P.y + dy, t = tileAt(tx, ty);
     const line = (s) => runScript(() => say(s));
-    if (t === "S") line(SIGNS[tx + "," + ty] || "Ein Schild.");
+    if (t === "S") line(AREA().signs[tx + "," + ty] || "Ein Schild.");
     else if (t === "H") runScript(healerScript);
+    else if (t === "I") runScript(imbissScript);
+    else if (t === "k") line("Der Imbisswagen. Es duftet nach Currywurst.");
+    else if (TRAINERS[t] && G.area === "steinbruch") runScript(() => trainerScript(t, tx, ty));
+    else if (t === "D") runScript(arenaScript);
+    else if (t === "A") line("Die Baumeister-Arena. Drinnen johlen die Zuschauer.");
+    else if (t === "Q") line("Massiver Fels. Da kommt keiner durch.");
+    else if (t === "~") line("Der Baggersee. Ganz schön tief.");
+    else if (t === "X") line(G.area === "baustelle" && !G.flags.ended ? "Das Osttor zum Steinbruch. Es bleibt zu, bis das Richtfest gefeiert ist." : "Der Durchgang.");
     else if (t === "P") runScript(polierScript);
     else if (t === "G") line("Das Tor ist zu. Der Polier lässt niemanden einfach so durch.");
     else if (t === "C") line("Der Baucontainer. Drinnen riecht es nach Kaffee.");
@@ -763,7 +994,7 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
   async function teamMenu(inBattle, forced) {
     let start = 0;
     while (true) {
-      const header = forced ? "Wer macht weiter?" : inBattle ? "Wen schickst du rein?" : `Team · Katalog ${G.caught.length}/6`;
+      const header = forced ? "Wer macht weiter?" : inBattle ? "Wen schickst du rein?" : `Team · Katalog ${G.caught.length}/${ALLE}`;
       const i = await choose(G.team.map(teamRow), { variant: "full", header, cancel: !forced, start });
       if (i < 0) return -1;
       start = i;
@@ -811,16 +1042,17 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
       const c = G.caught.includes(sp), s = G.seen.includes(sp);
       return `<div class="cat${c ? " got" : ""}"><img src="${s ? spriteURL(sp) : silhouetteURL(sp)}" alt=""><span>${s ? SPECIES[sp].name : "???"}</span><small>${c ? "gefangen" : s ? "gesehen" : "unbekannt"}</small></div>`;
     }).join("");
-    await choose(["Zurück"], { variant: "full", header: `Katalog · ${G.caught.length}/6 gefangen<div class="cat-grid">${items}</div>`, cancel: true });
+    await choose(["Zurück"], { variant: "full", header: `Katalog · ${G.caught.length}/${ALLE} gefangen<div class="cat-grid">${items}</div>`, cancel: true });
   }
   async function startMenu() {
     while (true) {
-      const i = await choose(["Team", "Tasche", "Katalog", "Speichern", "Zurück"], { variant: "side", cancel: true });
-      if (i < 0 || i === 4) return;
+      const i = await choose(["Team", "Tasche", "Katalog", "Orden", "Speichern", "Zurück"], { variant: "side", cancel: true });
+      if (i < 0 || i === 5) return;
       if (i === 0) await teamMenu(false, false);
       else if (i === 1) await bagMenu(false);
       else if (i === 2) await catalogMenu();
-      else if (i === 3) { save(); await say("Spielstand gespeichert."); hideBox(); }
+      else if (i === 3) await ordenMenu();
+      else if (i === 4) { save(); await say("Spielstand gespeichert."); hideBox(); }
     }
   }
 
@@ -926,7 +1158,7 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
       return null;
     }
     if (act.kind === "run") {
-      if (B.trainer) { await say("Vor dem Polier läuft man nicht weg!"); return null; }
+      if (B.trainer) { await say("Aus einem Duell läuft man nicht weg!"); return null; }
       const p = clamp(0.5 + (stats(B.me).spd - stats(B.foe).spd) * 0.04, 0.3, 0.95);
       if (Math.random() < p) { await say("Du bist entkommen!"); return "run"; }
       await say("Flucht gescheitert!");
@@ -1002,6 +1234,11 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
       const gain = Math.max(1, Math.floor(SPECIES[B.foe.sp].xp * B.foe.lvl / 7 * (B.trainer ? 1.5 : 1)));
       await say(`${name(B.me)} bekommt ${gain} Erfahrung.`);
       await gainXp(B.me, gain);
+      const rest = G.team.filter((m) => m !== B.me && m.hp > 0 && m.lvl < 50), half = Math.max(1, Math.floor(gain / 2));
+      if (rest.length) {
+        await say(`Der Rest vom Team schaut zu und bekommt je ${half} Erfahrung.`);
+        for (const m of rest) await gainXp(m, half);
+      }
       if (B.trainer && B.fi < B.foes.length - 1) {
         B.fi++; B.foe = B.foes[B.fi]; B.st.foe = { atk: 0, def: 0 }; markSeen(B.foe.sp);
         B.foeVis = true; B.foeOff = 90; B.foeDy = 0; updateHuds();
@@ -1058,20 +1295,136 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
     return null;
   }
   async function blackout() {
+    const stein = G.area === "steinbruch", r = AREA().respawn;
     await say("Dein Team ist erschöpft …");
-    await say("Du rennst zurück zum Baucontainer.");
+    await say(stein ? "Du rennst zurück zum Imbiss." : "Du rennst zurück zum Baucontainer.");
     healAll();
-    Object.assign(P, { x: 5, y: 22, fx: 5, fy: 22, t: 1, moving: false, dir: "up" });
+    Object.assign(P, { x: r.x, y: r.y, fx: r.x, fy: r.y, t: 1, moving: false, dir: r.dir });
     G.scene = "world";
-    await say("Bea päppelt alle wieder auf. Weiter geht's!");
+    await say(stein ? "Ilse päppelt alle wieder auf. Weiter geht's!" : "Bea päppelt alle wieder auf. Weiter geht's!");
   }
 
   // ================= SCRIPTS =================
-  async function wildBattle(zone) {
-    const [lo, hi] = zone === "nord" ? [5, 7] : [2, 4];
-    let sp = pickW([["baggerling", 35], ["ziegelzwerg", 35], ["balkenbaer", 30]]);
-    if (Math.random() < 0.08) { const others = STARTERS.filter((s) => s !== G.starter); sp = others[Math.floor(Math.random() * others.length)]; }
-    await battle([mk(sp, rnd(lo, hi))], null);
+  const WILD = {
+    sued:  { lv: [2, 4],   list: [["baggerling", 35], ["ziegelzwerg", 35], ["balkenbaer", 30]], rare: 0.08 },
+    nord:  { lv: [5, 7],   list: [["baggerling", 35], ["ziegelzwerg", 35], ["balkenbaer", 30]], rare: 0.08 },
+    rand:  { lv: [8, 10],  list: [["bretterbiber", 30], ["moertelmolch", 30], ["duebeldachs", 30], ["baggerling", 10]], rare: 0 },
+    bruch: { lv: [10, 12], list: [["bretterbiber", 25], ["moertelmolch", 25], ["duebeldachs", 25], ["ziegelzwerg", 10], ["balkenbaer", 10], ["hobelhase", 5]], rare: 0.05 },
+    fels:  { lv: [12, 15], list: [["hobelhase", 30], ["schotterkroete", 30], ["schraubfalke", 25], ["duebeldachs", 15]], rare: 0.06 }
+  };
+  async function wildBattle(z) {
+    const W = WILD[z] || WILD.sued;
+    let sp = pickW(W.list);
+    if (Math.random() < W.rare) { const others = STARTERS.filter((s) => s !== G.starter); sp = others[Math.floor(Math.random() * others.length)]; }
+    await battle([mk(sp, rnd(W.lv[0], W.lv[1]))], null);
+  }
+  async function trainerScript(t, x, y) {
+    const T = TRAINERS[t];
+    if (G.flags[T.flag]) return;
+    P.dir = y < P.y ? "up" : y > P.y ? "down" : x < P.x ? "left" : "right";
+    await say(T.hi);
+    const res = await battle(T.team.map(([sp, l]) => mk(sp, l)), { name: T.name, short: T.short });
+    if (res === "win") {
+      await say(T.bye);
+      G.flags[T.flag] = true; G.map[y][x] = ",";
+      save();
+    }
+  }
+  async function imbissScript() {
+    await say("Imbiss-Ilse: Na, Hunger? Für dein Team geht's aufs Haus.");
+    healAll();
+    if (G.items.haken < 5) G.items.haken = 5;
+    if (G.items.brotzeit < 3) G.items.brotzeit = 3;
+    snd.heal();
+    await say("Alle sind wieder fit. 5 Kranhaken und 3 Brotzeiten liegen bereit.");
+    save();
+    await say("Spielstand gespeichert.");
+  }
+
+  // ================= ARENA & ORDEN =================
+  function buildOrden(i) {
+    const c = mkc(32, 32), g = c.getContext("2d");
+    const R = (x, y, w, h, col) => px(g, x, y, w, h, col);
+    const band = [2, 0, 1][i], face = [2, 0, 1][i];
+    R(8, 0, 7, 13, 3); R(9, 0, 5, 12, band); R(17, 0, 7, 13, 3); R(18, 0, 5, 12, band);
+    R(11, 0, 1, 12, 3); R(20, 0, 1, 12, 3);
+    for (let dy = -10; dy <= 10; dy++) { const h = Math.round(10.5 * Math.sqrt(1 - (dy * dy) / 110)); R(16 - h, 21 + dy, h * 2, 1, 3); }
+    for (let dy = -9; dy <= 9; dy++) { const h = Math.round(9 * Math.sqrt(1 - (dy * dy) / 81)); R(16 - h, 21 + dy, h * 2, 1, face); }
+    if (i === 0) { R(10, 17, 12, 9, 3); R(11, 18, 5, 3, 1); R(17, 18, 4, 3, 1); R(11, 22, 2, 3, 1); R(14, 22, 7, 3, 1); }
+    else if (i === 1) { R(10, 16, 12, 3, 3); R(10, 24, 12, 3, 3); R(14, 18, 4, 7, 3); R(11, 17, 10, 1, 2); R(11, 25, 10, 1, 2); }
+    else {
+      [[15, 13, 2], [14, 14, 4], [13, 15, 6], [14, 16, 4], [13, 17, 6], [12, 18, 8], [13, 19, 6], [12, 20, 8], [11, 21, 10], [10, 22, 12]]
+        .forEach(([x, y, w]) => R(x, y, w, 1, 3));
+      R(15, 23, 2, 5, 3); R(12, 27, 8, 1, 3);
+      R(14, 17, 1, 1, 0); R(17, 19, 1, 1, 0); R(13, 21, 1, 1, 0); R(18, 21, 1, 1, 0); R(16, 15, 1, 1, 0);
+    }
+    return c;
+  }
+  const ORDEN_IMG = ORDEN.map((o, i) => buildOrden(i));
+  function ordenURL(i, got) {
+    const k = "orden" + i + (got ? "" : "_s");
+    if (URLS[k]) return URLS[k];
+    if (got) return (URLS[k] = ORDEN_IMG[i].toDataURL());
+    const c = mkc(32, 32), g = c.getContext("2d");
+    g.drawImage(ORDEN_IMG[i], 0, 0); g.globalCompositeOperation = "source-in"; g.fillStyle = PAL[1]; g.fillRect(0, 0, 32, 32);
+    return (URLS[k] = c.toDataURL());
+  }
+  async function ordenMenu() {
+    const items = ORDEN.map((o, i) => {
+      const got = G.orden.includes(o.id);
+      return `<div class="cat${got ? " got" : ""}"><img src="${ordenURL(i, got)}" alt=""><span>${got ? o.name : "???"}</span><small>${o.cup}</small></div>`;
+    }).join("");
+    const hint = G.orden.length === 3 ? "Du bist Baumeister! Alle Orden gewonnen."
+      : G.flags.ended ? "Die Orden gibt es in der Baumeister-Arena im Steinbruch." : "Erst zum Richtfest, dann öffnet sich das Osttor.";
+    await choose(["Zurück"], { variant: "full", header: `Orden · ${G.orden.length}/3<div class="orden-grid">${items}</div><p class="info-dex">${hint}</p>`, cancel: true });
+  }
+  const cupOpen = (i) => i === 0 || G.orden.includes(ORDEN[i - 1].id);
+  async function arenaScript() {
+    P.dir = "up";
+    await say("Arena-Sprecher: Willkommen in der Baumeister-Arena!");
+    while (true) {
+      const i = await choose([...ORDEN.map((o) => o.cup), "Zurück"], {
+        variant: "full", header: "Welchen Cup willst du spielen?", cancel: true,
+        info: (k) => k >= ORDEN.length ? "Wieder nach draußen."
+          : `${ORDEN[k].lv} · 3 Runden · ` + (G.orden.includes(ORDEN[k].id) ? "Orden schon gewonnen" : cupOpen(k) ? `Preis: <b>${ORDEN[k].name}</b>` : `Erst den ${ORDEN[k - 1].cup} gewinnen`)
+      });
+      if (i < 0 || i >= ORDEN.length) { await say("Arena-Sprecher: Komm wieder, wenn dein Team bereit ist!"); return; }
+      if (!cupOpen(i)) { await say(`Für den ${ORDEN[i].cup} brauchst du erst den ${ORDEN[i - 1].name}.`); continue; }
+      const c = await choose(["Los geht's", "Lieber nicht"], { variant: "side", header: "3 Runden am Stück. Bereit?", cancel: true });
+      if (c !== 0) continue;
+      await runCup(i);
+      return;
+    }
+  }
+  async function runCup(i) {
+    const cup = CUPS[i], o = ORDEN[i];
+    healAll();
+    await say(`Arena-Sprecher: Der ${o.cup} beginnt! Dein Team startet frisch, zwischen den Runden gibt es eine Trinkpause.`);
+    for (let r = 0; r < cup.length; r++) {
+      const T = cup[r];
+      await say(r === cup.length - 1 ? `Finale! ${T.name} betritt die Arena!` : `Runde ${r + 1}: ${T.name}!`);
+      const res = await battle(T.team.map(([sp, l]) => mk(sp, l)), { name: T.name, short: T.short });
+      if (res !== "win") return;
+      if (r < cup.length - 1) {
+        for (const m of G.team) { const mx = stats(m).maxhp; m.hp = Math.min(mx, m.hp + Math.ceil(mx / 2)); }
+        snd.heal();
+        await say("Trinkpause! Jedes Baumonster aus deinem Team kommt wieder auf die Beine und erholt sich ein Stück.");
+      }
+    }
+    snd.level();
+    if (G.orden.includes(o.id)) {
+      await say(`Arena-Sprecher: Wieder gewonnen! Den ${o.name} hast du ja schon. Starke Truppe!`);
+      save();
+      return;
+    }
+    G.orden.push(o.id);
+    let prize = "";
+    if (i === 0) { G.items.brotzeit += 3; prize = "Dazu gibt's 3 Brotzeiten."; }
+    else if (i === 1) { G.items.haken += 5; prize = "Dazu gibt's 5 Kranhaken."; }
+    else prize = "Du bist jetzt offiziell Baumeister!";
+    save();
+    const header = `<div class="end"><img class="info-img" style="align-self:center;width:calc(var(--u)*48);height:calc(var(--u)*48)" src="${ordenURL(i, true)}" alt=""><div class="end-s">Du hast den<br><b>${o.name}</b> gewonnen!</div><p>${prize}<br>Orden ${G.orden.length}/3</p></div>`;
+    await choose(["Super!"], { variant: "full", header });
   }
   async function polierScript() {
     if (G.flags.polier) return;
@@ -1097,11 +1450,13 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
   async function endingScript() {
     await say("Der Richtkranz hängt, die Blaskapelle spielt.");
     await say("Glückwunsch! Du hast es zum Richtfest geschafft.");
+    const first = !G.flags.ended;
     G.flags.ended = true; snd.level();
-    const header = `<div class="end"><div class="end-t">Richtfest!</div><div class="end-s">Katalog ${G.caught.length}/6 gefangen<br>${G.stats.fights} Kämpfe · ${G.stats.catches} Fänge</div><p>Sammle alle sechs Baumonster. Bea wartet im Baucontainer.</p></div>`;
+    const header = `<div class="end"><div class="end-t">Richtfest!</div><div class="end-s">Katalog ${G.caught.length}/${ALLE} gefangen · Orden ${G.orden.length}/3<br>${G.stats.fights} Kämpfe · ${G.stats.catches} Fänge</div><p>Das Osttor zum Steinbruch ist jetzt offen. Dort warten neue Baumonster, starke Gegner und die Baumeister-Arena.</p></div>`;
     await choose(["Weiterbauen"], { variant: "full", header });
     Object.assign(P, { y: 5, fy: 5, fx: P.x, t: 1, moving: false, dir: "down" });
     save();
+    if (first) await say("Polier Paul ruft: Das Osttor ist auf! Rechts hinter dem Kran geht's in den Steinbruch.");
   }
   async function newGame() {
     resetState();
@@ -1151,6 +1506,8 @@ body{margin:0;min-height:100%;background:var(--bg);color:#e9dfc4;font-family:var
   function tileImg(ch, x, y) {
     if (ch === "C" && tileAt(x, y - 1) !== "C") return TILES.Ctop;
     if (ch === "R" && tileAt(x, y - 1) !== "R") return TILES.Rtop;
+    if (ch === "A" && tileAt(x, y - 1) !== "A") return TILES.Atop;
+    if (ch === "X") return G.area === "steinbruch" || G.flags.ended ? TILES.Xopen : TILES.X;
     return TILES[ch] || TILES["."];
   }
   function drawWorld() {
