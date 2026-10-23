@@ -95,3 +95,6 @@ Einrichtung: 1. SQL aus `supabase/migrations/20261022130000_papierpilot.sql` im 
 
 ## DARTFIEBER (Tageschallenge mit Server-Seed)
 Wie die anderen Tagesspiele, aber der Seed des Tages kommt vom Server und jede Runde hat eine einmalige Run-ID (`dartfieber_start`). Edge Function `dartfieber-lauf`, Einrichtung und Grenzen: [DARTFIEBER.md](DARTFIEBER.md).
+
+## LEITUNGSCHAOS (Tagesrätsel, ein Versuch je Tag)
+Seed des Tages vom Server wie bei Dartfieber, aber je Konto und Tag genau eine Runde (`leitungschaos_start` setzt fort statt neu zu starten); gewertet wird die Zeit der Datenbankuhr. Edge Function `leitungschaos-lauf`, Einrichtung und Grenzen: [LEITUNGSCHAOS.md](LEITUNGSCHAOS.md).

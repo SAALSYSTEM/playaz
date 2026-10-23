@@ -1,5 +1,7 @@
 # PlaySaal
 
+**Leitungschaos:** Rohr-Rätsel im Hochformat: Rohre antippen und drehen, bis das Wasser vom Hydranten zu allen Häusern fließt. Tagesrätsel (ein gewerteter Versuch je Konto, Zeit von der Datenbank, geprüfte Tagesrangliste mit Archiv) und 30 Level mit Sternen. Noch `noindex`, Branch `leitungschaos`. Details: [`docs/LEITUNGSCHAOS.md`](docs/LEITUNGSCHAOS.md). Tests: `node --test tests/leitungschaos-sim.test.mjs tests/leitungschaos-pruefung.test.mjs`.
+
 **Papierpilot:** Papierflieger-Spiel im Hochformat: vom Dach werfen, links/rechts steuern, Aufwinde und Ringe nutzen, Bäumen und Türmen ausweichen; Ziel ist die größte Flugweite. Täglich neue Strecke für alle, eigener Geisterflieger und geprüfte Tagesrangliste (Distanz, dann Zeit). Veröffentlicht am 22.10.2026. Details: [`docs/PAPIERPILOT.md`](docs/PAPIERPILOT.md). Tests: `node --test tests/papierpilot-sim.test.mjs tests/papierpilot-pruefung.test.mjs`.
 
 **Dartfieber:** Dart-Geschicklichkeitsspiel (5 Pfeile, zwei Tipps pro Wurf, Wind, goldene Bonusziele) mit Tageschallenge und geprüfter Tagesrangliste samt Archiv. Veröffentlicht am 22.10.2026 (in der Übersicht sichtbar, sobald `listed = true` gesetzt ist). Details: [`docs/DARTFIEBER.md`](docs/DARTFIEBER.md). Tests: `node --test tests/dartfieber-sim.test.mjs tests/dartfieber-pruefung.test.mjs tests/dartfieber.test.mjs`.
@@ -58,13 +60,14 @@ node --test tests/kakerlake-sim.test.mjs                # nur HAU DIE KAKERLAKE!
 node --test tests/sprungsebi-sim.test.mjs           # SPRUNGSEBI: 30 Level, Fortschritt, Teilen-Text und Vorschau
 node --test tests/turmschicht-sim.test.mjs          # TURMSCHICHT: 30 Level beide Modi lösbar (Löser + Bot), Hebel, Jäger, Herzen, Herausforderung
 node --test tests/wasser-marsch-sim.test.mjs        # WASSER MARSCH!: 20 Level, Layout 360×640, Rettung, Spielstand
+node --test tests/leitungschaos-sim.test.mjs        # LEITUNGSCHAOS: 30 Level + 200 Tagesrätsel gültig und lösbar, Fluss, Prüfung
 node --test tests/dino-leiterhelden-sim.test.mjs    # DINO-LEITERHELDEN: 90 Level lösbar (Löser + Bot), Regeln inkl. Rutsche/Brücke/Wechsel-Monster/Ballon/Langhals, Spielstand, Herausforderung
 node tools/domain.mjs                                   # Canonical/Sitemap/robots konsistent?
 ```
 
 ## Spielstände
 
-Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `wassermarsch.v1`, `jungle.v1`, `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Ohne Konto bleibt alles auf dem Gerät. Optional gibt es Konten mit Cloud-Speicherständen (Supabase), siehe [docs/KONTEN.md](docs/KONTEN.md). Keine Cookies, keine Werbe- oder Analysedienste Dritter.
+Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `leitungschaos.v1`, `wassermarsch.v1`, `jungle.v1`, `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Ohne Konto bleibt alles auf dem Gerät. Optional gibt es Konten mit Cloud-Speicherständen (Supabase), siehe [docs/KONTEN.md](docs/KONTEN.md). Keine Cookies, keine Werbe- oder Analysedienste Dritter.
 `localStorage` hängt an der Adresse: Ein neues Spiel mit eigenem Schlüssel-Präfix muss in `public/assets/umzug.js` (Liste `SPIELE`) eingetragen werden, sonst wird es beim Umzug nicht mitgenommen.
 
 ## Vor dem Livegang

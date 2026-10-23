@@ -1,4 +1,4 @@
-// Kopiert die Spiellogik (SCHRÄGLAGE, SEITENWECHSEL, PUNKTLANDUNG, PAPIERPILOT, DARTFIEBER) in die Edge Functions (sie brauchen dieselben Dateien wie der Browser).
+// Kopiert die Spiellogik (SCHRÄGLAGE, SEITENWECHSEL, PUNKTLANDUNG, PAPIERPILOT, DARTFIEBER, LEITUNGSCHAOS) in die Edge Functions (sie brauchen dieselben Dateien wie der Browser).
 // node tools/edge-sync.mjs         kopiert
 // node tools/edge-sync.mjs --check prüft nur, ob die Kopien aktuell sind (Exit-Code 1, wenn nicht)
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -10,7 +10,8 @@ const FUNKTIONEN = [
   { quelle: 'public/spiele/seitenwechsel', ziel: 'supabase/functions/seitenwechsel-lauf', dateien: ['sim.js'] },
   { quelle: 'public/spiele/punktlandung', ziel: 'supabase/functions/punktlandung-lauf', dateien: ['sim.js'] },
   { quelle: 'public/spiele/papierpilot', ziel: 'supabase/functions/papierpilot-lauf', dateien: ['sim.js', 'strecke.js'] },
-  { quelle: 'public/spiele/dartfieber', ziel: 'supabase/functions/dartfieber-lauf', dateien: ['sim.js'] }
+  { quelle: 'public/spiele/dartfieber', ziel: 'supabase/functions/dartfieber-lauf', dateien: ['sim.js'] },
+  { quelle: 'public/spiele/leitungschaos', ziel: 'supabase/functions/leitungschaos-lauf', dateien: ['sim.js'] }
 ];
 let veraltet = 0;
 for (const fn of FUNKTIONEN) for (const f of fn.dateien) {
