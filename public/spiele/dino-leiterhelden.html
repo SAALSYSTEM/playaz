@@ -33,6 +33,7 @@ button,a{font:inherit;-webkit-tap-highlight-color:transparent}
 #knob{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(255,255,255,.78);box-shadow:0 4px 12px rgba(0,0,0,.25)}
 /* Bildschirme */
 .screen{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 62px) 14px calc(env(safe-area-inset-bottom,0px) + 14px);overflow:auto;touch-action:pan-y;background:linear-gradient(180deg,rgba(20,40,14,.15),rgba(20,40,14,.6))}
+.screen>.card{margin:auto} /* mittig, aber bei langer Liste oben nicht abgeschnitten */
 .card{width:100%;max-width:440px;padding:20px 18px;border-radius:28px;background:var(--cream);border:4px solid var(--wood);box-shadow:0 8px 0 var(--wood2),0 20px 50px rgba(0,0,0,.35);color:var(--ink);text-align:center}
 .logo img{display:block;width:min(100%,340px);height:auto;margin:-6px auto 0}
 .logo{margin:0 0 6px;font:700 clamp(36px,11vw,52px)/.95 "Fredoka",sans-serif;color:#3d8f2c;letter-spacing:-.02em;text-shadow:0 3px 0 #fff,0 5px 0 rgba(90,52,22,.35)}
