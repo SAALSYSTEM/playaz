@@ -53,7 +53,7 @@ Tagesrätsel: 6×8, 6–11 Häuser, keine verschweißten Rohre, Häuser fest. Im
 
 ## 5. Bilder (ChatGPT)
 
-Die Rohre zeichnet das Spiel selbst. Von ChatGPT kommen nur: `lc-hintergrund` (1024×1536), `lc-hydrant`, `lc-haus-{a,b,c}` und `lc-haus-{a,b,c}-licht` (je 1024×1024, transparent), `lc-kachel` (1:1, ohne Text), `lc-social` (1536×1024, ohne Text; Schriftzug kommt im Code dazu). Originale nach `design/leitungschaos/`, ins Spiel als WebP nach `public/spiele/leitungschaos/img/` (Liste `IMAGES` in `game.js`). Fehlt ein Bild, zeichnet das Spiel einen Platzhalter und zeigt den Hinweis „Platzhalter-Grafik“. Stand 23.10.: Hintergrund, Hydrant, Haus a (trocken/versorgt), Kachel und Social-Bild sind da; Häuser b und c sind optional (fehlen sie, gibt es nur Haus a). Umwandeln: `python3 tools/leitungschaos-assets.py`, Teilen-Vorschau: `node tools/leitungschaos-cover.mjs`.
+Die Rohre zeichnet das Spiel selbst. Von ChatGPT kommen nur: `lc-hintergrund` (1024×1536), `lc-hydrant`, `lc-haus-{a,b,c}` und `lc-haus-{a,b,c}-licht` (je 1024×1024, transparent), `lc-kachel` (1:1, ohne Text), `lc-social` (1536×1024, ohne Text; Schriftzug kommt im Code dazu). Originale nach `design/leitungschaos/`, ins Spiel als WebP nach `public/spiele/leitungschaos/img/` (Liste `IMAGES` in `game.js`). Fehlt ein Bild, zeichnet das Spiel einen Platzhalter und zeigt den Hinweis „Platzhalter-Grafik“. Stand 23.10.: alle Bilder da (Hintergrund, Hydrant, Häuser a–c je trocken/versorgt, Kachel, Social-Bild). Häuser b und c sind technisch optional. Umwandeln: `python3 tools/leitungschaos-assets.py`, Teilen-Vorschau: `node tools/leitungschaos-cover.mjs`.
 
 ## 6. Tests
 

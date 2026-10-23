@@ -103,7 +103,7 @@ const STAHL = '#8f96ac', STAHL_DUNKEL = '#4a4f63', STAHL_HELL = '#c9cedd', WASSE
 function hausVariante(i) {
   const da = ['a', 'b', 'c'].filter((v) => img['lc-haus-' + v]);
   const alle = da.length ? da : ['a', 'b', 'c'];   // ohne Bilder: drei Platzhalter-Farben
-  return alle[(i * 7 + r.w) % alle.length];
+  return alle[(i * 7 + Math.floor(i / r.w) * 5 + 1) % alle.length];   // Zeile mit einrechnen, sonst wiederholt sich das Muster spaltenweise
 }
 
 function zeichneArme(m, z, nassFeld, jetzt, i) {
