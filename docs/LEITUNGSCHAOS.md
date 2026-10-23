@@ -9,6 +9,7 @@ Dateien: `public/spiele/leitungschaos.html`, `public/spiele/leitungschaos/{sim,g
 - Raster aus Rohrstücken: Endstück (Haus), Gerade, Kurve, T-Stück, Kreuz. Ein Feld ist eine 4-Bit-Maske (oben, rechts, unten, links).
 - Gelöst = jede Öffnung trifft auf eine passende Öffnung des Nachbarn (kein offenes Ende, nichts zeigt über den Rand) **und** alle Felder hängen am Hydranten. Damit sind alle Häuser versorgt.
 - Nasse Rohre (am Hydranten angeschlossen) werden blau; offene Enden im nassen Bereich spritzen. Das ist die Rückmeldung, wie weit man ist.
+- Haben alle Häuser Wasser, aber es sind noch Rohre trocken, sagt das der Hinweis unten und die trockenen Felder blinken orange (Rückmeldung vom 23.10.: „4/4 Häuser“ sah sonst fertig aus).
 - Hydrant und Häuser sind fest. Ab Level 11 drehen sich die Hausanschlüsse mit (Level 11–17, 25–30). Verschweißte Rohre (vier Schrauben) stehen schon richtig und sind nicht drehbar (Level 18–30).
 - „Ideal“ = Mindestzahl Drehungen bis zur gebauten Lösung. Sterne im Levelmodus: ★★★ ≤ Ideal, ★★ ≤ 1,5 × Ideal, ★ gelöst.
 

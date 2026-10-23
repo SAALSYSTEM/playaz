@@ -165,6 +165,7 @@ function zeichne(jetzt) {
     cx.fillStyle = r.fest[i] && r.art[i] === 'r' ? '#262838' : (i + Math.floor(i / r.w)) % 2 ? '#1c1e2b' : '#1f2130';
     rund(x + 1, y + 1, z - 2, z - 2, 6); cx.fill();
     if (r.fest[i] && r.art[i] === 'r') { cx.fillStyle = '#6b7088'; for (const [a, b] of [[0.14, 0.14], [0.86, 0.14], [0.14, 0.86], [0.86, 0.86]]) { cx.beginPath(); cx.arc(x + a * z, y + b * z, Math.max(1.5, z * 0.045), 0, Math.PI * 2); cx.fill(); } }
+    if (trocken && nass && !nass[i]) { cx.strokeStyle = 'rgba(255,146,0,' + (WENIG_BEWEGUNG ? 0.8 : 0.65 + 0.35 * Math.sin(jetzt / 220)) + ')'; cx.lineWidth = 2.5; rund(x + 3, y + 3, z - 6, z - 6, 6); cx.stroke(); }
     if (i === cursor && zustand === 'spiel') { cx.strokeStyle = '#FFD21C'; cx.lineWidth = 2; rund(x + 2, y + 2, z - 4, z - 4, 6); cx.stroke(); }
   }
   for (let i = 0; i < r.n; i++) {
@@ -226,7 +227,14 @@ function hud() {
   $('hDreh').textContent = String(s.drehungen);
   let h = 0; for (let i = 0; i < r.n; i++) if (r.art[i] === 'h' && nass && nass[i]) h++;
   $('hHaeuser').textContent = h + '/' + r.haeuser; $('hHaus').classList.toggle('voll', h === r.haeuser);
+  // Alle Häuser haben Wasser, aber es gibt noch trockene Rohre: das ist noch nicht gelöst (jedes Rohr muss dazugehören)
+  const vorher = trocken;
+  trocken = 0;
+  if (zustand === 'spiel' && !s.geloest && h === r.haeuser) for (let i = 0; i < r.n; i++) if (!nass[i]) trocken++;
+  if (trocken) hinweis('Häuser versorgt, aber jedes Rohr muss dazugehören: ', trocken + (trocken === 1 ? ' Rohr ist' : ' Rohre sind') + ' noch trocken');
+  else if (vorher) standardHinweis();
 }
+let trocken = 0;
 function hinweis(text, fett) {
   const e = $('hinweis'); e.textContent = text || '';
   if (fett) { const b = document.createElement('b'); b.textContent = fett; e.appendChild(b); }
@@ -246,7 +254,7 @@ function starte(raetsel, eingaben) {
   r = raetsel; s = neuesSpiel(r); tipps = []; anim.clear(); welle.clear(); spritzer = []; cursor = -1;
   gr();
   if (eingaben) for (const i of eingaben) if (tippe(r, s, i)) tipps.push(i);
-  berechneFluss(null); zustand = 'spiel'; zeige(null); hud(); standardHinweis();
+  berechneFluss(null); zustand = 'spiel'; zeige(null); trocken = 0; standardHinweis(); hud();
   if (s.geloest) geloest();
 }
 function starteLevel(nr) {
