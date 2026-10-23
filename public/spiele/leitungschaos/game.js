@@ -45,12 +45,14 @@ const zeitGenau = (cs) => zeitText(cs) + ',' + String(Math.floor(cs % 100)).padS
 const sterneFuer = (d, par) => (d <= par ? 3 : d * 2 <= par * 3 ? 2 : 1);
 
 // ---------- Bilder ----------
-const IMAGES = ['lc-hintergrund', 'lc-hydrant', 'lc-haus-a', 'lc-haus-a-licht', 'lc-haus-b', 'lc-haus-b-licht', 'lc-haus-c', 'lc-haus-c-licht'];
+// Pflicht: Hintergrund, Hydrant, Haus a. Weitere Häuser (b, c) sind optional und kommen nur dazu, wenn es die Datei gibt.
+const IMAGES = ['lc-hintergrund', 'lc-hydrant', 'lc-haus-a', 'lc-haus-a-licht'];
+const OPTIONAL = ['lc-haus-b', 'lc-haus-b-licht', 'lc-haus-c', 'lc-haus-c-licht'];
 const img = {}; let bilderFehlen = false;
-for (const n of IMAGES) {
+for (const n of [...IMAGES, ...OPTIONAL]) {
   const b = new Image(); b.decoding = 'async';
   b.onload = () => { img[n] = b; if (n === 'lc-hintergrund') { document.body.classList.add('bild'); document.body.style.backgroundImage = 'url(leitungschaos/img/' + n + '.webp)'; } zeichneNeu = true; };
-  b.onerror = () => { bilderFehlen = true; $('platzhalter').hidden = false; zeichneNeu = true; };
+  b.onerror = () => { if (OPTIONAL.includes(n)) return; bilderFehlen = true; $('platzhalter').hidden = false; zeichneNeu = true; };
   b.src = 'leitungschaos/img/' + n + '.webp';
 }
 
@@ -98,7 +100,11 @@ function gr() {
 addEventListener('resize', gr);
 
 const STAHL = '#8f96ac', STAHL_DUNKEL = '#4a4f63', STAHL_HELL = '#c9cedd', WASSER = '#3DB7FF', WASSER_HELL = '#a8e2ff';
-function hausVariante(i) { return ['a', 'b', 'c'][(i * 7 + r.w) % 3]; }
+function hausVariante(i) {
+  const da = ['a', 'b', 'c'].filter((v) => img['lc-haus-' + v]);
+  const alle = da.length ? da : ['a', 'b', 'c'];   // ohne Bilder: drei Platzhalter-Farben
+  return alle[(i * 7 + r.w) % alle.length];
+}
 
 function zeichneArme(m, z, nassFeld, jetzt, i) {
   const h = z / 2, br = Math.max(6, z * 0.26), innen = br * 0.52;
