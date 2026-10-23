@@ -52,6 +52,8 @@
       info: (g) => { const d = J(g['punktlandung.v1']) || {}; return { text: zahl(d.best) + ' Punkte Bestwert · ' + zahl(d.runs) + ' Läufe', wert: Number(d.best) || 0 }; } },
     { id: 'dartfieber', name: 'Dartfieber', prefix: 'dartfieber.', haupt: ['dartfieber.v1'],
       info: (g) => { const d = J(g['dartfieber.v1']) || {}; return { text: zahl(d.best) + ' Punkte Bestwert · ' + zahl(d.runs) + ' Runden', wert: Number(d.best) || 0 }; } },
+    { id: 'ausfahrt', name: 'Ausfahrt frei', prefix: 'ausfahrt.', haupt: ['ausfahrt.v1'],
+      info: (g) => { const d = J(g['ausfahrt.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level · ' + Object.keys(d.tage || {}).length + ' Tagesrätsel', wert: lv * 100 + Object.keys(d.tage || {}).length }; } },
     { id: 'leitungschaos', name: 'Leitungschaos', prefix: 'leitungschaos.', haupt: ['leitungschaos.v1'],
       info: (g) => { const d = J(g['leitungschaos.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level · ' + Object.keys(d.tage || {}).length + ' Tagesrätsel', wert: lv * 100 + Object.keys(d.tage || {}).length }; } },
     { id: 'turmschicht', name: 'Turmschicht', prefix: 'turmschicht.', haupt: ['turmschicht.v1'],

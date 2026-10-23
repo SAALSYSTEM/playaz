@@ -1,6 +1,9 @@
 # PlaySaal
 
-**Leitungschaos:** Rohr-Rätsel im Hochformat: Rohre antippen und drehen, bis das Wasser vom Hydranten zu allen Häusern fließt. Tagesrätsel (ein gewerteter Versuch je Konto, Zeit von der Datenbank, geprüfte Tagesrangliste mit Archiv) und 30 Level mit Sternen. Veröffentlicht am 23.10.2026. Details: [`docs/LEITUNGSCHAOS.md`](docs/LEITUNGSCHAOS.md). Tests: `node --test tests/leitungschaos-sim.test.mjs tests/leitungschaos-pruefung.test.mjs`.
+**Ausfahrt frei:** Schiebe-Rätsel im Hochformat (6×6-Bauhof, Fahrzeuge nur in Längsrichtung, der Betonmischer muss zur Ausfahrt). Tagesrätsel aus einem vorab geprüften Pool (ein gewerteter Versuch je Konto, wenigste Züge vor Zeit, geprüfte Tagesrangliste) und 30 Level. Noch `noindex`, Branch `ausfahrt-frei`. Details: [`docs/AUSFAHRT_FREI.md`](docs/AUSFAHRT_FREI.md). Tests: `node --test tests/ausfahrt-sim.test.mjs tests/ausfahrt-pruefung.test.mjs`.
+
+**Leitungschaos:** Rohr-Rätsel im Hochformat: Rohre antippen und drehen, bis das Wasser vom Hydranten zu allen Häusern fließt. Tagesrätsel (ein gewerteter Versuch je Konto, Zeit von der Datenbank, geprüfte Tagesrangliste mit Archiv) und 30 Level mit Sternen. Veröffentlicht am 23.10.2026. Details: [`docs/LEITUNGSCHAOS.md`](docs/LEITUNGSCHAOS.md). Tests: `node --test tests/ausfahrt-sim.test.mjs            # AUSFAHRT FREI: Regeln, Level und Tagespool mit Löser geprüft, Nachspielen
+node --test tests/leitungschaos-sim.test.mjs tests/leitungschaos-pruefung.test.mjs`.
 
 **Papierpilot:** Papierflieger-Spiel im Hochformat: vom Dach werfen, links/rechts steuern, Aufwinde und Ringe nutzen, Bäumen und Türmen ausweichen; Ziel ist die größte Flugweite. Täglich neue Strecke für alle, eigener Geisterflieger und geprüfte Tagesrangliste (Distanz, dann Zeit). Veröffentlicht am 22.10.2026. Details: [`docs/PAPIERPILOT.md`](docs/PAPIERPILOT.md). Tests: `node --test tests/papierpilot-sim.test.mjs tests/papierpilot-pruefung.test.mjs`.
 

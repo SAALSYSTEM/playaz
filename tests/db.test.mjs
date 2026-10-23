@@ -605,3 +605,45 @@ test('LEITUNGSCHAOS: Rätsel pro Tag fest, ein Versuch je Konto und Tag, Zeit vo
   await rpc('authenticated', P, 'konto_loeschen', 'LÖSCHEN');
   assert.equal((await db.query(`select count(*)::int n from private.leitungschaos_runden where user_id = '${P}'`)).rows[0].n, 0);
 });
+
+test('AUSFAHRT FREI: Rätsel pro Tag fest, ein Versuch je Konto und Tag, Züge vor Zeit; Rangliste, Archiv, Löschung', async () => {
+  const { VERSION } = await import(pathToFileURL(join(ROOT, 'public/spiele/ausfahrt-frei/sim.js')).href);
+  assert.equal((await db.query('select private.ausfahrt_version() v')).rows[0].v, VERSION, 'Version in SQL und sim.js gleich');
+  const U = ['a4a4a4a4-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'b4b4b4b4-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'c4c4c4c4-cccc-4ccc-8ccc-cccccccccccc', 'd4d4d4d4-dddd-4ddd-8ddd-dddddddddddd'];
+  await db.exec(`insert into auth.users (id, email) values ${U.map((u, i) => `('${u}', 'af${i}@example.org')`).join(',')}`);
+  const [P, Q, R, K] = U;
+  await rpc('authenticated', P, 'profil_speichern', 'Ali', 'a3');
+  await rpc('authenticated', Q, 'profil_speichern', 'Ben', 'a4');
+  await rpc('authenticated', R, 'profil_speichern', 'Cem', 'a5');
+  const heute = (await db.query(`select to_char(private.berlin_heute(), 'YYYYMMDD') d`)).rows[0].d;
+  const t1 = await rpc('anon', null, 'ausfahrt_tag'); assert.equal(t1.tag, heute); assert.equal(t1.version, VERSION);
+  assert.ok(await fehler('anon', null, 'select public.ausfahrt_start()'));
+  assert.equal((await rpc('authenticated', K, 'ausfahrt_start')).grund, 'kein_profil');
+  const s1 = await rpc('authenticated', P, 'ausfahrt_start'); assert.equal(s1.ok, true); assert.equal(s1.seed, t1.seed);
+  assert.equal((await rpc('authenticated', P, 'ausfahrt_start')).run_id, s1.run_id, 'Fortsetzen statt neu');
+  for (const rolle of ['anon', 'authenticated']) {
+    assert.match(String((await fehler(rolle, P, `select public.ausfahrt_abschliessen('${P}', '${s1.run_id}', 1, 'A4')`)).message), /permission denied/);
+    assert.match(String((await fehler(rolle, P, 'select * from private.ausfahrt_runden')).message), /permission denied/);
+  }
+  const fertig = (u, r, z, inp) => rpc('service_role', null, 'ausfahrt_abschliessen', u, r, z, inp === undefined ? 'A4'.repeat(z) : inp);
+  const alt = (run, sek) => db.exec(`update private.ausfahrt_runden set issued_at = now() - interval '${sek} seconds' where id = '${run}'`);
+  assert.equal((await fertig(P, s1.run_id, 2, 'A4')).grund, 'ungueltig', 'Eingaben passen nicht zur Zugzahl');
+  assert.equal((await fertig(P, s1.run_id, 20)).grund, 'zu_schnell', 'gleich nach dem Start');
+  await alt(s1.run_id, 60);
+  const a = await fertig(P, s1.run_id, 20); assert.equal(a.ok, true); assert.ok(a.zeit_cs >= 6000 && a.zeit_cs < 7000);
+  const s2 = await rpc('authenticated', P, 'ausfahrt_start'); assert.equal(s2.grund, 'schon_geloest'); assert.equal(s2.zuege, 20);
+  // Weniger Züge schlagen schnellere Zeit; gleiche Züge: schnellere Zeit vorn
+  const q1 = await rpc('authenticated', Q, 'ausfahrt_start'); await alt(q1.run_id, 300); assert.equal((await fertig(Q, q1.run_id, 18)).rang.platz, 1);
+  const r1 = await rpc('authenticated', R, 'ausfahrt_start'); await alt(r1.run_id, 30); const rr = await fertig(R, r1.run_id, 20);
+  assert.equal(rr.rang.platz, 2); assert.equal(rr.rang.naechster_platz, 1); assert.equal(rr.rang.luecke_zuege, 2);
+  const rl = await rpc('authenticated', R, 'ausfahrt_rangliste', null, 10);
+  assert.deepEqual(rl.zeilen.map((z) => [z.platz, z.name, z.zuege]).map(String), ['1,Ben,18', '2,Cem,20', '3,Ali,20']);
+  assert.deepEqual(Object.keys(rl.zeilen[0]).sort(), ['avatar', 'ich', 'name', 'platz', 'pos', 'zeit_cs', 'zuege']);
+  const ali = (await rpc('authenticated', P, 'ausfahrt_rangliste', null, 10)).ich; assert.equal(ali.luecke_zuege, 0); assert.ok(ali.luecke_cs > 0);
+  assert.deepEqual(await rpc('anon', null, 'ausfahrt_tage_liste', 10), [heute]);
+  await db.exec(`update private.ausfahrt_runden set issued_at = now() - interval '3 days' where finished_at is null`);
+  await db.exec('select private.aufraeumen()');
+  assert.equal((await db.query(`select count(*)::int n from private.ausfahrt_runden where finished_at is not null`)).rows[0].n, 3);
+  await rpc('authenticated', P, 'konto_loeschen', 'LÖSCHEN');
+  assert.equal((await db.query(`select count(*)::int n from private.ausfahrt_runden where user_id = '${P}'`)).rows[0].n, 0);
+});

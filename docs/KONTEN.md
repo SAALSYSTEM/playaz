@@ -98,3 +98,6 @@ Wie die anderen Tagesspiele, aber der Seed des Tages kommt vom Server und jede R
 
 ## LEITUNGSCHAOS (Tagesrätsel, ein Versuch je Tag)
 Seed des Tages vom Server wie bei Dartfieber, aber je Konto und Tag genau eine Runde (`leitungschaos_start` setzt fort statt neu zu starten); gewertet wird die Zeit der Datenbankuhr. Edge Function `leitungschaos-lauf`, Einrichtung und Grenzen: [LEITUNGSCHAOS.md](LEITUNGSCHAOS.md).
+
+## AUSFAHRT FREI (Tagesrätsel, ein Versuch je Tag)
+Wie Leitungschaos, gewertet werden aber zuerst die Züge, dann die Zeit; das Rätsel kommt aus einem festen Pool (`raetsel.js`). Edge Function `ausfahrt-lauf`, Einrichtung und Grenzen: [AUSFAHRT_FREI.md](AUSFAHRT_FREI.md).
