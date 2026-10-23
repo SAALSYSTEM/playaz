@@ -260,6 +260,7 @@
       <li class="kachel" data-slug="sondengaenger" data-kategorien="abenteuer" data-rec="sondengaenger" data-name="Sondengänger" data-arten="3D,Schatzsuche" data-kat="neu"><a href="/spiele/sondengaenger"><img src="/bilder/sondengaenger.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Sondengänger</span></a></li>
       <li class="kachel" data-slug="anbiss" data-kategorien="abenteuer" data-rec="anbiss" data-name="Anbiss" data-arten="3D,Angeln" data-kat="neu"><a href="/spiele/anbiss"><img src="/bilder/anbiss.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Anbiss</span></a></li>
       <li class="kachel" data-slug="punktlandung" data-kategorien="geschick,action" data-rec="punktlandung" data-name="Punktlandung" data-arten="Arcade,Timing,Ein Finger" data-kat="neu"><a href="/spiele/punktlandung"><img src="/bilder/punktlandung.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Punktlandung</span></a></li>
+      <li class="kachel" data-slug="ausfahrt-frei" data-kategorien="raetsel" data-rec="ausfahrt" data-name="Ausfahrt frei" data-arten="Rätsel,Logik,Tagesrangliste" data-kat="neu"><a href="/spiele/ausfahrt-frei"><img src="/bilder/ausfahrt-frei.webp" width="720" height="720" alt="Ausfahrt frei: Betonmischer, Container und Baufahrzeuge auf einem Bauhof" decoding="async" loading="lazy"><span class="name">Ausfahrt frei</span></a></li>
       <li class="kachel" data-slug="leitungschaos" data-kategorien="raetsel" data-rec="leitungschaos" data-name="Leitungschaos" data-arten="Rätsel,Logik,Tagesrangliste" data-kat="neu"><a href="/spiele/leitungschaos"><img src="/bilder/leitungschaos.webp" width="720" height="720" alt="Leitungschaos: Hydrant, Wasserrohre und drei Häuser" decoding="async" loading="lazy"><span class="name">Leitungschaos</span></a></li>
       <li class="kachel" data-slug="dartfieber" data-kategorien="geschick,action" data-rec="dartfieber" data-name="Dartfieber" data-arten="Darts,Tagesrangliste,Wind" data-kat="neu"><a href="/spiele/dartfieber"><img src="/bilder/dartfieber.webp" width="720" height="720" alt="" decoding="async" loading="lazy"><span class="name">Dartfieber</span></a></li>
       <li class="kachel" data-slug="seitenwechsel" data-kategorien="geschick,action" data-rec="seitenwechsel" data-name="Seitenwechsel" data-arten="Arcade,Geschick,Ein Finger" data-kat="neu"><a href="/spiele/seitenwechsel"><img src="/bilder/seitenwechsel.jpg" width="960" height="600" alt="" decoding="async" loading="lazy"><span class="name">Seitenwechsel</span></a></li>
@@ -427,6 +428,8 @@
   if (hs) show('hochstapler', 'Rekord ' + n(hs));
   const pp = read('papierpilot.v1');
   if (pp && Number(pp.best) >= 100) show('papierpilot', 'Bestflug ' + n(Math.floor(pp.best / 100)) + ' m');
+  const af = read('ausfahrt.v1');
+  if (af && af.best && Object.keys(af.best).length) show('ausfahrt', Object.keys(af.best).length + ' von 30 Level');
   const lc = read('leitungschaos.v1');
   if (lc && lc.best && Object.keys(lc.best).length) show('leitungschaos', Object.keys(lc.best).length + ' von 30 Level');
   const df = read('dartfieber.v1');

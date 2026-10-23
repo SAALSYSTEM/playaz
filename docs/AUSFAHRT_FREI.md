@@ -1,6 +1,6 @@
 # AUSFAHRT FREI
 
-Schiebe-Rätsel im Hochformat: 6×6-Bauhof, Fahrzeuge fahren nur in ihrer Längsrichtung. Der Betonmischer muss rechts zur Ausfahrt. Tagesrätsel mit geprüfter Tagesrangliste (wenigste Züge, dann Zeit) und 30 Level mit Sternen. Stand: Branch `ausfahrt-frei`, `noindex`, nicht auf der Startseite, nicht auf `main`.
+Schiebe-Rätsel im Hochformat: 6×6-Bauhof, Fahrzeuge fahren nur in ihrer Längsrichtung. Der Betonmischer muss rechts zur Ausfahrt. Tagesrätsel mit geprüfter Tagesrangliste (wenigste Züge, dann Zeit) und 30 Level mit Sternen. Stand: veröffentlicht auf `main` am 23.10.2026 (Startseite, Sitemap, `listed = true`), Edge Function `ausfahrt-lauf` deployt.
 
 Dateien: `public/spiele/ausfahrt-frei.html`, `public/spiele/ausfahrt-frei/{sim,raetsel,game}.js`, Generator `tools/ausfahrt-raetsel.mjs`, Bilder `tools/ausfahrt-assets.py`, Migration `supabase/migrations/20261023220000_ausfahrt_frei.sql`, Edge Function `supabase/functions/ausfahrt-lauf/`.
 
