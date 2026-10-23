@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
 <link rel="manifest" href="../site.webmanifest">
 <link rel="stylesheet" href="../assets/fonts.css">
-<link rel="modulepreload" href="leitungschaos/game.js?v=4"><link rel="modulepreload" href="leitungschaos/sim.js">
+<link rel="modulepreload" href="leitungschaos/game.js?v=5"><link rel="modulepreload" href="leitungschaos/sim.js">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"VideoGame","name":"LEITUNGSCHAOS","url":"https://playsaal.com/spiele/leitungschaos","inLanguage":"de","description":"Rohr-Rätsel: Rohrstücke drehen, bis das Wasser vom Hydranten zu allen Häusern fließt. Tagesrätsel mit geprüfter Tagesrangliste und 30 Level.","genre":["Puzzle","Rätsel","Logik"],"gamePlatform":"Web","applicationCategory":"Game","playMode":"SinglePlayer","isAccessibleForFree":true,"publisher":{"@type":"Organization","name":"PlaySaal","url":"https://playsaal.com"}}</script>
 <script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'leitungschaos',t:Date.now()}))}catch(e){}</script>
 <style>
@@ -21,6 +21,8 @@
   --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);color-scheme:dark}
 *{box-sizing:border-box}[hidden]{display:none!important}
 html,body{height:100%;margin:0;background:var(--basis);color:var(--text);font:16px/1.4 var(--f-text);overflow:hidden;-webkit-text-size-adjust:100%}
+/* iOS ignoriert user-scalable=no: Doppeltipp-Zoom auf Knöpfen und Scrollen/Federn der Seite unterbinden, sonst rutscht das Spiel aus dem Bild */
+html,body{overscroll-behavior:none}body{position:fixed;inset:0}button,a,.schirm{touch-action:manipulation}
 body{background:radial-gradient(120% 70% at 50% 35%,#24263a 0%,#16171f 60%,var(--basis) 100%)}
 body.bild{background-color:var(--basis);background-size:cover;background-position:center;background-repeat:no-repeat}
 button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -152,6 +154,7 @@ h2{font:400 24px/1.1 var(--f-display);margin:0 0 10px}
   <button class="btn" id="bRangZu" type="button">Zurück</button>
 </div></section>
 
-<script type="module" src="leitungschaos/game.js?v=4"></script>
+<script>addEventListener('gesturestart',function(e){e.preventDefault()},{passive:false});addEventListener('dblclick',function(e){e.preventDefault()},{passive:false})</script>
+<script type="module" src="leitungschaos/game.js?v=5"></script>
 <a class="pz-home" href="../" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele" onpointerdown="event.stopPropagation()" ontouchstart="event.stopPropagation()"><svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a><style>.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 13px);left:calc(env(safe-area-inset-left,0px) + 12px);width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:rgba(17,18,26,.78);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}.pz-home:focus-visible{outline:3px solid #FFD21C;outline-offset:2px}</style>
 <script src="../assets/playsaal-config.js" defer></script><script src="../assets/playsaal.js" defer></script></body></html>

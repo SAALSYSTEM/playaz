@@ -88,8 +88,10 @@ let lay = { z: 40, ox: 0, oy: 0, dpr: 1, W: 0, H: 0 };
 function gr() {
   const b = $('brett').getBoundingClientRect(), dpr = Math.min(2.5, window.devicePixelRatio || 1);
   cv.width = Math.round(b.width * dpr); cv.height = Math.round(b.height * dpr);
-  const z = Math.floor(Math.min((b.width - 40) / N, (b.height - 24) / N, 84));
-  lay = { dpr, W: b.width, H: b.height, z, ox: Math.floor((b.width - z * N) / 2) - Math.floor(z * 0.12), oy: Math.floor((b.height - z * N) / 2) };
+  // Breite: Feld + Rahmen (je 6 px) + Ausfahrt-Pfeil rechts (bis 0,32 Felder hinter dem Rahmen) muss ganz hineinpassen
+  const z = Math.floor(Math.min((b.width - 20) / (N + 0.4), (b.height - 24) / N, 84));
+  const gesamt = 6 + z * N + 6 + Math.ceil(z * 0.34);
+  lay = { dpr, W: b.width, H: b.height, z, ox: Math.floor((b.width - gesamt) / 2) + 6, oy: Math.floor((b.height - z * N) / 2) };
   zeichneNeu = true;
 }
 addEventListener('resize', gr);
