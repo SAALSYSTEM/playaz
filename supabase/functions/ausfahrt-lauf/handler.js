@@ -9,6 +9,17 @@ export const ERLAUBTE_URSPRUENGE = ['https://playsaal.com', 'https://www.playsaa
 const MAX_BYTES = 10000;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// Prüfsumme über den Rätselpool (FNV-1a über JSON.stringify(POOLS)). Stimmt sie nicht, wurde raetsel.js beim Deploy
+// beschädigt oder ist veraltet: dann wird nichts gewertet, und GET meldet "pool: falsch" (Abfrage ohne Anmeldung möglich).
+// Nach einer Änderung an raetsel.js neu setzen: node --test tests/ausfahrt-pruefung.test.mjs nennt den neuen Wert.
+export const POOL_PRUEFSUMME = 'd2014e44';
+export function pruefsumme(obj) {
+  const s = JSON.stringify(obj); let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16).padStart(8, '0');
+}
+const POOL_OK = pruefsumme(POOLS) === POOL_PRUEFSUMME;
+
 export function cors(origin) {
   const h = { 'access-control-allow-headers': 'authorization, apikey, content-type', 'access-control-allow-methods': 'POST, OPTIONS', vary: 'origin' };
   if (ERLAUBTE_URSPRUENGE.includes(origin)) h['access-control-allow-origin'] = origin;
@@ -20,7 +31,9 @@ const antwort = (status, body, origin) => new Response(JSON.stringify(body), { s
 export async function behandle(req, env, f = fetch) {
   const origin = req.headers.get('origin') || '';
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
+  if (req.method === 'GET') return antwort(200, { pool: POOL_OK ? 'ok' : 'falsch', raetsel: Object.values(POOLS).reduce((a, p) => a + p.length, 0) }, origin);
   if (req.method !== 'POST') return antwort(405, { grund: 'methode' }, origin);
+  if (!POOL_OK) return antwort(500, { grund: 'pool' }, origin);
 
   const token = (req.headers.get('authorization') || '').replace(/^Bearer /i, '');
   if (!token) return antwort(401, { grund: 'nicht_angemeldet' }, origin);

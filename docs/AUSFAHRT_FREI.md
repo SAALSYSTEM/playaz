@@ -44,7 +44,7 @@ Oberfläche im Browser geprüft (390×844): Ziehen mit der Maus, Level lösen, T
 ## 6. Einrichtung und Freigabe
 
 1. SQL aus `supabase/migrations/20261023220000_ausfahrt_frei.sql` im Supabase-SQL-Editor ausführen (nach `20261023200000_leitungschaos.sql`).
-2. Edge Function `ausfahrt-lauf` deployen (Dateien `index.ts`, `handler.js`, `sim.js`, `raetsel.js`; `verify_jwt` aus).
+2. Edge Function `ausfahrt-lauf` deployen (Dateien `index.ts`, `handler.js`, `sim.js`, `raetsel.js`; `verify_jwt` aus). Danach im Browser `https://cphwxikfrxgejiqghlwn.supabase.co/functions/v1/ausfahrt-lauf` öffnen: `{"pool":"ok","raetsel":366}` heißt, der Rätselpool ist unbeschädigt angekommen (Prüfsumme `POOL_PRUEFSUMME` in `handler.js`). Bei `falsch` wertet die Function nichts.
 3. Freigabe: `update public.games set listed = true where slug = 'ausfahrt-frei';`, `noindex` entfernen, Kachel in `public/index.html` (Vorlage unten) samt Bestwert-Zeile, `public/sitemap.xml`, Merge nach `main`.
 
 ```html

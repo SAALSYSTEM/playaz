@@ -61,7 +61,7 @@ test('Ohne Sitzung, kaputtes JSON, falsche Methode, zu groß', async () => {
   assert.equal((await behandle(anfrage(echt(), { token: '' }), env, ersatz().f)).status, 401);
   assert.equal((await behandle(anfrage('{kaputt'), env, ersatz().f)).status, 400);
   assert.equal((await behandle(anfrage({ run_id: 'x', inputs: 'A4', zuege: 1 }), env, ersatz().f)).status, 400);
-  assert.equal((await behandle(anfrage(null, { methode: 'GET' }), env, ersatz().f)).status, 405);
+  assert.equal((await behandle(anfrage(null, { methode: 'PUT' }), env, ersatz().f)).status, 405);
   assert.equal((await behandle(anfrage('x'.repeat(10001)), env, ersatz().f)).status, 413);
 });
 
@@ -76,4 +76,12 @@ test('CORS nur für playsaal.com', async () => {
   assert.equal(a.headers.get('access-control-allow-origin'), 'https://playsaal.com');
   const b = await behandle(anfrage(null, { methode: 'OPTIONS', origin: 'https://boese.example' }), env, ersatz().f);
   assert.equal(b.headers.get('access-control-allow-origin'), null);
+});
+
+test('GET meldet den Zustand des Rätselpools (Prüfsumme stimmt mit raetsel.js überein)', async () => {
+  const { POOLS } = await import('../public/spiele/ausfahrt-frei/raetsel.js');
+  const { pruefsumme, POOL_PRUEFSUMME } = await import('../supabase/functions/ausfahrt-lauf/handler.js');
+  assert.equal(pruefsumme(POOLS), POOL_PRUEFSUMME, 'neue Prüfsumme für handler.js: ' + pruefsumme(POOLS));
+  const r = await json(await behandle(anfrage(null, { methode: 'GET' }), env, ersatz().f));
+  assert.equal(r.status, 200); assert.equal(r.pool, 'ok'); assert.equal(r.raetsel, POOLS[1].length);
 });
