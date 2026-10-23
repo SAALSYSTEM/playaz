@@ -1,6 +1,6 @@
 // Dino-Leiterhelden – Oberfläche: Canvas-Grafik (Bilder oder gekennzeichnete Platzhalter), schwebender Joystick, Bildschirme, Speichern, Herausforderung.
 import { LEVELS, LEVEL_COUNT } from './levels.js';
-import { W, H, HZ, C, STORE, layout, newState, step, gotAll, nutPhase, bridgeLo, bridgeDock, wakerAwake, wakerWarn, slideDx, freshSave, sanitizeSave, recordRun, centis, parseChallenge, beats, fmt } from './engine.js';
+import { W, H, HZ, C, STORE, layout, newState, step, gotAll, nutPhase, bridgeLo, bridgeDock, wakerAwake, wakerWarn, slideDx, balloonAt, neckOpen, freshSave, sanitizeSave, recordRun, centis, parseChallenge, beats, fmt } from './engine.js';
 
 const $ = (id) => document.getElementById(id);
 const app = $('app'), cv = $('game'), ctx = cv.getContext('2d');
@@ -9,7 +9,7 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // ---------- Bilder ----------
 // Nur tatsächlich gelieferte Dateien eintragen; alles andere zeichnet der Code als Platzhalter (keine 404-Anfragen).
 // Hintergründe lädt das Spiel erst, wenn ein Level sie braucht.
-const IMAGES = ['dino-held', 'freund-tuerkis', 'freund-rosa', 'freund-gelb', 'schlafmonster', 'frucht', 'kokosnuss', 'hebel', 'baumhaus', 'tuer', 'plattform', 'plattform-ende', 'leiter', 'gelaender', 'effekte', 'rutsche', 'bruecke', 'wechselmonster'];
+const IMAGES = ['dino-held', 'freund-tuerkis', 'freund-rosa', 'freund-gelb', 'schlafmonster', 'frucht', 'kokosnuss', 'hebel', 'baumhaus', 'tuer', 'plattform', 'plattform-ende', 'leiter', 'gelaender', 'effekte', 'rutsche', 'bruecke', 'wechselmonster', 'heissluftballon', 'langhals', 'langhals-bruecke', 'blatt'];
 const LAZY = ['hintergrund-1', 'hintergrund-2', 'hintergrund-3'];
 const IMG = {};
 function load(k) { if (IMG[k]) return; const i = new Image(); i.decoding = 'async'; i.onload = () => { if (/^(hintergrund|plattform|gelaender)/.test(k)) buildStatic(); }; i.src = new URL('img/' + k + '.webp', import.meta.url).href; IMG[k] = i; }
@@ -49,6 +49,9 @@ const SFX = {
   feed: () => { for (let i = 0; i < 4; i++) tone(180 + i * 25, 0.07, 'square', 0.05, 0, i * 0.11); tone(620, 0.3, 'triangle', 0.12, 1.6, 0.48); },
   lever: () => { tone(240, 0.05, 'square', 0.07); tone(400, 0.45, 'triangle', 0.12, 2.2, 0.08); },
   slide: () => { tone(700, 0.55, 'triangle', 0.07, 0.35); tone(520, 0.4, 'sine', 0.05, 0.5, 0.1); },
+  balloon: () => { tone(160, 0.7, 'sawtooth', 0.035, 1.5); tone(420, 0.5, 'triangle', 0.07, 1.6, 0.15); tone(630, 0.4, 'triangle', 0.06, 1.4, 0.4); },
+  leaf: () => { tone(600, 0.1, 'triangle', 0.1); tone(900, 0.16, 'sine', 0.12, 0, 0.08); },
+  munch: () => { for (let i = 0; i < 5; i++) tone(240 + i * 20, 0.06, 'square', 0.04, 0, i * 0.1); tone(520, 0.5, 'triangle', 0.12, 1.8, 0.55); },
   wake: () => { tone(110, 0.45, 'sawtooth', 0.05, 1.8); tone(160, 0.3, 'triangle', 0.05, 0.7, 0.3); },
   bonk: () => { tone(520, 0.4, 'sine', 0.18, 0.3); tone(900, 0.12, 'triangle', 0.06, 0, 0.05); },
   respawn: () => tone(700, 0.25, 'sine', 0.08, 1.6),
@@ -213,8 +216,9 @@ async function share() {
 // ---------- Ereignisse ----------
 function playerPos() {
   if (st.slide >= 0) { const sl = lv.slides[st.slide], d = sl.dir || 1, p = st.sp, e = p * p * (3 - 2 * p); return { x: sl.x + d * slideDx(L.gap) * e, y: L.ys[sl.f + 1] + (L.ys[sl.f] - L.ys[sl.f + 1]) * (1 - (1 - p) * (1 - p)) - 16 * (1 - p), climb: false, sliding: true, face: d }; }
+  if (st.fly >= 0) { const bl = lv.balloons[st.fly], b = balloonAt(lv, bl, st.clock - st.bt[st.fly]); return { x: b.x, y: b.y - 62 * balloonScale(), climb: false, flying: true }; }
   if (st.ladder >= 0) { const l = lv.ladders[st.ladder]; return { x: st.x, y: L.ys[l.f] - st.p * L.gap, climb: true }; }
-  return { x: st.x, y: L.ys[st.f], climb: false };
+  return { x: st.x, y: L.ys[st.f] - liftAt(st.f, st.x), climb: false };
 }
 function track() {
   const p = playerPos(), q = trail[trail.length - 1];
@@ -231,6 +235,10 @@ function handle() {
     else if (e.t === 'grumble') { if (lv.wakers[e.m].f === st.f) SFX.snore(); wbump[e.m] = now; }
     else if (e.t === 'wake') { if (lv.wakers[e.m].f === st.f) SFX.wake(); }
     else if (e.t === 'slide') SFX.slide();
+    else if (e.t === 'balloon') SFX.balloon();
+    else if (e.t === 'arrive' && e.balloon) { trail = []; track(); burst(st.x, L.ys[st.f] - 60, '#ffd23f', 12, 'star'); }
+    else if (e.t === 'leaf') { SFX.leaf(); burst(p.x, p.y - 120, '#7bd34a', 10); }
+    else if (e.t === 'munch') { SFX.munch(); const g = neckGeo(lv.necks[e.i]); burst(g.bx, g.y - 200 * g.k, '#ff7aa8', 14, 'heart'); }
     else if (e.t === 'bonk') { SFX.bonk(); bonkAt = now; burst(p.x, p.y - 120, '#ffe14d', 10, 'star'); }
     else if (e.t === 'respawn') { SFX.respawn(); trail = []; track(); burst(st.x, L.ys[st.f] - 60, '#ffffff', 16, 'star'); }
     else if (e.t === 'locked') { SFX.locked(); lockedAt = now; }
@@ -277,7 +285,7 @@ function buildStatic() {
   const bg = pic(LAZY[bgIdx - 1]);
   if (bg) { const k = Math.max(cv.width / bg.width, cv.height / bg.height); c.drawImage(bg, (cv.width - bg.width * k) / 2, (cv.height - bg.height * k) / 2, bg.width * k, bg.height * k); c.fillStyle = bgIdx === 3 ? 'rgba(20,10,50,.18)' : 'rgba(255,250,235,.16)'; c.fillRect(0, 0, cv.width, cv.height); world(c); }
   else { world(c); paintBackdrop(c); }
-  for (let f = 0; f < lv.floors.length; f++) for (const [a, b] of lv.floors[f]) paintPlatform(c, a, b, L.ys[f], f, { openL: (lv.bridges || []).some((r) => r.f === f && r.b === a), openR: (lv.bridges || []).some((r) => r.f === f && r.a === b) });
+  for (let f = 0; f < lv.floors.length; f++) for (const [a, b] of lv.floors[f]) paintPlatform(c, a, b, L.ys[f], f, { openL: [...(lv.bridges || []), ...(lv.necks || [])].some((r) => r.f === f && r.b === a), openR: [...(lv.bridges || []), ...(lv.necks || [])].some((r) => r.f === f && r.a === b) });
 }
 function paintBackdrop(c) {
   const y0 = top(), y1 = bottom();
@@ -336,6 +344,9 @@ function draw(dt) {
   (lv.bridges || []).forEach((br) => drawBridge(br));
   (lv.levers || []).forEach((o, i) => drawLever(o, i, t));
   (lv.fruits || []).forEach((o, i) => { if (!st.taken[i]) drawFruit(o.x, L.ys[o.f] - 30 + Math.sin(t * 3 + i) * 5, 1); });
+  (lv.leaves || []).forEach((o, i) => { if (!st.ltaken[i]) drawLeaf(o.x, L.ys[o.f] - 30 + Math.sin(t * 3 + i + 1) * 5, 1); });
+  (lv.necks || []).forEach((nk, i) => drawNeck(nk, i, t));
+  (lv.balloons || []).forEach((bl, i) => drawBalloon(bl, i, t, false));
   (lv.monsters || []).forEach((m, i) => drawMonster(m, i, t));
   (lv.wakers || []).forEach((w, i) => drawWaker(w, i, t));
   (lv.nuts || []).forEach((n) => drawNut(n, t));
@@ -344,6 +355,7 @@ function draw(dt) {
   for (const i of [0, 1, 2]) if (!st.got[i]) drawWaiting(i, t);
   for (const i of st.order) drawFollower(i, k++, t);
   drawHero(t);
+  if (st.fly >= 0) drawBalloon(lv.balloons[st.fly], st.fly, t, true); // Korbrand vor dem Dino
   if (st.stun > 0) drawFlag(st.cp.x, L.ys[st.cp.f], t);
   // Effekte
   fx = fx.filter((p) => (p.life += dt) < p.max);
@@ -477,6 +489,81 @@ function drawWaker(w, i, t) {
   else if (warn) { ctx.fillStyle = 'rgba(255,230,120,.95)'; ctx.strokeStyle = '#7a4a24'; ctx.lineWidth = 4; ctx.font = '700 44px Fredoka, sans-serif'; ctx.textAlign = 'center'; ctx.strokeText('?', w.x - 60, y - 150); ctx.fillText('?', w.x - 60, y - 150); }
   else { ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = '700 28px Fredoka'; ctx.textAlign = 'center'; for (let k = 0; k < 3; k++) { const q2 = (t * 0.6 + k / 3) % 1; ctx.globalAlpha = 1 - q2; ctx.fillText('z', w.x - 70 + q2 * 50, y - 120 - q2 * 70); } ctx.globalAlpha = 1; }
 }
+// ---------- Heißluftballon und Langhals ----------
+const BL = { cell: 320, h: 448, foot: 432, rim: 336 }; // Bildmaße in Pixeln
+const balloonScale = () => Math.min(0.68, (L.gap - 20) / 424); // Einheiten pro Pixel; bei 5 Etagen etwas kleiner
+function drawBalloon(bl, i, t, front) {
+  const k = st.clock - st.bt[i], b = balloonAt(lv, bl, k), img = pic('heissluftballon'), s = balloonScale();
+  const bob = b.home ? Math.sin(t * 2 + i) * 3 : Math.sin(t * 3) * 2, x = b.x - BL.cell * s / 2, y = b.y - BL.foot * s + bob;
+  if (img) {
+    if (front) { ctx.drawImage(img, b.fire ? BL.cell : 0, BL.rim, BL.cell, BL.h - BL.rim, x, y + BL.rim * s, BL.cell * s, (BL.h - BL.rim) * s); return; }
+    if (b.fire) { const g = ctx.createRadialGradient(b.x, y + 300 * s, 2, b.x, y + 300 * s, 34 + Math.sin(t * 25) * 4); g.addColorStop(0, 'rgba(255,230,120,.95)'); g.addColorStop(1, 'rgba(255,140,40,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, y + 300 * s, 40, 0, Math.PI * 2); ctx.fill(); }
+    ctx.drawImage(img, b.fire ? BL.cell : 0, 0, BL.cell, BL.h, x, y, BL.cell * s, BL.h * s);
+  } else { // Platzhalter
+    if (front) { ctx.fillStyle = '#b8793a'; rr(ctx, b.x - 58, b.y - 48 + bob, 116, 48, 10); ctx.fill(); return; }
+    ctx.fillStyle = '#ff9a3c'; ctx.beginPath(); ctx.ellipse(b.x, b.y - 150 + bob, 68, 66, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#7a4a24'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(b.x - 40, b.y - 100 + bob); ctx.lineTo(b.x - 50, b.y - 48 + bob); ctx.moveTo(b.x + 40, b.y - 100 + bob); ctx.lineTo(b.x + 50, b.y - 48 + bob); ctx.stroke();
+    ctx.fillStyle = '#b8793a'; rr(ctx, b.x - 58, b.y - 48 + bob, 116, 48, 10); ctx.fill();
+  }
+  if (b.home && !front && st.f === bl.f && st.fly < 0 && Math.abs(st.x - bl.x) < 260) { ctx.globalAlpha = 0.6 + Math.sin(t * 5) * 0.3; ctx.fillStyle = '#fff2a8'; star(b.x, y - 16 + Math.sin(t * 3) * 4, 12, t); ctx.globalAlpha = 1; }
+}
+// Langhals: Maße im Brückenbild (Pixel). Die Posen im Sheet stehen 1000 px weiter links, gleiche Größe.
+const NB = { feet: 323, top: 100, pivot: 1090, chest: 1110, neckL: 230, neckR: 1080, headC: 110, headBot: 165, pose: 1000, cell: 512, cfoot: 496 };
+function neckGeo(nk) { // in Blickrichtung links (Körper rechts); side -1 wird beim Zeichnen gespiegelt
+  const k = Math.min(1, (L.gap - 45) / 230), u = 0.49 * k, y = L.ys[nk.f], X = (p) => nk.b + 8 + (p - NB.chest) * u;
+  const px = X(NB.pivot), hp = (NB.feet - NB.top) * u, hh = (NB.headBot - NB.top) * u, hx = nk.a - 50;
+  const D = px - hx, drop = hp - hh;
+  const bx = (nk.side || 1) > 0 ? X(1300) : nk.a + nk.b - X(1300);
+  return { k, u, y, X, px, hp, hh, hx, D, th: Math.atan2(drop, D), Lh: Math.hypot(D, drop), bx };
+}
+// Höhe über der Plattform, wenn der Dino über einen abgelegten Hals läuft
+function liftAt(f, x) {
+  let h = 0;
+  (lv.necks || []).forEach((nk, i) => {
+    if (nk.f !== f || !neckOpen(st, i)) return;
+    const g = neckGeo(nk), xx = (nk.side || 1) > 0 ? x : nk.a + nk.b - x, x0 = g.hx - 40, x3 = nk.b + 50;
+    if (xx <= x0 || xx >= x3) return;
+    h = Math.max(h, xx < g.hx ? g.hh * (xx - x0) / 40 : xx <= g.px ? g.hh + (g.hp - g.hh) * (xx - g.hx) / g.D : g.hp * (1 - (xx - g.px) / (x3 - g.px)));
+  });
+  return h - (h > 0 ? 4 : 0);
+}
+function drawNeck(nk, i, t) {
+  const g = neckGeo(nk), side = nk.side || 1, k = st.nfed[i] >= 0 ? st.clock - st.nfed[i] : -1, img = pic('langhals-bruecke'), poses = pic('langhals');
+  ctx.save(); if (side < 0) { ctx.translate(nk.a + nk.b, 0); ctx.scale(-1, 1); }
+  if (k < 0 || k < 72) { // steht: traurig, frisst, freut sich
+    const fr = k < 0 ? 0 : k < 48 ? 1 : 2, breathe = k < 0 ? Math.sin(t * 2) * 0.015 : 0;
+    if (poses) { ctx.translate(g.X(NB.pose + NB.cell / 2), g.y); ctx.scale(1, 1 + breathe); ctx.drawImage(poses, fr * NB.cell, 0, NB.cell, NB.cell, -NB.cell / 2 * g.u, -NB.cfoot * g.u, NB.cell * g.u, NB.cell * g.u); }
+    else { ctx.fillStyle = '#7cc94a'; ctx.beginPath(); ctx.ellipse(nk.b + 110, g.y - 50 * g.k, 90 * g.k, 50 * g.k, 0, 0, Math.PI * 2); ctx.fill(); ctx.lineWidth = 34 * g.k; ctx.strokeStyle = '#7cc94a'; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(nk.b + 60, g.y - 70 * g.k); ctx.lineTo(nk.b + 30, g.y - 210 * g.k); ctx.stroke(); }
+    ctx.restore();
+    if (k < 0 && st.f === nk.f && Math.abs(st.x - g.bx) < 380) { // Denkblase: Ich hätte gern ein Blatt
+      const bx = side > 0 ? nk.b - 75 : nk.a + 75, by = g.y - 185 * g.k + Math.sin(t * 2) * 4;
+      ctx.fillStyle = '#fff'; ctx.strokeStyle = '#7a4a24'; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.ellipse(bx, by, 46, 36, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      for (const [cx, cy, r] of [[bx + side * 30, by + 42, 9], [bx + side * 42, by + 60, 5]]) { ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); }
+      drawLeaf(bx, by + 2, 1);
+    }
+    return;
+  }
+  const q = clamp((k - 72) / 18, 0, 1), e = q * q * (3 - 2 * q), rot = 1.1 * (1 - e) - g.th * e;
+  if (img) {
+    const u = g.u, slice = Math.max(10, g.Lh - (NB.neckL - NB.headC) * u), sw = slice / u;
+    ctx.save(); ctx.translate(g.px, g.y - g.hp); ctx.rotate(rot);
+    ctx.drawImage(img, NB.pivot - sw, 0, sw + 24, img.height, -slice, -NB.top * u, (sw + 24) * u, img.height * u);
+    ctx.drawImage(img, 0, 0, NB.neckL + 2, img.height, -slice - NB.neckL * u, -NB.top * u, (NB.neckL + 2) * u, img.height * u);
+    ctx.restore();
+    ctx.drawImage(img, NB.neckR, 0, img.width - NB.neckR, img.height, g.X(NB.neckR), g.y - NB.feet * u, (img.width - NB.neckR) * u, img.height * u);
+  } else {
+    ctx.save(); ctx.translate(g.px, g.y - g.hp); ctx.rotate(rot); ctx.fillStyle = '#7cc94a'; rr(ctx, -g.Lh - 40, -4, g.Lh + 60, 36 * g.k, 16); ctx.fill(); ctx.restore();
+    ctx.fillStyle = '#7cc94a'; ctx.beginPath(); ctx.ellipse(nk.b + 110, g.y - 50 * g.k, 90 * g.k, 50 * g.k, 0, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+function drawLeaf(x, y, s) {
+  const img = pic('blatt');
+  if (img) { ctx.drawImage(img, x - 30 * s, y - 30 * s, 60 * s, 60 * s); return; }
+  ctx.fillStyle = '#5cc93a'; ctx.beginPath(); ctx.ellipse(x, y, 24 * s, 13 * s, -0.6, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#3a8a24'; ctx.lineWidth = 3 * s; ctx.beginPath(); ctx.moveTo(x - 18 * s, y + 12 * s); ctx.lineTo(x + 16 * s, y - 10 * s); ctx.stroke();
+}
 function drawHouse(t, f) {
   const y = L.ys[f], dx = lv.door.x, hx = clamp(dx, 175, 725), open = gotAll(st), img = pic('baumhaus');
   if (img) { const k = 380 / 640; ctx.save(); ctx.beginPath(); ctx.rect(dx - 200, y - 300, 400, 304); ctx.clip(); ctx.drawImage(img, dx - 320 * k, y - 388 * k, 640 * k, 480 * k); ctx.restore(); }
@@ -512,11 +599,13 @@ function drawFlag(x, y, t) { ctx.strokeStyle = '#6b3d17'; ctx.lineWidth = 5; ctx
 function drawHero(t) {
   if (mode === 'win' || mode === 'done') { const q = clamp((now - winAt - 1.0) / 0.6, 0, 1); ctx.globalAlpha = 1 - q; }
   const p = playerPos(), stun = st.stun > 0;
-  const pose = stun ? 'dizzy' : p.sliding ? 'cheer' : p.climb ? 'climb' : mode === 'win' ? 'cheer' : st.speed > 0 ? 'walk' : st.carry >= 0 ? 'carry' : 'idle';
+  const holds = st.carry >= 0 || st.leaf >= 0;
+  const pose = stun ? 'dizzy' : p.sliding || p.flying ? 'cheer' : p.climb ? 'climb' : mode === 'win' ? 'cheer' : st.speed > 0 ? 'walk' : holds ? 'carry' : 'idle';
   const ph = p.climb ? st.p * L.gap / 40 : t;
-  dino(p.x, p.y, { c: HERO, face: p.sliding ? p.face : st.face, pose, ph, s: 1 });
+  dino(p.x, p.y, { c: HERO, face: p.sliding ? p.face : st.face, pose, ph, s: p.flying ? 1.2 * balloonScale() : 1 });
   if (st.carry >= 0 && !p.climb) drawFruit(p.x, p.y - 150 + Math.sin(t * 6) * 3, 0.95);
   else if (st.carry >= 0) drawFruit(p.x + 34, p.y - 70, 0.8);
+  if (st.leaf >= 0) drawLeaf(p.x + (p.climb ? 34 : 0), p.y - (p.climb ? 70 : 150) + Math.sin(t * 6) * 3, p.climb ? 0.8 : 0.95);
   if (stun) { ctx.font = '700 34px Fredoka, sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 6; ctx.strokeStyle = '#5a3416'; ctx.strokeText('Bonk!', p.x, p.y - 175); ctx.fillStyle = '#fff'; ctx.fillText('Bonk!', p.x, p.y - 175); }
   if (stun && !pic('dino-held')) for (let k = 0; k < 3; k++) { const a = t * 6 + k * 2.1; ctx.fillStyle = '#ffe14d'; star(p.x + Math.cos(a) * 40, p.y - 140 + Math.sin(a) * 12, 10, a); }
   ctx.globalAlpha = 1;
@@ -529,6 +618,7 @@ function drawWaiting(i, t) {
 function drawFollower(i, k, t) {
   const idx = trail.length - 1 - (k + 1) * 11, p = trail[Math.max(0, idx)] || playerPos();
   let x = p.x, y = p.y, alpha = 1;
+  if (st.fly >= 0) { const h = playerPos(); dino(h.x + (k ? 40 : -40), h.y, { c: FRIEND[i], face: k ? -1 : 1, pose: 'cheer', ph: t + k, s: 0.5 }); return; } // fliegen im Korb mit
   if (idx < 0 && !p.climb) x -= (k + 1) * 30 * st.face; // nach Rücksetzer dicht beieinander
   if (mode === 'win' || mode === 'done') { const q = clamp((now - winAt - k * 0.22) / 0.7, 0, 1); x += (lv.door.x - x) * q; alpha = 1 - clamp((now - winAt - k * 0.22 - 0.6) / 0.3, 0, 1); }
   if (alpha <= 0) return;

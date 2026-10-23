@@ -41,3 +41,15 @@ vorbereitet; Bewegungen und Größen im fertigen Spiel auf dem Telefon prüfen.
 
 Die Dateien sind aus den ChatGPT-Originalen zugeschnitten und bereinigt (Rauschpixel entfernt, auf die
 Zielgrößen skaliert). Ein zweiter, flacherer Brückenentwurf wurde nicht verwendet.
+
+## Level 61–90
+
+- `heissluftballon.png`: 2 × 1, 320 × 448 je Feld: wartet (Brenner aus), steigt (Flamme). Korbboden 16 px über
+  dem Zellrand, Korbrand bei y = 336 (das Spiel zeichnet den Korbrand vor dem Dino noch einmal).
+- `langhals.png`: 3 × 1, 512 × 512 je Feld, Blick nach links: hungrig, frisst, freut sich. Am Schwanz rechtsbündig,
+  Füße 16 px über dem Zellrand.
+- `langhals-bruecke.png`: 1504 × 339, gleicher Maßstab wie `langhals.png` (Feld-x + 1000 = Brücken-x). Das Spiel
+  zerlegt es in Kopf, Halsstück (passend zur Lücke gekürzt, geneigt) und Körper; Maße stehen in `NB` in `game.js`.
+- `blatt.png`: 128 × 128.
+
+Zugeschnitten und bereinigt aus den ChatGPT-Originalen (Rauschpixel entfernt, Randsaum eingefärbt, skaliert).

@@ -1,4 +1,4 @@
-// 30 handgebaute Level. Etage 0 ist unten. x läuft von 0 (links) bis 900 (rechts).
+// 90 handgebaute Level. Etage 0 ist unten. x läuft von 0 (links) bis 900 (rechts).
 // floors: Plattform-Stücke je Etage · ladders: {f, x} verbindet Etage f mit f+1 (hidden: erst nach Hebel)
 // friends: genau 3 · door: Baumhaustür auf der obersten Etage · monsters/fruits/levers/nuts: Hindernisse
 // tip: wird vor jedem Level gezeigt (Symbol + kurzer Satz)
@@ -10,6 +10,9 @@ const gap = (a, b) => [[40, a], [b, 860]];
 const bridge = (f, a, b, period = 300, offset = 0) => ({ f, a, b, period, offset });
 const slide = (f, x, dir = 1) => ({ f, x, dir });
 const waker = (f, x, period = 300, offset = 0) => ({ f, x, period, offset });
+// Neu ab Level 61: balloon = Heißluftballon (steigt von Etage f bei x up Etagen hoch, landet bei to) · neck = Langhals über der Lücke a–b (side 1: Körper rechts) · leaves = Blätter
+const balloon = (f, x, up, to) => ({ f, x, up, to });
+const neck = (f, a, b, side = 1) => ({ f, a, b, side });
 
 export const LEVELS = [
   { name: 'Hallo, Freunde!', tip: { icon: '👆', text: 'Finger auflegen und ziehen' },
@@ -350,6 +353,173 @@ export const LEVELS = [
     ladders: [{ f: 0, x: 780 }, { f: 1, x: 150, hidden: true }, { f: 2, x: 620 }, { f: 3, x: 150 }, { f: 3, x: 740 }, { f: 4, x: 820 }],
     slides: [slide(3, 560, -1)], levers: [{ f: 1, x: 640, ladder: 1 }], monsters: [{ f: 4, x: 380 }], fruits: [{ f: 2, x: 300 }],
     wakers: [waker(5, 450, 300, 0)], nuts: [nut(2, 450, 150, 0)],
-    friends: [{ f: 3, x: 200 }, { f: 4, x: 200 }, { f: 5, x: 230 }] }
+    friends: [{ f: 3, x: 200 }, { f: 4, x: 200 }, { f: 5, x: 230 }] },
+
+  // ---------- Level 61–64: Wiedersehen mit bekannten Sachen ----------
+  { name: 'Alte Bekannte', tip: { icon: '👋', text: 'Alles, was du schon kannst' },
+    floors: fl(4), start: { f: 0, x: 100 }, door: { x: 705 }, ladders: [{ f: 0, x: 800 }, { f: 1, x: 120 }, { f: 2, x: 800 }],
+    monsters: [{ f: 1, x: 450 }], fruits: [{ f: 0, x: 450 }], wakers: [waker(2, 450, 300, 0)],
+    friends: [{ f: 0, x: 250 }, { f: 1, x: 650 }, { f: 3, x: 300 }] },
+
+  { name: 'Rutschen-Brücke', tip: { icon: '🛝', text: 'Rutsche runter, Brücke rüber' },
+    floors: [gap(230, 550), F, F], bridges: [bridge(0, 230, 550, 300, 0)], start: { f: 2, x: 100 }, door: { x: 705 },
+    ladders: [{ f: 0, x: 800 }, { f: 1, x: 120 }], slides: [slide(1, 300)],
+    friends: [{ f: 0, x: 120 }, { f: 1, x: 450 }, { f: 2, x: 600 }] },
+
+  { name: 'Hebel, Nuss und Schläfer', tip: { icon: '🎚️', text: 'Hebel suchen, Nüssen ausweichen' },
+    floors: fl(4), start: { f: 0, x: 450 }, door: { x: 705 },
+    ladders: [{ f: 0, x: 120 }, { f: 1, x: 800 }, { f: 2, x: 120, hidden: true }],
+    levers: [{ f: 1, x: 300, ladder: 2 }], nuts: [nut(1, 550, 150, 0)], wakers: [waker(3, 450, 300, 60)],
+    friends: [{ f: 0, x: 700 }, { f: 2, x: 500 }, { f: 3, x: 250 }] },
+
+  { name: 'Brücke zum Monster', tip: { icon: '🍊', text: 'Frucht holen, Brücke fahren' },
+    floors: [F, gap(230, 550), F, F], bridges: [bridge(1, 230, 550, 300, 0)], start: { f: 0, x: 450 }, door: { x: 705 },
+    ladders: [{ f: 0, x: 120 }, { f: 1, x: 780 }, { f: 2, x: 150 }], monsters: [{ f: 2, x: 500 }], fruits: [{ f: 1, x: 150 }],
+    friends: [{ f: 0, x: 700 }, { f: 1, x: 650 }, { f: 3, x: 450 }] },
+
+  // ---------- Level 65–71: der Heißluftballon ----------
+  { name: 'Der Heißluftballon', tip: { icon: '🎈', text: 'Am Ballon nach oben ziehen' },
+    floors: [F, gap(340, 560)], start: { f: 0, x: 100 }, door: { x: 705 }, ladders: [], balloons: [balloon(0, 450, 1, 600)],
+    friends: [{ f: 0, x: 250 }, { f: 0, x: 700 }, { f: 1, x: 800 }] },
+
+  { name: 'Zwei Etagen hoch', tip: { icon: '🎈', text: 'Der Ballon fliegt zwei Etagen hoch' },
+    floors: [F, gap(340, 560), gap(340, 560)], start: { f: 0, x: 100 }, door: { x: 195 },
+    ladders: [{ f: 0, x: 800 }], balloons: [balloon(0, 450, 2, 300)],
+    friends: [{ f: 0, x: 220 }, { f: 1, x: 700 }, { f: 2, x: 90 }] },
+
+  { name: 'Die Ballon-Insel', tip: { icon: '🏝️', text: 'Der Ballon bringt dich auf die Insel' },
+    floors: [F, gap(250, 450), F, F], start: { f: 0, x: 100 }, door: { x: 195 },
+    ladders: [{ f: 0, x: 780 }, { f: 1, x: 120 }, { f: 2, x: 780 }], balloons: [balloon(0, 350, 1, 200)],
+    friends: [{ f: 1, x: 700 }, { f: 2, x: 450 }, { f: 3, x: 330 }] },
+
+  { name: 'Ballon und Nüsse', tip: { icon: '🥥', text: 'Vor dem Ballon fallen Nüsse' },
+    floors: [F, F, gap(340, 560), F], start: { f: 0, x: 100 }, door: { x: 705 },
+    ladders: [{ f: 0, x: 800 }, { f: 2, x: 120 }], balloons: [balloon(1, 450, 1, 300)],
+    nuts: [nut(1, 650, 150, 0), nut(3, 450, 140, 40)],
+    friends: [{ f: 0, x: 300 }, { f: 1, x: 200 }, { f: 3, x: 600 }] },
+
+  { name: 'Zwei Ballone', tip: { icon: '🎈', text: 'Ein Ballon nach dem anderen' },
+    floors: [F, gap(340, 560), F, gap(340, 560), F], start: { f: 0, x: 100 }, door: { x: 705 },
+    ladders: [{ f: 1, x: 780 }, { f: 3, x: 120 }], balloons: [balloon(0, 450, 1, 600), balloon(2, 450, 1, 300)],
+    friends: [{ f: 0, x: 220 }, { f: 2, x: 250 }, { f: 4, x: 450 }] },
+
+  { name: 'Ballon und Hebel', tip: { icon: '🎚️', text: 'Fliegen, Hebel ziehen, rutschen' },
+    floors: [F, gap(340, 560), F], start: { f: 0, x: 200 }, door: { x: 705 },
+    ladders: [{ f: 0, x: 100 }, { f: 1, x: 280, hidden: true }], balloons: [balloon(0, 450, 1, 600)], slides: [slide(0, 700, -1)],
+    levers: [{ f: 1, x: 820, ladder: 1 }],
+    friends: [{ f: 0, x: 700 }, { f: 1, x: 640 }, { f: 2, x: 300 }] },
+
+  { name: 'Hoch hinaus', tip: { icon: '🍊', text: 'Frucht mitnehmen und hochfliegen' },
+    floors: [F, gap(340, 560), gap(340, 560), F, F], start: { f: 0, x: 100 }, door: { x: 705 },
+    ladders: [{ f: 0, x: 120 }, { f: 2, x: 780 }, { f: 3, x: 120 }], balloons: [balloon(0, 450, 2, 600)],
+    monsters: [{ f: 3, x: 450 }], fruits: [{ f: 2, x: 700 }],
+    friends: [{ f: 1, x: 250 }, { f: 3, x: 250 }, { f: 4, x: 450 }] },
+
+  // ---------- Level 72–78: der Langhals ----------
+  { name: 'Der Langhals', tip: { icon: '🍃', text: 'Bring dem Langhals ein Blatt' },
+    floors: [F, gap(240, 440)], start: { f: 0, x: 100 }, door: { x: 90 }, ladders: [{ f: 0, x: 800 }],
+    necks: [neck(1, 240, 440)], leaves: [{ f: 0, x: 450 }],
+    friends: [{ f: 0, x: 300 }, { f: 0, x: 600 }, { f: 1, x: 700 }] },
+
+  { name: 'Blatt von oben', tip: { icon: '🍃', text: 'Das Blatt liegt eine Etage höher' },
+    floors: [gap(240, 440), F, F], start: { f: 0, x: 800 }, door: { x: 705 }, ladders: [{ f: 0, x: 760 }, { f: 1, x: 120 }],
+    necks: [neck(0, 240, 440)], leaves: [{ f: 1, x: 600 }],
+    friends: [{ f: 0, x: 80 }, { f: 1, x: 300 }, { f: 2, x: 450 }] },
+
+  { name: 'Langhals nach rechts', tip: { icon: '🦕', text: 'Dieser Langhals schaut nach rechts' },
+    floors: [F, gap(460, 660)], start: { f: 0, x: 450 }, door: { x: 810 }, ladders: [{ f: 0, x: 120 }],
+    necks: [neck(1, 460, 660, -1)], leaves: [{ f: 0, x: 650 }],
+    friends: [{ f: 0, x: 300 }, { f: 0, x: 800 }, { f: 1, x: 200 }] },
+
+  { name: 'Blatt oder Frucht?', tip: { icon: '🍊', text: 'Du kannst immer nur eins tragen' },
+    floors: [F, F, gap(240, 440)], start: { f: 0, x: 100 }, door: { x: 90 }, ladders: [{ f: 0, x: 800 }, { f: 1, x: 780 }],
+    monsters: [{ f: 1, x: 450 }], fruits: [{ f: 0, x: 300 }], necks: [neck(2, 240, 440)], leaves: [{ f: 0, x: 600 }],
+    friends: [{ f: 0, x: 450 }, { f: 1, x: 150 }, { f: 2, x: 720 }] },
+
+  { name: 'Zwei Langhälse', tip: { icon: '🦕', text: 'Jeder Langhals will ein Blatt' },
+    floors: [F, gap(240, 440), F, gap(460, 660)], start: { f: 0, x: 100 }, door: { x: 820 },
+    ladders: [{ f: 0, x: 800 }, { f: 1, x: 80 }, { f: 2, x: 200 }],
+    necks: [neck(1, 240, 440), neck(3, 460, 660, -1)], leaves: [{ f: 0, x: 450 }, { f: 2, x: 450 }],
+    friends: [{ f: 0, x: 300 }, { f: 1, x: 720 }, { f: 2, x: 700 }] },
+
+  { name: 'Langhals und Schläfer', tip: { icon: '😴', text: 'Mit dem Blatt leise vorbei' },
+    floors: [F, F, gap(240, 440)], start: { f: 0, x: 250 }, door: { x: 90 }, ladders: [{ f: 0, x: 120 }, { f: 1, x: 780 }],
+    wakers: [waker(1, 450, 300, 0)], necks: [neck(2, 240, 440)], leaves: [{ f: 0, x: 700 }],
+    friends: [{ f: 0, x: 450 }, { f: 1, x: 640 }, { f: 2, x: 720 }] },
+
+  { name: 'Langhals-Turm', tip: { icon: '🗼', text: 'Zwei Blätter für zwei Langhälse' },
+    floors: [gap(240, 440), F, gap(460, 660), F, F], start: { f: 0, x: 800 }, door: { x: 705 },
+    ladders: [{ f: 0, x: 760 }, { f: 1, x: 150 }, { f: 2, x: 820 }, { f: 3, x: 120 }],
+    necks: [neck(0, 240, 440), neck(2, 460, 660, -1)], leaves: [{ f: 1, x: 450 }, { f: 1, x: 700 }],
+    friends: [{ f: 0, x: 80 }, { f: 3, x: 450 }, { f: 4, x: 300 }] },
+
+  // ---------- Level 79–84: Ballon und Langhals zusammen ----------
+  { name: 'Ballon zum Langhals', tip: { icon: '🎈', text: 'Mit dem Ballon zum Langhals' },
+    floors: [F, gap(340, 560), gap(240, 440)], start: { f: 0, x: 100 }, door: { x: 90 },
+    ladders: [{ f: 1, x: 800 }], balloons: [balloon(0, 450, 1, 600)], necks: [neck(2, 240, 440)], leaves: [{ f: 1, x: 700 }],
+    friends: [{ f: 0, x: 220 }, { f: 1, x: 620 }, { f: 2, x: 720 }] },
+
+  { name: 'Blatt im Ballon', tip: { icon: '🍃', text: 'Nimm das Blatt mit in den Ballon' },
+    floors: [F, F, gap(340, 560), gap(240, 440)], start: { f: 0, x: 100 }, door: { x: 90 },
+    ladders: [{ f: 0, x: 120 }, { f: 2, x: 800 }], balloons: [balloon(1, 450, 1, 600)], necks: [neck(3, 240, 440)], leaves: [{ f: 0, x: 700 }],
+    friends: [{ f: 1, x: 250 }, { f: 2, x: 700 }, { f: 3, x: 720 }] },
+
+  { name: 'Erst Hals, dann hoch', tip: { icon: '🦕', text: 'Erst der Langhals, dann der Ballon' },
+    floors: [gap(240, 440), [[220, 860]], F], start: { f: 0, x: 800 }, door: { x: 705 },
+    ladders: [{ f: 1, x: 780 }], balloons: [balloon(0, 100, 1, 250)], necks: [neck(0, 240, 440)], leaves: [{ f: 0, x: 720 }],
+    friends: [{ f: 0, x: 820 }, { f: 1, x: 500 }, { f: 2, x: 300 }] },
+
+  { name: 'Hin und her', tip: { icon: '↔️', text: 'Ballon hoch, Langhals rüber' },
+    floors: [F, gap(340, 560), F, gap(460, 660)], start: { f: 0, x: 100 }, door: { x: 810 },
+    ladders: [{ f: 1, x: 80 }, { f: 2, x: 200 }], balloons: [balloon(0, 450, 1, 300)], necks: [neck(3, 460, 660, -1)], leaves: [{ f: 2, x: 600 }],
+    friends: [{ f: 0, x: 700 }, { f: 1, x: 220 }, { f: 2, x: 800 }] },
+
+  { name: 'Langhals und Nüsse', tip: { icon: '🥥', text: 'Kokosnüsse auf dem Weg' },
+    floors: [F, gap(340, 560), F, gap(240, 440)], start: { f: 0, x: 100 }, door: { x: 90 },
+    ladders: [{ f: 1, x: 620 }, { f: 2, x: 780 }], balloons: [balloon(0, 450, 1, 600)], necks: [neck(3, 240, 440)], leaves: [{ f: 1, x: 800 }],
+    nuts: [nut(2, 450, 150, 0)],
+    friends: [{ f: 0, x: 300 }, { f: 2, x: 150 }, { f: 3, x: 720 }] },
+
+  { name: 'Großes Abheben', tip: { icon: '🎈', text: 'Zwei Ballone und ein Langhals' },
+    floors: [F, gap(340, 560), F, gap(340, 560), gap(240, 440)], start: { f: 0, x: 100 }, door: { x: 90 },
+    ladders: [{ f: 1, x: 780 }, { f: 3, x: 780 }], balloons: [balloon(0, 450, 1, 600), balloon(2, 450, 1, 600)],
+    necks: [neck(4, 240, 440)], leaves: [{ f: 2, x: 700 }],
+    friends: [{ f: 0, x: 300 }, { f: 2, x: 250 }, { f: 3, x: 680 }] },
+
+  // ---------- Level 85–90: alles zusammen ----------
+  { name: 'Rutsche und Ballon', tip: { icon: '🛝', text: 'Runter rutschen, hoch fliegen' },
+    floors: [F, gap(340, 560), F], start: { f: 2, x: 100 }, door: { x: 705 },
+    ladders: [{ f: 0, x: 200 }, { f: 1, x: 780 }], slides: [slide(1, 450, -1)], balloons: [balloon(0, 450, 1, 600)],
+    friends: [{ f: 1, x: 250 }, { f: 0, x: 700 }, { f: 2, x: 300 }] },
+
+  { name: 'Brücke und Langhals', tip: { icon: '🪵', text: 'Erst die Brücke, dann der Langhals' },
+    floors: [gap(230, 550), F, gap(240, 440)], bridges: [bridge(0, 230, 550, 300, 0)], start: { f: 0, x: 100 }, door: { x: 90 },
+    ladders: [{ f: 0, x: 800 }, { f: 1, x: 700 }], necks: [neck(2, 240, 440)], leaves: [{ f: 0, x: 700 }],
+    friends: [{ f: 0, x: 620 }, { f: 1, x: 300 }, { f: 2, x: 780 }] },
+
+  { name: 'Schläfer am Ballon', tip: { icon: '😴', text: 'Warte, bis es schläft' },
+    floors: [F, gap(340, 560), F, F], start: { f: 0, x: 100 }, door: { x: 705 },
+    ladders: [{ f: 1, x: 780 }, { f: 2, x: 120 }], balloons: [balloon(0, 450, 1, 600)],
+    wakers: [waker(0, 290, 300, 0), waker(2, 450, 280, 120)],
+    friends: [{ f: 0, x: 700 }, { f: 1, x: 820 }, { f: 3, x: 300 }] },
+
+  { name: 'Rutsche zum Langhals', tip: { icon: '🛝', text: 'Rutsche runter zum Langhals' },
+    floors: [gap(240, 440), F, F], start: { f: 2, x: 100 }, door: { x: 705 },
+    ladders: [{ f: 0, x: 800 }, { f: 1, x: 120 }], slides: [slide(0, 400)], necks: [neck(0, 240, 440)], leaves: [{ f: 2, x: 300 }],
+    friends: [{ f: 0, x: 80 }, { f: 1, x: 650 }, { f: 2, x: 500 }] },
+
+  { name: 'Die große Reise', tip: { icon: '🌍', text: 'Brücke, Ballon, Schläfer, Langhals' },
+    floors: [gap(230, 550), F, gap(340, 560), F, gap(240, 440)], bridges: [bridge(0, 230, 550, 300, 0)],
+    start: { f: 0, x: 100 }, door: { x: 90 },
+    ladders: [{ f: 0, x: 800 }, { f: 2, x: 780 }, { f: 3, x: 700 }], balloons: [balloon(1, 450, 1, 600)],
+    wakers: [waker(3, 450, 300, 0)], necks: [neck(4, 240, 440)], leaves: [{ f: 0, x: 700 }],
+    friends: [{ f: 0, x: 620 }, { f: 3, x: 250 }, { f: 4, x: 780 }] },
+
+  { name: 'Das Himmels-Finale', tip: { icon: '🏆', text: 'Das allergrößte Abenteuer!' },
+    floors: [F, gap(340, 560), F, gap(240, 440), F], start: { f: 0, x: 100 }, door: { x: 705 },
+    ladders: [{ f: 1, x: 650 }, { f: 2, x: 780 }, { f: 3, x: 80, hidden: true }], balloons: [balloon(0, 450, 1, 600)],
+    levers: [{ f: 2, x: 250, ladder: 2 }], monsters: [{ f: 2, x: 420 }], fruits: [{ f: 0, x: 250 }],
+    necks: [neck(3, 240, 440)], leaves: [{ f: 1, x: 780 }], nuts: [nut(4, 500, 150, 0)],
+    friends: [{ f: 2, x: 120 }, { f: 4, x: 300 }, { f: 0, x: 700 }] }
 ];
 export const LEVEL_COUNT = LEVELS.length;
