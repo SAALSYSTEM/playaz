@@ -1,0 +1,109 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Krümel – Die große Käsejagd</title><meta name="description" content="Jump'n'Run mit der kleinen Maus Krümel: durch die Küche flitzen, Krümel sammeln, Kätzchen ausweichen und den Goldkäse finden."><meta name="robots" content="noindex"><link rel="canonical" href="https://playsaal.com/spiele/kruemel"><meta name="theme-color" content="#11121A"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/fonts.css"><style>
+:root{color-scheme:light;--ink:#3b2414;--cream:#fff7e8;--wood:#8a5428;--wood2:#5e3415;--orange:#FF9200;--yellow:#FFD21C;font-family:"Barlow",system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#11121A;touch-action:none;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+button,a{font:inherit;-webkit-tap-highlight-color:transparent}
+.app{position:fixed;left:50%;top:0;transform:translateX(-50%);width:min(100vw,calc(100dvh * .62));height:100dvh;overflow:hidden;background:#f3e2c2;box-shadow:0 0 80px rgba(0,0,0,.6);touch-action:none}
+#game{position:absolute;inset:0;width:100%;height:100%;display:block}
+.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 12px);left:calc(env(safe-area-inset-left,0px) + 12px);width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(17,18,26,.72);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}
+#hud{position:absolute;z-index:8;left:0;right:0;top:0;display:flex;justify-content:space-between;align-items:flex-start;gap:6px;padding:calc(env(safe-area-inset-top,0px) + 12px) 10px 0 calc(env(safe-area-inset-left,0px) + 60px);pointer-events:none}
+.hud-l,.hud-r{display:flex;gap:6px;align-items:center}
+.hud-r{pointer-events:auto}
+.pill{height:40px;display:flex;align-items:center;gap:5px;padding:0 10px;border-radius:14px;background:rgba(17,18,26,.72);border:1px solid rgba(255,255,255,.2);color:#fff;font:700 17px/1 "Fredoka",sans-serif}
+.pill .c{width:12px;height:10px;border-radius:50% 50% 45% 45%;background:#d99a3e;box-shadow:inset -2px -2px 0 #a8681f}
+.golds{gap:2px;padding:0 8px}
+.golds i{width:18px;height:15px;clip-path:polygon(0 100%,100% 100%,100% 30%);background:rgba(255,255,255,.22)}
+.golds i.on{background:var(--yellow)}
+.icon{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;border:1px solid rgba(255,255,255,.2);background:rgba(17,18,26,.72);color:#fff;cursor:pointer;padding:0}
+.icon svg{width:22px;height:22px}
+/* Steuerung */
+#pad,#jump{position:absolute;z-index:6;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);touch-action:none}
+#pad{left:14px;width:150px;height:84px;display:flex;gap:8px}
+#pad span,#jump{display:grid;place-items:center;border-radius:24px;background:rgba(17,18,26,.38);border:2px solid rgba(255,255,255,.55);color:#fff;transition:background .06s,transform .06s}
+#pad span{flex:1}
+#pad span.on,#jump.on{background:rgba(255,146,0,.75);transform:scale(.95)}
+#pad svg{width:34px;height:34px}
+#jump{right:14px;width:96px;height:96px;border-radius:50%}
+#jump svg{width:40px;height:40px}
+.ctl-hidden #pad,.ctl-hidden #jump{display:none}
+/* Tipp */
+#tip{position:absolute;z-index:7;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 70px);margin:0 auto;width:max-content;max-width:calc(100% - 28px);display:flex;align-items:center;gap:10px;padding:10px 16px 10px 12px;border-radius:20px;background:var(--cream);border:3px solid var(--wood);color:var(--ink);font:600 18px/1.2 "Fredoka",sans-serif;box-shadow:0 5px 0 var(--wood2);pointer-events:none;transition:opacity .3s,transform .3s}
+#tip b{font-size:30px;line-height:1}
+#tip.away{opacity:0;transform:translateY(-10px)}
+/* Bildschirme */
+.screen{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 62px) 14px calc(env(safe-area-inset-bottom,0px) + 14px);overflow:auto;touch-action:pan-y;background:rgba(17,18,26,.45)}
+.screen>.card{margin:auto}
+.card{width:100%;max-width:420px;padding:20px 18px;border-radius:26px;background:var(--cream);border:4px solid var(--wood);box-shadow:0 8px 0 var(--wood2),0 20px 50px rgba(0,0,0,.35);color:var(--ink);text-align:center}
+.logo{margin:0 0 4px;font:700 clamp(36px,11vw,50px)/.95 "Fredoka",sans-serif;color:var(--orange);letter-spacing:-.02em;text-shadow:0 3px 0 #fff,0 5px 0 rgba(94,52,21,.35)}
+.logo small{display:block;margin-top:6px;font-size:.45em;color:var(--wood)}
+.lead{margin:8px 0 14px;font:600 17px/1.3 "Fredoka";color:#7a4c26}
+.proto{display:inline-block;margin:0 0 12px;padding:5px 10px;border-radius:999px;background:#ffe2b0;color:#8a4a00;font:700 12px/1 "Barlow";letter-spacing:.05em;text-transform:uppercase}
+.btns{display:flex;flex-wrap:wrap;justify-content:center;gap:9px}
+.btn{min-height:52px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 18px;border-radius:18px;border:3px solid var(--wood);background:#fff;color:var(--ink);font:700 18px/1 "Fredoka";cursor:pointer;box-shadow:0 4px 0 var(--wood2);text-decoration:none}
+.btn svg{width:22px;height:22px;flex:none}
+.btn.primary{min-width:180px;background:var(--yellow);border-color:#b8650d;box-shadow:0 5px 0 #8f4b07;font-size:22px}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--wood2)}
+.btn:disabled{opacity:.5}
+.btn.sq{width:56px;padding:0}
+h2{margin:0 0 10px;font:700 30px/1 "Fredoka";color:var(--orange)}
+.stats{display:flex;justify-content:center;gap:8px;margin:0 0 12px}
+.stat{flex:1;max-width:130px;padding:8px 6px;border-radius:16px;background:#fff;border:2px solid #ecd2a6;font:600 13px/1.2 "Barlow";color:#8a6440}
+.stat b{display:block;font:700 22px/1.2 "Fredoka";color:var(--ink)}
+.stars{font-size:34px;letter-spacing:4px;margin:0 0 8px;color:#e3cfa8}
+.stars .on{color:var(--yellow);text-shadow:0 2px 0 #b8650d}
+.badge{display:inline-block;margin:0 0 10px;padding:6px 12px;border-radius:999px;background:var(--orange);color:#fff;font:700 15px/1 "Fredoka"}
+.note{margin:12px 0 0;font:600 13px/1.35 "Barlow";color:#9a7552}
+.keys{margin:10px 0 0;font:600 12px/1.4 "Barlow";color:#a07a55}
+#rotate{position:fixed;inset:0;z-index:2147483001;display:none;place-items:center;align-content:center;gap:12px;background:#11121A;color:#fff;font:700 22px/1.3 "Fredoka";text-align:center;padding:20px}
+#rotate b{font-size:60px}
+@media (orientation:landscape) and (pointer:coarse) and (max-height:520px){#rotate{display:grid}}
+@media (max-width:370px){.pill{height:38px;padding:0 7px;font-size:15px}#pad{width:136px;height:76px}#jump{width:86px;height:86px}}
+[hidden]{display:none!important}
+</style></head><body><a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
+<main class="app ctl-hidden" id="app">
+<canvas id="game" aria-label="Krümel: Spielfeld"></canvas>
+<div id="hud" hidden>
+  <div class="hud-l"><span class="pill" aria-label="Krümel gesammelt"><i class="c"></i><span id="crumbs">0</span></span><span class="pill golds" id="golds" aria-label="Goldkäse"><i></i><i></i><i></i></span><span class="pill" aria-label="Zeit" id="clock">0,0</span></div>
+  <div class="hud-r"><button class="icon" id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/></svg></button></div>
+</div>
+<div id="tip" class="away" hidden><b id="tipIcon"></b><span id="tipText"></span></div>
+<div id="pad" aria-hidden="true"><span id="padL"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span id="padR"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+<div id="jump" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 15l7-7 7 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+
+<section id="menu" class="screen"><div class="card">
+  <h1 class="logo">Krümel<small>Die große Käsejagd</small></h1>
+  <p class="lead">Flitz durch die Küche, sammle Krümel und finde die 3 Goldkäse!</p>
+  <div class="proto">Prototyp · Level 1</div>
+  <div class="btns"><button class="btn primary" id="playBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>Spielen</button></div>
+  <div class="btns" style="margin-top:10px"><button class="btn sq" id="muteBtn" aria-label="Ton an oder aus"></button></div>
+  <p class="keys">Am Rechner: ◀ ▶ bzw. A/D laufen · Leertaste springen</p>
+  <p class="note" id="bestLine" hidden></p>
+</div></section>
+
+<section id="pause" class="screen" hidden><div class="card">
+  <h2>Pause</h2>
+  <div class="btns"><button class="btn primary" id="resumeBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg>Weiter</button></div>
+  <div class="btns" style="margin-top:10px">
+    <button class="btn sq" id="restartBtn" aria-label="Level neu starten"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button class="btn sq" id="muteBtn2" aria-label="Ton an oder aus"></button>
+    <a class="btn sq" href="/" aria-label="Zurück zu PlaySaal"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FF9200"/></svg></a>
+  </div>
+</div></section>
+
+<section id="done" class="screen" hidden><div class="card">
+  <h2>Käse gefunden!</h2>
+  <div class="stars" id="stars"><span>★</span><span>★</span><span>★</span></div>
+  <div id="record" class="badge" hidden>Neue Bestzeit!</div>
+  <div class="stats">
+    <div class="stat"><b id="doneTime"></b>Zeit</div>
+    <div class="stat"><b id="doneCrumbs"></b>Krümel</div>
+    <div class="stat"><b id="doneResets"></b>Zurück zum Fähnchen</div>
+  </div>
+  <div class="btns"><button class="btn primary" id="retryBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v4.5h4.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Nochmal</button></div>
+  <p class="note">Level 2 mit Größenwechsel (Käse = groß, Minze = klein) kommt als Nächstes.</p>
+</div></section>
+</main>
+<div id="rotate"><b>📱</b>Bitte Handy hochkant drehen</div>
+<audio id="music" src="kruemel/musik.mp3" preload="none" loop></audio>
+<script type="module" src="./kruemel/game.js"></script>
+<script src="../assets/playsaal-config.js" defer></script><script src="../assets/playsaal.js" defer></script></body></html>

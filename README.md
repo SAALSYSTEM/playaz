@@ -1,5 +1,7 @@
 # PlaySaal
 
+**Krümel – Die große Käsejagd (Prototyp, Branch `kruemel`):** Jump'n'Run im Hochformat mit der Maus Krümel: nach rechts laufen, oft die Höhe wechseln (Kochlöffel-Leitern, Regalbretter zum Durchspringen, Schublade als Aufzug mit festem Ablauf), Krümel und 3 Goldkäse sammeln, Kätzchen verscheuchen (draufspringen) oder überspringen. Treffer oder Sturz: zurück zum letzten Fähnchen, nie an den Levelanfang. Bisher nur Level 1 zum Testen von Steuerung, Sprunggefühl und Kamera; Größenwechsel (Käse/Minze) folgt in Level 2. Platzhalter-Grafik, noch `noindex` und nicht auf der Startseite (`/spiele/kruemel`). Regeln/Physik und Löser: `public/spiele/kruemel/engine.js`, Level: `levels.js`, Oberfläche: `game.js`. Test: `node --test tests/kruemel-sim.test.mjs`.
+
 **Ausfahrt frei:** Schiebe-Rätsel im Hochformat (6×6-Bauhof, Fahrzeuge nur in Längsrichtung, der Betonmischer muss zur Ausfahrt). Tagesrätsel aus einem vorab geprüften Pool (ein gewerteter Versuch je Konto, wenigste Züge vor Zeit, geprüfte Tagesrangliste) und 30 Level. Veröffentlicht am 23.10.2026. Details: [`docs/AUSFAHRT_FREI.md`](docs/AUSFAHRT_FREI.md). Tests: `node --test tests/ausfahrt-sim.test.mjs tests/ausfahrt-pruefung.test.mjs`.
 
 **Leitungschaos:** Rohr-Rätsel im Hochformat: Rohre antippen und drehen, bis das Wasser vom Hydranten zu allen Häusern fließt. Tagesrätsel (ein gewerteter Versuch je Konto, Zeit von der Datenbank, geprüfte Tagesrangliste mit Archiv) und 30 Level mit Sternen. Veröffentlicht am 23.10.2026. Details: [`docs/LEITUNGSCHAOS.md`](docs/LEITUNGSCHAOS.md). Tests: `node --test tests/ausfahrt-sim.test.mjs            # AUSFAHRT FREI: Regeln, Level und Tagespool mit Löser geprüft, Nachspielen
@@ -64,6 +66,7 @@ node --test tests/sprungsebi-sim.test.mjs           # SPRUNGSEBI: 30 Level, Fort
 node --test tests/turmschicht-sim.test.mjs          # TURMSCHICHT: 30 Level beide Modi lösbar (Löser + Bot), Hebel, Jäger, Herzen, Herausforderung
 node --test tests/wasser-marsch-sim.test.mjs        # WASSER MARSCH!: 20 Level, Layout 360×640, Rettung, Spielstand
 node --test tests/leitungschaos-sim.test.mjs        # LEITUNGSCHAOS: 30 Level + 200 Tagesrätsel gültig und lösbar, Fluss, Prüfung
+node --test tests/kruemel-sim.test.mjs              # KRÜMEL: Sprunghöhe, Kanten-Toleranz, Puffer, Leiter, Schublade, Kätzchen, Level lösbar ohne Sackgassen
 node --test tests/dino-leiterhelden-sim.test.mjs    # DINO-LEITERHELDEN: 90 Level lösbar (Löser + Bot), Regeln inkl. Rutsche/Brücke/Wechsel-Monster/Ballon/Langhals, Spielstand, Herausforderung
 node tools/domain.mjs                                   # Canonical/Sitemap/robots konsistent?
 ```
