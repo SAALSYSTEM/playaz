@@ -12,7 +12,7 @@ Brettspiel-Klassiker (Neunmühle) im Hochformat, erstes Spiel der geplanten Kate
 - **Zu zweit an einem Gerät** (Hell unten, Dunkel oben)
 - „Zug zurück“ (nicht gegen den Meister), laufende Partie wird gespeichert und lässt sich nach dem Neuladen fortsetzen
 - Bilanz je Gegner (Siege/Remis/Niederlagen), Teilen-Knopf nach der Partie
-- Noch `noindex`, nicht auf der Startseite und nicht in der Sitemap
+- Veröffentlicht am 24.10.2026: Startseite (Kategorien Brettspiele + Rätsel), Sitemap, indexiert
 
 ## Regeln (wie in `engine.js`)
 

@@ -56,7 +56,7 @@ window.PLAYSAAL_CFG = {
 
   // Kategorien (Grundstand, identisch zur Datenbank; die Datenbank überschreibt, solange sie erreichbar ist)
   kategorien: [
-    ['geschick', 'Geschicklichkeit'], ['raetsel', 'Rätsel'], ['aufbau', 'Aufbau'], ['rennen', 'Rennen'],
+    ['geschick', 'Geschicklichkeit'], ['raetsel', 'Rätsel'], ['brettspiele', 'Brettspiele'], ['aufbau', 'Aufbau'], ['rennen', 'Rennen'],
     ['action', 'Action'], ['abenteuer', 'Abenteuer'], ['kinder', 'Für Kinder']
   ]
 };
