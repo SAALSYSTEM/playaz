@@ -16,8 +16,11 @@ const persist = () => { try { localStorage.setItem(STORE, JSON.stringify(save));
 // ---------------------------------------------------------------- Bilder (ChatGPT-Grafiken; fehlt eins, zeichnet das Spiel den Platzhalter)
 const IMG = {};
 for (const n of ['schlafkater-0', 'schlafkater-1', 'schlafkater-2', 'schale-a', 'schale-b', 'linse-0', 'linse-1', 'linse-2', 'linse-3', 'linse-4',
-  'cookie', 'cookie-riss', 'cookie-krumen', 'kaese-station', 'minze', 'kammer-hintergrund']) {
-  const im = new Image(); im.decoding = 'async'; im.src = `kruemel/img/${n}.webp?v=1`; IMG[n] = im;
+  'cookie', 'cookie-riss', 'cookie-krumen', 'kaese-station', 'minze', 'kammer-hintergrund', 'kueche-hintergrund',
+  ...['stehen', 'lauf-0', 'lauf-1', 'lauf-2', 'lauf-3', 'sprung', 'klettern', 'autsch'].flatMap((n) => ['maus-klein-' + n, 'maus-gross-' + n]),
+  'kaetzchen-0', 'kaetzchen-1', 'kaetzchen-2', 'kaetzchen-flucht', 'kruemel', 'goldkaese', 'fahne-zu', 'fahne-auf', 'kaeseglocke', 'zucker',
+  'regalbrett', 'kochloeffel', 'schublade', 'schrank', 'arbeitsplatte', 'fliese']) {
+  const im = new Image(); im.decoding = 'async'; im.src = `kruemel/img/${n}.webp?v=3`; IMG[n] = im;
 }
 const ok = (n) => { const im = IMG[n]; return im && im.complete && im.naturalWidth > 0 ? im : null; };
 // Bild mit Fußpunkt (x = Mitte, y = Unterkante) und Zielhöhe zeichnen; flip spiegelt waagerecht
@@ -293,8 +296,18 @@ const THEMES = {
   kammer: { wall0: '#ead2a8', wall1: '#d8b781', wood: '#9c6634', top: '#dcc39b', topLine: '#a98a5e', floorA: '#c9a77a', floorB: '#b48f62' },
 };
 const theme = () => THEMES[L.theme] || THEMES.kueche;
+function drawBgImage(name) {
+  const bg = ok(name);
+  if (!bg) return false;
+  const k = vh / bg.naturalHeight, w = bg.naturalWidth * k;
+  let x = -((cam.x * 0.35) % w);
+  for (; x < vw; x += w) cx.drawImage(bg, x, 0, w + 1, vh);
+  cx.fillStyle = 'rgba(255,242,220,.30)'; cx.fillRect(0, 0, vw, vh);   // etwas heller, damit Figuren davor gut zu sehen sind
+  return true;
+}
 function drawBackground() {
   if (L.theme === 'kammer') return drawPantry();
+  if (drawBgImage('kueche-hintergrund')) return;
   const H = vh;
   const g = cx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, '#f7ead0'); g.addColorStop(1, '#efd9b2');
@@ -330,14 +343,7 @@ function drawBackground() {
 
 // Speisekammer: Holzwand mit Regalen voller Gläser und Dosen (Parallaxe)
 function drawPantry() {
-  const bg = ok('kammer-hintergrund');
-  if (bg) {
-    const k = vh / bg.naturalHeight, w = bg.naturalWidth * k;
-    let x = -((cam.x * 0.35) % w);
-    for (; x < vw; x += w) cx.drawImage(bg, x, 0, w + 1, vh);
-    cx.fillStyle = 'rgba(255,240,215,.22)'; cx.fillRect(0, 0, vw, vh);   // etwas heller, damit Figuren davor gut zu sehen sind
-    return;
-  }
+  if (drawBgImage('kammer-hintergrund')) return;
   const g = cx.createLinearGradient(0, 0, 0, vh);
   g.addColorStop(0, '#ead2a8'); g.addColorStop(1, '#d8b781');
   cx.fillStyle = g; cx.fillRect(0, 0, vw, vh);
@@ -368,11 +374,22 @@ function drawPantry() {
 function drawTiles() {
   const th = theme();
   const tx0 = Math.max(0, Math.floor(cam.x / T)), tx1 = Math.min(L.w - 1, Math.floor((cam.x + vw) / T));
-  const ty0 = Math.max(0, Math.floor(cam.y / T)), ty1 = Math.min(L.h - 1, Math.floor((cam.y + vh) / T));
+  const ty0 = Math.max(0, Math.floor(cam.y / T) - 8), ty1 = Math.min(L.h - 1, Math.floor((cam.y + vh) / T));
   for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) {
     const k = tileAt(s.L, tx, ty); if (!k) continue;
     const x = tx * T, y = ty * T;
-    if (k === SOLID) {
+    if (k === SOLID && ok('schrank')) {
+      const topOpen = ty === 0 || tileAt(L, tx, ty - 1) !== SOLID;
+      if (ty >= L.floor) {
+        if (L.theme !== 'kammer' && ok('fliese')) cx.drawImage(IMG.fliese, x, y, T, T);
+        else { cx.fillStyle = (tx + ty) % 2 ? th.floorA : th.floorB; cx.fillRect(x, y, T, T); }
+        if (topOpen) { cx.fillStyle = 'rgba(120,80,40,.45)'; cx.fillRect(x, y, T, 3); }
+      } else {
+        cx.drawImage(IMG.schrank, x, y, T, T);
+        if (L.theme === 'kammer') { cx.fillStyle = 'rgba(90,50,20,.22)'; cx.fillRect(x, y, T, T); }
+        if (topOpen && ok('arbeitsplatte')) { const ap = IMG.arbeitsplatte; cx.drawImage(ap, (tx % 4) * ap.naturalWidth / 4, 0, ap.naturalWidth / 4, ap.naturalHeight, x, y - 2, T, 11); }
+      }
+    } else if (k === SOLID) {
       const topOpen = ty === 0 || tileAt(L, tx, ty - 1) !== SOLID;
       if (ty >= L.floor) {
         cx.fillStyle = (tx + ty) % 2 ? th.floorA : th.floorB; cx.fillRect(x, y, T, T);
@@ -386,6 +403,8 @@ function drawTiles() {
         if (leftOpen) cx.fillRect(x, y, 2, T);
         if (rightOpen) cx.fillRect(x + T - 2, y, 2, T);
       }
+    } else if (k === SUGAR && ok('zucker')) {
+      cx.drawImage(IMG.zucker, x, y, T, T);
     } else if (k === SUGAR) {
       // Zuckerwürfel: weiß, leicht glitzernd
       cx.fillStyle = '#ffffff'; rr(x + 1, y + 1, T - 2, T - 2, 4); cx.fill();
@@ -394,6 +413,11 @@ function drawTiles() {
       cx.fillStyle = 'rgba(200,215,225,.9)';
       for (let i = 0; i < 5; i++) { const a = (tx * 7 + ty * 13 + i * 5) % 22; cx.fillRect(x + 5 + a, y + 5 + ((a * 3 + i * 7) % 20), 2, 2); }
       if ((s.t + tx * 17) % 120 < 8) { cx.fillStyle = '#fff'; cx.fillRect(x + 8, y + 6, 3, 3); }
+    } else if (k === SHELF && ok('regalbrett')) {
+      const im = IMG.regalbrett, iw = im.naturalWidth, ih = im.naturalHeight, e = iw * 0.08;
+      const l = tileAt(L, tx - 1, ty) !== SHELF, r = tileAt(L, tx + 1, ty) !== SHELF;
+      const sx = l ? 0 : r ? iw - iw * 0.3 : e + ((tx * 37) % 5) * (iw - 2 * e) / 6, sw = l || r ? iw * 0.3 : (iw - 2 * e) / 6;
+      cx.drawImage(im, sx, 0, sw, ih, x - (l ? 1 : 0), y - 1, T + (l || r ? 1 : 0.5), 10);
     } else if (k === SHELF) {
       cx.fillStyle = '#a8692f'; rr(x - 1, y, T + 2, 8, 2); cx.fill();
       cx.fillStyle = '#c98b4f'; cx.fillRect(x - 1, y, T + 2, 3);
@@ -401,6 +425,13 @@ function drawTiles() {
         // Halter an den Enden
         const hx = tileAt(L, tx - 1, ty) !== SHELF ? x + 6 : x + T - 10;
         cx.fillStyle = '#7d7d86'; cx.beginPath(); cx.moveTo(hx, y + 8); cx.lineTo(hx + 4, y + 8); cx.lineTo(hx + 4, y + 22); cx.closePath(); cx.fill();
+      }
+    } else if (k === LADDER && ok('kochloeffel')) {
+      // ganzer Kochlöffel: am obersten Feld über die gesamte Leiterlänge zeichnen
+      if (tileAt(L, tx, ty - 1) !== LADDER) {
+        let n = 1; while (tileAt(L, tx, ty + n) === LADDER) n++;
+        const h = n * T + 22, w = h * IMG.kochloeffel.naturalWidth / IMG.kochloeffel.naturalHeight;
+        cx.drawImage(IMG.kochloeffel, x + T / 2 - Math.max(w, 12) / 2, y - 22, Math.max(w, 12), h);
       }
     } else if (k === LADDER) {
       // Kochlöffel: Stiel mit Kerben, oben die Kelle
@@ -468,6 +499,7 @@ function drawLifts() {
     cx.strokeStyle = 'rgba(94,52,21,.25)'; cx.lineWidth = 3; cx.setLineDash([6, 6]);
     cx.beginPath(); cx.moveTo(lf.x + lf.w / 2, lf.high); cx.lineTo(lf.x + lf.w / 2, lf.low + 24); cx.stroke(); cx.setLineDash([]);
     const y = lf.y;
+    if (ok('schublade')) { const im = IMG.schublade, w = lf.w + 4; cx.drawImage(im, lf.x - 2, y - 2, w, w * im.naturalHeight / im.naturalWidth); continue; }
     cx.fillStyle = '#b97a3e'; rr(lf.x, y, lf.w, 26, 4); cx.fill();
     cx.fillStyle = '#d99c5c'; cx.fillRect(lf.x + 2, y, lf.w - 4, LIFT_H - 4);
     cx.fillStyle = '#8a5428'; rr(lf.x + lf.w / 2 - 10, y + 15, 20, 5, 2); cx.fill();
@@ -476,6 +508,7 @@ function drawLifts() {
 
 function drawCrumb(x, y, t) {
   const b = Math.sin(t / 12 + x) * 2;
+  if (ok('kruemel')) { cx.drawImage(IMG.kruemel, x - 7, y - 6 + b, 14, 12); return; }
   cx.fillStyle = '#d99a3e'; cx.beginPath(); cx.ellipse(x, y + b, 6, 5, 0.3, 0, Math.PI * 2); cx.fill();
   cx.fillStyle = '#f2c46c'; cx.beginPath(); cx.ellipse(x - 2, y - 2 + b, 2.5, 2, 0, 0, Math.PI * 2); cx.fill();
 }
@@ -489,11 +522,14 @@ function drawCheese(x, y, size, glow, t) {
   cx.restore();
 }
 function drawFlag(f, on) {
+  const im = ok(on ? 'fahne-auf' : 'fahne-zu');
+  if (im) { sprite(im, f.x + (on ? 10 : 0), f.y + 1, 48); return; }
   cx.fillStyle = '#e2c79b'; cx.fillRect(f.x - 1.5, f.y - 46, 3, 46);
   cx.fillStyle = on ? '#FF9200' : '#bfb3a0';
   cx.beginPath(); cx.moveTo(f.x + 1.5, f.y - 46); cx.lineTo(f.x + 24, f.y - 39 + (on ? Math.sin(s.t / 6) * 2 : 0)); cx.lineTo(f.x + 1.5, f.y - 31); cx.closePath(); cx.fill();
 }
 function drawGoal(g, t) {
+  if (ok('kaeseglocke')) { cx.fillStyle = `rgba(255,210,28,${0.2 + 0.12 * Math.sin(t / 9)})`; cx.beginPath(); cx.arc(g.x, g.y - 26, 34, 0, 7); cx.fill(); sprite(IMG.kaeseglocke, g.x, g.y + 2, 56); return; }
   cx.fillStyle = '#fff'; cx.beginPath(); cx.ellipse(g.x, g.y - 3, 26, 5, 0, 0, Math.PI * 2); cx.fill();
   cx.strokeStyle = '#d9cfc0'; cx.lineWidth = 2; cx.stroke();
   drawCheese(g.x, g.y - 16, 13, true, t);
@@ -505,6 +541,15 @@ function drawGoal(g, t) {
 function drawCat(c) {
   if (c.state === 'gone') return;
   const fleeing = c.state === 'flee';
+  const im = ok(fleeing ? 'kaetzchen-flucht' : 'kaetzchen-' + (Math.floor(c.t / 9) % 3));
+  if (im) {
+    const x = c.x + c.w / 2, y = c.y + c.h;
+    cx.save();
+    if (fleeing) { cx.globalAlpha = Math.max(0, 1 - c.t / 50); }
+    sprite(im, x, y + 2, 32, c.vx < 0);
+    cx.restore();
+    return;
+  }
   const x = c.x + c.w / 2, y = c.y + c.h;
   const dir = c.vx > 0 ? 1 : -1;
   cx.save(); cx.translate(x, y);
@@ -567,8 +612,8 @@ function drawSleeper(c) {
   const im = ok('schlafkater-' + fr);
   if (im) {
     const flip = s.p.x + s.p.w / 2 < x;      // schaut zur Maus
-    if (fr === 2) sprite(im, x, y + 2, 50, flip);
-    else { const br = fr === 0 ? 1 + Math.sin(s.t / 25) * 0.02 : 1; sprite(im, x, y + 2, 32 * br, flip); }
+    const br = fr === 0 ? 1 + Math.sin(s.t / 25) * 0.015 : 1;
+    sprite(im, x, y + 3, 54 * br, flip);
     return;
   }
   cx.save(); cx.translate(x, y);
@@ -602,9 +647,29 @@ function drawSleeper(c) {
   cx.restore();
 }
 
+function mouseFrame(p) {
+  if ((p.freeze > 0 && p.freezeKind === 'hit') || p.push > 0) return 'autsch';
+  if (p.ladder) return 'klettern';
+  if (!p.ground) return 'sprung';
+  if (Math.abs(p.vx) > 0.3) return 'lauf-' + (Math.floor(p.runT / 11) % 4);
+  return 'stehen';
+}
 function drawMouse() {
   const p = s.p;
   if (p.invuln > 0 && Math.floor(p.invuln / 4) % 2 === 0) return;
+  const im = ok((p.big ? 'maus-gross-' : 'maus-klein-') + mouseFrame(p));
+  if (im) {
+    let h = p.big ? 58 : 34;
+    if (p.growT > 0) h *= 1 + Math.sin(p.growT * 0.9) * 0.12;
+    let sx = 1, sy = 1;
+    if (p.landT > 0) { const k = p.landT / 8 * 0.15; sx = 1 + k; sy = 1 - k; }
+    const x = p.x + p.w / 2, y = p.y + p.h + 2;
+    cx.save(); cx.translate(x, y); cx.scale(sx, sy);
+    if (p.freeze > 0 && p.freezeKind === 'hit') cx.rotate(Math.sin(s.t * 0.6) * 0.2);
+    sprite(im, 0, 0, h, !p.ladder && p.face < 0);
+    cx.restore();
+    return;
+  }
   const x = p.x + p.w / 2, y = p.y + p.h;
   cx.save(); cx.translate(x, y);
   // Quetschen und Strecken
@@ -671,7 +736,11 @@ function render() {
   L.flags.forEach((f, i) => drawFlag(f, s.flagHit[i]));
   L.crumbs.forEach((c, i) => { if (!s.crumbs[i]) drawCrumb(c.x, c.y, s.t); });
   L.chocs.forEach((c, i) => { if (!s.chocs[i]) drawChoc(c, s.t); });
-  L.golds.forEach((g, i) => { if (!s.golds[i]) drawCheese(g.x, g.y, 10, true, s.t + i * 20); });
+  L.golds.forEach((g, i) => {
+    if (s.golds[i]) return;
+    if (ok('goldkaese')) { const b = Math.sin((s.t + i * 20) / 15) * 2; cx.fillStyle = `rgba(255,210,28,${0.22 + 0.12 * Math.sin(s.t / 8)})`; cx.beginPath(); cx.arc(g.x, g.y + b, 15, 0, 7); cx.fill(); cx.drawImage(IMG.goldkaese, g.x - 14, g.y - 12 + b, 28, 23); }
+    else drawCheese(g.x, g.y, 10, true, s.t + i * 20);
+  });
   s.sleepers.forEach(drawSleeper);
   drawGoal(L.goal, s.t);
   s.cats.forEach(drawCat);
