@@ -3,10 +3,14 @@
 // - Stufen ohne Leiter/Aufzug höchstens 2 Kacheln hoch, Lücken höchstens 2 Kacheln breit
 // - Fallwege höchstens 4 Kacheln tief (sonst Leiter, Aufzug oder Zwischenbrett)
 // - Von jedem Fähnchen aus ist das Ziel erreichbar, jeder Goldkäse ist erreichbar
+// - Käse-Stationen haben 2 Kacheln Platz nach oben (sonst kann Krümel nicht wachsen)
+// Elemente: Krümel (1 Punkt), Schokolinsen (5 Punkte), Goldkäse (Sterne), Fähnchen, Kochlöffel-Leiter, Regalbrett,
+// Schublade (fester Ablauf), Crispy-Cookie (bröselt, wächst nach), Käse (groß) / Minze (klein), Zuckerwürfel (groß zerbricht sie),
+// Waage (groß draufstellen, andere Schale hebt sich und bleibt oben), Kätzchen, Schlafkater (Springen in der Nähe weckt ihn)
 
 export const LEVELS = [
   {
-    name: 'Küche · Laufen lernen',
+    name: 'Laufen lernen',
     w: 88, h: 24, floor: 21,   // ab dieser Reihe werden feste Kacheln als Fliesenboden gezeichnet
     build(L) {
       // Boden mit Spülen-Schacht bei x 24–25
@@ -47,6 +51,7 @@ export const LEVELS = [
       L.shelf(49, 58, 13);
       L.shelf(46, 47, 11); L.gold(47, 10);  // Goldkäse 2: kleines Brett links oben
       L.crumbs(50, 51, 12); L.crumbs(55, 56, 12);
+      L.chocs(52, 54, 10);               // Schokolinsen über dem Kätzchen
       L.tip(47, 'Auf Kätzchen springen – oder drüber!', '🐱');
       L.cat(53, 12, 50, 57);
 
@@ -64,6 +69,295 @@ export const LEVELS = [
       L.cat(77, 12, 75, 80);
       L.crumbs(82, 83, 12);
       L.goal(85, 12);
+    },
+  },
+  // ------------------------------------------------------------ 2: Schokolinsen und Crispy-Cookies
+  {
+    name: 'Schoko & Crispy-Cookies',
+    w: 92, h: 24, floor: 21,
+    build(L) {
+      L.solid(0, 21, 13, 23); L.solid(18, 21, 65, 23); L.solid(73, 21, 91, 23);
+      L.start(2, 20);
+      L.tip(1, 'Schokolinsen bringen 5 Punkte!', '🍫');
+      L.crumbs(4, 8, 20); L.chocs(5, 7, 18);
+      L.flag(10, 20);
+      L.tip(11, 'Crispy-Cookies bröseln – schnell weiter!', '🍪');
+      L.cookie(15, 20, 2); L.chocs(15, 16, 18);           // Trittstein über der Lücke
+      L.crumbs(19, 24, 20);
+      L.flag(27, 20);
+      // Cookie-Treppe; darunter ist Boden – wer fällt, versucht es einfach nochmal (Cookies wachsen nach)
+      L.cookie(30, 19, 2); L.choc(30, 18);
+      L.cookie(33, 17, 2); L.choc(33, 16);
+      L.cookie(36, 15, 3); L.choc(37, 14);
+      L.shelf(39, 46, 15); L.crumbs(40, 45, 14);
+      L.cookie(42, 13, 2); L.gold(43, 10);                // Goldkäse 1: vom Cookie hochspringen
+      L.shelf(47, 50, 18); L.crumbs(48, 49, 17);
+      L.flag(53, 20);
+      L.cat(59, 20, 55, 63); L.chocs(58, 60, 17);
+      // Lücke mit zwei Cookies
+      L.cookie(67, 20, 2); L.cookie(70, 19, 2);
+      L.gold(69, 17);                                     // Goldkäse 2: über der Lücke
+      L.flag(74, 20);
+      L.ladder(76, 17, 20); L.solid(77, 17, 91, 20);
+      L.crumbs(78, 80, 16);
+      L.cookie(80, 15, 2); L.gold(81, 12);                // Goldkäse 3
+      L.chocs(84, 86, 16);
+      L.goal(89, 16);
+    },
+  },
+
+  // ------------------------------------------------------------ 3: Käse macht groß
+  {
+    name: 'Käse macht groß',
+    w: 80, h: 24, floor: 21,
+    build(L) {
+      L.solid(0, 21, 79, 23);
+      L.start(2, 20);
+      L.tip(3, 'Käse essen = groß!', '🧀');
+      L.cheese(6, 20);
+      L.tip(8, 'Groß zerbricht Zuckerwürfel', '🧊');
+      L.sugar(11, 18, 11, 20);
+      L.crumbs(13, 15, 20); L.flag(14, 20);
+      L.ladder(17, 18, 20); L.solid(18, 18, 30, 20);
+      L.cheese(20, 17);
+      L.sugar(24, 15, 24, 17);
+      L.crumbs(25, 26, 17); L.chocs(21, 23, 14);
+      L.shelf(27, 29, 16); L.gold(28, 13);                // Goldkäse 1: Brett hinter der Zuckerwand
+      L.flag(33, 20); L.cheese(34, 20);
+      // Zuckerwürfel-Käfig mit Goldkäse
+      L.sugar(36, 18, 38, 20); L.clear(37, 19, 37, 19); L.gold(37, 19);
+      L.crumbs(40, 42, 20);
+      L.tip(43, 'Groß + Kätzchen = wieder klein (kein Zurück!)', '🐱');
+      L.cat(47, 20, 42, 51); L.chocs(46, 48, 17);
+      L.cheese(53, 20);
+      L.sugar(56, 18, 56, 20);
+      L.shelf(58, 61, 19); L.crumb(59, 18);
+      L.shelf(62, 65, 17); L.crumb(63, 16);
+      L.solid(66, 15, 79, 20);
+      L.cheese(68, 14);
+      L.sugar(71, 12, 73, 12); L.gold(72, 11);            // Goldkäse 3: groß von unten durch die Zuckerdecke
+      L.chocs(70, 74, 14);
+      L.goal(77, 14);
+    },
+  },
+
+  // ------------------------------------------------------------ 4: Minze macht klein
+  {
+    name: 'Minze macht klein',
+    w: 84, h: 24, floor: 21,
+    build(L) {
+      L.solid(0, 21, 83, 23);
+      L.start(2, 20);
+      L.cheese(5, 20); L.sugar(9, 18, 9, 20);
+      L.flag(11, 20);
+      L.tip(12, 'Minze = wieder klein. Klein passt durch Spalten!', '🌿');
+      L.mint(13, 20);
+      L.solid(16, 0, 24, 19); L.crumbs(17, 19, 20); L.gold(20, 20); L.crumbs(21, 23, 20);   // Spalt mit Goldkäse 1
+      L.flag(26, 20); L.cheese(28, 20);
+      L.sugar(31, 17, 31, 20);
+      L.chocs(32, 34, 18);
+      L.mint(35, 20);
+      L.solid(37, 0, 45, 19); L.crumbs(38, 44, 20);      // zweiter Spalt
+      L.flag(47, 20);
+      L.ladder(49, 17, 20); L.solid(50, 17, 83, 20);
+      L.cheese(52, 16); L.sugar(55, 14, 55, 16);
+      L.mint(58, 16);
+      L.solid(61, 0, 68, 15); L.gold(64, 16); L.crumbs(62, 63, 16); L.crumbs(65, 67, 16);    // Spalt oben mit Goldkäse 2
+      L.chocs(70, 72, 14);
+      L.shelf(73, 75, 15); L.gold(74, 12);                // Goldkäse 3
+      L.goal(80, 16);
+    },
+  },
+
+  // ------------------------------------------------------------ 5: Die Waage
+  {
+    name: 'Die Waage',
+    w: 86, h: 24, floor: 21,
+    build(L) {
+      L.solid(0, 21, 85, 23);
+      L.start(2, 20);
+      L.cheese(5, 20);
+      L.tip(7, 'Groß auf die Waage – die andere Schale hebt sich!', '⚖️');
+      L.clear(10, 21, 11, 22); L.clear(14, 21, 15, 22);
+      L.scale(10, 21, 14, 21, 2);
+      L.solid(16, 17, 40, 20);
+      L.flag(18, 16); L.crumbs(19, 22, 16);
+      // zweite Waage oben auf der Arbeitsplatte: hebt eine Stufe zum Goldkäse
+      L.clear(24, 17, 25, 18); L.clear(29, 17, 30, 18);
+      L.scale(24, 17, 29, 17, 2);
+      L.gold(30, 12);
+      L.shelf(32, 36, 13); L.chocs(33, 35, 12);
+      L.crumbs(37, 39, 16);
+      L.flag(43, 20);
+      L.cat(49, 20, 45, 53); L.chocs(46, 48, 17); L.gold(51, 17);   // Goldkäse 2: Sprung über dem Kätzchen
+      L.cheese(55, 20);
+      L.clear(58, 21, 59, 22); L.clear(64, 21, 65, 22);
+      L.scale(58, 21, 64, 21, 2);
+      L.solid(66, 17, 85, 20);
+      L.flag(67, 16);
+      L.mint(69, 16);
+      L.solid(72, 0, 78, 15); L.gold(75, 16); L.crumbs(73, 74, 16); L.crumbs(76, 77, 16);
+      L.goal(83, 16);
+    },
+  },
+  // ------------------------------------------------------------ 6: Speisekammer – der Schlafkater
+  {
+    name: 'Pssst, der Kater schläft',
+    theme: 'kammer',
+    w: 90, h: 24, floor: 21,
+    build(L) {
+      L.solid(0, 21, 89, 23);
+      L.start(2, 20);
+      L.tip(3, 'Pssst! Laufen ist leise – Springen weckt den Kater', '😴');
+      L.crumbs(4, 7, 20);
+      L.sleeper(10, 20); L.chocs(9, 11, 17);              // Schokolinsen locken zum Springen …
+      L.crumbs(13, 15, 20); L.flag(14, 20);
+      // Konservendosen-Treppe
+      L.solid(16, 19, 17, 20); L.solid(18, 17, 19, 20); L.solid(20, 15, 21, 20);
+      L.crumb(17, 18); L.crumb(19, 16);
+      L.shelf(22, 31, 15); L.ladder(32, 15, 20);         // Löffel zurück aufs Brett, falls man unten landet
+      L.sleeper(27, 14); L.gold(27, 12);                  // Goldkäse 1 – nur mit Sprung neben dem Kater
+      L.solid(33, 13, 34, 20); L.shelf(35, 40, 13); L.crumbs(35, 39, 12);
+      L.shelf(41, 44, 17); L.crumb(42, 16);
+      L.flag(46, 20);
+      L.lift(50, 2, 19, 13, { speed: 1.5, wait: 80 }); L.gold(51, 10);   // Goldkäse 2: auf der Fahrt hochspringen
+      L.solid(52, 13, 60, 20);
+      L.flag(53, 12);
+      L.sleeper(56, 12);
+      // Cookie-Brücke; wer fällt, klettert am Löffel wieder hoch
+      L.ladder(61, 13, 20);
+      L.cookie(62, 13, 2); L.choc(62, 12);
+      L.cookie(66, 12, 2); L.gold(66, 9);                 // Goldkäse 3
+      L.solid(68, 13, 89, 20);
+      L.crumbs(71, 75, 12); L.chocs(78, 82, 10);
+      L.goal(86, 12);
+    },
+  },
+
+  // ------------------------------------------------------------ 7: Kätzchen-Kommando
+  {
+    name: 'Kätzchen-Kommando',
+    theme: 'kammer',
+    w: 96, h: 24, floor: 21,
+    build(L) {
+      L.solid(0, 21, 95, 23); L.clear(30, 21, 34, 23);
+      L.start(2, 20);
+      L.cheese(4, 20);
+      L.tip(5, 'Groß hält einen Treffer mehr aus', '🧀');
+      L.cat(12, 20, 8, 16); L.chocs(11, 13, 17);
+      L.cat(22, 20, 18, 26); L.chocs(21, 23, 17);
+      L.flag(28, 20);
+      L.cookie(31, 20, 2); L.gold(33, 17);                // Goldkäse 1 über der Lücke
+      L.crumbs(36, 37, 20);
+      L.shelf(38, 44, 19); L.cat(41, 18, 38, 44);
+      L.shelf(46, 54, 17); L.cat(50, 16, 46, 54); L.gold(50, 14);   // Goldkäse 2
+      L.flag(57, 20); L.cheese(59, 20);
+      L.lift(62, 2, 19, 12, { speed: 1.6, wait: 70 });
+      L.solid(64, 12, 95, 20);
+      L.flag(65, 11);
+      L.cat(70, 11, 66, 74); L.chocs(69, 71, 8);
+      L.cheese(74, 11); L.sugar(76, 9, 76, 11); L.crumbs(77, 78, 11);
+      L.cat(81, 11, 79, 85);
+      L.shelf(86, 88, 10); L.gold(87, 7);                 // Goldkäse 3
+      L.goal(93, 11);
+    },
+  },
+
+  // ------------------------------------------------------------ 8: Groß und klein
+  {
+    name: 'Groß und klein',
+    theme: 'kammer',
+    w: 96, h: 24, floor: 21,
+    build(L) {
+      L.solid(0, 21, 95, 23);
+      L.start(2, 20);
+      L.cheese(5, 20); L.sugar(8, 18, 8, 20);
+      L.mint(11, 20);
+      L.solid(13, 0, 19, 19); L.gold(16, 20); L.crumbs(14, 15, 20); L.crumbs(17, 18, 20);   // Goldkäse 1 im Spalt
+      L.flag(21, 20); L.cheese(23, 20);
+      L.clear(25, 21, 26, 22); L.clear(30, 21, 31, 22);
+      L.scale(25, 21, 30, 21, 2); L.gold(31, 16);         // Goldkäse 2 über der gehobenen Schale
+      L.solid(32, 17, 50, 20);
+      L.flag(33, 16); L.mint(36, 16);
+      L.solid(38, 0, 44, 15); L.crumbs(39, 43, 16);
+      L.cheese(47, 16); L.sugar(49, 14, 49, 16);
+      L.flag(53, 20); L.cheese(54, 20);
+      L.clear(56, 21, 57, 22); L.clear(61, 21, 62, 22);
+      L.scale(56, 21, 61, 21, 2);
+      L.solid(63, 17, 95, 20);
+      L.flag(64, 16); L.mint(66, 16);
+      L.solid(68, 0, 75, 15); L.gold(72, 16); L.crumbs(69, 71, 16); L.crumbs(73, 74, 16);   // Goldkäse 3
+      L.cheese(78, 16); L.sugar(81, 14, 81, 16);
+      L.chocs(84, 88, 14);
+      L.goal(92, 16);
+    },
+  },
+
+  // ------------------------------------------------------------ 9: Hoch hinaus (Turm)
+  {
+    name: 'Hoch hinaus',
+    theme: 'kammer',
+    w: 70, h: 34, floor: 31,
+    build(L) {
+      L.solid(0, 31, 69, 33);
+      L.start(2, 30);
+      L.tip(2, 'Heute geht es hoch hinaus!', '⬆️');
+      L.ladder(5, 27, 30); L.solid(6, 27, 12, 30);
+      L.sleeper(9, 26);
+      L.solid(13, 25, 19, 30); L.flag(14, 24); L.gold(14, 22);   // Goldkäse 1
+      L.shelf(16, 18, 21);
+      L.ladder(19, 19, 24); L.solid(20, 19, 24, 30);
+      L.crumbs(20, 23, 18);
+      // Cookie-Treppe; unten wartet ein Löffel zurück nach oben
+      L.ladder(25, 19, 30);
+      L.cookie(26, 17, 2); L.cookie(29, 15, 2); L.cookie(31, 13, 2);
+      L.chocs(26, 27, 16); L.choc(29, 14);
+      L.gold(29, 29);                                     // Goldkäse 2 unten in der Cookie-Grube
+      L.solid(33, 13, 40, 30);
+      L.flag(34, 12); L.crumbs(36, 39, 12);
+      L.solid(41, 14, 42, 30);
+      L.lift(41, 2, 13, 5, { speed: 1.4, wait: 80 }); L.gold(42, 2);   // Goldkäse 3: oben vom Aufzug springen
+      L.solid(43, 5, 69, 30);
+      L.flag(45, 4);
+      L.sleeper(50, 4); L.chocs(49, 51, 1);
+      L.cat(58, 4, 54, 62);
+      L.goal(67, 4);
+    },
+  },
+
+  // ------------------------------------------------------------ 10: Großes Finale
+  {
+    name: 'Das große Käse-Finale',
+    theme: 'kammer',
+    w: 120, h: 24, floor: 21,
+    build(L) {
+      L.solid(0, 21, 119, 23); L.clear(24, 21, 30, 23);
+      L.start(2, 20);
+      L.tip(2, 'Finale! Alles, was du gelernt hast.', '🏆');
+      L.cheese(5, 20);
+      L.cat(12, 20, 8, 17); L.chocs(11, 13, 17);
+      L.sugar(19, 18, 19, 20);
+      L.flag(21, 20);
+      L.cookie(25, 20, 2); L.cookie(28, 19, 2); L.gold(27, 16);       // Goldkäse 1
+      L.crumbs(31, 33, 20);
+      L.sleeper(35, 20); L.chocs(34, 36, 17);
+      L.flag(38, 20); L.cheese(40, 20);
+      L.clear(43, 21, 44, 22); L.clear(48, 21, 49, 22);
+      L.scale(43, 21, 48, 21, 2);
+      L.solid(50, 17, 70, 20);
+      L.flag(52, 16); L.mint(55, 16);
+      L.solid(58, 0, 64, 15); L.gold(61, 16); L.crumbs(59, 60, 16); L.crumbs(62, 63, 16);   // Goldkäse 2
+      L.crumbs(66, 69, 16);
+      L.flag(73, 20);
+      L.lift(77, 2, 19, 12, { speed: 1.6, wait: 70 });
+      L.solid(79, 12, 119, 20);
+      L.flag(81, 11);
+      L.cat(85, 11, 82, 89);
+      L.cheese(91, 11); L.sugar(94, 9, 94, 11);
+      L.sleeper(100, 11); L.chocs(99, 101, 8);
+      L.shelf(104, 107, 10); L.gold(105, 7);              // Goldkäse 3
+      L.chocs(109, 113, 10);
+      L.goal(116, 11);
     },
   },
 ];

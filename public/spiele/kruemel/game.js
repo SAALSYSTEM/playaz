@@ -1,7 +1,7 @@
 // Krümel – Oberfläche: Zeichnen (Platzhalter-Grafik), Kamera, Steuerung, Ton, Menüs.
 // Regeln/Physik stehen in engine.js. Fester 60-Hz-Takt, gezeichnet wird so oft der Bildschirm kann.
-import { T, HZ, SOLID, SHELF, LADDER, build, newWorld, step, tileAt, LIFT_H, freshSave, sanitizeSave, fmt } from './engine.js';
-import { LEVELS } from './levels.js';
+import { T, HZ, SOLID, SHELF, LADDER, SUGAR, build, newWorld, step, tileAt, LIFT_H, freshSave, sanitizeSave, fmt, points } from './engine.js?v=3';
+import { LEVELS } from './levels.js?v=3';
 
 const $ = (id) => document.getElementById(id);
 const app = $('app'), cv = $('game'), cx = cv.getContext('2d');
@@ -10,7 +10,7 @@ const STORE = 'kruemel.v1';
 const VIEW_W = 270;           // sichtbare Breite in Spiel-Pixeln (≈ 8,5 Kacheln) – passt für Hochformat
 
 let save = freshSave();
-try { save = sanitizeSave(JSON.parse(localStorage.getItem(STORE))); } catch { /* Privatmodus */ }
+try { save = sanitizeSave(JSON.parse(localStorage.getItem(STORE)), LEVELS.length); } catch { /* Privatmodus */ }
 const persist = () => { try { localStorage.setItem(STORE, JSON.stringify(save)); } catch { /* voll oder gesperrt */ } };
 
 // ---------------------------------------------------------------- Ton
@@ -39,6 +39,17 @@ const SFX = {
   flag: () => { beep(520, 520, 0.08, 'triangle', 0.06); beep(780, 780, 0.12, 'triangle', 0.06, 0.08); },
   win: () => { [523, 659, 784, 1046].forEach((f, i) => beep(f, f, 0.16, 'triangle', 0.08, i * 0.12)); },
   land: () => beep(160, 90, 0.06, 'sine', 0.05),
+  choc: () => { beep(880, 1320, 0.07, 'triangle', 0.06); beep(1320, 1760, 0.08, 'triangle', 0.05, 0.06); },
+  grow: () => { [330, 440, 554, 660].forEach((f, i) => beep(f, f * 1.05, 0.09, 'square', 0.04, i * 0.06)); },
+  shrink: () => { [660, 554, 440, 330].forEach((f, i) => beep(f, f * 0.95, 0.08, 'triangle', 0.05, i * 0.05)); },
+  ouch: () => { beep(600, 200, 0.25, 'square', 0.05); },
+  brk: () => { beep(1400, 500, 0.08, 'square', 0.04); beep(900, 300, 0.1, 'triangle', 0.04, 0.03); },
+  crack: () => beep(1800, 900, 0.05, 'square', 0.025),
+  crumble: () => beep(500, 120, 0.18, 'sawtooth', 0.035),
+  scale: () => { beep(200, 400, 0.4, 'triangle', 0.06); },
+  wake: () => beep(300, 520, 0.25, 'sawtooth', 0.04),
+  hiss: () => { beep(2200, 1500, 0.25, 'sawtooth', 0.025); },
+  nope: () => beep(240, 200, 0.15, 'square', 0.04),
 };
 function renderMute() {
   const on = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
@@ -57,7 +68,8 @@ let particles = [];
 let tipIdx = 0, tipTimer = 0;
 let winDelay = 0;
 
-function startLevel() {
+function startLevel(idx = levelIdx) {
+  levelIdx = Math.max(0, Math.min(LEVELS.length - 1, idx));
   L = build(LEVELS[levelIdx]);
   s = newWorld(L);
   particles = []; tipIdx = 0; tipTimer = 0; winDelay = 0;
@@ -101,15 +113,40 @@ cv.addEventListener('contextmenu', (e) => e.preventDefault());
 document.addEventListener('gesturestart', (e) => e.preventDefault());
 
 // ---------------------------------------------------------------- Menüs
-function show(id) { for (const k of ['menu', 'pause', 'done']) $(k).hidden = k !== id; }
-function play() { unlockAudio(); startLevel(); mode = 'play'; show(null); $('hud').hidden = false; musicOn(); if (matchMedia('(pointer:coarse)').matches) app.classList.remove('ctl-hidden'); }
+function show(id) { for (const k of ['menu', 'levels', 'pause', 'done']) $(k).hidden = k !== id; }
+function play(idx = levelIdx) { unlockAudio(); startLevel(idx); mode = 'play'; show(null); $('hud').hidden = false; musicOn(); if (matchMedia('(pointer:coarse)').matches) app.classList.remove('ctl-hidden'); }
+function nextOpen() { for (let i = 0; i < LEVELS.length; i++) if (!save.best[i + 1]) return Math.min(i, save.unlocked - 1); return LEVELS.length - 1; }
+function renderMenu() {
+  levelIdx = nextOpen();
+  $('playLabel').textContent = save.best[1] ? `Weiter: Level ${levelIdx + 1}` : 'Spielen';
+}
+function renderGrid() {
+  const g = $('grid'); g.innerHTML = '';
+  LEVELS.forEach((lv, i) => {
+    const b = document.createElement('button');
+    const best = save.best[i + 1];
+    b.disabled = i + 1 > save.unlocked;
+    b.className = best ? 'done' : (i + 1 === save.unlocked ? 'next' : '');
+    b.innerHTML = `${i + 1}<small>${best ? '★'.repeat(best.g) + '☆'.repeat(3 - best.g) : ''}</small>`;
+    b.title = lv.name;
+    b.setAttribute('aria-label', `Level ${i + 1}: ${lv.name}`);
+    b.onclick = () => play(i);
+    g.appendChild(b);
+  });
+}
+function openLevels() { renderGrid(); mode = mode === 'play' ? 'pause' : mode; show('levels'); }
 function pause() { if (mode !== 'play') return; mode = 'pause'; show('pause'); music.pause(); clearTouch(); }
 function resume() { unlockAudio(); mode = 'play'; show(null); musicOn(); }
 function clearTouch() { padPointers.clear(); jumpPointers.clear(); touch.left = touch.right = touch.jump = false; padUpdate(); jumpBtn.classList.remove('on'); }
-$('playBtn').onclick = play;
+$('playBtn').onclick = () => play(levelIdx);
+$('levelsBtn').onclick = openLevels;
+$('pauseLevels').onclick = openLevels;
+$('doneLevels').onclick = openLevels;
+$('levelsBack').onclick = () => { if (mode === 'pause') show('pause'); else if (mode === 'done') show('done'); else show('menu'); };
+$('nextBtn').onclick = () => play(levelIdx + 1);
 $('resumeBtn').onclick = resume;
-$('restartBtn').onclick = () => { play(); };
-$('retryBtn').onclick = () => { play(); };
+$('restartBtn').onclick = () => { play(levelIdx); };
+$('retryBtn').onclick = () => { play(levelIdx); };
 $('pauseBtn').onclick = pause;
 $('muteBtn').onclick = toggleMute; $('muteBtn2').onclick = toggleMute;
 document.addEventListener('visibilitychange', () => { if (document.hidden) { if (mode === 'play') pause(); else music.pause(); } });
@@ -120,17 +157,23 @@ function showBest() {
   if (b) $('bestLine').textContent = `Deine Bestzeit: ${fmt(b.t)} · ${'★'.repeat(b.g)}${'☆'.repeat(3 - b.g)}`;
 }
 showBest();
+renderMenu();
 
 function finish() {
   mode = 'done';
   const key = levelIdx + 1;
   const old = save.best[key];
   const rec = !old || s.t < old.t;
-  save.best[key] = { t: rec ? s.t : old.t, c: Math.max(s.nCrumbs, old ? old.c : 0), g: Math.max(s.nGolds, old ? old.g : 0) };
+  save.best[key] = { t: rec ? s.t : old.t, c: Math.max(points(s), old ? old.c : 0), g: Math.max(s.nGolds, old ? old.g : 0) };
+  save.unlocked = Math.max(save.unlocked, Math.min(LEVELS.length, key + 1));
   persist();
+  const last = levelIdx >= LEVELS.length - 1;
+  $('nextBtn').hidden = last;
+  $('doneNote').hidden = !last;
+  $('doneNote').textContent = 'Alle 10 Level geschafft! Neue Level kommen bald.';
   $('record').hidden = !(rec && old);
   $('doneTime').textContent = fmt(s.t);
-  $('doneCrumbs').textContent = `${s.nCrumbs}/${L.crumbs.length}`;
+  $('doneCrumbs').textContent = String(points(s));
   $('doneResets').textContent = String(s.resets);
   [...$('stars').children].forEach((el, i) => el.classList.toggle('on', i < s.nGolds));
   show('done'); clearTouch(); showBest();
@@ -140,22 +183,23 @@ function finish() {
 let hudCache = '';
 function updateHud(force) {
   const secs = (s.t / HZ).toFixed(1).replace('.', ',');
-  const k = s.nCrumbs + '|' + s.nGolds + '|' + secs;
+  const k = points(s) + '|' + s.nGolds + '|' + secs + '|' + levelIdx;
   if (!force && k === hudCache) return;
   hudCache = k;
-  $('crumbs').textContent = s.nCrumbs;
+  $('lvl').textContent = levelIdx + 1;
+  $('crumbs').textContent = points(s);
   [...$('golds').children].forEach((el, i) => el.classList.toggle('on', !!s.golds[i]));
   $('clock').textContent = secs;
+}
+function showTip(icon, text, time = 200) {
+  $('tipIcon').textContent = icon; $('tipText').textContent = text;
+  const el = $('tip'); el.hidden = false; el.classList.remove('away');
+  tipTimer = time;
 }
 function tips() {
   const p = s.p;
   if (tipTimer > 0 && --tipTimer === 0) $('tip').classList.add('away');
-  while (tipIdx < L.tips.length && p.x + p.w / 2 >= L.tips[tipIdx].x) {
-    const t = L.tips[tipIdx++];
-    $('tipIcon').textContent = t.icon; $('tipText').textContent = t.text;
-    const el = $('tip'); el.hidden = false; el.classList.remove('away');
-    tipTimer = 200;
-  }
+  while (tipIdx < L.tips.length && p.x + p.w / 2 >= L.tips[tipIdx].x) { const t = L.tips[tipIdx++]; showTip(t.icon, t.text); }
 }
 
 // ---------------------------------------------------------------- Kamera
@@ -212,13 +256,31 @@ function handleEvents(ev) {
     else if (e === 'flag') { SFX.flag(); puff(px, py - 10, 10, '#FF9200', 1.8); }
     else if (e === 'land') SFX.land();
     else if (e === 'respawn') { snapCamera(); puff(px, py, 10, '#ffffff', 1.4); }
+    else if (e === 'choc') { SFX.choc(); puff(px, py, 8, ['#e8463c', '#3f8ff0', '#ffd21c', '#4cbf5a', '#ff8fd0'][Math.floor(Math.random() * 5)], 1.6); }
+    else if (e === 'grow') { SFX.grow(); puff(px, py, 14, '#FFD21C', 2.2); }
+    else if (e === 'shrink') { SFX.shrink(); puff(px, py, 12, '#7fd8a0', 2); }
+    else if (e === 'ouch') { SFX.ouch(); puff(px, py, 10, '#ffffff', 2); if (navigator.vibrate) navigator.vibrate(30); }
+    else if (e === 'break') { SFX.brk(); puff(px + p.face * 16, py, 10, '#ffffff', 2.4); }
+    else if (e === 'crack') SFX.crack();
+    else if (e === 'crumble') SFX.crumble();
+    else if (e === 'scale') SFX.scale();
+    else if (e === 'light') { SFX.nope(); showTip('⚖️', 'Zu leicht! Erst Käse essen.', 150); }
+    else if (e === 'tight') { SFX.nope(); showTip('🧀', 'Zu eng zum Wachsen – erst raus hier!', 120); }
+    else if (e === 'wake') { SFX.wake(); showTip('😾', 'Oh nein, der Kater ist wach! Kurz warten …', 150); }
+    else if (e === 'hiss') SFX.hiss();
     else if (e === 'win') { SFX.win(); puff(L.goal.x, L.goal.y - 30, 30, '#FFD21C', 3); winDelay = 70; }
   }
 }
 
 // ---------------------------------------------------------------- Zeichnen (Platzhalter bis die ChatGPT-Grafiken da sind)
 function rr(x, y, w, h, r) { cx.beginPath(); cx.roundRect ? cx.roundRect(x, y, w, h, r) : cx.rect(x, y, w, h); }
+const THEMES = {
+  kueche: { wall0: '#f7ead0', wall1: '#efd9b2', wood: '#c98b4f', top: '#f1e6d2', topLine: '#c9b493', floorA: '#e7d3b4', floorB: '#d6bb93' },
+  kammer: { wall0: '#ead2a8', wall1: '#d8b781', wood: '#9c6634', top: '#dcc39b', topLine: '#a98a5e', floorA: '#c9a77a', floorB: '#b48f62' },
+};
+const theme = () => THEMES[L.theme] || THEMES.kueche;
 function drawBackground() {
+  if (L.theme === 'kammer') return drawPantry();
   const H = vh;
   const g = cx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, '#f7ead0'); g.addColorStop(1, '#efd9b2');
@@ -252,26 +314,64 @@ function drawBackground() {
   cx.restore();
 }
 
+// Speisekammer: Holzwand mit Regalen voller Gläser und Dosen (Parallaxe)
+function drawPantry() {
+  const g = cx.createLinearGradient(0, 0, 0, vh);
+  g.addColorStop(0, '#ead2a8'); g.addColorStop(1, '#d8b781');
+  cx.fillStyle = g; cx.fillRect(0, 0, vw, vh);
+  const px = cam.x * 0.45, py = cam.y * 0.45;
+  cx.save(); cx.translate(-px, -py);
+  // Bretterwand
+  cx.strokeStyle = 'rgba(110,70,30,.12)'; cx.lineWidth = 2;
+  const x0 = Math.floor(px / 40) * 40;
+  for (let x = x0; x < px + vw + 40; x += 40) { cx.beginPath(); cx.moveTo(x, py - 50); cx.lineTo(x, py + vh + 50); cx.stroke(); }
+  const jars = ['#e8463c', '#f0a030', '#7cbf4a', '#c97a3c', '#f2d36b', '#b65bd1'];
+  const s0 = Math.floor(px / 180) - 1, s1 = Math.floor((px + vw) / 180) + 1;
+  for (let i = s0; i <= s1; i++) {
+    const bx = i * 180;
+    for (const sy of [150, 330, 510]) {
+      cx.fillStyle = 'rgba(120,75,35,.35)'; cx.fillRect(bx + 10, sy, 160, 7);
+      for (let j = 0; j < 4; j++) {
+        const seed = Math.abs(Math.sin((i * 7 + j * 3 + sy) * 12.9898) * 43758.5453) % 1;
+        const jx = bx + 22 + j * 38, h = 34 + seed * 22;
+        cx.fillStyle = 'rgba(255,255,255,.35)'; rr(jx, sy - h, 26, h, 5); cx.fill();
+        cx.fillStyle = jars[Math.floor(seed * jars.length)] + '88'; rr(jx + 3, sy - h * 0.7, 20, h * 0.7 - 2, 4); cx.fill();
+        cx.fillStyle = 'rgba(140,90,40,.5)'; cx.fillRect(jx + 2, sy - h - 5, 22, 6);
+      }
+    }
+  }
+  cx.restore();
+}
+
 function drawTiles() {
+  const th = theme();
   const tx0 = Math.max(0, Math.floor(cam.x / T)), tx1 = Math.min(L.w - 1, Math.floor((cam.x + vw) / T));
   const ty0 = Math.max(0, Math.floor(cam.y / T)), ty1 = Math.min(L.h - 1, Math.floor((cam.y + vh) / T));
   for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) {
-    const k = tileAt(L, tx, ty); if (!k) continue;
+    const k = tileAt(s.L, tx, ty); if (!k) continue;
     const x = tx * T, y = ty * T;
     if (k === SOLID) {
       const topOpen = ty === 0 || tileAt(L, tx, ty - 1) !== SOLID;
       if (ty >= L.floor) {
-        cx.fillStyle = (tx + ty) % 2 ? '#e7d3b4' : '#d6bb93'; cx.fillRect(x, y, T, T);
+        cx.fillStyle = (tx + ty) % 2 ? th.floorA : th.floorB; cx.fillRect(x, y, T, T);
         if (topOpen) { cx.fillStyle = '#b48a5a'; cx.fillRect(x, y, T, 4); }
       } else {
-        cx.fillStyle = '#c98b4f'; cx.fillRect(x, y, T, T);
+        cx.fillStyle = th.wood; cx.fillRect(x, y, T, T);
         cx.strokeStyle = 'rgba(94,52,21,.28)'; cx.lineWidth = 2; cx.strokeRect(x + 3, y + (topOpen ? 10 : 3), T - 6, T - (topOpen ? 13 : 6));
-        if (topOpen) { cx.fillStyle = '#f1e6d2'; cx.fillRect(x, y, T, 8); cx.fillStyle = '#c9b493'; cx.fillRect(x, y + 7, T, 2); }
+        if (topOpen) { cx.fillStyle = th.top; cx.fillRect(x, y, T, 8); cx.fillStyle = th.topLine; cx.fillRect(x, y + 7, T, 2); }
         const leftOpen = tileAt(L, tx - 1, ty) !== SOLID, rightOpen = tileAt(L, tx + 1, ty) !== SOLID;
         cx.fillStyle = 'rgba(60,30,10,.35)';
         if (leftOpen) cx.fillRect(x, y, 2, T);
         if (rightOpen) cx.fillRect(x + T - 2, y, 2, T);
       }
+    } else if (k === SUGAR) {
+      // Zuckerwürfel: weiß, leicht glitzernd
+      cx.fillStyle = '#ffffff'; rr(x + 1, y + 1, T - 2, T - 2, 4); cx.fill();
+      cx.fillStyle = '#e4ecf2'; cx.fillRect(x + 4, y + T - 9, T - 8, 5); cx.fillRect(x + T - 9, y + 4, 5, T - 8);
+      cx.strokeStyle = '#c9d6df'; cx.lineWidth = 1.5; rr(x + 1, y + 1, T - 2, T - 2, 4); cx.stroke();
+      cx.fillStyle = 'rgba(200,215,225,.9)';
+      for (let i = 0; i < 5; i++) { const a = (tx * 7 + ty * 13 + i * 5) % 22; cx.fillRect(x + 5 + a, y + 5 + ((a * 3 + i * 7) % 20), 2, 2); }
+      if ((s.t + tx * 17) % 120 < 8) { cx.fillStyle = '#fff'; cx.fillRect(x + 8, y + 6, 3, 3); }
     } else if (k === SHELF) {
       cx.fillStyle = '#a8692f'; rr(x - 1, y, T + 2, 8, 2); cx.fill();
       cx.fillStyle = '#c98b4f'; cx.fillRect(x - 1, y, T + 2, 3);
@@ -293,8 +393,43 @@ function drawTiles() {
   }
 }
 
+function drawPlats() {
+  for (const pl of s.plats) {
+    if (pl.kind === 'cookie') drawCookie(pl);
+    else if (pl.kind === 'scale') drawScalePlate(pl);
+  }
+  drawLifts();
+}
+function drawCookie(pl) {
+  if (pl.state === 2) {
+    cx.strokeStyle = 'rgba(140,90,40,.35)'; cx.setLineDash([4, 4]); cx.lineWidth = 2;
+    rr(pl.x + 2, pl.y, pl.w - 4, 14, 7); cx.stroke(); cx.setLineDash([]);
+    return;
+  }
+  const shake = pl.state === 1 ? Math.sin(s.t * 1.7) * 1.5 : 0;
+  cx.save(); cx.translate(shake, 0);
+  cx.fillStyle = '#c98a45'; rr(pl.x + 1, pl.y, pl.w - 2, 15, 7); cx.fill();
+  cx.fillStyle = '#e0a961'; rr(pl.x + 3, pl.y + 1, pl.w - 6, 6, 4); cx.fill();
+  cx.fillStyle = '#4a2a14';
+  for (let i = 0; i < pl.w / 12; i++) { const ox = 6 + i * 12 + ((i * 5) % 4); cx.beginPath(); cx.arc(pl.x + ox, pl.y + 8 + (i % 2) * 2, 2.4, 0, 7); cx.fill(); }
+  if (pl.state === 1) { cx.strokeStyle = '#5e3415'; cx.lineWidth = 1.5; cx.beginPath(); cx.moveTo(pl.x + pl.w * 0.35, pl.y); cx.lineTo(pl.x + pl.w * 0.45, pl.y + 8); cx.lineTo(pl.x + pl.w * 0.4, pl.y + 15); cx.stroke(); }
+  cx.restore();
+}
+function drawScalePlate(pl) {
+  const triggered = s.scaleT[pl.scale] >= 0;
+  // Stange nach unten bis zum Boden der Mulde
+  cx.fillStyle = '#9aa3ad'; cx.fillRect(pl.x + pl.w / 2 - 3, pl.y + 8, 6, Math.max(0, pl.y0 + 3 * T - pl.y));
+  cx.fillStyle = '#d5dbe1'; rr(pl.x - 2, pl.y, pl.w + 4, 9, 4); cx.fill();
+  cx.fillStyle = '#b7c0c8'; cx.fillRect(pl.x, pl.y + 6, pl.w, 3);
+  if (pl.role === 'a' && !triggered) {
+    // Gewicht-Symbol: hier draufstellen (groß)
+    cx.fillStyle = 'rgba(17,18,26,.55)'; cx.font = '700 13px Fredoka, sans-serif'; cx.textAlign = 'center';
+    cx.fillText('⚖', pl.x + pl.w / 2, pl.y - 6);
+  }
+}
 function drawLifts() {
-  for (const lf of s.lifts) {
+  for (const lf of s.plats) {
+    if (lf.kind !== 'lift') continue;
     // Führungsschiene zeigt den festen Weg
     cx.strokeStyle = 'rgba(94,52,21,.25)'; cx.lineWidth = 3; cx.setLineDash([6, 6]);
     cx.beginPath(); cx.moveTo(lf.x + lf.w / 2, lf.high); cx.lineTo(lf.x + lf.w / 2, lf.low + 24); cx.stroke(); cx.setLineDash([]);
@@ -360,6 +495,65 @@ function drawCat(c) {
   cx.restore();
 }
 
+function drawChoc(c, t) {
+  const cols = ['#e8463c', '#3f8ff0', '#ffd21c', '#4cbf5a', '#ff8fd0'];
+  const b = Math.sin(t / 11 + c.x) * 2;
+  cx.fillStyle = 'rgba(0,0,0,.15)'; cx.beginPath(); cx.ellipse(c.x + 1, c.y + b + 2, 8, 6, 0, 0, 7); cx.fill();
+  cx.fillStyle = cols[c.c]; cx.beginPath(); cx.ellipse(c.x, c.y + b, 8, 6, 0, 0, 7); cx.fill();
+  cx.fillStyle = 'rgba(255,255,255,.55)'; cx.beginPath(); cx.ellipse(c.x - 3, c.y + b - 2, 3, 1.6, -0.3, 0, 7); cx.fill();
+}
+function drawCheeseStation(st) {
+  const k = 0.5 + 0.5 * Math.sin(s.t / 10);
+  cx.fillStyle = '#fff'; cx.beginPath(); cx.ellipse(st.x, st.y - 2, 15, 4, 0, 0, 7); cx.fill();
+  cx.fillStyle = `rgba(255,210,28,${0.18 + 0.15 * k})`; cx.beginPath(); cx.arc(st.x, st.y - 14, 18, 0, 7); cx.fill();
+  drawCheese(st.x, st.y - 12, 12, false, 0);
+}
+function drawMint(st) {
+  const sw = Math.sin(s.t / 14) * 0.15;
+  cx.save(); cx.translate(st.x, st.y);
+  cx.fillStyle = '#6b4a2a'; cx.fillRect(-1.5, -14, 3, 14);
+  for (const [a, l] of [[-0.9 + sw, 13], [0.9 + sw, 13], [sw, 15]]) {
+    cx.save(); cx.translate(0, -12); cx.rotate(a);
+    cx.fillStyle = '#4cbf7a'; cx.beginPath(); cx.ellipse(0, -l / 2, 5.5, l / 2, 0, 0, 7); cx.fill();
+    cx.strokeStyle = '#2e8a55'; cx.lineWidth = 1; cx.beginPath(); cx.moveTo(0, 0); cx.lineTo(0, -l + 2); cx.stroke();
+    cx.restore();
+  }
+  cx.restore();
+}
+function drawSleeper(c) {
+  const x = c.x + c.w / 2, y = c.y + c.h;
+  const awake = c.state === 'awake';
+  cx.save(); cx.translate(x, y);
+  const br = awake ? 0 : Math.sin(s.t / 25) * 1.5;
+  // Schwanz
+  cx.strokeStyle = '#7f8794'; cx.lineWidth = 6; cx.lineCap = 'round';
+  cx.beginPath(); cx.moveTo(-20, -6); cx.quadraticCurveTo(-34, awake ? -30 : -2, awake ? -26 : -30, awake ? -40 : 2); cx.stroke();
+  // Körper
+  cx.fillStyle = '#9aa1ad';
+  cx.beginPath(); cx.ellipse(-2, awake ? -16 : -11 - br, 24, awake ? 15 : 12 + br, 0, 0, 7); cx.fill();
+  cx.fillStyle = '#c3c8d0'; cx.beginPath(); cx.ellipse(4, awake ? -10 : -7, 12, 6, 0, 0, 7); cx.fill();
+  // Kopf
+  const hy = awake ? -30 : -14;
+  cx.fillStyle = '#9aa1ad'; cx.beginPath(); cx.arc(18, hy, 11, 0, 7); cx.fill();
+  cx.beginPath(); cx.moveTo(10, hy - 7); cx.lineTo(12, hy - 18); cx.lineTo(17, hy - 9); cx.fill();
+  cx.beginPath(); cx.moveTo(20, hy - 9); cx.lineTo(26, hy - 18); cx.lineTo(28, hy - 5); cx.fill();
+  cx.fillStyle = '#2a1a0e';
+  if (awake) {
+    cx.fillStyle = '#ffd21c'; cx.beginPath(); cx.arc(16, hy - 1, 3, 0, 7); cx.arc(24, hy - 1, 3, 0, 7); cx.fill();
+    cx.fillStyle = '#2a1a0e'; cx.fillRect(15.4, hy - 3, 1.4, 4); cx.fillRect(23.4, hy - 3, 1.4, 4);
+    cx.fillStyle = '#fff'; cx.beginPath(); cx.moveTo(17, hy + 5); cx.lineTo(19, hy + 9); cx.lineTo(21, hy + 5); cx.fill();
+  } else {
+    cx.fillRect(13, hy - 1, 5, 1.6); cx.fillRect(21, hy - 1, 5, 1.6);
+    // Zzz-Bläschen
+    const z = (s.t % 120) / 120;
+    cx.globalAlpha = 1 - z; cx.strokeStyle = '#ffffff'; cx.lineWidth = 2;
+    cx.beginPath(); cx.arc(30 + z * 10, hy - 16 - z * 22, 3 + z * 4, 0, 7); cx.stroke();
+    cx.globalAlpha = 1;
+  }
+  cx.fillStyle = '#ff8fa8'; cx.beginPath(); cx.arc(20, hy + 3, 1.8, 0, 7); cx.fill();
+  cx.restore();
+}
+
 function drawMouse() {
   const p = s.p;
   if (p.invuln > 0 && Math.floor(p.invuln / 4) % 2 === 0) return;
@@ -370,7 +564,10 @@ function drawMouse() {
   if (!p.ground && !p.ladder) { const k = Math.min(0.18, Math.abs(p.vy) * 0.02); sx = 1 - k; sy = 1 + k; }
   if (p.landT > 0) { const k = p.landT / 8 * 0.22; sx = 1 + k; sy = 1 - k; }
   if (p.freeze > 0 && p.freezeKind === 'hit') cx.rotate(Math.sin(s.t * 0.6) * 0.3);
-  cx.scale(sx * (p.ladder ? 1 : p.face), sy);
+  // groß: Figur skaliert (beim Wachsen/Schrumpfen kurz wackeln)
+  let k = p.big ? 1.6 : 1;
+  if (p.growT > 0) k *= 1 + Math.sin(p.growT * 0.9) * 0.12;
+  cx.scale(sx * k * (p.ladder ? 1 : p.face), sy * k);
   const run = p.ground && Math.abs(p.vx) > 0.3;
   const bob = run ? Math.abs(Math.sin(p.runT / 9)) * 1.5 : 0;
   cx.translate(0, -bob);
@@ -420,10 +617,14 @@ function render() {
   drawBackground();
   cx.save(); cx.translate(-Math.round(cam.x * scale) / scale, -Math.round(cam.y * scale) / scale);
   drawTiles();
-  drawLifts();
+  drawPlats();
+  L.cheeses.forEach(drawCheeseStation);
+  L.mints.forEach(drawMint);
   L.flags.forEach((f, i) => drawFlag(f, s.flagHit[i]));
   L.crumbs.forEach((c, i) => { if (!s.crumbs[i]) drawCrumb(c.x, c.y, s.t); });
+  L.chocs.forEach((c, i) => { if (!s.chocs[i]) drawChoc(c, s.t); });
   L.golds.forEach((g, i) => { if (!s.golds[i]) drawCheese(g.x, g.y, 10, true, s.t + i * 20); });
+  s.sleepers.forEach(drawSleeper);
   drawGoal(L.goal, s.t);
   s.cats.forEach(drawCat);
   drawMouse();
