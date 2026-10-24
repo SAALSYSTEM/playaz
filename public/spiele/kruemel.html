@@ -83,8 +83,8 @@ body{position:fixed;inset:0}button,a{touch-action:manipulation}#pad,#jump,#pad *
 
 <section id="menu" class="screen"><div class="card">
   <h1 class="logo">Krümel<small>Die große Käsejagd</small></h1>
-  <p class="lead">Flitz durch Küche, Speisekammer, Keller und Garten, sammle Krümel und Schokolinsen und finde die 3 Goldkäse!</p>
-  <div class="proto">30 Level · Küche, Keller &amp; Garten</div>
+  <p class="lead">Flitz durch Küche, Keller, Backstube, Dachboden und Garten, sammle Krümel und Schokolinsen und finde die 3 Goldkäse!</p>
+  <div class="proto">60 Level · 7 Welten</div>
   <div class="btns"><button class="btn primary" id="playBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z" fill="currentColor"/></svg><span id="playLabel">Spielen</span></button></div>
   <div class="btns" style="margin-top:10px"><button class="btn" id="levelsBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><g fill="currentColor"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></g></svg>Level</button><button class="btn sq" id="muteBtn" aria-label="Ton an oder aus"></button></div>
   <p class="keys">Am Rechner: ◀ ▶ bzw. A/D laufen · Leertaste springen</p>
@@ -135,5 +135,5 @@ var last=0;document.addEventListener('touchend',function(e){var now=Date.now();i
 ['pad','jump','game'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('touchstart',stop,nf)});
 })();
 </script>
-<script type="module" src="./kruemel/game.js?v=7"></script>
+<script type="module" src="./kruemel/game.js?v=8"></script>
 <script src="../assets/playsaal-config.js" defer></script><script src="../assets/playsaal.js" defer></script></body></html>

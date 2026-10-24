@@ -435,13 +435,81 @@ const B = {
     fill(L, x + 10, x + 13, g - 4);
     return [x + 14, g - 4];
   },
+  // ---- ab Level 31
+  drip(L, x, g, o) {
+    fill(L, x, x + 8, g); L.drip(x + 4, g - 6, 110, (x * 37) % 110); L.crumbs(x + 3, x + 5, g - 1);
+    return [x + 9, g];
+  },
+  toaster(L, x, g, o) {
+    if (g - 4 < GMIN) return B.down(L, x, g, { d: 4 });
+    fill(L, x, x + 5, g); L.lift(x + 4, 2, g - 1, g - 5, { speed: 4, wait: 45, toast: true }); fill(L, x + 6, x + 9, g - 4);
+    o.spots.push([x + 5, g - 8]);
+    return [x + 10, g - 4];
+  },
+  belt(L, x, g, o) {
+    fill(L, x, x + 9, g); L.belt(x + 1, x + 8, g, -1); L.crumbs(x + 2, x + 7, g - 1); L.choc(x + 5, g - 3);
+    return [x + 10, g];
+  },
+  powder(L, x, g, o) {
+    fill(L, x, x + 9, g); L.powder(x + 2, x + 3, g - 1); L.crumbs(x + 5, x + 8, g - 1); o.spots.push([x + 7, g - 4]);
+    return [x + 10, g];
+  },
+  sponge(L, x, g, o) {
+    if (g - 4 < GMIN) return B.down(L, x, g, { d: 4 });
+    fill(L, x, x + 3, g); L.sponge(x + 3, g); fill(L, x + 4, x + 7, g - 4); L.chocs(x + 3, x + 3, g - 3);
+    o.spots.push([x + 3, g - 7]);
+    return [x + 8, g - 4];
+  },
+  balloonUp(L, x, g, o) {
+    if (g - 6 < GMIN) return B.down(L, x, g, { d: 4 });
+    fill(L, x, x + 7, g); L.balloon(x + 4, g - 1, x + 8, g - 8); fill(L, x + 8, x + 11, g - 6);
+    L.crumbs(x + 2, x + 3, g - 1); o.spots.push([x + 6, g - 6]);
+    return [x + 12, g - 6];
+  },
+  balloonDown(L, x, g, o) {
+    if (g + 3 > GMAX) return B.balloonUp(L, x, g, o);
+    fill(L, x, x + 2, g); L.balloon(x + 2, g - 1, x + 11, g + 2, true); fill(L, x + 11, x + 14, g + 3);
+    L.chocs(x + 6, x + 7, g); o.spots.push([x + 9, g + 1]);
+    return [x + 15, g + 3];
+  },
+  wild(L, x, g, o) {
+    fill(L, x, x + 10, g); L.yarn(x + 1, g - 1); L.wild(x + 7, g - 1); L.crumbs(x + 3, x + 4, g - 1); o.spots.push([x + 4, g - 4]);
+    return [x + 11, g];
+  },
+  hose(L, x, g, o) {
+    fill(L, x, x + 10, g); L.tap(x + 1, g - 1); L.wild(x + 7, g - 1); L.crumbs(x + 3, x + 4, g - 1);
+    return [x + 11, g];
+  },
   cage(L, x, g, o) {
+    fill(L, x, x + 6, g); L.cage(x + 4, g - 1, x + 2, g - 1); o.cages = (o.cages || 0) + 1; L.crumb(x + 5, g - 3); o.spots.push([x + 2, g - 4]);
+    return [x + 7, g];
+  },
+  cake(L, x, g, o) {
+    const need = Math.max(1, o.cages || 0);
+    fill(L, x, x + 11, g); L.cake(x + 3, g - 6, x + 8, g - 1, need, g - 2, g - 1); L.chocs(x + 4, x + 7, g - 8);
+    return [x + 12, g];
+  },
+  sugarCage(L, x, g, o) {
     if (g - 6 < 3) return B.flat(L, x, g, o);
     fill(L, x, x + 9, g); L.cheese(x + 1, g - 1);
     L.shelf(x + 3, x + 8, g - 2); L.sugar(x + 5, g - 5, x + 7, g - 3); L.clear(x + 6, g - 4, x + 6, g - 4);
     o.cage = [x + 6, g - 4];
     return [x + 10, g];
   },
+};
+// Hinweise beim ersten Auftauchen eines neuen Bausteins (ab Level 31)
+const INTRO = {
+  drip: ['Kaffeetropfen! Warten, bis er gefallen ist – dann schnell durch', '☕'],
+  toaster: ['Der Toast springt hoch – mitfahren!', '🍞'],
+  belt: ['Förderband: dagegen anlaufen!', '⚙️'],
+  powder: ['Backpulver macht weiße Pfoten – kurz langsamer', '🧁'],
+  sponge: ['Spülschwamm federt – Springen halten für ganz hoch', '🧽'],
+  balloonUp: ['Ballon: hochspringen und an der Schnur festhalten', '🎈'],
+  balloonDown: ['Schlaffer Ballon: festhalten und hinüberschweben', '🎈'],
+  wild: ['Wilde Katze! Erst das Wollknäuel holen', '🧶'],
+  hose: ['Wasserhahn antreten – der Schlauch verjagt die Katze', '💦'],
+  cage: ['Hebel antippen und den Mäusefreund befreien', '🐭'],
+  cake: ['Riesenkuchen! Mit allen Freunden einen Tunnel futtern', '🎂'],
 };
 function fill(L, x0, x1, g) { L.solid(x0, g, x1, H - 1); }
 
@@ -453,25 +521,61 @@ const PLAN = [
   ['keller', 'Kellerkatzen', ['flat', 'kitten', 'up', 'hole', 'kitten', 'gap', 'ladder', 'kitten', 'down', 'flat']],
   ['keller', 'Leise im Dunkeln', ['flat', 'sleeper', 'up', 'cookieGap', 'hole', 'sleeper', 'down', 'shelves', 'flat']],
   ['keller', 'Rauf und runter', ['flat', 'ladder', 'gap', 'down', 'lift', 'shelves', 'down', 'gap', 'flat']],
-  ['keller', 'Zuckerlager', ['flat', 'sugar', 'cage', 'hole', 'sugar', 'up', 'gap', 'kitten', 'down']],
+  ['keller', 'Zuckerlager', ['flat', 'sugar', 'sugarCage', 'hole', 'sugar', 'up', 'gap', 'kitten', 'down']],
   ['keller', 'Die Kellerwaage', ['flat', 'scale', 'down', 'hole', 'scale', 'shelves', 'down', 'cookieGap', 'flat']],
   ['keller', 'Bröselbrücke', ['flat', 'cookieGap', 'up', 'cookieGap', 'sleeper', 'cookieGap', 'down', 'shelves', 'gap', 'flat']],
-  ['keller', 'Groß, klein, groß', ['flat', 'sugar', 'tunnel', 'sugar', 'hole', 'scale', 'down', 'cage', 'flat']],
+  ['keller', 'Groß, klein, groß', ['flat', 'sugar', 'tunnel', 'sugar', 'hole', 'scale', 'down', 'sugarCage', 'flat']],
   ['keller', 'Kellerfinale', ['flat', 'kitten', 'hole', 'lift', 'sleeper', 'down', 'sugar', 'cookieGap', 'tunnel', 'shelves', 'flat']],
   // Garten – alles gemischt, länger
   ['garten', 'Raus in den Garten', ['flat', 'gap', 'up', 'shelves', 'kitten', 'down', 'cookieGap', 'gap', 'flat']],
-  ['garten', 'Blumenbeet', ['flat', 'ladder', 'kitten', 'gap', 'down', 'sugar', 'cage', 'up', 'shelves', 'flat']],
+  ['garten', 'Blumenbeet', ['flat', 'ladder', 'kitten', 'gap', 'down', 'sugar', 'sugarCage', 'up', 'shelves', 'flat']],
   ['garten', 'Katzenwiese', ['flat', 'kitten', 'gap', 'kitten', 'up', 'sleeper', 'kitten', 'down', 'cookieGap', 'flat']],
   ['garten', 'Unter dem Zaun', ['flat', 'hole', 'gap', 'tunnel', 'up', 'hole', 'shelves', 'down', 'kitten', 'flat']],
   ['garten', 'Gießkannen-Hügel', ['flat', 'up', 'up', 'gap', 'down', 'lift', 'shelves', 'down', 'down', 'cookieGap', 'flat']],
-  ['garten', 'Waage am Gartenhaus', ['flat', 'scale', 'kitten', 'down', 'scale', 'cage', 'down', 'gap', 'sleeper', 'flat']],
+  ['garten', 'Waage am Gartenhaus', ['flat', 'scale', 'kitten', 'down', 'scale', 'sugarCage', 'down', 'gap', 'sleeper', 'flat']],
   ['garten', 'Krümelpfad', ['flat', 'cookieGap', 'kitten', 'cookieGap', 'up', 'shelves', 'cookieGap', 'down', 'gap', 'cookieGap', 'flat']],
   ['garten', 'Mäusetunnel', ['flat', 'sugar', 'hole', 'tunnel', 'sugar', 'hole', 'ladder', 'kitten', 'down', 'tunnel', 'flat']],
   ['garten', 'Großer Kater, kleine Maus', ['flat', 'sleeper', 'kitten', 'up', 'sleeper', 'gap', 'scale', 'sleeper', 'down', 'cookieGap', 'kitten', 'flat']],
-  ['garten', 'Der goldene Käse', ['flat', 'kitten', 'sugar', 'hole', 'lift', 'cookieGap', 'down', 'scale', 'tunnel', 'cage', 'sleeper', 'down', 'gap', 'flat']],
+  ['garten', 'Der goldene Käse', ['flat', 'kitten', 'sugar', 'hole', 'lift', 'cookieGap', 'down', 'scale', 'tunnel', 'sugarCage', 'sleeper', 'down', 'gap', 'flat']],
+  // Backstube – Kaffeetropfen, Toaster, Förderband, Backpulver, Schwamm, erste Mäusefreunde
+  ['backstube', 'Frühstück in der Backstube', ['flat', 'drip', 'up', 'gap', 'drip', 'down', 'shelves', 'flat']],
+  ['backstube', 'Toast-Express', ['flat', 'toaster', 'gap', 'down', 'drip', 'toaster', 'shelves', 'down', 'flat']],
+  ['backstube', 'Am Fließband', ['flat', 'belt', 'up', 'drip', 'belt', 'gap', 'down', 'cookieGap', 'flat']],
+  ['backstube', 'Weiße Pfoten', ['flat', 'powder', 'drip', 'up', 'powder', 'kitten', 'gap', 'down', 'shelves', 'flat']],
+  ['backstube', 'Mäusefreunde', ['flat', 'cage', 'gap', 'up', 'cage', 'drip', 'down', 'cage', 'cake', 'flat']],
+  ['backstube', 'Boing!', ['flat', 'sponge', 'gap', 'down', 'sponge', 'shelves', 'down', 'toaster', 'flat']],
+  ['backstube', 'Café-Chaos', ['flat', 'kitten', 'drip', 'belt', 'sleeper', 'toaster', 'down', 'powder', 'drip', 'flat']],
+  ['backstube', 'Sahnehäubchen', ['flat', 'sugar', 'cage', 'tunnel', 'cage', 'hole', 'sponge', 'cake', 'down', 'flat']],
+  ['backstube', 'Ofenhitze', ['flat', 'drip', 'drip', 'up', 'belt', 'gap', 'toaster', 'down', 'cookieGap', 'shelves', 'flat']],
+  ['backstube', 'Die Riesentorte', ['flat', 'cage', 'toaster', 'drip', 'cage', 'sponge', 'down', 'powder', 'cage', 'belt', 'cake', 'flat']],
+  // Dachboden – Ballons hoch und runter
+  ['dachboden', 'Ab unters Dach', ['flat', 'balloonUp', 'shelves', 'balloonDown', 'flat', 'balloonUp', 'down', 'flat']],
+  ['dachboden', 'Staubige Kisten', ['flat', 'up', 'sponge', 'gap', 'balloonDown', 'kitten', 'down', 'shelves', 'flat']],
+  ['dachboden', 'Spinnweben', ['flat', 'sleeper', 'balloonUp', 'cookieGap', 'sleeper', 'balloonDown', 'gap', 'flat']],
+  ['dachboden', 'Kofferberge', ['flat', 'ladder', 'gap', 'up', 'balloonDown', 'sponge', 'shelves', 'down', 'flat']],
+  ['dachboden', 'Freunde unterm Dach', ['flat', 'cage', 'balloonUp', 'cage', 'balloonDown', 'cage', 'cake', 'flat']],
+  ['dachboden', 'Luftpost', ['flat', 'balloonUp', 'gap', 'balloonDown', 'balloonUp', 'cookieGap', 'balloonDown', 'flat']],
+  ['dachboden', 'Löcher im Gebälk', ['flat', 'hole', 'sponge', 'hole', 'down', 'balloonUp', 'tunnel', 'down', 'flat']],
+  ['dachboden', 'Schaukelpferd', ['flat', 'kitten', 'sponge', 'kitten', 'down', 'lift', 'balloonDown', 'shelves', 'flat']],
+  ['dachboden', 'Leise unterm Dach', ['flat', 'sleeper', 'sponge', 'sleeper', 'balloonUp', 'sleeper', 'balloonDown', 'cookieGap', 'flat']],
+  ['dachboden', 'Dachbodenfinale', ['flat', 'cage', 'balloonUp', 'sugar', 'cage', 'balloonDown', 'sponge', 'cage', 'cake', 'flat']],
+  // Gartenfest am Abend – wilde Katzen, Wollknäuel, Gartenschlauch, Fürst Fauch
+  ['gartenfest', 'Wilde Katzen', ['flat', 'wild', 'gap', 'up', 'wild', 'down', 'shelves', 'flat']],
+  ['gartenfest', 'Wasser marsch', ['flat', 'hose', 'cookieGap', 'hose', 'up', 'gap', 'down', 'flat']],
+  ['gartenfest', 'Lichterkette', ['flat', 'wild', 'balloonUp', 'gap', 'balloonDown', 'hose', 'shelves', 'flat']],
+  ['gartenfest', 'Geschenkeberg', ['flat', 'sponge', 'wild', 'down', 'cage', 'hose', 'cage', 'cake', 'flat']],
+  ['gartenfest', 'Lampions', ['flat', 'kitten', 'wild', 'sleeper', 'hose', 'cookieGap', 'up', 'balloonDown', 'flat']],
+  ['gartenfest', 'Fauchs Vorhut', ['flat', 'gap', 'up', 'cookieGap', 'down', 'gap', 'shelves', 'flat'], { chase: true }],
+  ['gartenfest', 'Partyspiele', ['flat', 'wild', 'sponge', 'hole', 'hose', 'tunnel', 'balloonUp', 'down', 'flat']],
+  ['gartenfest', 'Tortenbuffet', ['flat', 'cage', 'wild', 'cage', 'powder', 'hose', 'cage', 'cake', 'flat']],
+  ['gartenfest', 'Großes Gartenfest', ['flat', 'wild', 'balloonUp', 'hose', 'balloonDown', 'sleeper', 'kitten', 'sponge', 'cookieGap', 'down', 'flat']],
+  ['gartenfest', 'Fürst Fauchs Jagd', ['flat', 'gap', 'up', 'cookieGap', 'down', 'gap', 'up', 'shelves', 'down', 'cookieGap', 'gap', 'flat'], { chase: true }],
 ];
 
-function planned(theme, name, parts, intro) {
+const SEEN = new Set(['flat', 'up', 'down', 'gap', 'cookieGap', 'shelves', 'ladder', 'lift', 'kitten', 'sleeper', 'sugar', 'tunnel', 'hole', 'scale', 'sugarCage']);
+function planned(theme, name, parts, intro, opt = {}) {
+  const firsts = new Set(parts.filter((k) => !SEEN.has(k)));
+  firsts.forEach((k) => SEEN.add(k));
   const def = {
     name, theme, w: 0, h: H, floor: H,
     build(L) {
@@ -481,8 +585,14 @@ function planned(theme, name, parts, intro) {
       fill(L, 0, 4, g); L.start(1, g - 1); x = 5;
       if (intro === 'keller') L.tip(0, 'Willkommen im Keller!', '🕯️');
       if (intro === 'garten') L.tip(0, 'Endlich frische Luft – ab in den Garten!', '🌻');
+      if (intro === 'backstube') L.tip(0, 'Hmm, hier duftet es nach Kuchen – die Backstube!', '🥐');
+      if (intro === 'dachboden') L.tip(0, 'Ganz nach oben – auf den Dachboden!', '🎈');
+      if (intro === 'gartenfest') L.tip(0, 'Gartenfest! Aber Vorsicht vor den wilden Katzen', '🏮');
+      if (opt.chase) { L.chase({ delay: 150 }); L.tip(0, 'Fürst Fauch ist hinter dir her – lauf!', '👑'); }
+      const shown = new Set();
       parts.forEach((kind, i) => {
         if (i > 0 && i % 2 === 0) { fill(L, x, x + 1, g); L.flag(x, g - 1); x += 2; }
+        if (firsts.has(kind) && !shown.has(kind) && INTRO[kind]) { shown.add(kind); L.tip(x, INTRO[kind][0], INTRO[kind][1]); }
         [x, g] = B[kind](L, x, g, o);
       });
       // Ziel
@@ -503,5 +613,6 @@ function planned(theme, name, parts, intro) {
   return def;
 }
 
-PLAN.forEach(([theme, name, parts], i) => LEVELS.push(planned(theme, name, parts, i === 0 ? 'keller' : i === 10 ? 'garten' : null)));
+const WELT_START = { 0: 'keller', 10: 'garten', 20: 'backstube', 30: 'dachboden', 40: 'gartenfest' };
+PLAN.forEach(([theme, name, parts, opt], i) => LEVELS.push(planned(theme, name, parts, WELT_START[i] || null, opt)));
 export const LEVEL_COUNT = LEVELS.length;

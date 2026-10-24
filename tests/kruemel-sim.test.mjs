@@ -1,7 +1,7 @@
 // KRÜMEL: Physik, Level-Prüfung und Löser – ohne Browser.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { T, C, SOLID, SHELF, LADDER, SUGAR, build, newWorld, step, solve, playPath, tileAt, sanitizeSave, fmt, points } from '../public/spiele/kruemel/engine.js';
+import { T, C, SOLID, SHELF, LADDER, SUGAR, dripAt, build, newWorld, step, solve, playPath, tileAt, sanitizeSave, fmt, points } from '../public/spiele/kruemel/engine.js';
 import { LEVELS } from '../public/spiele/kruemel/levels.js';
 
 const run = (s, inp, n) => { const ev = []; for (let i = 0; i < n; i++) ev.push(...step(s, inp)); return ev; };
@@ -213,6 +213,82 @@ test('Mauseloch: klein schlüpft hinein und kommt am anderen Loch heraus, groß 
   assert.ok(s.p.big && ev2.includes('holeBig') && !ev2.includes('hole') && s.p.x < 10 * T, 'groß bleibt draußen');
 });
 
+test('Ballon: voller trägt nach oben, schlaffer schwebt nach unten, danach kommt er leer zurück', () => {
+  const L = mini((B) => { B.solid(9, 4, 14, 9); B.balloon(6, 9, 10, 3); });
+  const s = newWorld(L); settle(s); s.p.x = 6 * T + 6;
+  const ev = run(s, { jump: 1 }, 3);
+  assert.ok(ev.includes('balloon') && s.p.ride === 0);
+  run(s, {}, 200);
+  assert.ok(s.p.ride < 0 && s.p.ground && s.p.y + s.p.h === 4 * T, 'oben auf dem Schrank abgesetzt');
+  run(s, {}, 300);
+  assert.equal(s.balloons[0].state, 0, 'Ballon wieder unten');
+  const L2 = build({ w: 30, h: 14, build(B) { B.solid(0, 6, 5, 13); B.solid(18, 11, 29, 13); B.balloon(5, 5, 19, 10, true); B.start(3, 5); B.goal(28, 10); } });
+  const s2 = newWorld(L2); run(s2, {}, 10); s2.p.x = 5 * T + 6;
+  run(s2, { jump: 1 }, 3); run(s2, {}, 400);
+  assert.ok(s2.p.ground && s2.p.y + s2.p.h === 11 * T && s2.p.x > 17 * T, 'über die Lücke nach unten geschwebt');
+});
+
+test('Spülschwamm federt hoch, Förderband schiebt, Backpulver bremst eine Weile', () => {
+  let L = mini((B) => { B.sponge(5, 10); });
+  let s = newWorld(L); settle(s);
+  s.p.x = 5 * T + 6; s.p.y = 6 * T; s.p.ground = false;
+  let top = 999; const ev = []; for (let i = 0; i < 80; i++) { ev.push(...step(s, { jump: 1 })); top = Math.min(top, s.p.y); }
+  assert.ok(ev.includes('boing') && 10 * T - (top + s.p.h) > 4 * T, 'mehr als 4 Kacheln hoch');
+  L = mini((B) => { B.belt(3, 12, 10, -1); });
+  s = newWorld(L); settle(s); s.p.x = 8 * T; const x0 = s.p.x; run(s, {}, 60);
+  assert.ok(s.p.x < x0 - 50, 'nach links geschoben');
+  L = mini((B) => { B.powder(4, 4, 9); });
+  s = newWorld(L); settle(s);
+  const ev2 = run(s, { right: 1 }, 40);
+  assert.ok(ev2.includes('powder') && s.p.slowD > 0 && Math.abs(s.p.vx) <= C.slowRun + 0.01, 'langsam');
+  run(s, { right: 1 }, 150);
+  assert.ok(s.p.slowD === 0 && Math.abs(s.p.vx) > 2.5, 'wieder schnell');
+});
+
+test('Wilde Katze: versperrt den Weg (auch beim Drüberspringen), Wollknäuel oder Gartenschlauch verjagen sie', () => {
+  let L = mini((B) => { B.wild(12, 9); });
+  let s = newWorld(L);
+  run(s, { right: 1, jump: 1 }, 200);
+  assert.ok(s.p.x < 12 * T && s.resets === 0, 'kommt nicht vorbei, kein Rücksetzer');
+  L = mini((B) => { B.yarn(5, 9); B.wild(12, 9); });
+  s = newWorld(L);
+  const ev = run(s, { right: 1 }, 250);
+  assert.ok(ev.includes('yarn') && ev.includes('wildYarn') && s.p.x > 13 * T, 'mit Wollknäuel vorbei');
+  L = mini((B) => { B.tap(5, 9); B.wild(12, 9); });
+  s = newWorld(L);
+  const ev2 = run(s, { right: 1 }, 250);
+  assert.ok(ev2.includes('hose') && s.p.x > 13 * T, 'mit dem Schlauch vorbei');
+});
+
+test('Mäusefreunde: Hebel befreit, mit genug Freunden futtern alle einen Tunnel durch den Riesenkuchen', () => {
+  const L = mini((B) => { B.cage(5, 9, 4, 9); B.cage(8, 9, 7, 9); B.cake(14, 4, 17, 9, 2, 8, 9); }, 30, 12);
+  const s = newWorld(L);
+  const ev = run(s, { right: 1 }, 300);
+  assert.equal(s.freed, 2);
+  assert.ok(ev.includes('cake') && s.p.x > 18 * T, 'durch den Tunnel');
+  const L2 = mini((B) => { B.cage(5, 9, 4, 9); B.cake(14, 4, 17, 9, 2, 8, 9); }, 30, 12);
+  const s2 = newWorld(L2);
+  const ev2 = run(s2, { right: 1 }, 300);
+  assert.ok(ev2.includes('cakeNeed') && s2.p.x < 14 * T, 'zu wenige Freunde');
+});
+
+test('Kaffeetropfen im festen Takt: erst zittern, dann fallen; Fürst Fauch holt Stehenbleibende ein', () => {
+  const L = mini((B) => { B.drip(8, 3, 100, 0); });
+  assert.ok(dripAt(L.drips[0], 10).warn);
+  assert.ok(!dripAt(L.drips[0], 50).warn);
+  assert.equal(dripAt(L.drips[0], 99), null);
+  let s = newWorld(L); settle(s); s.p.x = 8 * T + 6;
+  const ev = run(s, {}, 120);
+  assert.ok(ev.includes('hit'), 'Tropfen trifft');
+  const L2 = mini((B) => { B.chase({ delay: 10 }); }, 60);
+  s = newWorld(L2);
+  const ev2 = run(s, {}, 400);
+  assert.ok(ev2.includes('caught'));
+  const s3 = newWorld(L2);
+  const ev3 = run(s3, { right: 1 }, 900);
+  assert.ok(!ev3.includes('caught') && s3.done, 'wer läuft, entkommt');
+});
+
 for (const [i, def] of LEVELS.entries()) {
   const n = i + 1;
   const L = build(def);
@@ -226,15 +302,17 @@ for (const [i, def] of LEVELS.entries()) {
       assert.ok(tileAt(L, tx, ty) !== SOLID && tileAt(L, tx, ty - 1) !== SOLID, `Level ${n}: Käse bei x=${tx} hat Platz zum Wachsen`);
     }
     // Fallweg: unter jeder Kante (Ende einer begehbaren Fläche) liegt innerhalb von 4 Kacheln wieder Boden – oder es ist ein gewollter Schacht ins Leere
-    const walk = (x, y) => { const k = tileAt(L, x, y); return (k === SOLID || k === SHELF || (k === LADDER && tileAt(L, x, y - 1) !== LADDER)) && tileAt(L, x, y - 1) !== SOLID; };
+    const fest = (k) => k === SOLID || k >= SUGAR;   // Zucker, Förderband, Schwamm, Kuchen zählen als fester Boden (Kuchen-Oberseite ist unerreichbar, kein Startpunkt)
+    const walk = (x, y) => { const k = tileAt(L, x, y); return ((fest(k) && k !== 8) || k === SHELF || (k === LADDER && tileAt(L, x, y - 1) !== LADDER)) && !fest(tileAt(L, x, y - 1)); };
     for (let y = 1; y < L.h; y++) for (let x = 0; x < L.w; x++) {
       if (!walk(x, y)) continue;
       for (const nx of [x - 1, x + 1]) {
-        if (nx < 0 || nx >= L.w || walk(nx, y) || tileAt(L, nx, y) === SOLID || tileAt(L, nx, y - 1) === SOLID) continue;
-        let d = 0; while (y + d < L.h && !walk(nx, y + d) && tileAt(L, nx, y + d) !== SOLID) d++;
+        if (nx < 0 || nx >= L.w || walk(nx, y) || fest(tileAt(L, nx, y)) || fest(tileAt(L, nx, y - 1))) continue;
+        let d = 0; while (y + d < L.h && !walk(nx, y + d) && !fest(tileAt(L, nx, y + d))) d++;
         if (y + d >= L.h) continue; // Schacht ins Leere (Spüle) → Fähnchen
         // Unter Schubladen, Cookies und Waagschalen ist ein tieferer Fall erlaubt (dort steht man auf der Plattform)
-        const plats = [...L.lifts, ...L.cookies, ...L.scales.flatMap((sc) => [{ x: sc.a.x, w: sc.w }, { x: sc.b.x, w: sc.w }])];
+        const plats = [...L.lifts, ...L.cookies, ...L.scales.flatMap((sc) => [{ x: sc.a.x, w: sc.w }, { x: sc.b.x, w: sc.w }]),
+          ...L.balloons.map((b) => ({ x: Math.min(b.ax, b.bx) - T, w: Math.abs(b.bx - b.ax) + 2 * T }))];
         if (plats.some((lf) => nx * T >= lf.x && nx * T < lf.x + lf.w)) continue;
         assert.ok(d <= 4, `Level ${n}: Fallweg bei x=${nx}, y=${y} ist ${d} Kacheln tief`);
       }
@@ -259,6 +337,13 @@ for (const [i, def] of LEVELS.entries()) {
       const from = L.flags.filter((f) => f.x <= g.x).at(-1);
       assert.ok(solve(L, { from, target: { x: g.x, y: g.y, r: 22 }, maxNodes: 1500000 }).ok, `Goldkäse bei x=${g.x / T - 0.5}`);
     }
+  });
+
+  if (L.chase) test(`Level ${n}: Fürst Fauch ist bei flottem Laufen nicht schneller`, () => {
+    const r = solve(L, { maxNodes: 3000000 });
+    assert.ok(r.ok);
+    const w = playPath(L, r.path, r.hold, {});
+    assert.ok(w.done && w.resets === 0, 'Bestweg wird nicht eingeholt');
   });
 
   test(`Level ${n}: keine Sackgassen – von jeder begehbaren Stelle kommt man weiter (zum Ziel oder per Sturz zum Fähnchen)`, () => {

@@ -24,11 +24,19 @@ export const C = {
   scaleMove: 60,     // Waage: Dauer der festen Bewegung
   wakeR: 5 * 32,     // Schlafkater: Sprünge in diesem Abstand wecken ihn
   awake: 110,        // … so lange bleibt er wach
+  spring: 12.6,      // Spülschwamm: Absprung (≈ 5 Kacheln hoch mit gehaltener Taste)
+  belt: 1.2,         // Förderband: so viel schiebt es pro Schritt
+  slowRun: 1.15,     // Backpulver: Höchsttempo solange die Füße weiß sind
+  slowDist: 4 * 32,  // … für diese Strecke (≈ 4 Mäuseschritte)
+  dripWarn: 34,      // Kaffeetropfen: so lange zittert er vorher an der Maschine
+  dripSpeed: 6,
+  balloonSpeed: 1.6, balloonBack: 2.2, balloonWait: 50,
+  chaseSpeed: 1.9,   // Fürst Fauch läuft etwas langsamer als Krümel
 };
 
 // Kacheln
-export const EMPTY = 0, SOLID = 1, SHELF = 2, LADDER = 3, SUGAR = 4;
-const isSolid = (k) => k === SOLID || k === SUGAR;
+export const EMPTY = 0, SOLID = 1, SHELF = 2, LADDER = 3, SUGAR = 4, BELT_L = 5, BELT_R = 6, SPONGE = 7, CAKE = 8;
+const isSolid = (k) => k === SOLID || k === SUGAR || k === BELT_L || k === BELT_R || k === SPONGE || k === CAKE;
 
 // ---------------------------------------------------------------- Level-Baukasten
 // Level werden mit kleinen Befehlen beschrieben statt als Zeichenraster: leichter zu lesen und zu ändern.
@@ -38,6 +46,7 @@ export function build(def) {
   const grid = new Uint8Array(w * h);
   const L = {
     w, h, grid, crumbs: [], chocs: [], golds: [], flags: [], cats: [], sleepers: [], lifts: [], cookies: [], scales: [], cheeses: [], mints: [], holes: [], tips: [],
+    balloons: [], drips: [], powders: [], wilds: [], yarns: [], taps: [], cages: [], cakes: [], chase: null,
     start: null, goal: null, name: def.name || '', floor: def.floor ?? h, theme: def.theme || 'kueche', hasSugar: false,
   };
   const set = (x, y, v) => { if (x >= 0 && x < w && y >= 0 && y < h) grid[y * w + x] = v; };
@@ -61,18 +70,38 @@ export function build(def) {
     cheese(x, y) { L.cheeses.push({ x: (x + 0.5) * T, y: (y + 1) * T }); },
     mint(x, y) { L.mints.push({ x: (x + 0.5) * T, y: (y + 1) * T }); },
     // Aufzug (Schublade): fester Ablauf unten warten → hoch → oben warten → runter. Oberkante in Kacheln.
-    lift(x, w, yLow, yHigh, o = {}) { L.lifts.push({ x: x * T, w: w * T, low: yLow * T, high: yHigh * T, speed: o.speed || 1.5, wait: o.wait || 70, offset: o.offset || 0 }); },
+    lift(x, w, yLow, yHigh, o = {}) { L.lifts.push({ x: x * T, w: w * T, low: yLow * T, high: yHigh * T, speed: o.speed || 1.5, wait: o.wait || 70, offset: o.offset || 0, toast: !!o.toast }); },
     // Crispy-Cookie: Plattform (Oberkante Reihe y), zerbröselt kurz nach dem Draufstellen und wächst nach
     cookie(x, y, w = 2) { L.cookies.push({ x: x * T, y: y * T, w: w * T }); },
     // Waage: Schale A (Oberkante ya) sinkt um `d` Kacheln, sobald die große Krümel draufsteht; Schale B (yb) steigt um `d`. Bleibt danach so.
     scale(xa, ya, xb, yb, d, w = 2) { L.scales.push({ a: { x: xa * T, y: ya * T }, b: { x: xb * T, y: yb * T }, d: d * T, w: w * T }); },
     // Mauseloch-Paar: Zellen (xa, ya) und (xb, yb) am Boden. Nur die kleine Krümel passt hinein und kommt am anderen Loch heraus.
     hole(xa, ya, xb, yb) { L.holes.push({ a: { x: (xa + 0.5) * T, y: (ya + 1) * T }, b: { x: (xb + 0.5) * T, y: (yb + 1) * T } }); },
+    // Förderband (Oberkante Reihe y), dir = -1 schiebt nach links, +1 nach rechts
+    belt(x0, x1, y, dir) { for (let x = x0; x <= x1; x++) set(x, y, dir < 0 ? BELT_L : BELT_R); },
+    sponge(x, y) { set(x, y, SPONGE); },
+    // Ballon: Krümel greift die Schnur bei Zelle (xa, ya) (dort steht sie bzw. springt hoch) und wird nach (xb, yb) getragen.
+    // Voller Ballon fährt nach oben, schlaffer (limp) schwebt nach unten. Danach kehrt er leer zurück.
+    balloon(xa, ya, xb, yb, limp = false) { L.balloons.push({ ax: (xa + 0.5) * T, ay: (ya + 1) * T - 24, bx: (xb + 0.5) * T, by: (yb + 1) * T - 24, limp }); },   // y = Schnurende (Kopfhöhe)
+    // Kaffeemaschine: Düse in Reihe y, tropft im festen Takt (period Schritte, offset verschiebt den Takt)
+    drip(x, y, period = 110, offset = 0) { L.drips.push({ x: (x + 0.5) * T, y: (y + 1) * T, period, offset }); },
+    powder(x0, x1, y) { L.powders.push({ x0: x0 * T, x1: (x1 + 1) * T, y: (y + 1) * T }); },
+    wild(x, y) { L.wilds.push({ x: (x + 0.5) * T, y: (y + 1) * T }); },
+    yarn(x, y) { L.yarns.push({ x: (x + 0.5) * T, y: (y + 1) * T }); },
+    tap(x, y) { L.taps.push({ x: (x + 0.5) * T, y: (y + 1) * T }); },
+    // Käfig mit Mäusefreund, geöffnet über den Hebel bei Zelle (lx, ly)
+    cage(x, y, lx, ly) { L.cages.push({ x: (x + 0.5) * T, y: (y + 1) * T, lx: (lx + 0.5) * T, ly: (ly + 1) * T }); },
+    // Riesenkuchen: feste Kacheln; mit `need` Freunden knabbern alle einen Tunnel durch die Reihen ty0–ty1
+    cake(x0, y0, x1, y1, need, ty0, ty1) { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, CAKE); L.cakes.push({ x0, y0, x1, y1, need, ty0, ty1 }); },
+    chase(o = {}) { L.chase = { delay: o.delay ?? 150, speed: o.speed || C.chaseSpeed }; },
     tip(x, text, icon) { L.tips.push({ x: x * T, text, icon: icon || '💡' }); },
     start(x, y) { L.start = { x: (x + 0.5) * T, y: (y + 1) * T }; },
     goal(x, y) { L.goal = { x: (x + 0.5) * T, y: (y + 1) * T }; },
   };
   def.build(api);
+  if (L.cakes.length) L.hasSugar = true;   // Kuchen-Tunnel verändert das Raster wie Zuckerwürfel
+  // Kaffeetropfen fallen bis zur ersten festen Kachel unter der Düse
+  for (const d of L.drips) { let ty = Math.floor(d.y / T); while (ty < h && !isSolid(tileAt(L, Math.floor(d.x / T), ty))) ty++; d.yEnd = ty * T; }
   L.tips.sort((a, b) => a.x - b.x);
   return L;
 }
@@ -119,6 +148,7 @@ export function newWorld(L, opt = {}) {
       x: L.start.x - sz.w / 2, y: L.start.y - sz.h, w: sz.w, h: sz.h, vx: 0, vy: 0, big: false,
       ground: false, lift: -1, coyote: 0, buffer: 0, ladder: false, face: 1, invuln: 0, freeze: 0, freezeKind: '',
       prevJump: false, jumping: false, landT: 0, airT: 0, runT: 0, push: 0, tightT: 0, lightAt: -1, growT: 0, holeLock: '', holeT: 0,
+      ride: -1, item: '', slowD: 0,
     },
     check: { x: L.start.x, y: L.start.y },
     flagHit: L.flags.map(() => false),
@@ -129,6 +159,10 @@ export function newWorld(L, opt = {}) {
     sleepers: L.sleepers.map((c) => ({ x: c.x - 24, y: c.y - 26, w: 48, h: 26, state: 'sleep', t: 0 })),
     plats,
     scaleT: L.scales.map(() => -1),
+    balloons: L.balloons.map((b) => ({ ...b, x: b.ax, y: b.ay, state: 0, t: 0 })),
+    wilds: L.wilds.map((w) => ({ x: w.x - 16, y: w.y - 26, w: 32, h: 26, state: 'block', t: 0 })),
+    cages: L.cages.map(() => false), cakesOpen: L.cakes.map(() => false), freed: 0,
+    chaser: L.chase ? { x: L.start.x - 9 * T, t: 0 } : null,
     nCrumbs: 0, nChocs: 0, nGolds: 0, resets: 0, stomps: 0, breaks: 0, brokenKey: 0,
     events: [],
   };
@@ -257,6 +291,9 @@ function respawn(s) {
   if (p.big) { p.big = false; p.w = SIZE.small.w; p.h = SIZE.small.h; }
   p.x = s.check.x - p.w / 2; p.y = s.check.y - p.h;
   p.vx = 0; p.vy = 0; p.ladder = false; p.lift = -1; p.ground = true; p.invuln = C.invuln; p.coyote = 0; p.buffer = 0; p.jumping = false; p.push = 0;
+  if (p.ride >= 0) { s.balloons[p.ride].state = 2; s.balloons[p.ride].t = 0; p.ride = -1; }
+  p.slowD = 0;
+  if (s.chaser) { s.chaser.x = Math.min(s.chaser.x, s.check.x - 9 * T); s.chaser.t = 0; }
   s.events.push('respawn');
 }
 
@@ -300,6 +337,12 @@ export function step(s, inp) {
     if (c.x + c.w > c.x1) { c.x = c.x1 - c.w; c.vx = -Math.abs(c.vx); }
   }
   for (const c of s.sleepers) { c.t++; if (c.state === 'awake' && c.t > C.awake) { c.state = 'sleep'; c.t = 0; } }
+  updateBalloons(s);
+  for (const w of s.wilds) { w.t++; if (w.state === 'flee') { w.x += w.dir * 3.2; w.y -= w.t < 12 ? 3 : -1.5; if (w.t > 45) w.state = 'gone'; } }
+  if (s.chaser) {
+    const ch = s.chaser; ch.t++;
+    if (ch.t > L.chase.delay && p.freeze === 0) ch.x += L.chase.speed;
+  }
 
   // Autsch / heruntergefallen: kurz anhalten, dann am Fähnchen weiter
   if (p.freeze > 0) {
@@ -318,6 +361,18 @@ export function step(s, inp) {
   let dir = (inp.right ? 1 : 0) - (inp.left ? 1 : 0);
   if (p.push > 0) { p.push--; dir = 0; }
   if (dir) p.face = dir;
+
+  // Am Ballon hängen: die Bahn ist fest, Springen lässt los
+  if (p.ride >= 0) {
+    const b = s.balloons[p.ride];
+    p.x = b.x - p.w / 2; p.y = b.y; p.vx = 0; p.vy = 0; p.ground = false; p.ladder = false; p.lift = -1;
+    if (jumpPressed || b.state !== 1) {
+      p.ride = -1; p.vy = b.limp ? 0 : -4; p.jumping = false;
+      for (let k = 0; k < 20 && !boxFree(L, p.x, p.y, p.w, p.h); k++) p.y -= 2;
+      if (b.state === 1) { b.state = 2; b.t = 0; }
+      s.events.push('letgo');
+    } else { interact(s); return s.events; }
+  }
 
   // Mitfahren auf Plattformen
   if (p.ground && p.lift >= 0) {
@@ -359,7 +414,8 @@ export function step(s, inp) {
 
   // ---- Laufen
   const acc = p.ground ? (dir ? C.accG : C.decG) : (dir ? C.accA : C.decA);
-  const target = dir * C.run;
+  if (p.slowD > 0) p.slowD = Math.max(0, p.slowD - Math.abs(p.vx));
+  const target = dir * (p.slowD > 0 ? C.slowRun : C.run);
   if (p.push > 0) { /* Rückstoß läuft aus */ }
   else if (p.vx < target) p.vx = Math.min(target, p.vx + acc);
   else if (p.vx > target) p.vx = Math.max(target, p.vx - acc);
@@ -378,6 +434,12 @@ export function step(s, inp) {
   if (p.vy >= 0) p.jumping = false;
 
   moveX(s, p.vx);
+  // Förderband schiebt, Schwamm federt (nur am Boden, nicht auf Plattformen)
+  if (p.ground && p.lift < 0) {
+    const k = tileAt(L, Math.floor((p.x + p.w / 2) / T), Math.round((p.y + p.h) / T));
+    if (k === BELT_L || k === BELT_R) moveX(s, k === BELT_L ? -C.belt : C.belt);
+    if (k === SPONGE) { p.vy = -C.spring; p.ground = false; p.jumping = true; p.coyote = 0; s.events.push('boing'); }
+  }
   const wasGround = p.ground;
   if (p.ground) {
     const st = standing(s);
@@ -385,7 +447,13 @@ export function step(s, inp) {
   }
   if (!p.ground) {
     const landed = moveY(s, p.vy);
-    if (landed) { p.ground = true; if (!wasGround && p.airT > 6) { p.landT = 8; s.events.push('land'); } }
+    if (landed) {
+      p.ground = true; if (!wasGround && p.airT > 6) { p.landT = 8; s.events.push('land'); }
+      // Spülschwamm: federt sofort wieder hoch
+      if (p.lift < 0 && tileAt(L, Math.floor((p.x + p.w / 2) / T), Math.round((p.y + p.h) / T)) === SPONGE) {
+        p.vy = -C.spring; p.ground = false; p.jumping = true; p.coyote = 0; s.events.push('boing');
+      }
+    }
   }
   if (p.ground) { p.airT = 0; p.runT += Math.abs(p.vx); } else p.airT++;
   if (p.landT > 0) p.landT--;
@@ -395,6 +463,29 @@ export function step(s, inp) {
 
   interact(s);
   return s.events;
+}
+
+function updateBalloons(s) {
+  for (const b of s.balloons) {
+    if (b.state === 1) {
+      const dx = b.bx - b.x, dy = b.by - b.y, d = Math.hypot(dx, dy);
+      if (d <= C.balloonSpeed) { b.x = b.bx; b.y = b.by; b.state = 2; b.t = 0; }   // angekommen: Krümel lässt los
+      else { b.x += dx / d * C.balloonSpeed; b.y += dy / d * C.balloonSpeed; }
+    } else if (b.state === 2) {
+      if (++b.t > C.balloonWait) {
+        const dx = b.ax - b.x, dy = b.ay - b.y, d = Math.hypot(dx, dy);
+        if (d <= C.balloonBack) { b.x = b.ax; b.y = b.ay; b.state = 0; }
+        else { b.x += dx / d * C.balloonBack; b.y += dy / d * C.balloonBack; }
+      }
+    }
+  }
+}
+// Lage eines Kaffeetropfens: null = gerade keiner unterwegs, warn = zittert noch an der Düse
+export function dripAt(d, t) {
+  const ph = (t + d.offset) % d.period;
+  if (ph < C.dripWarn) return { x: d.x, y: d.y, warn: true };
+  const y = d.y + (ph - C.dripWarn) * C.dripSpeed;
+  return y < d.yEnd ? { x: d.x, y, warn: false } : null;
 }
 
 function wakeSleepers(s) {
@@ -456,9 +547,58 @@ function interact(s) {
     }
   });
 
+  // Ballon greifen (springend oder in der Luft an der Schnur)
+  if (p.ride < 0 && !p.ladder) s.balloons.forEach((b, i) => {
+    if (b.state !== 0 || p.ride >= 0) return;
+    if (Math.abs(b.x - cx) < 16 && p.y < b.y + 26 && p.y + p.h > b.y - 10 && (!p.ground || p.buffer > 0)) {
+      p.ride = i; b.state = 1; p.buffer = 0; s.events.push('balloon');
+    }
+  });
+  // Backpulver: weiße Füße, eine Weile langsamer
+  if (p.ground) for (const z of L.powders) if (cx > z.x0 && cx < z.x1 && Math.abs(p.y + p.h - z.y) < 2) { if (p.slowD === 0) s.events.push('powder'); p.slowD = C.slowDist; }
+  // Wollknäuel aufheben (feste Station, man trägt immer nur eins)
+  if (!p.item) for (const y of L.yarns) if (Math.abs(y.x - cx) < 20 && p.y < y.y && p.y + p.h > y.y - 28) { p.item = 'yarn'; s.events.push('yarn'); }
+  // Gartenschlauch: Wasserhahn antreten spritzt wilde Katzen bis 10 Kacheln weiter rechts weg
+  for (const tp of L.taps) if (Math.abs(tp.x - cx) < 18 && p.y < tp.y && p.y + p.h > tp.y - 28) {
+    let hit = false;
+    for (const w of s.wilds) if (w.state === 'block' && w.x > tp.x && w.x < tp.x + 10 * T && Math.abs(w.y + w.h - tp.y) < 3 * T) { w.state = 'flee'; w.t = 0; w.dir = 1; w.wet = true; hit = true; }
+    if (hit) s.events.push('hose');
+  }
+  // Käfige: Hebel antippen befreit den Mäusefreund
+  L.cages.forEach((c, i) => {
+    if (!s.cages[i] && Math.abs(c.lx - cx) < 18 && p.y < c.ly && p.y + p.h > c.ly - 30) { s.cages[i] = true; s.freed++; s.events.push('free'); }
+  });
+  // Riesenkuchen: mit genug Freunden wird ein Tunnel gefuttert
+  L.cakes.forEach((k, i) => {
+    if (s.cakesOpen[i]) return;
+    const near = p.x + p.w > k.x0 * T - 6 && p.x < (k.x1 + 1) * T + 6 && p.y + p.h > k.y0 * T && p.y < (k.y1 + 1) * T;
+    if (!near) return;
+    if (s.freed >= k.need) {
+      for (let y = k.ty0; y <= k.ty1; y++) for (let x = k.x0; x <= k.x1; x++) L.grid[y * L.w + x] = EMPTY;
+      s.cakesOpen[i] = true; s.events.push('cake');
+    } else if (p.tightT === 0) { p.tightT = 90; s.events.push('cakeNeed'); }
+  });
+
   const g = L.goal;
   if (Math.abs(g.x - cx) < 26 && p.y < g.y && p.y + p.h > g.y - 40 && !s.done) { s.done = true; s.events.push('win'); }
+  wildCats(s);
   enemies(s);
+}
+
+// Wilde Katzen versperren den Weg (kein Rücksetzer, nur zurückschieben). Mit Wollknäuel springen sie zur Seite.
+function wildCats(s) {
+  const p = s.p, cx = p.x + p.w / 2;
+  for (const w of s.wilds) {
+    if (w.state !== 'block') continue;
+    const wx = w.x + w.w / 2;
+    if (p.item === 'yarn' && Math.abs(wx - cx) < 4 * T && Math.abs(w.y + w.h - (p.y + p.h)) < 2 * T) {
+      p.item = ''; w.state = 'flee'; w.t = 0; w.dir = wx > cx ? 1 : -1; s.events.push('wildYarn'); continue;
+    }
+    if (p.push > 0 || !overlap(p, { x: w.x + 4, y: w.y - 96, w: w.w - 8, h: w.h + 96 })) continue;   // hohe Fauchzone: drüberspringen geht nicht
+    const away = cx < wx ? -1 : 1;
+    p.vx = away * 4; p.vy = -3.5; p.ground = false; p.lift = -1; p.push = 14; p.ladder = false;
+    s.events.push('wildHiss');
+  }
 }
 
 function enemies(s) {
@@ -488,6 +628,17 @@ function enemies(s) {
       return;
     }
   }
+  // Kaffeetropfen
+  if (p.invuln === 0) for (const d of s.L.drips) {
+    const dp = dripAt(d, s.t);
+    if (!dp || dp.warn) continue;
+    if (overlap(p, { x: dp.x - 5, y: dp.y - 12, w: 10, h: 14 })) {
+      if (p.big) { resize(s, false); p.invuln = C.invuln; s.events.push('ouch'); }
+      else { p.vy = -3; resetToCheck(s, 'hit'); return; }
+    }
+  }
+  // Fürst Fauch holt auf
+  if (s.chaser && p.invuln === 0 && s.chaser.x + 34 > p.x + p.w / 2) { p.vy = -4; resetToCheck(s, 'hit'); s.events.push('caught'); return; }
   // Schlafkater: wach schiebt er Krümel sanft zurück (kein Rücksetzer)
   for (const c of s.sleepers) {
     if (c.state !== 'awake' || p.push > 0) continue;
@@ -512,12 +663,18 @@ export function cloneWorld(s) {
     ...s, L: s.L.hasSugar ? { ...s.L, grid: s.L.grid.slice() } : s.L,
     p: { ...s.p }, check: { ...s.check }, flagHit: s.flagHit.slice(), crumbs: s.crumbs.slice(), chocs: s.chocs.slice(), golds: s.golds.slice(),
     cats: s.cats.map((c) => ({ ...c })), sleepers: s.sleepers.map((c) => ({ ...c })), plats: s.plats.map((l) => ({ ...l })), scaleT: s.scaleT.slice(), events: [],
+    balloons: s.balloons.map((b) => ({ ...b })), wilds: s.wilds.map((w) => ({ ...w })), cages: s.cages.slice(), cakesOpen: s.cakesOpen.slice(), chaser: s.chaser && { ...s.chaser },
   };
 }
 export function solve(L, o = {}) {
   const hold = o.hold || 6, maxNodes = o.maxNodes || 400000;
   const start = newWorld(L, { noEnemies: true });
-  if (o.from) { start.p.x = o.from.x - start.p.w / 2; start.p.y = o.from.y - start.p.h; start.check = { ...o.from }; }
+  if (o.from) {
+    start.p.x = o.from.x - start.p.w / 2; start.p.y = o.from.y - start.p.h; start.check = { ...o.from };
+    // Wie nach einem Rücksetzer: was links vom Fähnchen liegt, ist schon erledigt (befreite Freunde bleiben, Kuchen-Tunnel bleibt offen)
+    L.cages.forEach((c, i) => { if (c.lx < o.from.x) { start.cages[i] = true; start.freed++; } });
+    L.cakes.forEach((k, i) => { if ((k.x1 + 1) * T <= o.from.x) { start.cakesOpen[i] = true; for (let y = k.ty0; y <= k.ty1; y++) for (let x = k.x0; x <= k.x1; x++) start.L.grid[y * L.w + x] = EMPTY; } });
+  }
   const target = o.target || null; // {x,y,r} oder null = Ziel
   const lifts = start.plats.filter((pl) => pl.kind === 'lift');
   const cycles = lifts.map(liftCycle).map((c) => c.total);
@@ -529,6 +686,10 @@ export function solve(L, o = {}) {
     let k = [Math.round(p.x / 6), Math.round(p.y / 6), Math.round(p.vy / 2), Math.sign(Math.round(p.vx)), p.ground ? 1 : 0, p.ladder ? 1 : 0, p.jumping ? 1 : 0, p.big ? 1 : 0,
       nearLift(p) ? Math.floor((s.t % period) / (hold * 2)) : 0, s.brokenKey].join(',');
     for (const pl of s.plats) if (pl.kind === 'cookie') k += pl.state ? ',' + pl.state + Math.floor(pl.t / 15) : ',0';
+    if (s.balloons.length) k += '|' + p.ride + s.balloons.map((b) => b.state + ':' + Math.round(b.x / 8) + ':' + Math.round(b.y / 8)).join(';');
+    if (s.wilds.length) k += '|' + s.wilds.map((w) => w.state[0]).join('') + p.item;
+    if (s.cages.length) k += '|' + s.freed + s.cakesOpen.map(Number).join('');
+    if (p.slowD > 0) k += '|s' + Math.ceil(p.slowD / 32);
     if (s.scaleT.length) k += ',' + s.scaleT.map((t) => (t < 0 ? 0 : Math.min(2, 1 + Math.floor((s.t - t) / C.scaleMove)))).join('');
     return k;
   };
