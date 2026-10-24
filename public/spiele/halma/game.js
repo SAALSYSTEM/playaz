@@ -85,23 +85,23 @@ let letzter = null;        // letzter Zug { v, n }
 
 // ---------- Darstellung ----------
 const cv = $('c'), cx = cv.getContext('2d');
-// Das Brettbild (img/brett.webp, quadratisch mit Holzrahmen): das Raster beginnt bei GX/GY und ist GS breit (Anteile der Bildbreite)
-const GX = 0.0538, GY = 0.0531, GS = 0.935;
-let lay = { W: 0, H: 0, dpr: 1, x0: 0, y0: 0, S: 0, f: 0 };
+// Das Brettbild (img/brett.webp, quadratisch mit Holzrahmen): das Raster beginnt bei GX/GY und ist GSX breit, GSY hoch (Anteile der Bildgröße)
+const GX = 0.0236, GY = 0.0244, GSX = 0.9511, GSY = 0.9593;   // gemessen mit tools/halma-assets.py
+let lay = { W: 0, H: 0, dpr: 1, x0: 0, y0: 0, S: 0, f: 0, fy: 0 };
 function groesse() {
   const b = $('brett').getBoundingClientRect(), dpr = Math.min(2.5, window.devicePixelRatio || 1);
   cv.width = Math.round(b.width * dpr); cv.height = Math.round(b.height * dpr);
   const S = Math.max(160, Math.floor(Math.min(b.width, b.height)));
-  lay = { W: b.width, H: b.height, dpr, S, f: S * GS / E.N, x0: Math.round((b.width - S) / 2), y0: Math.round((b.height - S) / 2) };
+  lay = { W: b.width, H: b.height, dpr, S, f: S * GSX / E.N, fy: S * GSY / E.N, x0: Math.round((b.width - S) / 2), y0: Math.round((b.height - S) / 2) };
 }
 addEventListener('resize', groesse);
 const gedreht = () => modus === 'ki' && mensch === 2;           // Brett so drehen, dass der Mensch unten links spielt
 const ansicht = (i) => (gedreht() ? 255 - i : i);
-const pos = (i) => { const j = ansicht(i); return [lay.x0 + lay.S * GX + ((j & 15) + 0.5) * lay.f, lay.y0 + lay.S * GY + ((j >> 4) + 0.5) * lay.f]; };
+const pos = (i) => { const j = ansicht(i); return [lay.x0 + lay.S * GX + ((j & 15) + 0.5) * lay.f, lay.y0 + lay.S * GY + ((j >> 4) + 0.5) * lay.fy]; };
 
 function feldRechteck(i, farbe, alpha) {
-  const j = ansicht(i), x = lay.x0 + lay.S * GX + (j & 15) * lay.f, y = lay.y0 + lay.S * GY + (j >> 4) * lay.f;
-  cx.save(); cx.globalAlpha = alpha; cx.fillStyle = farbe; cx.fillRect(x, y, lay.f, lay.f); cx.restore();
+  const j = ansicht(i), x = lay.x0 + lay.S * GX + (j & 15) * lay.f, y = lay.y0 + lay.S * GY + (j >> 4) * lay.fy;
+  cx.save(); cx.globalAlpha = alpha; cx.fillStyle = farbe; cx.fillRect(x, y, lay.f, lay.fy); cx.restore();
 }
 function brett() {
   const { x0, y0, S } = lay;
@@ -116,7 +116,7 @@ function brett() {
 }
 // Stein mit Fuß auf dem Feld: aufrecht, etwas höher als das Feld
 function stein(x, y, p, alpha = 1, skala = 1) {
-  const f = lay.f * skala, h = f * 1.12, n = p === 1 ? 'stein-hell' : 'stein-dunkel', im = img[n], w = im ? h * im.width / im.height : h * 0.6;
+  const f = lay.f * skala, h = f * 1.0, n = p === 1 ? 'stein-hell' : 'stein-dunkel', im = img[n], w = im ? h * im.width / im.height : h * 0.6;
   cx.save(); cx.globalAlpha = alpha;
   cx.beginPath(); cx.ellipse(x + f * 0.05, y + f * 0.4, w * 0.5, f * 0.15, 0, 0, 7); cx.fillStyle = 'rgba(0,0,0,.4)'; cx.fill();
   if (im) cx.drawImage(im, x - w / 2, y + f * 0.44 - h, w, h);
@@ -261,7 +261,7 @@ function antwort(d) {
 
 // ---------- Bedienung ----------
 function feldBei(x, y) {
-  const c = Math.floor((x - lay.x0 - lay.S * GX) / lay.f), r = Math.floor((y - lay.y0 - lay.S * GY) / lay.f);
+  const c = Math.floor((x - lay.x0 - lay.S * GX) / lay.f), r = Math.floor((y - lay.y0 - lay.S * GY) / lay.fy);
   if (c < 0 || c > 15 || r < 0 || r > 15) return -1;
   const j = r * 16 + c; return gedreht() ? 255 - j : j;
 }

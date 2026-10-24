@@ -25,7 +25,7 @@ def linien(profil, erste, teilung):
     return b, m
 spalten = np.abs(np.diff(lum[260:760, :], axis=1)).mean(axis=0)
 zeilen = np.abs(np.diff(lum[:, 260:760], axis=0)).mean(axis=1)
-bx, mx = linien(spalten, 56, 60); by, my = linien(zeilen, 56, 60)
+bx, mx = linien(spalten, 25, 61); by, my = linien(zeilen, 25, 61)
 print('Raster in Pixeln des 1024er Brettbilds: x0=%.1f pitch=%.2f | y0=%.1f pitch=%.2f' % (bx, mx, by, my))
 print('Anteile: x0=%.4f y0=%.4f bx=%.4f by=%.4f' % (bx / 1024, by / 1024, mx * 16 / 1024, my * 16 / 1024))
 
