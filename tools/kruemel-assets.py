@@ -33,10 +33,18 @@ SHEETS = [
     ('kueche-objekte.png', ['regalbrett', 'kochloeffel', 'schublade', 'schrank', 'arbeitsplatte', 'fliese'], 128),
     ('schlafkater.png', ['schlafkater-0', 'schlafkater-1', 'schlafkater-2'], 160),
     ('waage.png', ['waage', 'schale-a', 'schale-b'], 120),
+    ('garten-objekte.png', ['wollknaeuel', 'wasserhahn', 'wasserhahn-an', 'duese', 'spritzer', 'geschenk', 'partytisch', 'lampion'], 128),
+    ('dachboden-objekte.png', ['balken', 'koffer', 'kiste', 'buecher', 'dielen'], 128),
+    ('backstube-objekte.png', ['kaffeemaschine', 'kaffeetropfen', 'pfuetze', 'toaster', 'toast', 'foerderband', 'backpulver', 'pfote', 'schwamm'], 128),
+    ('ballon-kuchen.png', ['ballon', 'ballon-schlaff', 'kaefig', 'kaefig-offen', 'hebel-l', 'hebel-r', 'kuchen', 'kuchen-tunnel'], 200),
+    ('fuerst-fauch.png', ['fuerst-fauch-0', 'fuerst-fauch-1', 'fuerst-fauch-2', 'fuerst-fauch-3', 'fuerst-fauch-wut'], 180),
+    ('maeusefreunde.png', [f'freund-{i}-{n}' for i in range(3) for n in ('traurig', 'lauf-0', 'lauf-1')], 112),
     ('extras.png', ['linse-0', 'linse-1', 'linse-2', 'linse-3', 'linse-4', 'cookie', 'cookie-riss', 'cookie-krumen', 'kaese-station', 'minze'], 96),
 ]
 BACKGROUNDS = [('kammer-hintergrund.png', 'kammer-hintergrund', 640), ('kueche-hintergrund.png', 'kueche-hintergrund', 640),
-               ('keller-hintergrund.png', 'keller-hintergrund', 640), ('garten-hintergrund.png', 'garten-hintergrund', 640)]
+               ('keller-hintergrund.png', 'keller-hintergrund', 640), ('garten-hintergrund.png', 'garten-hintergrund', 640),
+               ('backstube-hintergrund.png', 'backstube-hintergrund', 640), ('dachboden-hintergrund.png', 'dachboden-hintergrund', 640),
+               ('gartenfest-hintergrund.png', 'gartenfest-hintergrund', 640)]
 
 
 def split_cols(img, n):
@@ -130,12 +138,12 @@ def main():
             print('fehlt:', src); continue
         img = clean(Image.open(path).convert('RGBA'))
         parts = split_cols(img, len(names)) or split(img, len(names))
-        if len(parts) != len(names) or max(p.getbbox()[2] - p.getbbox()[0] for p in parts) > 1.8 * min(p.getbbox()[2] - p.getbbox()[0] for p in parts) and src.startswith('kruemel'):
+        if len(parts) != len(names) or max(p.getbbox()[2] - p.getbbox()[0] for p in parts) > 1.8 * min(p.getbbox()[2] - p.getbbox()[0] for p in parts) and src.startswith(('kruemel', 'maeuse')):
             parts = split_even(img, len(names))
         if len(parts) != len(names):
             sys.exit(f'{src}: {len(parts)} Teile gefunden, erwartet {len(names)}')
         # Figuren-Posen: gemeinsame Ober-/Unterkante, damit die Animation nicht springt (Füße bleiben auf einer Linie)
-        same_rows = src.startswith(('kruemel', 'kaetzchen', 'schlafkater'))
+        same_rows = src.startswith(('kruemel', 'kaetzchen', 'schlafkater', 'fuerst', 'maeuse'))
         boxes = [p.getbbox() for p in parts]
         top, bottom = min(b[1] for b in boxes), max(b[3] for b in boxes)
         k_all = min(1, max_h / (bottom - top))
