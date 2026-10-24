@@ -200,6 +200,19 @@ test('Schokolinsen zählen 5 Punkte', () => {
   assert.equal(s.nChocs, 3); assert.equal(s.nCrumbs, 2); assert.equal(points(s), 17);
 });
 
+test('Mauseloch: klein schlüpft hinein und kommt am anderen Loch heraus, groß passt nicht', () => {
+  const L = mini((B) => { B.solid(10, 0, 13, 9); B.hole(9, 9, 14, 9); B.cheese(4, 9); });
+  let s = newWorld(L); settle(s);
+  s.p.x = 6 * T;
+  const ev = run(s, { right: 1 }, 60);
+  assert.ok(ev.includes('hole') && s.p.x > 14 * T, 'durch die Wand geschlüpft');
+  run(s, { left: 1 }, 60);
+  assert.ok(s.p.x < 10 * T, 'und zurück');
+  s = newWorld(L); settle(s);
+  const ev2 = run(s, { right: 1 }, 120);
+  assert.ok(s.p.big && ev2.includes('holeBig') && !ev2.includes('hole') && s.p.x < 10 * T, 'groß bleibt draußen');
+});
+
 for (const [i, def] of LEVELS.entries()) {
   const n = i + 1;
   const L = build(def);

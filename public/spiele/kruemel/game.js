@@ -1,7 +1,7 @@
 // Krümel – Oberfläche: Zeichnen (Platzhalter-Grafik), Kamera, Steuerung, Ton, Menüs.
 // Regeln/Physik stehen in engine.js. Fester 60-Hz-Takt, gezeichnet wird so oft der Bildschirm kann.
-import { T, HZ, SOLID, SHELF, LADDER, SUGAR, build, newWorld, step, tileAt, LIFT_H, freshSave, sanitizeSave, fmt, points } from './engine.js?v=3';
-import { LEVELS } from './levels.js?v=3';
+import { T, HZ, SOLID, SHELF, LADDER, SUGAR, build, newWorld, step, tileAt, LIFT_H, freshSave, sanitizeSave, fmt, points } from './engine.js?v=4';
+import { LEVELS } from './levels.js?v=4';
 
 const $ = (id) => document.getElementById(id);
 const app = $('app'), cv = $('game'), cx = cv.getContext('2d');
@@ -20,7 +20,7 @@ for (const n of ['schlafkater-0', 'schlafkater-1', 'schlafkater-2', 'schale-a', 
   ...['stehen', 'lauf-0', 'lauf-1', 'lauf-2', 'lauf-3', 'sprung', 'klettern', 'autsch'].flatMap((n) => ['maus-klein-' + n, 'maus-gross-' + n]),
   'kaetzchen-0', 'kaetzchen-1', 'kaetzchen-2', 'kaetzchen-flucht', 'kruemel', 'goldkaese', 'fahne-zu', 'fahne-auf', 'kaeseglocke', 'zucker',
   'regalbrett', 'kochloeffel', 'schublade', 'schrank', 'arbeitsplatte', 'fliese']) {
-  const im = new Image(); im.decoding = 'async'; im.src = `kruemel/img/${n}.webp?v=3`; IMG[n] = im;
+  const im = new Image(); im.decoding = 'async'; im.src = `kruemel/img/${n}.webp?v=4`; IMG[n] = im;
 }
 const ok = (n) => { const im = IMG[n]; return im && im.complete && im.naturalWidth > 0 ? im : null; };
 // Bild mit Fußpunkt (x = Mitte, y = Unterkante) und Zielhöhe zeichnen; flip spiegelt waagerecht
@@ -67,6 +67,7 @@ const SFX = {
   wake: () => beep(300, 520, 0.25, 'sawtooth', 0.04),
   hiss: () => { beep(2200, 1500, 0.25, 'sawtooth', 0.025); },
   nope: () => beep(240, 200, 0.15, 'square', 0.04),
+  hole: () => { beep(900, 300, 0.12, 'triangle', 0.05); beep(300, 900, 0.12, 'triangle', 0.05, 0.12); },
 };
 function renderMute() {
   const on = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>';
@@ -187,7 +188,7 @@ function finish() {
   const last = levelIdx >= LEVELS.length - 1;
   $('nextBtn').hidden = last;
   $('doneNote').hidden = !last;
-  $('doneNote').textContent = 'Alle 10 Level geschafft! Neue Level kommen bald.';
+  $('doneNote').textContent = `Alle ${LEVELS.length} Level geschafft – du bist der Käsejagd-Champion!`;
   $('record').hidden = !(rec && old);
   $('doneTime').textContent = fmt(s.t);
   $('doneCrumbs').textContent = String(points(s));
@@ -285,6 +286,8 @@ function handleEvents(ev) {
     else if (e === 'tight') { SFX.nope(); showTip('🧀', 'Zu eng zum Wachsen – erst raus hier!', 120); }
     else if (e === 'wake') { SFX.wake(); showTip('😾', 'Oh nein, der Kater ist wach! Kurz warten …', 150); }
     else if (e === 'hiss') SFX.hiss();
+    else if (e === 'hole') { SFX.hole(); puff(p.x + p.w / 2, p.y + p.h - 6, 8, '#8a6a4a', 1.4); }
+    else if (e === 'holeBig') { SFX.nope(); showTip('🕳️', 'Zu groß fürs Mauseloch – erst Minze!', 130); }
     else if (e === 'win') { SFX.win(); puff(L.goal.x, L.goal.y - 30, 30, '#FFD21C', 3); winDelay = 70; }
   }
 }
@@ -294,6 +297,8 @@ function rr(x, y, w, h, r) { cx.beginPath(); cx.roundRect ? cx.roundRect(x, y, w
 const THEMES = {
   kueche: { wall0: '#f7ead0', wall1: '#efd9b2', wood: '#c98b4f', top: '#f1e6d2', topLine: '#c9b493', floorA: '#e7d3b4', floorB: '#d6bb93' },
   kammer: { wall0: '#ead2a8', wall1: '#d8b781', wood: '#9c6634', top: '#dcc39b', topLine: '#a98a5e', floorA: '#c9a77a', floorB: '#b48f62' },
+  keller: { wall0: '#5d5048', wall1: '#3e342e', wood: '#8a8178', top: '#a59c92', topLine: '#6d655d', floorA: '#7a7067', floorB: '#6b6158' },
+  garten: { wall0: '#9fd8f5', wall1: '#e2f4fb', wood: '#8a5a32', top: '#5fb544', topLine: '#3e8e2e', floorA: '#8a5a32', floorB: '#7a4e2a' },
 };
 const theme = () => THEMES[L.theme] || THEMES.kueche;
 function drawBgImage(name) {
@@ -307,6 +312,8 @@ function drawBgImage(name) {
 }
 function drawBackground() {
   if (L.theme === 'kammer') return drawPantry();
+  if (L.theme === 'keller') { if (!drawBgImage('keller-hintergrund')) drawCellar(); return; }
+  if (L.theme === 'garten') { if (!drawBgImage('garten-hintergrund')) drawGarden(); return; }
   if (drawBgImage('kueche-hintergrund')) return;
   const H = vh;
   const g = cx.createLinearGradient(0, 0, 0, H);
@@ -337,6 +344,66 @@ function drawBackground() {
       cx.strokeStyle = 'rgba(94,52,21,.25)'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(bx + 110, 96); cx.lineTo(bx + 110, 254); cx.stroke();
       cx.fillStyle = 'rgba(94,52,21,.35)'; cx.fillRect(bx + 98, 200, 4, 22); cx.fillRect(bx + 118, 200, 4, 22);
     }
+  }
+  cx.restore();
+}
+
+// Keller: Ziegelwand, kleines Fenster oben mit Lichtstrahl, Fässer (Parallaxe) – Platzhalter bis zum ChatGPT-Bild
+function drawCellar() {
+  const g = cx.createLinearGradient(0, 0, 0, vh);
+  g.addColorStop(0, '#5d5048'); g.addColorStop(1, '#3a312b');
+  cx.fillStyle = g; cx.fillRect(0, 0, vw, vh);
+  const px = cam.x * 0.4, py = cam.y * 0.4;
+  cx.save(); cx.translate(-px, -py);
+  cx.strokeStyle = 'rgba(0,0,0,.18)'; cx.lineWidth = 2;
+  const y0 = Math.floor(py / 18) * 18;
+  for (let y = y0 - 18; y < py + vh + 18; y += 18) {
+    const off = (Math.round(y / 18) % 2) * 20;
+    cx.beginPath(); cx.moveTo(px - 40, y); cx.lineTo(px + vw + 40, y); cx.stroke();
+    for (let x = Math.floor(px / 40) * 40 - 40 + off; x < px + vw + 40; x += 40) { cx.beginPath(); cx.moveTo(x, y); cx.lineTo(x, y + 18); cx.stroke(); }
+  }
+  const s0 = Math.floor(px / 260) - 1, s1 = Math.floor((px + vw) / 260) + 1;
+  for (let i = s0; i <= s1; i++) {
+    const bx = i * 260;
+    // Fenster mit Lichtkegel
+    cx.fillStyle = 'rgba(255,236,170,.75)'; cx.fillRect(bx + 60, 90, 60, 34);
+    cx.fillStyle = 'rgba(60,45,35,.9)'; cx.fillRect(bx + 88, 90, 4, 34);
+    const beam = cx.createLinearGradient(0, 124, 0, 520); beam.addColorStop(0, 'rgba(255,236,170,.22)'); beam.addColorStop(1, 'rgba(255,236,170,0)');
+    cx.fillStyle = beam; cx.beginPath(); cx.moveTo(bx + 60, 124); cx.lineTo(bx + 120, 124); cx.lineTo(bx + 190, 520); cx.lineTo(bx + 70, 520); cx.closePath(); cx.fill();
+    // Fässer
+    for (let j = 0; j < 2; j++) {
+      const fx = bx + 150 + j * 52, fy = 470;
+      cx.fillStyle = 'rgba(110,70,40,.55)'; rr(fx, fy, 46, 62, 14); cx.fill();
+      cx.fillStyle = 'rgba(40,30,25,.4)'; cx.fillRect(fx, fy + 14, 46, 4); cx.fillRect(fx, fy + 44, 46, 4);
+    }
+  }
+  cx.restore();
+}
+// Garten: Himmel, Sonne, Wolken, Zaun und Büsche (Parallaxe) – Platzhalter bis zum ChatGPT-Bild
+function drawGarden() {
+  const g = cx.createLinearGradient(0, 0, 0, vh);
+  g.addColorStop(0, '#8fd0f2'); g.addColorStop(1, '#e6f6fb');
+  cx.fillStyle = g; cx.fillRect(0, 0, vw, vh);
+  cx.fillStyle = 'rgba(255,230,120,.9)'; cx.beginPath(); cx.arc(vw - 60, 80, 26, 0, 7); cx.fill();
+  const px = cam.x * 0.3, py = cam.y * 0.4;
+  cx.save(); cx.translate(-px * 0.5, 0);
+  for (let i = Math.floor(px * 0.5 / 200) - 1; i <= Math.floor((px * 0.5 + vw) / 200) + 1; i++) {
+    const seed = Math.abs(Math.sin(i * 9.1) * 1000) % 1;
+    const cx0 = i * 200 + 40, cy0 = 130 + seed * 80;
+    cx.fillStyle = 'rgba(255,255,255,.85)';
+    cx.beginPath(); cx.arc(cx0, cy0, 18, 0, 7); cx.arc(cx0 + 22, cy0 - 8, 22, 0, 7); cx.arc(cx0 + 46, cy0, 16, 0, 7); cx.fill();
+  }
+  cx.restore();
+  cx.save(); cx.translate(-px, -py);
+  const fy = 420;
+  for (let x = Math.floor(px / 26) * 26 - 26; x < px + vw + 26; x += 26) {
+    cx.fillStyle = 'rgba(255,255,255,.7)'; cx.beginPath(); cx.moveTo(x, fy + 120); cx.lineTo(x, fy + 8); cx.lineTo(x + 9, fy); cx.lineTo(x + 18, fy + 8); cx.lineTo(x + 18, fy + 120); cx.fill();
+  }
+  cx.fillStyle = 'rgba(255,255,255,.7)'; cx.fillRect(px - 30, fy + 30, vw + 60, 8); cx.fillRect(px - 30, fy + 80, vw + 60, 8);
+  for (let i = Math.floor(px / 150) - 1; i <= Math.floor((px + vw) / 150) + 1; i++) {
+    const bx = i * 150 + 30;
+    cx.fillStyle = 'rgba(80,160,70,.55)'; cx.beginPath(); cx.arc(bx, fy + 110, 34, 0, 7); cx.arc(bx + 36, fy + 100, 42, 0, 7); cx.arc(bx + 76, fy + 112, 30, 0, 7); cx.fill();
+    cx.fillStyle = ['#ff8fb1', '#ffd21c', '#ffffff'][((i % 3) + 3) % 3]; for (let k = 0; k < 4; k++) { cx.beginPath(); cx.arc(bx + 10 + k * 18, fy + 86 + (k % 2) * 14, 4, 0, 7); cx.fill(); }
   }
   cx.restore();
 }
@@ -378,7 +445,22 @@ function drawTiles() {
   for (let ty = ty0; ty <= ty1; ty++) for (let tx = tx0; tx <= tx1; tx++) {
     const k = tileAt(s.L, tx, ty); if (!k) continue;
     const x = tx * T, y = ty * T;
-    if (k === SOLID && ok('schrank')) {
+    if (k === SOLID && (L.theme === 'keller' || L.theme === 'garten')) {
+      const topOpen = ty === 0 || tileAt(L, tx, ty - 1) !== SOLID;
+      if (L.theme === 'keller') {
+        cx.fillStyle = (tx * 7 + ty * 3) % 5 === 0 ? '#827870' : '#8a8178'; cx.fillRect(x, y, T, T);
+        cx.strokeStyle = 'rgba(40,30,25,.35)'; cx.lineWidth = 2;
+        const off = (ty % 2) * 16; cx.strokeRect(x + 1, y + 1, T - 2, T / 2 - 1); cx.beginPath(); cx.moveTo(x + off, y + T / 2); cx.lineTo(x + off, y + T); cx.stroke();
+        if (topOpen) { cx.fillStyle = '#a59c92'; cx.fillRect(x, y, T, 5); }
+      } else {
+        cx.fillStyle = (tx + ty) % 3 === 0 ? '#7f522d' : '#8a5a32'; cx.fillRect(x, y, T, T);
+        cx.fillStyle = 'rgba(60,35,15,.35)'; cx.beginPath(); cx.arc(x + 9 + (tx * 5) % 12, y + 14 + (ty * 7) % 12, 3, 0, 7); cx.fill();
+        if (topOpen) {
+          cx.fillStyle = '#5fb544'; cx.fillRect(x, y, T, 9); cx.fillStyle = '#3e8e2e'; cx.fillRect(x, y + 8, T, 2);
+          cx.fillStyle = '#7cd25d'; for (let i = 0; i < 4; i++) { cx.beginPath(); cx.moveTo(x + 4 + i * 8, y + 1); cx.lineTo(x + 6 + i * 8, y - 4); cx.lineTo(x + 8 + i * 8, y + 1); cx.fill(); }
+        }
+      }
+    } else if (k === SOLID && ok('schrank')) {
       const topOpen = ty === 0 || tileAt(L, tx, ty - 1) !== SOLID;
       if (ty >= L.floor) {
         if (L.theme !== 'kammer' && ok('fliese')) cx.drawImage(IMG.fliese, x, y, T, T);
@@ -574,6 +656,12 @@ function drawCat(c) {
   cx.restore();
 }
 
+function drawHole(e) {
+  cx.fillStyle = L.theme === 'garten' ? '#3b2412' : '#1c140f';
+  cx.beginPath(); cx.moveTo(e.x - 13, e.y); cx.lineTo(e.x - 13, e.y - 12); cx.arc(e.x, e.y - 12, 13, Math.PI, 0); cx.lineTo(e.x + 13, e.y); cx.closePath(); cx.fill();
+  cx.strokeStyle = 'rgba(160,110,60,.9)'; cx.lineWidth = 3;
+  cx.beginPath(); cx.moveTo(e.x - 14, e.y); cx.lineTo(e.x - 14, e.y - 12); cx.arc(e.x, e.y - 12, 14, Math.PI, 0); cx.lineTo(e.x + 14, e.y); cx.stroke();
+}
 function drawChoc(c, t) {
   const im = ok('linse-' + c.c);
   if (im) { const b = Math.sin(t / 11 + c.x) * 2; cx.drawImage(im, c.x - 9, c.y - 6 + b, 18, 13); return; }
@@ -731,6 +819,7 @@ function render() {
   cx.save(); cx.translate(-Math.round(cam.x * scale) / scale, -Math.round(cam.y * scale) / scale);
   drawTiles();
   drawPlats();
+  L.holes.forEach((h) => { drawHole(h.a); drawHole(h.b); });
   L.cheeses.forEach(drawCheeseStation);
   L.mints.forEach(drawMint);
   L.flags.forEach((f, i) => drawFlag(f, s.flagHit[i]));

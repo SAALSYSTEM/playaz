@@ -37,7 +37,7 @@ export function build(def) {
   const { w, h } = def;
   const grid = new Uint8Array(w * h);
   const L = {
-    w, h, grid, crumbs: [], chocs: [], golds: [], flags: [], cats: [], sleepers: [], lifts: [], cookies: [], scales: [], cheeses: [], mints: [], tips: [],
+    w, h, grid, crumbs: [], chocs: [], golds: [], flags: [], cats: [], sleepers: [], lifts: [], cookies: [], scales: [], cheeses: [], mints: [], holes: [], tips: [],
     start: null, goal: null, name: def.name || '', floor: def.floor ?? h, theme: def.theme || 'kueche', hasSugar: false,
   };
   const set = (x, y, v) => { if (x >= 0 && x < w && y >= 0 && y < h) grid[y * w + x] = v; };
@@ -66,6 +66,8 @@ export function build(def) {
     cookie(x, y, w = 2) { L.cookies.push({ x: x * T, y: y * T, w: w * T }); },
     // Waage: Schale A (Oberkante ya) sinkt um `d` Kacheln, sobald die große Krümel draufsteht; Schale B (yb) steigt um `d`. Bleibt danach so.
     scale(xa, ya, xb, yb, d, w = 2) { L.scales.push({ a: { x: xa * T, y: ya * T }, b: { x: xb * T, y: yb * T }, d: d * T, w: w * T }); },
+    // Mauseloch-Paar: Zellen (xa, ya) und (xb, yb) am Boden. Nur die kleine Krümel passt hinein und kommt am anderen Loch heraus.
+    hole(xa, ya, xb, yb) { L.holes.push({ a: { x: (xa + 0.5) * T, y: (ya + 1) * T }, b: { x: (xb + 0.5) * T, y: (yb + 1) * T } }); },
     tip(x, text, icon) { L.tips.push({ x: x * T, text, icon: icon || '💡' }); },
     start(x, y) { L.start = { x: (x + 0.5) * T, y: (y + 1) * T }; },
     goal(x, y) { L.goal = { x: (x + 0.5) * T, y: (y + 1) * T }; },
@@ -116,7 +118,7 @@ export function newWorld(L, opt = {}) {
     p: {
       x: L.start.x - sz.w / 2, y: L.start.y - sz.h, w: sz.w, h: sz.h, vx: 0, vy: 0, big: false,
       ground: false, lift: -1, coyote: 0, buffer: 0, ladder: false, face: 1, invuln: 0, freeze: 0, freezeKind: '',
-      prevJump: false, jumping: false, landT: 0, airT: 0, runT: 0, push: 0, tightT: 0, lightAt: -1, growT: 0,
+      prevJump: false, jumping: false, landT: 0, airT: 0, runT: 0, push: 0, tightT: 0, lightAt: -1, growT: 0, holeLock: '', holeT: 0,
     },
     check: { x: L.start.x, y: L.start.y },
     flagHit: L.flags.map(() => false),
@@ -435,6 +437,24 @@ function interact(s) {
     else if (p.tightT === 0) { p.tightT = 60; s.events.push('tight'); }
   }
   if (p.big) for (const st of L.mints) if (near(st)) { resize(s, false); s.events.push('shrink'); }
+  // Mauselöcher
+  if (p.holeT > 0) p.holeT--;
+  if (p.holeLock) {
+    const [hi, end] = p.holeLock.split(':');
+    const e = L.holes[+hi][end];
+    if (Math.abs(e.x - cx) > 26) p.holeLock = '';
+  }
+  if (p.ground && !p.ladder) L.holes.forEach((ho, i) => {
+    for (const [end, other] of [['a', 'b'], ['b', 'a']]) {
+      const e = ho[end];
+      if (Math.abs(e.x - cx) > 12 || Math.abs(p.y + p.h - e.y) > 2 || p.holeLock === i + ':' + end) continue;
+      if (p.big) { if (p.tightT === 0) { p.tightT = 60; s.events.push('holeBig'); } continue; }
+      const o = ho[other];
+      p.x = o.x - p.w / 2; p.y = o.y - p.h; p.lift = -1; p.holeLock = i + ':' + other; p.holeT = 16;
+      s.events.push('hole');
+      return;
+    }
+  });
 
   const g = L.goal;
   if (Math.abs(g.x - cx) < 26 && p.y < g.y && p.y + p.h > g.y - 40 && !s.done) { s.done = true; s.events.push('win'); }

@@ -361,4 +361,147 @@ export const LEVELS = [
     },
   },
 ];
+
+// ================================================================ Level 11–30: aus geprüften Bausteinen zusammengesetzt
+// Jeder Baustein kennt die Bodenhöhe g (Oberkante in Reihen) und füllt den Boden darunter bis ganz unten auf –
+// so entstehen keine Hohlräume, in denen man festsitzen kann. Höhenwechsel: 2 hoch per Sprung, 4 per Löffel/Waage,
+// 6 per Schublade, runter höchstens 4. Welche Bausteine ein Level bekommt, steht in PLAN (fest, kein Zufall beim Spielen).
+// tests/kruemel-sim.test.mjs prüft jedes Level mit dem Löser.
+const H = 24, GMIN = 11, GMAX = 21;
+
+const B = {
+  flat(L, x, g, o) { fill(L, x, x + 3, g); L.crumbs(x + 1, x + 2, g - 1); return [x + 4, g]; },
+  up(L, x, g, o) { if (g - 2 < GMIN) return B.down(L, x, g, { d: 2 }); fill(L, x, x + 2, g); fill(L, x + 3, x + 5, g - 2); L.crumb(x + 4, g - 3); o.spots.push([x + 4, g - 5]); return [x + 6, g - 2]; },
+  down(L, x, g, o = {}) { const d = Math.min(o.d || 3, GMAX - g); if (d < 2) return B.up(L, x, g); fill(L, x, x + 2, g); fill(L, x + 3, x + 5, g + d); L.crumbs(x + 3, x + 4, g + d - 1); return [x + 6, g + d]; },
+  gap(L, x, g, o) {
+    fill(L, x, x + 2, g); fill(L, x + 5, x + 7, g);
+    L.crumb(x + 3, g - 2); L.crumb(x + 4, g - 2);
+    o.spots.push([x + 3, g - 4]);
+    return [x + 8, g];
+  },
+  cookieGap(L, x, g, o) {
+    fill(L, x, x + 1, g); L.cookie(x + 3, g - 1, 2); fill(L, x + 7, x + 9, g);
+    L.chocs(x + 3, x + 4, g - 3); o.spots.push([x + 5, g - 4]);
+    return [x + 10, g];
+  },
+  shelves(L, x, g, o) {
+    if (g - 6 < 3) return B.flat(L, x, g, o);
+    fill(L, x, x + 10, g);
+    L.shelf(x + 1, x + 3, g - 2); L.shelf(x + 4, x + 6, g - 4); L.shelf(x + 7, x + 9, g - 2);
+    L.crumb(x + 2, g - 3); L.chocs(x + 4, x + 6, g - 5); L.crumb(x + 8, g - 3);
+    o.spots.push([x + 5, g - 7]);
+    return [x + 11, g];
+  },
+  ladder(L, x, g, o) {
+    if (g - 4 < GMIN) return B.down(L, x, g, { d: 4 });
+    fill(L, x, x + 2, g); L.ladder(x + 3, g - 4, g - 1); fill(L, x + 4, x + 7, g - 4);
+    L.crumb(x + 3, g - 3); L.crumb(x + 3, g - 5); o.spots.push([x + 6, g - 7]);
+    return [x + 8, g - 4];
+  },
+  lift(L, x, g, o) {
+    if (g - 6 < GMIN) return B.down(L, x, g, { d: 4 });
+    fill(L, x, x + 5, g); L.lift(x + 4, 2, g - 2, g - 6, { speed: 1.5, wait: 70 }); fill(L, x + 6, x + 9, g - 6);
+    L.crumb(x + 2, g - 1); o.spots.push([x + 5, g - 9]);
+    return [x + 10, g - 6];
+  },
+  kitten(L, x, g, o) {
+    fill(L, x, x + 8, g); L.cat(x + 5, g - 1, x + 2, x + 7); L.chocs(x + 3, x + 4, g - 4); L.choc(x + 6, g - 4); o.spots.push([x + 5, g - 4]);
+    return [x + 9, g];
+  },
+  sleeper(L, x, g, o) {
+    fill(L, x, x + 9, g); L.sleeper(x + 4, g - 1); L.choc(x + 3, g - 4); L.choc(x + 5, g - 4); L.crumbs(x + 7, x + 8, g - 1); o.spots.push([x + 4, g - 4]);
+    return [x + 10, g];
+  },
+  sugar(L, x, g, o) {
+    fill(L, x, x + 7, g); L.cheese(x + 1, g - 1); L.sugar(x + 4, g - 3, x + 4, g - 1); L.crumbs(x + 5, x + 6, g - 1); o.spots.push([x + 6, g - 4]);
+    return [x + 8, g];
+  },
+  tunnel(L, x, g, o) {
+    fill(L, x, x + 11, g); L.mint(x + 1, g - 1); L.solid(x + 3, 0, x + 9, g - 2);
+    L.crumbs(x + 3, x + 5, g - 1); L.crumbs(x + 7, x + 9, g - 1); o.spots.push([x + 6, g - 1]);
+    return [x + 12, g];
+  },
+  hole(L, x, g, o) {
+    if (o.intro && !o.holeTip) { o.holeTip = true; L.tip(x, 'Mauseloch! Nur klein passt hinein – reinlaufen, drüben kommst du raus', '🕳️'); }
+    fill(L, x, x + 12, g); L.mint(x + 1, g - 1); L.solid(x + 4, 0, x + 8, g - 1);
+    L.hole(x + 3, g - 1, x + 9, g - 1); L.crumbs(x + 10, x + 11, g - 1); o.spots.push([x + 11, g - 4]);
+    return [x + 13, g];
+  },
+  scale(L, x, g, o) {
+    if (g - 4 < GMIN || g + 2 > H - 1) return B.ladder(L, x, g, o);
+    fill(L, x, x + 3, g); L.cheese(x + 1, g - 1);
+    fill(L, x + 4, x + 5, g + 2); fill(L, x + 6, x + 7, g); fill(L, x + 8, x + 9, g + 2);
+    L.scale(x + 4, g, x + 8, g, 2); o.spots.push([x + 9, g - 5]);
+    fill(L, x + 10, x + 13, g - 4);
+    return [x + 14, g - 4];
+  },
+  cage(L, x, g, o) {
+    if (g - 6 < 3) return B.flat(L, x, g, o);
+    fill(L, x, x + 9, g); L.cheese(x + 1, g - 1);
+    L.shelf(x + 3, x + 8, g - 2); L.sugar(x + 5, g - 5, x + 7, g - 3); L.clear(x + 6, g - 4, x + 6, g - 4);
+    o.cage = [x + 6, g - 4];
+    return [x + 10, g];
+  },
+};
+function fill(L, x0, x1, g) { L.solid(x0, g, x1, H - 1); }
+
+// Ein Eintrag je Level: Welt und Bausteine von links nach rechts (Fähnchen kommen automatisch alle 2–3 Bausteine)
+const PLAN = [
+  // Keller – neu: Mauselöcher
+  ['keller', 'Ab in den Keller', ['flat', 'hole', 'up', 'gap', 'flat', 'hole', 'down', 'shelves', 'flat']],
+  ['keller', 'Geheime Gänge', ['flat', 'sugar', 'hole', 'up', 'kitten', 'tunnel', 'gap', 'shelves', 'down']],
+  ['keller', 'Kellerkatzen', ['flat', 'kitten', 'up', 'hole', 'kitten', 'gap', 'ladder', 'kitten', 'down', 'flat']],
+  ['keller', 'Leise im Dunkeln', ['flat', 'sleeper', 'up', 'cookieGap', 'hole', 'sleeper', 'down', 'shelves', 'flat']],
+  ['keller', 'Rauf und runter', ['flat', 'ladder', 'gap', 'down', 'lift', 'shelves', 'down', 'gap', 'flat']],
+  ['keller', 'Zuckerlager', ['flat', 'sugar', 'cage', 'hole', 'sugar', 'up', 'gap', 'kitten', 'down']],
+  ['keller', 'Die Kellerwaage', ['flat', 'scale', 'down', 'hole', 'scale', 'shelves', 'down', 'cookieGap', 'flat']],
+  ['keller', 'Bröselbrücke', ['flat', 'cookieGap', 'up', 'cookieGap', 'sleeper', 'cookieGap', 'down', 'shelves', 'gap', 'flat']],
+  ['keller', 'Groß, klein, groß', ['flat', 'sugar', 'tunnel', 'sugar', 'hole', 'scale', 'down', 'cage', 'flat']],
+  ['keller', 'Kellerfinale', ['flat', 'kitten', 'hole', 'lift', 'sleeper', 'down', 'sugar', 'cookieGap', 'tunnel', 'shelves', 'flat']],
+  // Garten – alles gemischt, länger
+  ['garten', 'Raus in den Garten', ['flat', 'gap', 'up', 'shelves', 'kitten', 'down', 'cookieGap', 'gap', 'flat']],
+  ['garten', 'Blumenbeet', ['flat', 'ladder', 'kitten', 'gap', 'down', 'sugar', 'cage', 'up', 'shelves', 'flat']],
+  ['garten', 'Katzenwiese', ['flat', 'kitten', 'gap', 'kitten', 'up', 'sleeper', 'kitten', 'down', 'cookieGap', 'flat']],
+  ['garten', 'Unter dem Zaun', ['flat', 'hole', 'gap', 'tunnel', 'up', 'hole', 'shelves', 'down', 'kitten', 'flat']],
+  ['garten', 'Gießkannen-Hügel', ['flat', 'up', 'up', 'gap', 'down', 'lift', 'shelves', 'down', 'down', 'cookieGap', 'flat']],
+  ['garten', 'Waage am Gartenhaus', ['flat', 'scale', 'kitten', 'down', 'scale', 'cage', 'down', 'gap', 'sleeper', 'flat']],
+  ['garten', 'Krümelpfad', ['flat', 'cookieGap', 'kitten', 'cookieGap', 'up', 'shelves', 'cookieGap', 'down', 'gap', 'cookieGap', 'flat']],
+  ['garten', 'Mäusetunnel', ['flat', 'sugar', 'hole', 'tunnel', 'sugar', 'hole', 'ladder', 'kitten', 'down', 'tunnel', 'flat']],
+  ['garten', 'Großer Kater, kleine Maus', ['flat', 'sleeper', 'kitten', 'up', 'sleeper', 'gap', 'scale', 'sleeper', 'down', 'cookieGap', 'kitten', 'flat']],
+  ['garten', 'Der goldene Käse', ['flat', 'kitten', 'sugar', 'hole', 'lift', 'cookieGap', 'down', 'scale', 'tunnel', 'cage', 'sleeper', 'down', 'gap', 'flat']],
+];
+
+function planned(theme, name, parts, intro) {
+  const def = {
+    name, theme, w: 0, h: H, floor: H,
+    build(L) {
+      let x = 0, g = GMAX;
+      const o = { spots: [], cage: null, intro };
+      // Start
+      fill(L, 0, 4, g); L.start(1, g - 1); x = 5;
+      if (intro === 'keller') L.tip(0, 'Willkommen im Keller!', '🕯️');
+      if (intro === 'garten') L.tip(0, 'Endlich frische Luft – ab in den Garten!', '🌻');
+      parts.forEach((kind, i) => {
+        if (i > 0 && i % 2 === 0) { fill(L, x, x + 1, g); L.flag(x, g - 1); x += 2; }
+        [x, g] = B[kind](L, x, g, o);
+      });
+      // Ziel
+      fill(L, x, x + 5, g); L.goal(x + 3, g - 1);
+      // Goldkäse: Käfig zuerst, sonst gleichmäßig über die markierten Stellen verteilt
+      const spots = o.spots.slice();
+      const pick = [];
+      if (o.cage) pick.push(o.cage);
+      const need = 3 - pick.length;
+      const step = spots.length / need;
+      for (let k = 0; k < need && k < spots.length; k++) pick.push(spots[Math.min(spots.length - 1, Math.floor((k + 0.5) * step))]);
+      pick.forEach(([gx, gy]) => L.gold(gx, gy));
+      return x + 6;
+    },
+  };
+  // Breite vorab mit einem Leerlauf bestimmen (alle Befehle tun nichts)
+  def.w = def.build(new Proxy({}, { get: () => () => {} }));
+  return def;
+}
+
+PLAN.forEach(([theme, name, parts], i) => LEVELS.push(planned(theme, name, parts, i === 0 ? 'keller' : i === 10 ? 'garten' : null)));
 export const LEVEL_COUNT = LEVELS.length;
