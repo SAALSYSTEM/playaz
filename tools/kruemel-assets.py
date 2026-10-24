@@ -35,7 +35,8 @@ SHEETS = [
     ('waage.png', ['waage', 'schale-a', 'schale-b'], 120),
     ('extras.png', ['linse-0', 'linse-1', 'linse-2', 'linse-3', 'linse-4', 'cookie', 'cookie-riss', 'cookie-krumen', 'kaese-station', 'minze'], 96),
 ]
-BACKGROUNDS = [('kammer-hintergrund.png', 'kammer-hintergrund', 640), ('kueche-hintergrund.png', 'kueche-hintergrund', 640)]
+BACKGROUNDS = [('kammer-hintergrund.png', 'kammer-hintergrund', 640), ('kueche-hintergrund.png', 'kueche-hintergrund', 640),
+               ('keller-hintergrund.png', 'keller-hintergrund', 640), ('garten-hintergrund.png', 'garten-hintergrund', 640)]
 
 
 def split_cols(img, n):

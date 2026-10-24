@@ -19,8 +19,8 @@ for (const n of ['schlafkater-0', 'schlafkater-1', 'schlafkater-2', 'schale-a', 
   'cookie', 'cookie-riss', 'cookie-krumen', 'kaese-station', 'minze', 'kammer-hintergrund', 'kueche-hintergrund',
   ...['stehen', 'lauf-0', 'lauf-1', 'lauf-2', 'lauf-3', 'sprung', 'klettern', 'autsch'].flatMap((n) => ['maus-klein-' + n, 'maus-gross-' + n]),
   'kaetzchen-0', 'kaetzchen-1', 'kaetzchen-2', 'kaetzchen-flucht', 'kruemel', 'goldkaese', 'fahne-zu', 'fahne-auf', 'kaeseglocke', 'zucker',
-  'regalbrett', 'kochloeffel', 'schublade', 'schrank', 'arbeitsplatte', 'fliese']) {
-  const im = new Image(); im.decoding = 'async'; im.src = `kruemel/img/${n}.webp?v=4`; IMG[n] = im;
+  'regalbrett', 'kochloeffel', 'schublade', 'schrank', 'arbeitsplatte', 'fliese', 'keller-hintergrund', 'garten-hintergrund']) {
+  const im = new Image(); im.decoding = 'async'; im.src = `kruemel/img/${n}.webp?v=5`; IMG[n] = im;
 }
 const ok = (n) => { const im = IMG[n]; return im && im.complete && im.naturalWidth > 0 ? im : null; };
 // Bild mit Fußpunkt (x = Mitte, y = Unterkante) und Zielhöhe zeichnen; flip spiegelt waagerecht
@@ -177,6 +177,17 @@ function showBest() {
 showBest();
 renderMenu();
 
+// Hinweis aufs Konto: nur ohne Anmeldung und erst, wenn es etwas zu verlieren gibt (ab 2 geschafften Leveln)
+function kontoHinweis(id) {
+  const P = window.PlaySaal;
+  const zeigen = !!(P && P.hostOk && !P.user() && Object.keys(save.best).length >= 2);
+  $(id).hidden = !zeigen;
+}
+function kontoAnlegen() { try { window.PlaySaal && window.PlaySaal.anmelden({}); } catch { /* Konten nicht verfügbar */ } }
+$('kontoBtn').onclick = kontoAnlegen;
+$('kontoBtnMenu').onclick = kontoAnlegen;
+setTimeout(() => kontoHinweis('kontoBoxMenu'), 1500);   // playsaal.js lädt verzögert
+
 function finish() {
   mode = 'done';
   const key = levelIdx + 1;
@@ -194,7 +205,7 @@ function finish() {
   $('doneCrumbs').textContent = String(points(s));
   $('doneResets').textContent = String(s.resets);
   [...$('stars').children].forEach((el, i) => el.classList.toggle('on', i < s.nGolds));
-  show('done'); clearTouch(); showBest();
+  show('done'); clearTouch(); showBest(); kontoHinweis('kontoBox');
 }
 
 // ---------------------------------------------------------------- HUD
