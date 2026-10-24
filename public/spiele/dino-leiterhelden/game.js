@@ -30,6 +30,8 @@ const persist = () => { try { localStorage.setItem(STORE, JSON.stringify(save));
 
 // ---------- Ton ----------
 let actx = null;
+const music = $('music'); music.volume = 0.35; // Hintergrundlied, läuft nur im Spiel
+function musicOn() { if (save.mute) { music.pause(); return; } const p = music.play(); if (p && p.catch) p.catch(() => {}); }
 function unlockAudio() { if (save.mute) return; try { actx ??= new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch { actx = null; } }
 function tone(freq, dur, type = 'sine', vol = 0.14, slide = 0, delay = 0) {
   if (save.mute || !actx) return;
@@ -61,7 +63,7 @@ const SFX = {
 const SPEAKER_ON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
 const SPEAKER_OFF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z" fill="currentColor"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
 function paintMute() { for (const b of [$('muteBtn'), $('muteBtn2')]) { b.innerHTML = save.mute ? SPEAKER_OFF : SPEAKER_ON; b.setAttribute('aria-pressed', String(!save.mute)); } }
-function toggleMute() { save.mute = !save.mute; persist(); paintMute(); if (!save.mute) { unlockAudio(); SFX.fruit(); } }
+function toggleMute() { save.mute = !save.mute; persist(); paintMute(); if (save.mute) music.pause(); else { unlockAudio(); SFX.fruit(); if (mode !== 'menu' && mode !== 'levels') musicOn(); } }
 
 // ---------- Zustand ----------
 let mode = 'menu', levelNo = 1, lv = LEVELS[0], st = newState(lv), L = layout(lv);
@@ -121,7 +123,7 @@ addEventListener('keydown', (e) => {
 });
 addEventListener('keyup', (e) => { if (KEYMAP[e.code]) keys.delete(KEYMAP[e.code]); });
 addEventListener('blur', () => { keys.clear(); releaseStick(); if (mode === 'play') pause(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden && mode === 'play') pause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { if (mode === 'play') pause(); else music.pause(); } });
 function input() {
   const kx = (keys.has('r') ? 1 : 0) - (keys.has('l') ? 1 : 0), ky = (keys.has('u') ? 1 : 0) - (keys.has('d') ? 1 : 0);
   if (kx || ky) return { x: kx, y: ky };
@@ -137,7 +139,7 @@ function toast(text) { const t = $('toast'); t.textContent = text; t.hidden = fa
 
 function nextLevel() { for (let n = 1; n <= save.unlocked; n++) if (!save.best[n]) return n; return save.unlocked; }
 function openMenu() {
-  mode = 'menu'; show('menu');
+  mode = 'menu'; show('menu'); music.pause();
   const box = $('challengeBox');
   if (challenge) {
     box.hidden = false;
@@ -146,7 +148,7 @@ function openMenu() {
   } else { box.hidden = true; $('playLabel').textContent = save.best[1] ? 'Weiter' : 'Spielen'; }
 }
 function openLevels() {
-  mode = 'levels'; show('levels');
+  mode = 'levels'; show('levels'); music.pause();
   const g = $('grid'); g.textContent = ''; const nx = nextLevel();
   for (let n = 1; n <= LEVEL_COUNT; n++) {
     const b = document.createElement('button'), best = save.best[n];
@@ -158,8 +160,8 @@ function openLevels() {
     g.append(b);
   }
 }
-function pause() { if (mode !== 'play') return; mode = 'pause'; show('pause'); }
-function resume() { mode = 'play'; acc = 0; show(null); }
+function pause() { if (mode !== 'play') return; mode = 'pause'; show('pause'); music.pause(); }
+function resume() { mode = 'play'; acc = 0; show(null); musicOn(); }
 
 $('playBtn').onclick = () => { unlockAudio(); startLevel(challenge ? challenge.l : nextLevel()); };
 $('levelsBtn').onclick = openLevels; $('levelsBack').onclick = openMenu;
@@ -177,7 +179,7 @@ function startLevel(n) {
   acc = 0; winAt = 0; fx = []; trail = []; bump = {}; wbump = {}; fedAt = {}; fedSide = {}; lockedAt = -9; bonkAt = -9;
   reveal = lv.ladders.map(() => -1);
   buildStatic(); track();
-  mode = 'play'; show(null);
+  mode = 'play'; show(null); musicOn();
   $('lvl').textContent = n;
   const desk = n === 1 && matchMedia('(pointer:fine)').matches;
   $('tipIcon').textContent = desk ? '⌨️' : lv.tip.icon; $('tipText').textContent = desk ? 'Pfeiltasten oder mit der Maus ziehen' : lv.tip.text;
