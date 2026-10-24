@@ -59,6 +59,8 @@ h2{margin:0 0 10px;font:700 30px/1 "Fredoka";color:var(--orange)}
 @media (orientation:landscape) and (pointer:coarse) and (max-height:520px){#rotate{display:grid}}
 @media (max-width:370px){.pill{height:38px;padding:0 7px;font-size:15px}#pad{width:136px;height:76px}#jump{width:86px;height:86px}}
 [hidden]{display:none!important}
+/* iOS ignoriert user-scalable=no: Doppeltipp-/Pinch-Zoom und Federn der Seite unterbinden, sonst rutscht das Spiel aus dem Bild */
+body{position:fixed;inset:0}button,a{touch-action:manipulation}#pad,#jump,#pad *,#jump *,#game{touch-action:none}
 </style></head><body><a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
 <main class="app ctl-hidden" id="app">
 <canvas id="game" aria-label="Krümel: Spielfeld"></canvas>
@@ -105,5 +107,14 @@ h2{margin:0 0 10px;font:700 30px/1 "Fredoka";color:var(--orange)}
 </main>
 <div id="rotate"><b>📱</b>Bitte Handy hochkant drehen</div>
 <audio id="music" src="kruemel/musik.mp3" preload="none" loop></audio>
-<script type="module" src="./kruemel/game.js"></script>
+<script>
+// Zoom-Schutz für iOS: Gesten (Pinch), Doppeltipp und Seitenverschieben abfangen. Die Spieltasten nutzen Pointer-Events, die laufen trotzdem.
+(function(){var nf={passive:false};var stop=function(e){e.preventDefault()};
+['gesturestart','gesturechange','gestureend','dblclick'].forEach(function(t){document.addEventListener(t,stop,nf)});
+document.addEventListener('touchmove',function(e){if(e.touches.length>1||!(e.target.closest&&e.target.closest('.screen')))e.preventDefault()},nf);
+var last=0;document.addEventListener('touchend',function(e){var now=Date.now();if(now-last<350&&!(e.target.closest&&e.target.closest('button,a')))e.preventDefault();last=now},nf);
+['pad','jump','game'].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener('touchstart',stop,nf)});
+})();
+</script>
+<script type="module" src="./kruemel/game.js?v=2"></script>
 <script src="../assets/playsaal-config.js" defer></script><script src="../assets/playsaal.js" defer></script></body></html>
