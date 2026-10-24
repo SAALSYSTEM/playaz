@@ -245,6 +245,7 @@
     <section class="block block-neu" id="neu" aria-labelledby="neu-titel">
       <div class="block-kopf"><h2 id="neu-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Neu</h2><p>Neu bei PlaySaal</p></div>
       <ul class="kacheln" data-lay="neu">
+      <li class="kachel" data-slug="dame" data-kategorien="brettspiele,raetsel" data-rec="dame" data-name="Dame" data-arten="Brettspiel,Klassiker,Zu zweit" data-kat="neu"><a href="/spiele/dame"><img src="/bilder/dame.webp" width="720" height="720" alt="Dame: Holz-Damebrett, ein heller Stein springt über einen dunklen, eine Dame mit Krone" decoding="async" loading="lazy"><span class="name">Dame</span></a></li>
       <li class="kachel" data-slug="muehle" data-kategorien="brettspiele,raetsel" data-rec="muehle" data-name="Mühle" data-arten="Brettspiel,Klassiker,Zu zweit" data-kat="neu"><a href="/spiele/muehle"><img src="/bilder/muehle.webp" width="720" height="720" alt="Mühle: Holzbrett mit hellen und dunklen Steinen, eine leuchtende Mühle" decoding="async" loading="lazy"><span class="name">Mühle</span></a></li>
       <li class="kachel" data-slug="kruemel" data-kategorien="geschick,abenteuer,kinder" data-rec="kruemel" data-name="Krümel" data-arten="Jump and Run,Abenteuer,Für Kinder" data-kat="neu"><a href="/spiele/kruemel"><img src="/bilder/kruemel.webp" width="640" height="640" alt="Krümel: kleine Maus springt zum Goldkäse, ein grauer Kater schläft" decoding="async" loading="lazy"><span class="name">Krümel</span></a></li>
       <li class="kachel" data-slug="papierpilot" data-kategorien="geschick,action" data-rec="papierpilot" data-name="Papierpilot" data-arten="3D,Fliegen,Tagesrangliste" data-kat="neu"><a href="/spiele/papierpilot"><img src="/bilder/papierpilot.webp" width="720" height="720" alt="Papierpilot: weißer Papierflieger fliegt durch einen goldenen Ring über einer sonnigen Altstadt" decoding="async" loading="lazy"><span class="name">Papierpilot</span></a></li>
@@ -440,6 +441,8 @@
   if (hs) show('hochstapler', 'Rekord ' + n(hs));
   const pp = read('papierpilot.v1');
   if (pp && Number(pp.best) >= 100) show('papierpilot', 'Bestflug ' + n(Math.floor(pp.best / 100)) + ' m');
+  const da = read('dame.v1');
+  if (da && da.offen) show('dame', 'Partie läuft');
   const mu = read('muehle.v1');
   if (mu && mu.offen) show('muehle', 'Partie läuft');
   const km = read('kruemel.v1');
