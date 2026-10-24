@@ -13,6 +13,20 @@ let save = freshSave();
 try { save = sanitizeSave(JSON.parse(localStorage.getItem(STORE)), LEVELS.length); } catch { /* Privatmodus */ }
 const persist = () => { try { localStorage.setItem(STORE, JSON.stringify(save)); } catch { /* voll oder gesperrt */ } };
 
+// ---------------------------------------------------------------- Bilder (ChatGPT-Grafiken; fehlt eins, zeichnet das Spiel den Platzhalter)
+const IMG = {};
+for (const n of ['schlafkater-0', 'schlafkater-1', 'schlafkater-2', 'schale-a', 'schale-b', 'linse-0', 'linse-1', 'linse-2', 'linse-3', 'linse-4',
+  'cookie', 'cookie-riss', 'cookie-krumen', 'kaese-station', 'minze', 'kammer-hintergrund']) {
+  const im = new Image(); im.decoding = 'async'; im.src = `kruemel/img/${n}.webp?v=1`; IMG[n] = im;
+}
+const ok = (n) => { const im = IMG[n]; return im && im.complete && im.naturalWidth > 0 ? im : null; };
+// Bild mit Fußpunkt (x = Mitte, y = Unterkante) und Zielhöhe zeichnen; flip spiegelt waagerecht
+function sprite(im, x, y, h, flip = false) {
+  const w = h * im.naturalWidth / im.naturalHeight;
+  if (flip) { cx.save(); cx.translate(x, 0); cx.scale(-1, 1); cx.drawImage(im, -w / 2, y - h, w, h); cx.restore(); }
+  else cx.drawImage(im, x - w / 2, y - h, w, h);
+}
+
 // ---------------------------------------------------------------- Ton
 const music = $('music');
 music.volume = 0.35;
@@ -316,6 +330,14 @@ function drawBackground() {
 
 // Speisekammer: Holzwand mit Regalen voller Gläser und Dosen (Parallaxe)
 function drawPantry() {
+  const bg = ok('kammer-hintergrund');
+  if (bg) {
+    const k = vh / bg.naturalHeight, w = bg.naturalWidth * k;
+    let x = -((cam.x * 0.35) % w);
+    for (; x < vw; x += w) cx.drawImage(bg, x, 0, w + 1, vh);
+    cx.fillStyle = 'rgba(255,240,215,.22)'; cx.fillRect(0, 0, vw, vh);   // etwas heller, damit Figuren davor gut zu sehen sind
+    return;
+  }
   const g = cx.createLinearGradient(0, 0, 0, vh);
   g.addColorStop(0, '#ead2a8'); g.addColorStop(1, '#d8b781');
   cx.fillStyle = g; cx.fillRect(0, 0, vw, vh);
@@ -401,6 +423,17 @@ function drawPlats() {
   drawLifts();
 }
 function drawCookie(pl) {
+  const img = pl.state === 0 ? ok('cookie') : pl.state === 1 ? ok('cookie-riss') : null;
+  if (pl.state === 2 && pl.t > 150 - 24 && ok('cookie-krumen')) {
+    const k = (150 - pl.t) / 24;
+    cx.globalAlpha = 1 - k; sprite(IMG['cookie-krumen'], pl.x + pl.w / 2, pl.y + 18 + k * 30, 26); cx.globalAlpha = 1;
+  }
+  if (img) {
+    const shake = pl.state === 1 ? Math.sin(s.t * 1.7) * 1.5 : 0;
+    const w = pl.w + 6, h = w * img.naturalHeight / img.naturalWidth;
+    cx.drawImage(img, pl.x - 3 + shake, pl.y - 3, w, h);
+    return;
+  }
   if (pl.state === 2) {
     cx.strokeStyle = 'rgba(140,90,40,.35)'; cx.setLineDash([4, 4]); cx.lineWidth = 2;
     rr(pl.x + 2, pl.y, pl.w - 4, 14, 7); cx.stroke(); cx.setLineDash([]);
@@ -419,8 +452,9 @@ function drawScalePlate(pl) {
   const triggered = s.scaleT[pl.scale] >= 0;
   // Stange nach unten bis zum Boden der Mulde
   cx.fillStyle = '#9aa3ad'; cx.fillRect(pl.x + pl.w / 2 - 3, pl.y + 8, 6, Math.max(0, pl.y0 + 3 * T - pl.y));
-  cx.fillStyle = '#d5dbe1'; rr(pl.x - 2, pl.y, pl.w + 4, 9, 4); cx.fill();
-  cx.fillStyle = '#b7c0c8'; cx.fillRect(pl.x, pl.y + 6, pl.w, 3);
+  const im = ok(pl.role === 'a' ? 'schale-a' : 'schale-b');
+  if (im) { const w = pl.w + 14, h = w * im.naturalHeight / im.naturalWidth; cx.drawImage(im, pl.x - 7, pl.y - 6, w, h); }
+  else { cx.fillStyle = '#d5dbe1'; rr(pl.x - 2, pl.y, pl.w + 4, 9, 4); cx.fill(); cx.fillStyle = '#b7c0c8'; cx.fillRect(pl.x, pl.y + 6, pl.w, 3); }
   if (pl.role === 'a' && !triggered) {
     // Gewicht-Symbol: hier draufstellen (groß)
     cx.fillStyle = 'rgba(17,18,26,.55)'; cx.font = '700 13px Fredoka, sans-serif'; cx.textAlign = 'center';
@@ -496,6 +530,8 @@ function drawCat(c) {
 }
 
 function drawChoc(c, t) {
+  const im = ok('linse-' + c.c);
+  if (im) { const b = Math.sin(t / 11 + c.x) * 2; cx.drawImage(im, c.x - 9, c.y - 6 + b, 18, 13); return; }
   const cols = ['#e8463c', '#3f8ff0', '#ffd21c', '#4cbf5a', '#ff8fd0'];
   const b = Math.sin(t / 11 + c.x) * 2;
   cx.fillStyle = 'rgba(0,0,0,.15)'; cx.beginPath(); cx.ellipse(c.x + 1, c.y + b + 2, 8, 6, 0, 0, 7); cx.fill();
@@ -504,12 +540,16 @@ function drawChoc(c, t) {
 }
 function drawCheeseStation(st) {
   const k = 0.5 + 0.5 * Math.sin(s.t / 10);
+  const im = ok('kaese-station');
+  if (im) { cx.fillStyle = `rgba(255,210,28,${0.18 + 0.15 * k})`; cx.beginPath(); cx.arc(st.x, st.y - 12, 20, 0, 7); cx.fill(); sprite(im, st.x, st.y + 1, 26); return; }
   cx.fillStyle = '#fff'; cx.beginPath(); cx.ellipse(st.x, st.y - 2, 15, 4, 0, 0, 7); cx.fill();
   cx.fillStyle = `rgba(255,210,28,${0.18 + 0.15 * k})`; cx.beginPath(); cx.arc(st.x, st.y - 14, 18, 0, 7); cx.fill();
   drawCheese(st.x, st.y - 12, 12, false, 0);
 }
 function drawMint(st) {
   const sw = Math.sin(s.t / 14) * 0.15;
+  const im = ok('minze');
+  if (im) { cx.save(); cx.translate(st.x, st.y); cx.rotate(sw * 0.4); sprite(im, 0, 1, 26); cx.restore(); return; }
   cx.save(); cx.translate(st.x, st.y);
   cx.fillStyle = '#6b4a2a'; cx.fillRect(-1.5, -14, 3, 14);
   for (const [a, l] of [[-0.9 + sw, 13], [0.9 + sw, 13], [sw, 15]]) {
@@ -523,6 +563,14 @@ function drawMint(st) {
 function drawSleeper(c) {
   const x = c.x + c.w / 2, y = c.y + c.h;
   const awake = c.state === 'awake';
+  const fr = !awake ? 0 : c.t < 25 ? 1 : 2;
+  const im = ok('schlafkater-' + fr);
+  if (im) {
+    const flip = s.p.x + s.p.w / 2 < x;      // schaut zur Maus
+    if (fr === 2) sprite(im, x, y + 2, 50, flip);
+    else { const br = fr === 0 ? 1 + Math.sin(s.t / 25) * 0.02 : 1; sprite(im, x, y + 2, 32 * br, flip); }
+    return;
+  }
   cx.save(); cx.translate(x, y);
   const br = awake ? 0 : Math.sin(s.t / 25) * 1.5;
   // Schwanz
