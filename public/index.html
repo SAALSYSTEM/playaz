@@ -396,10 +396,20 @@
   if ((C.quellen || []).includes(location.origin)) {
     t.innerHTML = '<b>PlayAZ heißt jetzt PlaySaal.</b> Die Spiele findest du ab sofort unter <a></a>. Deine Spielstände nimmst du dort mit „Spielstände umziehen“ mit.';
     const a = t.querySelector('a'); a.href = C.ziel + '/umzug'; a.textContent = host; box.hidden = false;
-  } else if (location.origin === C.ziel && !ls('playsaal.umzug.empfangen')) {
-    t.innerHTML = '<b>Früher bei PlayAZ gespielt?</b> <a href="/umzug">Spielstände von der alten Adresse holen</a>';
-    box.hidden = false;
   }
+})();
+// Mini-Werbung fürs Konto (statt „Früher bei PlayAZ gespielt?“): nur ohne Anmeldung, verschwindet nach dem Anmelden
+(function () {
+  const box = document.getElementById('umzugHinweis'), t = document.getElementById('umzugText');
+  const P = window.PlaySaal; if (!P || !P.hostOk || !box.hidden) return;
+  const zeigen = () => {
+    if (P.user()) { box.hidden = true; return; }
+    t.innerHTML = '<a href="/konto" id="kontoWerbung">Anmelden und Spielstand speichern</a> · kostenlos';
+    document.getElementById('kontoWerbung').addEventListener('click', (e) => { e.preventDefault(); P.anmelden({}); });
+    box.hidden = false;
+  };
+  if (P.bereit()) zeigen(); else P.on('bereit', zeigen);
+  P.on('auth', zeigen);
 })();
 (function () {
   const read = k => { try { const v = localStorage.getItem(k); return v === null ? null : JSON.parse(v); } catch (e) { return null; } };
