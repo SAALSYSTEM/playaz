@@ -25,8 +25,7 @@ Brettspiel-Klassiker (Neunmühle) im Hochformat, erstes Spiel der geplanten Kate
 - `public/spiele/muehle/ki.js` – Web Worker für den Computergegner (Rückfall: Rechnen im Hauptthread)
 - `public/spiele/muehle/game.js` – Zeichnen (Brett-Linien und Punkte im Code), Bedienung, Ton, Speicherstand `muehle.v1`
 - Bilder: Originale von ChatGPT in `design/muehle/`, umgewandelt mit `python3 tools/muehle-assets.py`
-  - vorhanden: Holz, heller und dunkler Stein, Opa Willi, Kachel, Social Preview
-  - fehlen noch: `gegner-geuebt.png` (Tante Gisela) und `gegner-meister.png` (Professor Mühlberg); bis dahin Buchstaben-Platzhalter
+  - Holz, heller und dunkler Stein, Opa Willi, Tante Gisela, Professor Mühlberg, Kachel, Social Preview (alle vorhanden)
 - `supabase/migrations/20261024210000_muehle.sql` – Kategorie „Brettspiele“ und Katalogeintrag; **erst beim Veröffentlichen ausführen**
 
 ## Test
