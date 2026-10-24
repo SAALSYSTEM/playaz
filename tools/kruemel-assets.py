@@ -39,6 +39,7 @@ SHEETS = [
     ('ballon-kuchen.png', ['ballon', 'ballon-schlaff', 'kaefig', 'kaefig-offen', 'hebel-l', 'hebel-r', 'kuchen', 'kuchen-tunnel'], 200),
     ('fuerst-fauch.png', ['fuerst-fauch-0', 'fuerst-fauch-1', 'fuerst-fauch-2', 'fuerst-fauch-3', 'fuerst-fauch-wut'], 180),
     ('maeusefreunde.png', [f'freund-{i}-{n}' for i in range(3) for n in ('traurig', 'lauf-0', 'lauf-1')], 112),
+    ('wilde-katze.png', ['wilde-katze', 'wilde-katze-fauch', 'wilde-katze-nass', 'wilde-katze-knaeuel'], 128),
     ('extras.png', ['linse-0', 'linse-1', 'linse-2', 'linse-3', 'linse-4', 'cookie', 'cookie-riss', 'cookie-krumen', 'kaese-station', 'minze'], 96),
 ]
 BACKGROUNDS = [('kammer-hintergrund.png', 'kammer-hintergrund', 640), ('kueche-hintergrund.png', 'kueche-hintergrund', 640),
@@ -143,7 +144,7 @@ def main():
         if len(parts) != len(names):
             sys.exit(f'{src}: {len(parts)} Teile gefunden, erwartet {len(names)}')
         # Figuren-Posen: gemeinsame Ober-/Unterkante, damit die Animation nicht springt (Füße bleiben auf einer Linie)
-        same_rows = src.startswith(('kruemel', 'kaetzchen', 'schlafkater', 'fuerst', 'maeuse'))
+        same_rows = src.startswith(('kruemel', 'kaetzchen', 'schlafkater', 'fuerst', 'maeuse', 'wilde'))
         boxes = [p.getbbox() for p in parts]
         top, bottom = min(b[1] for b in boxes), max(b[3] for b in boxes)
         k_all = min(1, max_h / (bottom - top))

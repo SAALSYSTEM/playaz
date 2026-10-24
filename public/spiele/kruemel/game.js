@@ -21,11 +21,11 @@ for (const n of ['schlafkater-0', 'schlafkater-1', 'schlafkater-2', 'schale-a', 
   'kaetzchen-0', 'kaetzchen-1', 'kaetzchen-2', 'kaetzchen-flucht', 'kruemel', 'goldkaese', 'fahne-zu', 'fahne-auf', 'kaeseglocke', 'zucker',
   'regalbrett', 'kochloeffel', 'schublade', 'schrank', 'arbeitsplatte', 'fliese', 'keller-hintergrund', 'garten-hintergrund',
   'backstube-hintergrund', 'dachboden-hintergrund', 'gartenfest-hintergrund', 'wollknaeuel', 'wasserhahn', 'wasserhahn-an', 'spritzer',
-  'balken', 'dielen', 'kaffeemaschine', 'kaffeetropfen', 'pfuetze', 'toaster', 'toast', 'foerderband', 'backpulver', 'pfote', 'schwamm',
+  'balken', 'dielen', 'kaffeemaschine', 'kaffeetropfen', 'pfuetze', 'toaster', 'toast', 'foerderband', 'backpulver', 'pfote', 'schwamm', 'wilde-katze', 'wilde-katze-fauch', 'wilde-katze-nass', 'wilde-katze-knaeuel',
   'ballon', 'ballon-schlaff', 'kaefig', 'kaefig-offen', 'hebel-l', 'hebel-r', 'kuchen', 'kuchen-tunnel',
   'fuerst-fauch-0', 'fuerst-fauch-1', 'fuerst-fauch-2', 'fuerst-fauch-3', 'fuerst-fauch-wut',
   ...[0, 1, 2].flatMap((i) => ['traurig', 'lauf-0', 'lauf-1'].map((n) => `freund-${i}-${n}`))]) {
-  const im = new Image(); im.decoding = 'async'; im.src = `kruemel/img/${n}.webp?v=6`; IMG[n] = im;
+  const im = new Image(); im.decoding = 'async'; im.src = `kruemel/img/${n}.webp?v=7`; IMG[n] = im;
 }
 const ok = (n) => { const im = IMG[n]; return im && im.complete && im.naturalWidth > 0 ? im : null; };
 // Bild mit Fußpunkt (x = Mitte, y = Unterkante) und Zielhöhe zeichnen; flip spiegelt waagerecht
@@ -965,7 +965,7 @@ function drawWild(w) {
   cx.save();
   if (w.state === 'flee') cx.globalAlpha = Math.max(0, 1 - w.t / 45);
   const flip = s.p.x + s.p.w / 2 > x;
-  if (im) { sprite(im, x, y + 2, 34, flip); cx.restore(); return; }
+  if (im) { sprite(im, x, y + 2, 38, !flip); cx.restore(); return; }
   cx.translate(x, y); if (flip) cx.scale(-1, 1);
   cx.fillStyle = '#2a2a30'; cx.beginPath(); cx.ellipse(0, -11, 16, 10, 0, 0, 7); cx.fill();
   cx.fillStyle = '#ffffff'; cx.beginPath(); cx.ellipse(4, -8, 7, 5, 0, 0, 7); cx.fill();
@@ -1130,4 +1130,4 @@ snapCamera();
 requestAnimationFrame(frame);
 
 // Für Browser-Tests
-window.__kruemel = { get s() { return s; }, get mode() { return mode; }, keys, cam };
+window.__kruemel = { get s() { return s; }, get mode() { return mode; }, keys, cam, start: i => startLevel(i) };
