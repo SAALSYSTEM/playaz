@@ -1,5 +1,7 @@
 # PlaySaal
 
+**Backgammon:** Würfel-Brettspiel im Hochformat (Brett quer, Bande und Würfel in der Mitte) mit denselben drei Computergegnern oder zu zweit. Veröffentlicht am 24.10.2026. Details: [`docs/BACKGAMMON.md`](docs/BACKGAMMON.md). Test: `node --test tests/backgammon-sim.test.mjs`.
+
 **Dame:** Brettspiel-Klassiker (8×8, Schlagpflicht, Mehrfachsprung, fliegende Dame) mit denselben drei Computergegnern wie Mühle oder zu zweit. Veröffentlicht am 24.10.2026. Details: [`docs/DAME.md`](docs/DAME.md). Test: `node --test tests/dame-sim.test.mjs`.
 
 **Mühle:** Brettspiel-Klassiker im Hochformat gegen den Computer (Opa Willi · Gemütlich, Tante Gisela · Geübt, Professor Mühlberg · Meister) oder zu zweit an einem Gerät; Zug zurück, Fortsetzen nach dem Neuladen, Bilanz je Gegner. Veröffentlicht am 24.10.2026, erstes Spiel der Kategorie Brettspiele. Details: [`docs/MUEHLE.md`](docs/MUEHLE.md). Test: `node --test tests/muehle-sim.test.mjs`.
