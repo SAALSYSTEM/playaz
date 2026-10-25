@@ -83,7 +83,9 @@ export const teilWurf = (m, p) => (m.f === BANDE ? (p === 1 ? 24 - m.t : m.t + 1
 
 // Alle erlaubten vollständigen Züge zu einem Wurf: [{ z: [Teilzüge], s: Endstellung }], ohne doppelte Endstellungen.
 // Leere Liste mit einem Eintrag { z: [] }, wenn kein Teilzug möglich ist.
-export function zuege(s, wurf) {
+// alle = true: jede Reihenfolge einzeln (für die Bedienung, damit der Mensch die Teilzüge in beliebiger Reihenfolge ziehen darf).
+// Sonst nur ein Weg je Endstellung (reicht für den Computer und spart Rechenzeit).
+export function zuege(s, wurf, alle = false) {
   const p = s.am, ergebnis = new Map();
   let best = 0, hoch = 0;
   const reihen = wurf[0] === wurf[1] ? [wuerfelListe(wurf)] : [[wurf[0], wurf[1]], [wurf[1], wurf[0]]];
@@ -100,7 +102,7 @@ export function zuege(s, wurf) {
       const zahl = pfad.length, max = genutzt.length ? Math.max(...genutzt) : 0;
       if (zahl < best || (zahl === best && zahl === 1 && max < hoch)) return;
       if (zahl > best || (zahl === 1 && max > hoch)) { ergebnis.clear(); best = zahl; hoch = max; }
-      const k = schluessel(st);
+      const k = alle ? pfad.map((m) => m.f + '>' + m.t).join(' ') : schluessel(st);
       if (!ergebnis.has(k)) ergebnis.set(k, { z: pfad, s: st });
     }
   }
@@ -119,7 +121,7 @@ export function neuePartie(beginner = 1) { const s = neueStellung(); s.am = begi
 export const gleicheZuege = (a, b) => a.length === b.length && a.every((m, k) => m.f === b[k].f && m.t === b[k].t);
 export function spiele(partie, wurf, z) {
   if (status(partie).ende) return false;
-  const liste = zuege(partie.s, wurf);
+  const liste = zuege(partie.s, wurf, true);
   const ziel = liste.find((x) => gleicheZuege(x.z, z));
   if (!ziel) return false;
   partie.s = ziel.s; partie.zuege.push({ w: wurf.slice(), z: ziel.z });

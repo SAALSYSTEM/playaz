@@ -98,3 +98,17 @@ test('Stufen: Würfelglück, aber klar abgestuft', { timeout: 600000 }, () => {
   const m = turnier('geuebt', 'gemuetlich', 30); assert.ok(m.geuebt >= 17, JSON.stringify(m));
   const x = turnier('meister', 'geuebt', 24); assert.ok(x.meister >= 12, JSON.stringify(x));
 });
+
+test('Teilzüge in beliebiger Reihenfolge: jeder Stein, der ziehen kann, darf zuerst ziehen', () => {
+  // Stellung aus einer echten Partie (Pasch 3): 6->3 schlägt den Einzelstein und muss erlaubt sein, egal in welcher Reihenfolge
+  const s = st({ 12: 3, 19: 2, 21: 3, 6: 1, 5: 5, 4: 1 }, { 18: 4, 23: 3, 13: 2, 16: 2, 17: 2, 9: 1, 3: 1 });
+  const alle = E.zuege(s, [3, 3], true);
+  const erste = new Set(alle.map((x) => x.z[0].f + '>' + x.z[0].t));
+  for (const v of ['6>3', '5>2', '4>1', '12>9']) assert.ok(erste.has(v), v + ' fehlt');
+  // nach 4->1 darf 6->3 als zweiter Teilzug folgen
+  assert.ok(alle.some((x) => x.z[0].f === 4 && x.z[0].t === 1 && x.z[1].f === 6 && x.z[1].t === 3));
+  // und die Partie nimmt diese Reihenfolge an
+  const p = E.neuePartie(1); p.s = s;
+  const z = alle.find((x) => x.z[0].f === 6 && x.z[0].t === 3).z;
+  assert.ok(E.spiele(p, [3, 3], z));
+});

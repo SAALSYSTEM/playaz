@@ -1,5 +1,5 @@
 // BACKGAMMON: Computergegner im Hintergrund (Web Worker), damit die Seite beim Nachdenken flüssig bleibt.
-import { partieAus, kiZug, rng } from './engine.js';
+import { partieAus, kiZug, rng } from './engine.js?v=2';
 
 onmessage = (e) => {
   const { id, z, wurf, stufe, seed } = e.data || {};

@@ -5,7 +5,7 @@
 // Hochformat: Das Brett liegt quer. Linke Spalte oben 11…6, unten 5…0 (Heimfeld Hell), rechte Spalte oben 12…17,
 // unten 18…23 (Heimfeld Dunkel). Hell zieht rechts hoch, oben hinüber und links hinunter. Spielt der Mensch Dunkel,
 // werden die Spalten gespiegelt, damit sein Weg genauso läuft. Mittelreihe = Bande und Würfel, unten das Feld „Raus“.
-import * as E from './engine.js';
+import * as E from './engine.js?v=2';
 
 const $ = (id) => document.getElementById(id);
 const KEY = 'backgammon.v1';
@@ -314,7 +314,7 @@ function fortsetzen() {
   const p = E.partieAus(o.z); if (!p) { store.offen = null; speichern(); return; }
   modus = o.modus; stufe = o.stufe; mensch = o.mensch;
   partie = p; teil = []; auswahl = -1; vorbei = null; anim = null; denkt = false; rollt = 0; kiNr++;
-  wurf = o.wurf; liste = wurf ? E.zuege(partie.s, wurf) : null;
+  wurf = o.wurf; liste = wurf ? E.zuege(partie.s, wurf, true) : null;
   zeige(null); panels(); standardHinweis(); weiter();
 }
 function merken() { store.offen = partie && !vorbei ? { modus, stufe, mensch, z: E.partieText(partie), wurf } : null; speichern(); }
@@ -332,7 +332,7 @@ function wuerfelnJetzt(danach) {
   const dauer = WENIG_BEWEGUNG ? 0 : 550;
   rollt = performance.now() + dauer; panels(); standardHinweis();
   setTimeout(() => {
-    rollt = 0; wurf = E.wuerfeln(); liste = E.zuege(partie.s, wurf); teil = []; auswahl = -1;
+    rollt = 0; wurf = E.wuerfeln(); liste = E.zuege(partie.s, wurf, true); teil = []; auswahl = -1;
     merken(); panels(); standardHinweis();
     if (danach) danach();
     else if (!liste[0].z.length) setTimeout(() => abschliessen(), 1300);
@@ -456,7 +456,7 @@ $('bZurueck').addEventListener('click', () => {
   const alt = partie.zuege[partie.zuege.length - k];
   const text = partie.beginner + ':' + partie.zuege.slice(0, partie.zuege.length - k).map((x) => E.kodiere(x.w, x.z)).join('.');
   const p = E.partieAus(text); if (!p) return;
-  partie = p; wurf = alt.w; liste = E.zuege(partie.s, wurf); teil = []; auswahl = -1; kiNr++;
+  partie = p; wurf = alt.w; liste = E.zuege(partie.s, wurf, true); teil = []; auswahl = -1; kiNr++;
   ton.wahl(); merken(); panels(); standardHinweis();
 });
 
@@ -539,4 +539,4 @@ const eU = $('eU'); if (eU && eU.previousElementSibling) eU.previousElementSibli
 // ---------- Start ----------
 laden(); tonKnopf(); groesse(); titel();
 requestAnimationFrame(schleife);
-window.__bg = { E, get partie() { return partie; }, get denkt() { return denkt; }, get vorbei() { return vorbei; }, get wurf() { return wurf; }, get rollt() { return rollt; }, get anim() { return anim; }, moeglich, tippe, steinPos, bandePos, rausBox, ort, get mensch() { return mensch; }, setzeWurf(w) { wurf = w; liste = E.zuege(partie.s, w); teil = []; auswahl = -1; panels(); standardHinweis(); } };
+window.__bg = { E, get partie() { return partie; }, get denkt() { return denkt; }, get vorbei() { return vorbei; }, get wurf() { return wurf; }, get rollt() { return rollt; }, get anim() { return anim; }, moeglich, tippe, steinPos, bandePos, rausBox, ort, get mensch() { return mensch; }, setzeWurf(w) { wurf = w; liste = E.zuege(partie.s, w, true); teil = []; auswahl = -1; panels(); standardHinweis(); } };
