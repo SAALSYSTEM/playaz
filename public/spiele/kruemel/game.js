@@ -1,7 +1,7 @@
 // Krümel – Oberfläche: Zeichnen (Platzhalter-Grafik), Kamera, Steuerung, Ton, Menüs.
 // Regeln/Physik stehen in engine.js. Fester 60-Hz-Takt, gezeichnet wird so oft der Bildschirm kann.
 import { T, HZ, SOLID, SHELF, LADDER, SUGAR, BELT_L, BELT_R, SPONGE, CAKE, dripAt, build, newWorld, step, tileAt, LIFT_H, freshSave, sanitizeSave, fmt, points } from './engine.js?v=5';
-import { LEVELS } from './levels.js?v=5';
+import { LEVELS } from './levels.js?v=6';
 
 const $ = (id) => document.getElementById(id);
 const app = $('app'), cv = $('game'), cx = cv.getContext('2d');
@@ -98,13 +98,13 @@ const cam = { x: 0, y: 0, look: 0 };
 let particles = [];
 let tipIdx = 0, tipTimer = 0;
 let winDelay = 0;
-let trail = [], prints = [], hoseT = 0, hoseFrom = null;   // Mäusefreunde laufen der Spur nach, Backpulver-Fußabdrücke, Wasserstrahl
+let trail = [], prints = [], hoseT = 0, hoseFrom = null, cakeT = [];   // Mäusefreunde laufen der Spur nach, Backpulver-Fußabdrücke, Wasserstrahl
 
 function startLevel(idx = levelIdx) {
   levelIdx = Math.max(0, Math.min(LEVELS.length - 1, idx));
   L = build(LEVELS[levelIdx]);
   s = newWorld(L);
-  particles = []; tipIdx = 0; tipTimer = 0; winDelay = 0; trail = []; prints = []; hoseT = 0;
+  particles = []; tipIdx = 0; tipTimer = 0; winDelay = 0; trail = []; prints = []; hoseT = 0; cakeT = [];
   snapCamera();
   $('tip').hidden = true;
   updateHud(true);
@@ -323,7 +323,7 @@ function handleEvents(ev) {
     else if (e === 'hose') { SFX.hose(); hoseT = 50; hoseFrom = L.taps.reduce((a, t) => (Math.abs(t.x - px) < Math.abs(a.x - px) ? t : a)); }
     else if (e === 'wildHiss') { SFX.hiss(); if (tipTimer === 0) showTip('😼', L.yarns.length ? 'Faucht! Erst das Wollknäuel holen' : 'Faucht! Erst den Wasserhahn antreten', 120); }
     else if (e === 'free') { SFX.free(); puff(px, py, 14, '#ffd21c', 2); showTip('🐭', `Mäusefreund befreit! (${s.freed})`, 110); }
-    else if (e === 'cake') { SFX.cake(); puff(px + 40, py, 30, '#ff8fb1', 3); showTip('🎂', 'Mampf! Alle zusammen futtern einen Tunnel', 120); }
+    else if (e === 'cake') { s.cakesOpen.forEach((o, i) => { if (o && cakeT[i] === undefined) cakeT[i] = s.t; }); SFX.cake(); puff(px + 40, py, 30, '#ff8fb1', 3); showTip('🎂', 'Mampf! Alle zusammen futtern einen Tunnel', 120); }
     else if (e === 'cakeNeed') { SFX.nope(); const k = L.cakes[0]; showTip('🎂', `Zu viel Kuchen! Du brauchst ${k.need} Mäusefreunde (${s.freed}/${k.need})`, 150); }
     else if (e === 'caught') showTip('👑', 'Fürst Fauch hat dich erwischt – weiter geht’s am Fähnchen!', 120);
     else if (e === 'hole') { SFX.hole(); puff(p.x + p.w / 2, p.y + p.h - 6, 8, '#8a6a4a', 1.4); }
@@ -618,12 +618,36 @@ function drawTiles() {
   }
 }
 
+// Riesenkuchen: nach dem Öffnen wird der Tunnel sichtbar von links nach rechts gefuttert (schneller, als Krümel läuft)
+const EAT_SPEED = 4;
+function cakeEaten(k, i) {
+  if (!s.cakesOpen[i]) return 0;
+  const w = (k.x1 - k.x0 + 1) * T;
+  return cakeT[i] === undefined ? w : Math.min(w, (s.t - cakeT[i]) * EAT_SPEED);
+}
 function drawCakes() {
   L.cakes.forEach((k, i) => {
-    const im = ok(s.cakesOpen[i] ? 'kuchen-tunnel' : 'kuchen'); if (!im) return;
     const x = k.x0 * T, y = k.y0 * T, w = (k.x1 - k.x0 + 1) * T, h = (k.y1 - k.y0 + 1) * T;
-    cx.drawImage(im, x - 4, y - 10, w + 8, h + 10);
+    const im = ok('kuchen');
+    if (im) cx.drawImage(im, x - 4, y - 10, w + 8, h + 10);
+    const eaten = cakeEaten(k, i); if (eaten <= 0) return;
+    // Tunnel mit angeknabberter Oberkante: dunkles Kuchen-Inneres, Krümelrand
+    const ty = k.ty0 * T - 6, by = (k.ty1 + 1) * T, r = 7;
+    cx.save();
+    cx.beginPath(); cx.moveTo(x - 4, by); cx.lineTo(x - 4, ty + r);
+    for (let bx = x - 4; bx < x + eaten; bx += r * 2) cx.arc(bx + r, ty + r, r, Math.PI, 0);
+    cx.lineTo(x + eaten, ty + r); cx.arc(x + eaten, (ty + by) / 2 + 3, (by - ty) / 2 - 3, -Math.PI / 2, Math.PI / 2); cx.lineTo(x - 4, by); cx.closePath();
+    const gr = cx.createLinearGradient(0, ty, 0, by); gr.addColorStop(0, '#5a3214'); gr.addColorStop(0.5, '#8a5526'); gr.addColorStop(1, '#a8703a');
+    cx.fillStyle = gr; cx.fill();
+    cx.strokeStyle = '#f3d9a4'; cx.lineWidth = 3; cx.stroke();
+    cx.restore();
+    // Krümel fliegen an der Fressstelle
+    if (eaten < w && s.t % 3 === 0) puff(x + eaten, by - 18, 2, '#e9c27a', 2);
   });
+}
+// Linsen im Kuchen erst zeigen, wenn dort schon gefuttert ist
+function chocHidden(c) {
+  return L.cakes.some((k, i) => c.x > k.x0 * T && c.x < (k.x1 + 1) * T && c.y > k.y0 * T && c.y < (k.y1 + 1) * T && c.x > k.x0 * T + cakeEaten(k, i));
 }
 function drawPlats() {
   for (const pl of s.plats) {
@@ -991,9 +1015,10 @@ function drawTap(t) {
   }
   if (hoseT > 0 && hoseFrom === t) {
     cx.strokeStyle = 'rgba(120,200,255,.8)'; cx.lineWidth = 5; cx.lineCap = 'round';
-    cx.beginPath(); cx.moveTo(t.x + 12, t.y - 22); cx.quadraticCurveTo(t.x + 110, t.y - 70, t.x + 220, t.y - 10); cx.stroke();
-    if (ok('spritzer')) sprite(IMG.spritzer, t.x + 222, t.y + 4, 30);
-    for (let i = 0; i < 6; i++) { cx.fillStyle = 'rgba(160,220,255,.9)'; cx.beginPath(); cx.arc(t.x + 200 + Math.random() * 40, t.y - 20 + Math.random() * 20, 2.5, 0, 7); cx.fill(); }
+    const wc = s.wilds.find((w) => w.wet && w.state === 'flee'), d = wc ? wc.x + wc.w / 2 - t.x : 150;
+    cx.beginPath(); cx.moveTo(t.x + 12, t.y - 22); cx.quadraticCurveTo(t.x + d / 2, t.y - 60, t.x + d, t.y - 14); cx.stroke();
+    if (ok('spritzer')) sprite(IMG.spritzer, t.x + d, t.y + 4, 30);
+    for (let i = 0; i < 6; i++) { cx.fillStyle = 'rgba(160,220,255,.9)'; cx.beginPath(); cx.arc(t.x + d - 20 + Math.random() * 40, t.y - 24 + Math.random() * 20, 2.5, 0, 7); cx.fill(); }
   }
 }
 function drawCage(c, i) {
@@ -1076,7 +1101,7 @@ function render() {
   L.mints.forEach(drawMint);
   L.flags.forEach((f, i) => drawFlag(f, s.flagHit[i]));
   L.crumbs.forEach((c, i) => { if (!s.crumbs[i]) drawCrumb(c.x, c.y, s.t); });
-  L.chocs.forEach((c, i) => { if (!s.chocs[i]) drawChoc(c, s.t); });
+  L.chocs.forEach((c, i) => { if (!s.chocs[i] && !chocHidden(c)) drawChoc(c, s.t); });
   L.golds.forEach((g, i) => {
     if (s.golds[i]) return;
     if (ok('goldkaese')) { const b = Math.sin((s.t + i * 20) / 15) * 2; cx.fillStyle = `rgba(255,210,28,${0.22 + 0.12 * Math.sin(s.t / 8)})`; cx.beginPath(); cx.arc(g.x, g.y + b, 15, 0, 7); cx.fill(); cx.drawImage(IMG.goldkaese, g.x - 14, g.y - 12 + b, 28, 23); }

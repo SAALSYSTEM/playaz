@@ -477,7 +477,7 @@ const B = {
     return [x + 11, g];
   },
   hose(L, x, g, o) {
-    fill(L, x, x + 10, g); L.tap(x + 1, g - 1); L.wild(x + 7, g - 1); L.crumbs(x + 3, x + 4, g - 1);
+    fill(L, x, x + 10, g); L.tap(x + 1, g - 1); L.wild(x + 5, g - 1); L.crumbs(x + 7, x + 9, g - 1);   // Katze nah genug, dass man sie beim Spritzen sieht
     return [x + 11, g];
   },
   cage(L, x, g, o) {
@@ -486,7 +486,7 @@ const B = {
   },
   cake(L, x, g, o) {
     const need = Math.max(1, o.cages || 0);
-    fill(L, x, x + 11, g); L.cake(x + 3, g - 6, x + 8, g - 1, need, g - 2, g - 1); L.chocs(x + 4, x + 7, g - 8);
+    fill(L, x, x + 11, g); L.cake(x + 3, g - 6, x + 8, g - 1, need, g - 2, g - 1); L.chocs(x + 4, x + 7, g - 1);   // Linsen stecken im Kuchen und tauchen beim Futtern auf
     return [x + 12, g];
   },
   sugarCage(L, x, g, o) {
