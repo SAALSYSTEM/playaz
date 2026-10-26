@@ -619,12 +619,13 @@ function flagTexture() {
   const tex = new T.CanvasTexture(cv); tex.encoding = T.sRGBEncoding; return tex;
 }
 const flagPos = W(...VILLAGE.flag); tileAt(...VILLAGE.flag).occ = 'flag';
-const pole = new T.Mesh(new T.CylinderGeometry(0.02, 0.026, 1.25, 6), M('#8C5A31')); pole.position.set(flagPos.x, 0.625, flagPos.z); pole.castShadow = true; scene.add(pole);
-const knob = new T.Mesh(new T.OctahedronGeometry(0.04, 0), M('#E0A834', { metalness: 0.3, roughness: 0.5 })); knob.position.set(flagPos.x, 1.27, flagPos.z); scene.add(knob);
+flagPos.x -= 0.36; flagPos.z -= 0.36; // Banner steht hinter dem Rathaus
+const pole = new T.Mesh(new T.CylinderGeometry(0.02, 0.026, 1.65, 6), M('#8C5A31')); pole.position.set(flagPos.x, 0.825, flagPos.z); pole.castShadow = true; scene.add(pole);
+const knob = new T.Mesh(new T.OctahedronGeometry(0.04, 0), M('#E0A834', { metalness: 0.3, roughness: 0.5 })); knob.position.set(flagPos.x, 1.67, flagPos.z); scene.add(knob);
 const flagGeo = new T.PlaneGeometry(0.56, 0.36, 12, 4); flagGeo.translate(0.28, 0, 0);
 const flagBase = flagGeo.attributes.position.array.slice();
 const flag = new T.Mesh(flagGeo, new T.MeshStandardMaterial({ map: flagTexture(), side: T.DoubleSide, roughness: 0.9 }));
-flag.position.set(flagPos.x + 0.02, 1.02, flagPos.z); flag.rotation.y = Math.PI / 4 - 0.3; flag.castShadow = true; scene.add(flag);
+flag.position.set(flagPos.x + 0.02, 1.42, flagPos.z); flag.rotation.y = Math.PI / 4 - 0.3; flag.castShadow = true; scene.add(flag);
 const stoneBase = new T.Mesh(new T.DodecahedronGeometry(0.1, 0), M('#968E82')); stoneBase.position.set(flagPos.x, 0.04, flagPos.z); stoneBase.scale.set(1.3, 0.6, 1.3); scene.add(stoneBase);
 
 // Holzlager: zeigt den Holzvorrat als Stapel
@@ -997,6 +998,91 @@ function fogChip(t) {
   if (z.busy) return '<b>Unbekanntes Land</b> · Der Späher ist unterwegs …';
   return '<b>Unbekanntes Land</b><button type="button" class="up" data-explore="' + z.id + '">Späher aussenden<span>' + ICON.food + z.cost + '</span></button>';
 }
+// ---------- Rathaus und Gebiet: nur im Gebiet darf gebaut werden ----------
+const TOWN_R = [0, 9, 13, 18];
+const TOWN_COST = { 2: { wood: 40, stone: 20, tools: 2 }, 3: { wood: 80, stone: 40, tools: 4, iron: 4 } };
+const town = { lvl: 1, g: null, x: VILLAGE.flag[0], z: VILLAGE.flag[1] };
+const inTerr = t => Math.hypot(t.x - VILLAGE.fire[0], t.z - VILLAGE.fire[1]) <= TOWN_R[town.lvl] + 0.01;
+function makeTownhall(lvl) {
+  const g = new T.Group(), wood = M('#8C5A31'), dark = M('#5E3E24'), stone = M('#9A9186'), thatch = M('#D9B86A'), orange = M('#E07A3A'), teal = M('#2F9C95'), bone = M('#EDE3C8');
+  const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => { const m = new T.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.set(rx, ry, rz); g.add(m); return m; };
+  const bowl = (x, z, y = 0) => { add(new T.CylinderGeometry(0.06, 0.04, 0.06, 7), stone, x, y + 0.03, z); add(new T.ConeGeometry(0.035, 0.09, 5), flameMats[0], x, y + 0.1, z); };
+  if (lvl === 1) {
+    add(new T.CylinderGeometry(0.3, 0.32, 0.26, 10), wood, 0, 0.13, 0);
+    add(new T.ConeGeometry(0.44, 0.38, 10), thatch, 0, 0.45, 0);
+    add(new T.BoxGeometry(0.2, 0.12, 0.02), orange, 0.12, 0.42, 0.27, -0.75);
+    add(new T.BoxGeometry(0.16, 0.1, 0.02), teal, -0.2, 0.4, 0.14, -0.6, -0.9);
+    add(new T.BoxGeometry(0.12, 0.17, 0.02), M('#3A2A1C'), 0, 0.085, 0.31);
+    add(new T.BoxGeometry(0.1, 0.16, 0.01), orange, 0.17, 0.16, 0.3);
+    for (const a of [0.4, 1.2, 2.2, 4.2, 5.2]) { add(new T.CylinderGeometry(0.025, 0.03, 0.22, 5), wood, Math.cos(a) * 0.4, 0.11, Math.sin(a) * 0.4); add(new T.ConeGeometry(0.03, 0.06, 5), dark, Math.cos(a) * 0.4, 0.25, Math.sin(a) * 0.4); }
+    bowl(-0.12, 0.38);
+  } else {
+    const big = lvl === 3 ? 1.12 : 1, y0 = lvl === 3 ? 0.16 : 0.08;
+    add(new T.BoxGeometry(0.86 * big, y0, 0.7 * big), stone, 0, y0 / 2, 0);
+    add(new T.BoxGeometry(0.2, y0 * 0.5, 0.14), stone, 0, y0 * 0.25, 0.4 * big);
+    add(new T.BoxGeometry(0.62 * big, 0.3, 0.44 * big), wood, 0, y0 + 0.15, 0);
+    const rg = new T.CylinderGeometry(0.32 * big, 0.32 * big, 0.74 * big, 3); rg.rotateX(-Math.PI / 2); rg.rotateY(Math.PI / 2); rg.scale(1, 0.9, 1.1);
+    add(rg, thatch, 0, y0 + 0.42, 0);
+    add(new T.BoxGeometry(0.2, 0.02, 0.36 * big), orange, 0.18, y0 + 0.47, 0.06, 0.6);
+    add(new T.BoxGeometry(0.14, 0.02, 0.3 * big), teal, -0.2, y0 + 0.47, -0.04, -0.6);
+    add(new T.BoxGeometry(0.13, 0.2, 0.02), M('#3A2A1C'), 0, y0 + 0.1, 0.225 * big);
+    for (const sx of [-0.2, 0.2]) add(new T.BoxGeometry(0.1, 0.18, 0.01), orange, sx * big, y0 + 0.16, 0.226 * big);
+    for (const sx of [-1, 1]) add(new T.ConeGeometry(0.03, 0.2, 5), bone, sx * 0.07, y0 + 0.76 * big, 0.33 * big, 0, 0, -sx * 0.5);
+    bowl(-0.3 * big, 0.42 * big, 0); bowl(0.3 * big, 0.42 * big, 0);
+    if (lvl === 3) {
+      add(new T.CylinderGeometry(0.13, 0.15, 0.82, 8), stone, -0.34, 0.41, -0.3);
+      add(new T.CylinderGeometry(0.17, 0.17, 0.05, 8), wood, -0.34, 0.84, -0.3);
+      add(new T.ConeGeometry(0.2, 0.22, 8), orange, -0.34, 0.97, -0.3);
+    }
+  }
+  g.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
+  const p = W(town.x, town.z); g.position.copy(p); g.rotation.y = Math.round(facing(p, firePos) / (Math.PI / 2)) * (Math.PI / 2);
+  return g;
+}
+// Grenze: Pfähle mit kleinen Bannern am Rand des Gebiets
+const postGeo = merge([[new T.CylinderGeometry(0.032, 0.038, 0.46, 5), mtx(0, 0.23, 0)], [new T.ConeGeometry(0.042, 0.09, 5), mtx(0, 0.5, 0)], [new T.DodecahedronGeometry(0.06, 0), mtx(0, 0.02, 0)]]);
+const pennGeo = new T.BufferGeometry(); pennGeo.setAttribute('position', new T.Float32BufferAttribute([0, 0.44, 0, 0.2, 0.38, 0, 0, 0.3, 0], 3)); pennGeo.computeVertexNormals();
+const posts = new T.InstancedMesh(postGeo, M('#8C5A31'), 600), penns = new T.InstancedMesh(pennGeo, new T.MeshStandardMaterial({ color: C('#E07A3A'), side: T.DoubleSide, roughness: 0.9 }), 300);
+posts.frustumCulled = penns.frustumCulled = false; posts.castShadow = true; scene.add(posts, penns);
+function updateBorder() {
+  let n = 0, k = 0;
+  for (const t of tiles) {
+    if (t.ch === 'w' || !inTerr(t)) continue;
+    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const o = tileAt(t.x + dx, t.z + dz); if (!o || inTerr(o) || n >= 600) continue;
+      dummy.position.set(t.wx + dx * 0.44, t.top, t.wz + dz * 0.44); dummy.rotation.set(0, dx ? Math.PI / 2 : 0, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
+      posts.setMatrixAt(n++, dummy.matrix);
+      if (k < 300) penns.setMatrixAt(k++, dummy.matrix);
+    }
+  }
+  const col = new T.Color(); // Land außerhalb etwas blasser
+  grassTiles.forEach((t, i) => { const f = grassItems[i].tint * (inTerr(t) ? 1 : 0.8); col.setRGB(f, f * (inTerr(t) ? 1 : 0.97), f * (inTerr(t) ? 1 : 0.92)); grassMesh.setColorAt(i, col); });
+  grassMesh.instanceColor.needsUpdate = true;
+  posts.count = n; penns.count = k; posts.instanceMatrix.needsUpdate = penns.instanceMatrix.needsUpdate = true;
+}
+function setTown(lvl, instant) {
+  town.lvl = clamp(lvl, 1, 3);
+  if (town.g) scene.remove(town.g);
+  town.g = makeTownhall(town.lvl); scene.add(town.g);
+  if (!instant) { town.g.scale.setScalar(0.001); popIns.push({ obj: town.g, t: 0 }); }
+  zones.forEach(z => { if (z.fog && z.tiles.some(inTerr)) { openZone(z, instant); if (!instant) toast(z.name + ' gehört jetzt zum Gebiet', 'Neue Bauplätze, Bäume und Beeren'); } });
+  updateBorder();
+}
+function townChip() {
+  const nm = '<b>Rathaus</b> · Stufe ' + town.lvl + ' · Gebiet ' + TOWN_R[town.lvl] + ' Felder';
+  if (town.lvl >= 3) return nm;
+  if (!know.has('ausbau')) return nm + ' · Ausbau erst in der Schule erforschen';
+  const c = TOWN_COST[town.lvl + 1];
+  return nm + '<button type="button" class="up" data-town="1">Ausbauen' + Object.entries(c).map(([r, n]) => '<span class="' + (state[r] < n ? 'lack' : '') + '">' + ICON[r] + n + '</span>').join('') + '</button>';
+}
+function upgradeTown() {
+  if (town.lvl >= 3 || !know.has('ausbau')) return;
+  const c = TOWN_COST[town.lvl + 1], miss = lacking(c);
+  if (miss) { toast('Es fehlen ' + miss, 'Die Arbeiter bringen Nachschub'); return; }
+  pay(c); setTown(town.lvl + 1); dust(W(town.x, town.z), 16); sound('done');
+  toast('Rathaus ausgebaut', 'Stufe ' + town.lvl + ' · das Gebiet wächst auf ' + TOWN_R[town.lvl] + ' Felder');
+  updateHud('pWood'); chip(townChip(), 8000); save();
+}
 person({ skin: pick(SKIN), hair: pick(HAIR), shirt: '#F6CF5E', sash: '#2F9C95', tool: 'toy', scale: 0.72 }, childPlan, firePos.x + 0.6, firePos.z, { name: 'Kind' });
 const elder = person({ skin: '#D9A066', hair: '#cfc6bb', shirt: '#E07A3A', scarf: '#E6CC9E', sash: '#2F9C95' }, () => [{ t: 'wait', d: 6, anim: 'sit', keepY: true }], firePos.x - 0.32, firePos.z - 0.36, { name: 'Älteste' });
 elder.o.position.set(firePos.x - 0.3, 0.07, firePos.z - 0.48); elder.o.rotation.y = 0.55;
@@ -1062,8 +1148,8 @@ const KINDS = Object.keys(BUILD);
 const RES = { wood: 'Holz', stone: 'Stein', food: 'Nahrung', iron: 'Eisen', tools: 'Werkzeug' };
 const lacking = cost => Object.entries(cost).filter(([r, n]) => state[r] < n).map(([r, n]) => (n - state[r]) + ' ' + RES[r]).join(', ');
 const pay = cost => { for (const r in cost) state[r] -= cost[r]; };
-const buildable = t => t.ch === 'g' && !t.occ && !t.fog && ((t.x >= 3 && t.x <= 11 && t.z >= 2 && t.z <= 6 && !(t.x === 3 && t.z === 2)) || (t.x >= 8 && t.x <= 11 && t.z >= 7 && t.z <= 11) || (t.nw && t.home) || t.open) && treesOn(t) === 0;
-const canBuild = (t, k) => k === 'bruecke' ? (t.x === 4 && t.z === 7 && !t.occ) : k === 'mine' ? (t.ch === 'r' && !t.occ && reach(t)) : buildable(t);
+const buildable = t => t.ch === 'g' && !t.occ && !t.fog && reach(t) && inTerr(t) && !(t.x === 3 && t.z === 2) && treesOn(t) === 0;
+const canBuild = (t, k) => k === 'bruecke' ? (t.x === 4 && t.z === 7 && !t.occ) : k === 'mine' ? (t.ch === 'r' && !t.occ && reach(t) && inTerr(t)) : buildable(t);
 const okTile = (k, t) => k === 'bruecke' ? t.ch === 'w' : k === 'mine' ? t.ch === 'r' : t.ch === 'g';
 const hlMat = new T.MeshBasicMaterial({ color: C('#c8ffd4'), transparent: true, opacity: 0.6, depthWrite: false });
 const hlGeo = new T.BoxGeometry(0.86, 0.02, 0.86);
@@ -1350,7 +1436,7 @@ function sound(kind) {
 let toastT = 0;
 function toast(title, sub) { const el = $('#toast'); el.innerHTML = ''; el.append(title); if (sub) { const s = document.createElement('small'); s.textContent = sub; el.append(s); } el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); }
 let chipTimer = 0;
-function chip(html, ms) { const el = $('#chip'); el.innerHTML = html; el.classList.toggle('act', html.includes('data-up') || html.includes('data-tech') || html.includes('data-explore')); el.hidden = false; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); clearTimeout(chipTimer); chipTimer = setTimeout(() => { el.hidden = true; }, ms || 4200); }
+function chip(html, ms) { const el = $('#chip'); el.innerHTML = html; el.classList.toggle('act', html.includes('data-up') || html.includes('data-tech') || html.includes('data-town') || html.includes('data-explore')); el.hidden = false; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); clearTimeout(chipTimer); chipTimer = setTimeout(() => { el.hidden = true; }, ms || 4200); }
 const hintAt = {};
 function hintOnce(key, html, every) { const n = Date.now(); if (hintAt[key] && n - hintAt[key] < every) return; hintAt[key] = n; if (started) chip(html); }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -1360,12 +1446,13 @@ const selGeo = merge([[new T.BoxGeometry(0.96, 0.025, 0.05), mtx(0, 0, 0.455)], 
 const sel = new T.Mesh(selGeo, new T.MeshBasicMaterial({ color: C('#FFF6E6') })); sel.visible = false; scene.add(sel);
 let selT = 0;
 
-const OCC = { tent: 'Zelt · 4 Wohnplätze', fire: 'Feuerstelle · Wärme und Licht', flag: 'Banner der Turi', logs: 'Lager · Holz und Stein', store: 'Vorräte · Beeren, Fisch und Getreide', pier: 'Steg · hier angelt der Fischer', bush: 'Beerenstrauch · Nahrung', site: 'Baustelle', holz: 'Holzfäller-Hütte · fällt Bäume', foerster: 'Förster-Hütte · pflanzt Bäume nach', stein: 'Steinbruch · bricht Stein am Felsen', sammler: 'Sammlerhütte · Beeren und Kräuter', farm: 'Bauernhof · Getreide, nicht im Winter', bruecke: 'Brücke · führt ans Westufer', smithy: 'Schmiede · macht Werkzeug', schule: 'Schule · hier wird geforscht', mine: 'Bergwerk · fördert Eisen' };
+const OCC = { tent: 'Zelt · 4 Wohnplätze', fire: 'Feuerstelle · Wärme und Licht', flag: 'Rathaus · Herz des Dorfes', logs: 'Lager · Holz und Stein', store: 'Vorräte · Beeren, Fisch und Getreide', pier: 'Steg · hier angelt der Fischer', bush: 'Beerenstrauch · Nahrung', site: 'Baustelle', holz: 'Holzfäller-Hütte · fällt Bäume', foerster: 'Förster-Hütte · pflanzt Bäume nach', stein: 'Steinbruch · bricht Stein am Felsen', sammler: 'Sammlerhütte · Beeren und Kräuter', farm: 'Bauernhof · Getreide, nicht im Winter', bruecke: 'Brücke · führt ans Westufer', smithy: 'Schmiede · macht Werkzeug', schule: 'Schule · hier wird geforscht', mine: 'Bergwerk · fördert Eisen' };
 function tileInfo(t) {
   let txt = `<b>${t.type.name}</b> · ${t.type.res}`;
   if (t.occ === 'logs') txt = `<b>Lager</b> · ${state.wood} Holz · ${state.stone} Stein`;
   else if (t.occ) txt = `<b>${esc(OCC[t.occ].split(' · ')[0])}</b>` + (OCC[t.occ].includes(' · ') ? ' · ' + esc(OCC[t.occ].split(' · ')[1]) : '');
   if (t.ch === 'w') txt += ' · Fischbestand 9/12';
+  else if (!t.fog && !inTerr(t)) txt += ' · außerhalb des Gebiets';
   const n = treesOn(t);
   if (n) { const young = trees.filter(tr => tr.tile === t && !tr.fell && tr.g < 1).length; txt += ' · ' + n + (n === 1 ? ' Baum' : ' Bäume') + (young ? ' (' + young + ' jung)' : ''); }
   return txt;
@@ -1434,6 +1521,7 @@ const ray = new T.Raycaster(), ndc = new T.Vector2();
 function pickTile(x, y) {
   ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1);
   ray.setFromCamera(ndc, cam);
+  if (town.g && ray.intersectObject(town.g, true).length) return tileAt(town.x, town.z);
   const bh = ray.intersectObjects(built.map(b => b.g), true)[0];
   if (bh) { let o = bh.object; while (o) { const b = built.find(q => q.g === o); if (b) return tileAt(b.x, b.z); o = o.parent; } }
   const hits = ray.intersectObjects([grassMesh, waterMesh], false);
@@ -1453,7 +1541,8 @@ function onTap(x, y) {
   sel.position.set(t.wx, t.top + 0.015, t.wz); sel.visible = true; selT = 0;
   if (t.fog) { sel.visible = false; chip(fogChip(t), 8000); sound('tap'); return; }
   const bb = t.occ && t.occ !== 'site' ? builtAt(t.x, t.z) : null;
-  if (bb && bb.kind !== 'bruecke') chip(upChip(bb), 8000); else chip(tileInfo(t));
+  if (t.occ === 'flag') chip(townChip(), 8000);
+  else if (bb && bb.kind !== 'bruecke') chip(upChip(bb), 8000); else chip(tileInfo(t));
   sound('tap');
 }
 
@@ -1508,7 +1597,7 @@ function pickKind(k) {
   }
   if (k === 'mine' && !tiles.some(t => canBuild(t, k))) { toast('Kein freier Fels', 'Bergwerke stehen auf Felsen in Reichweite'); return; }
   if (k === 'bruecke' && bridgeOpen) { toast('Die Brücke steht schon', 'Das Westufer ist offen'); return; }
-  if (!tiles.some(t => canBuild(t, k))) { toast('Kein Platz mehr', 'Erkunde neues Land im Nebel'); return; }
+  if (!tiles.some(t => canBuild(t, k))) { toast('Kein Platz mehr im Gebiet', 'Baue das Rathaus aus, dann wächst das Gebiet'); return; }
   closeSheet(); enterBuild(k);
 }
 sheet.addEventListener('click', e => { const c = e.target.closest('.card'); if (c) pickKind(c.dataset.k); });
@@ -1549,7 +1638,7 @@ function upgrade(b) {
   else toast(BUILD[b.kind].name + ' ausgebaut', 'Stufe ' + b.lvl + ' · mehr Ertrag je Fuhre');
   updateHud('pWood'); chip(upChip(b), 8000); save();
 }
-$('#chip').addEventListener('click', e => { const ex = e.target.closest('[data-explore]'); if (ex) { explore(ex.dataset.explore); return; } const th = e.target.closest('[data-tech]'); if (th) { research(th.dataset.tech); return; } const u = e.target.closest('[data-up]'); if (!u) return; const [x, z] = u.dataset.up.split(',').map(Number), b = builtAt(x, z); if (b) upgrade(b); });
+$('#chip').addEventListener('click', e => { const ex = e.target.closest('[data-explore]'); if (ex) { explore(ex.dataset.explore); return; } if (e.target.closest('[data-town]')) { upgradeTown(); return; } const th = e.target.closest('[data-tech]'); if (th) { research(th.dataset.tech); return; } const u = e.target.closest('[data-up]'); if (!u) return; const [x, z] = u.dataset.up.split(',').map(Number), b = builtAt(x, z); if (b) upgrade(b); });
 
 // ---------- Speichern (nur in diesem Browser) ----------
 const KEY = 'stammvoelker.v1';
@@ -1558,7 +1647,7 @@ function save() {
     const f2 = v => Math.round(v * 100) / 100;
     localStorage.setItem(KEY, JSON.stringify({
       v: 1, map: 2, wood: state.wood, stone: state.stone, food: state.food, iron: state.iron, tools: state.tools, pop: state.pop, cap: state.cap, m: Math.round(meal.t), h: meal.hungry, z: zones.filter(z => !z.fog).map(z => z.id),
-      k: [...know], b: built.map(b => [b.kind, b.x, b.z, b.lvl]),
+      r: town.lvl, k: [...know], b: built.map(b => [b.kind, b.x, b.z, b.lvl]),
       s: sites.filter(s => !s.done).map(s => [s.kind, s.tile.x, s.tile.z]),
       t: trees.filter(tr => !tr.fell).map(tr => [tr.tile.x, tr.tile.z, f2(tr.ox), f2(tr.oz), tr.kind === 'c' ? 0 : 1, f2(tr.s), f2(tr.ry), f2(tr.g), f2(tr.tint)])
     }));
@@ -1598,6 +1687,11 @@ function load() {
     const [k, x, z] = r, t = tileAt(x, z);
     if (!KINDS.includes(k) || !t || !okTile(k, t) || t.occ) continue;
     t.occ = 'site'; sites.push(makeSite(t, k));
+  }
+  if (Number.isFinite(o.r)) setTown(Math.round(o.r), true);
+  else { // alter Spielstand: Gebiet so groß, dass alles Gebaute drin liegt
+    const far = [...built, ...sites.map(q => q.tile)].reduce((m, b) => Math.max(m, Math.hypot(b.x - VILLAGE.fire[0], b.z - VILLAGE.fire[1])), 0);
+    setTown(far <= TOWN_R[1] ? 1 : far <= TOWN_R[2] ? 2 : 3, true);
   }
   for (let i = 0; i < Math.min(10, state.pop - 12); i++) person({ ...look(), shirt: pick(['#E6CC9E', '#C9A876', '#E07A3A']), sash: pick(['#2F9C95', '#E07A3A']), tool: 'basket' }, gathererPlan, firePos.x + R(-0.8, 0.8), firePos.z + R(0.4, 1.0), { name: 'Bewohner' }).res = true;
 }
@@ -1664,7 +1758,8 @@ function degrade() {
   if (quality === 0) { renderer.shadowMap.type = T.PCFShadowMap; sun.shadow.mapSize.set(1024, 1024); sun.shadow.map && sun.shadow.map.dispose(); sun.shadow.map = null; pixelRatio = 1; renderer.setPixelRatio(1); resize(); }
 }
 
-if (/[?&]test\b/.test(location.search)) window.__sv = { know, TECH, routeTo, zones, openZone, state, tiles, trees, built, BUILD, setSeason, seasons: SEASONS, seasonNow, save, buildNow: (k, x, z) => { const t = tileAt(x, z); t.occ = 'site'; const st = makeSite(t, k); st.progress = 1; finishSite(st); }, screenOf: (x, z) => { const t = tileAt(x, z); const v = V(t.wx, t.top, t.wz).project(cam); return [(v.x * 0.5 + 0.5) * innerWidth, (-v.y * 0.5 + 0.5) * innerHeight]; }, cam: camS, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length }) };
+if (/[?&]test\b/.test(location.search)) window.__sv = { town, setTown, inTerr, know, TECH, routeTo, zones, openZone, state, tiles, trees, built, BUILD, setSeason, seasons: SEASONS, seasonNow, save, buildNow: (k, x, z) => { const t = tileAt(x, z); t.occ = 'site'; const st = makeSite(t, k); st.progress = 1; finishSite(st); }, screenOf: (x, z) => { const t = tileAt(x, z); const v = V(t.wx, t.top, t.wz).project(cam); return [(v.x * 0.5 + 0.5) * innerWidth, (-v.y * 0.5 + 0.5) * innerHeight]; }, cam: camS, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length }) };
+setTown(1, true);
 load();
 rebuildTrees();
 setSeason(seasonNow(), true);
