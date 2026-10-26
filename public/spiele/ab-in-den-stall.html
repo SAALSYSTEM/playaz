@@ -1,0 +1,129 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Ab in den Stall! · Bauernhofspiel für Kinder</title><meta name="description" content="Weg malen, Tiere nach Hause bringen: Küken, Ferkel, Kälbchen und Co. wollen in ihren Stall. 30 Level für Kinder ab 4 Jahren, ohne Anmeldung."><meta name="robots" content="noindex"><link rel="canonical" href="https://playsaal.com/spiele/ab-in-den-stall"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Ab in den Stall! · Bauernhofspiel für Kinder"><meta property="og:description" content="Weg malen, Tiere nach Hause bringen – 30 Level für Kinder ab 4."><meta property="og:url" content="https://playsaal.com/spiele/ab-in-den-stall"><meta property="og:image" content="https://playsaal.com/og-playsaal-1200x630.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#11121A"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/fonts.css"><style>
+:root{color-scheme:light;--ink:#11121A;--brand:#FF9200;--act:#FFD21C;--glass:rgba(255,255,255,.9);font-family:"Fredoka","Barlow",system-ui,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;touch-action:none}
+body{background:#8fd16a;color:var(--ink)}
+.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 12px);left:calc(env(safe-area-inset-left,0px) + 12px);width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(17,18,26,.72);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}
+.pz-home:focus-visible{outline:3px solid #FFD21C;outline-offset:2px}
+#app{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(100vw,calc(100dvh * .62));overflow:hidden;background:#8fd16a}
+@supports not (height:100dvh){#app{width:min(100vw,calc(100vh * .62))}}
+#game{position:absolute;inset:0;display:block;touch-action:none}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* HUD */
+#hud{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 12px) 10px 0 60px;display:flex;gap:6px;align-items:center;pointer-events:none;z-index:3;transition:opacity .2s}
+#hud.off{opacity:0;visibility:hidden}
+.chip{height:40px;min-width:40px;padding:0 11px;border-radius:14px;background:var(--glass);box-shadow:0 2px 8px rgba(17,18,26,.18);display:flex;align-items:center;gap:6px;font-weight:700;font-size:19px;white-space:nowrap}
+#chipLevel{background:var(--ink);color:#fff}
+#chipLevel svg{width:18px;height:18px;color:var(--brand)}
+#chipHome svg{width:22px;height:22px}
+#btnPause{margin-left:auto;pointer-events:auto;width:44px;height:44px;border:0;border-radius:14px;background:var(--glass);box-shadow:0 2px 8px rgba(17,18,26,.18);display:grid;place-items:center}
+#btnPause svg{width:22px;height:22px}
+/* Tipp zu Levelbeginn */
+#tip{position:absolute;left:0;right:0;margin:0 auto;width:fit-content;max-width:calc(100% - 24px);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);z-index:3;display:flex;align-items:center;gap:8px;padding:7px 14px;border-radius:18px;background:rgba(255,255,255,.95);box-shadow:0 4px 14px rgba(17,18,26,.22);font-weight:600;font-size:16px;line-height:1.2;pointer-events:none;transition:opacity .35s,transform .35s}
+#tip.away{opacity:0;transform:translateY(12px)}
+#tip .ic{font-size:22px}
+#tip small{display:none}
+/* Bildschirme */
+.screen{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 64px) 18px calc(env(safe-area-inset-bottom,0px) + 18px);background:rgba(17,18,26,.45);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);color:#fff;text-align:center;overflow:auto}
+.screen[hidden]{display:none}
+#start{background:linear-gradient(#8fd3f4 0%,#c6ecff 45%,#9bd770 46%,#77bf52 100%);color:var(--ink)}
+.title{margin:0;font-weight:700;font-size:clamp(40px,12.5vw,56px);line-height:.95;color:#fff;text-shadow:0 4px 0 #c0571b,0 6px 14px rgba(0,0,0,.25)}
+.title small{display:block;font-size:.4em;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.3);margin-top:8px}
+#hero{width:min(300px,78vw);height:auto;aspect-ratio:3/2}
+.big{display:flex;align-items:center;justify-content:center;gap:10px;min-width:190px;height:72px;padding:0 28px;border:0;border-radius:24px;background:var(--act);color:var(--ink);font-weight:700;font-size:28px;box-shadow:0 6px 0 #c99c00,0 10px 20px rgba(0,0,0,.22)}
+.big:active{transform:translateY(3px);box-shadow:0 3px 0 #c99c00}
+.big svg{width:34px;height:34px}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.sec{display:flex;align-items:center;gap:8px;height:52px;padding:0 16px;border:0;border-radius:18px;background:rgba(255,255,255,.94);color:var(--ink);font-weight:600;font-size:19px;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.sec svg,.sec .ico{width:24px;height:24px;display:grid;place-items:center}
+.sec .ico svg{width:24px;height:24px}
+.round{width:52px;padding:0;justify-content:center;border-radius:16px}
+#mStart{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px}
+.panel{background:rgba(17,18,26,.84);border-radius:26px;padding:22px 18px;display:flex;flex-direction:column;gap:12px;align-items:stretch;width:min(320px,90vw);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.panel h2{margin:0 0 2px;font-size:30px;font-weight:700;color:#fff}
+.panel .sec{justify-content:flex-start;height:58px;font-size:21px}
+.panel .big{height:64px;font-size:24px}
+.panel .round{width:58px;justify-content:center}
+#win .panel{align-items:center}
+.time{font-size:20px;font-weight:600;color:#ffe9a8}
+.record{display:inline-block;padding:3px 10px;border-radius:10px;background:var(--brand);color:var(--ink);font-weight:700;font-size:15px}
+.result{padding:8px 12px;border-radius:14px;font-weight:600;font-size:16px;line-height:1.3}
+.result.win{background:#2fbf71;color:#fff}.result.lose{background:#ffe7a6;color:#7a4c26}
+.challenge{margin:0;padding:12px;border-radius:18px;background:#ffe7a6;border:3px dashed #e0a24a;font:600 16px/1.3 "Fredoka";color:#7a4c26;max-width:320px}
+.challenge b{display:block;font-size:24px;color:#a2560a}
+.konto{padding:12px;border-radius:18px;background:#fff3d6;border:2px dashed #e0a24a;display:grid;gap:6px;justify-items:center;font:600 14px/1.35 "Barlow";color:#7a4c26;max-width:320px}
+.konto b{font:700 17px/1.1 "Fredoka";color:#a2560a}
+.konto[hidden]{display:none}
+.konto button{height:44px;padding:0 16px;border:0;border-radius:14px;background:var(--act);font-weight:700;font-size:16px;box-shadow:0 3px 0 #c99c00}
+/* Levelauswahl */
+#levels{justify-content:flex-start}
+#levels h2{margin:0;font-size:30px}
+.world{width:min(100%,360px);text-align:left;margin:6px 0 -4px;font-size:17px;font-weight:600;color:#fff;opacity:.9}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:min(100%,360px)}
+.lvl{position:relative;aspect-ratio:1;border:0;border-radius:16px;background:var(--sc,#ffb347);color:var(--ink);font-weight:700;font-size:24px;box-shadow:0 4px 0 rgba(0,0,0,.25);display:grid;place-items:center;line-height:1}
+.lvl small{position:absolute;left:0;right:0;bottom:4px;font-size:10px;font-weight:600;opacity:.75}
+.lvl.next{outline:4px solid #fff;animation:pulse 1.4s ease-in-out infinite}
+.lvl:disabled{background:#5d6479;color:#c9cde0;box-shadow:none;cursor:default}
+.lvl .ok{position:absolute;right:-4px;top:-4px;width:22px;height:22px}
+@keyframes pulse{50%{transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.lvl.next{animation:none}}
+#toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);z-index:9;padding:10px 16px;border-radius:14px;background:var(--ink);color:#fff;font-weight:600;font-size:16px;max-width:calc(100% - 24px);text-align:center}
+#toast[hidden]{display:none}
+body:not(.ready) #btnPlay{opacity:.6;pointer-events:none}
+</style></head><body data-mode="menu"><a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
+<main id="app">
+<canvas id="game" aria-label="Bauernhof: Vom Tier mit dem Finger einen Weg zu seinem Haus malen. Gatter antippen, dann gehen sie auf."></canvas>
+<div id="hud" class="off" role="status" aria-live="polite">
+  <div class="chip" id="chipLevel" title="Level"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z" fill="currentColor"/></svg><span class="sr">Level </span><span id="hudLevel">1</span></div>
+  <div class="chip" id="chipHome" title="Tiere zu Hause"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5L12 4l9 7.5" fill="none" stroke="#c0392b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 10v10h13V10" fill="#e74c3c"/><rect x="10" y="14" width="4" height="6" rx="1" fill="#7a2a1f"/></svg><span id="hudHome" aria-hidden="true">0/1</span><span class="sr" id="hudHomeLabel"></span></div>
+  <button id="btnPause" type="button" aria-label="Pause"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="5" height="16" rx="1.5" fill="currentColor"/><rect x="14" y="4" width="5" height="16" rx="1.5" fill="currentColor"/></svg></button>
+</div>
+<div id="tip" class="away" aria-live="polite"><span class="ic" id="tipIcon">👆</span><span><small id="tipLevel">Level 1</small><span id="tipText"></span></span></div>
+<div id="toast" hidden></div>
+
+<section id="start" class="screen" aria-label="Start">
+  <button class="sec round" id="mStart" type="button" data-mute><span class="ico"></span></button>
+  <h1 class="title">Ab in den Stall!<small>Tiere nach Hause bringen</small></h1>
+  <canvas id="hero" width="600" height="400" aria-hidden="true"></canvas>
+  <div id="challengeBox" class="challenge" hidden></div>
+  <button class="big" id="btnPlay" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg><span id="playLabel">Spielen</span></button>
+  <button class="sec" id="btnLevels" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="2" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="2" fill="currentColor"/><rect x="13" y="13" width="8" height="8" rx="2" fill="currentColor"/></svg>Level</button>
+  <div class="konto" id="kontoBoxMenu" hidden><b>🐣 Spielstand sichern</b><span>Mit kostenlosem Konto gehen eure Level nicht verloren. (ab 16 Jahren)</span><button type="button" id="kontoBtnMenu">Konto anlegen</button></div>
+</section>
+
+<section id="levels" class="screen" aria-label="Levelauswahl" hidden>
+  <h2>Level</h2>
+  <div id="levelGrid"></div>
+  <button class="sec" id="levelsBack" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Zurück</button>
+</section>
+
+<section id="pause" class="screen" aria-label="Pause" hidden>
+  <div class="panel">
+    <h2>Pause</h2>
+    <button class="big" id="pResume" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg>Weiter</button>
+    <button class="sec" id="pRestart" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><path d="M4 4v5h5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Neustart</button>
+    <button class="sec" id="pLevels" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="2" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="2" fill="currentColor"/><rect x="13" y="13" width="8" height="8" rx="2" fill="currentColor"/></svg>Levelauswahl</button>
+    <button class="sec" id="pMute" type="button" data-mute><span class="ico"></span>Ton</button>
+  </div>
+</section>
+
+<section id="win" class="screen" aria-label="Geschafft" hidden>
+  <div class="panel">
+    <h2 id="winTitle">Super gemacht!</h2>
+    <div class="time">⏱ <span id="winTime">0,0 s</span> <span class="record" id="winRecord" hidden>Bestzeit!</span></div>
+    <div class="result" id="winResult" hidden></div>
+    <button class="big" id="winNext" type="button"><span class="lbl">Weiter</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="row">
+      <button class="sec round" id="winAgain" type="button" aria-label="Nochmal"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><path d="M4 4v5h5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="sec round" id="winLevels" type="button" aria-label="Levelauswahl"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="2" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="2" fill="currentColor"/><rect x="13" y="13" width="8" height="8" rx="2" fill="currentColor"/></svg></button>
+      <button class="sec round" id="winShare" type="button" aria-label="Freunde herausfordern"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3" fill="currentColor"/><circle cx="6" cy="12" r="3" fill="currentColor"/><circle cx="18" cy="19" r="3" fill="currentColor"/><path d="M8.6 10.7l6.8-4M8.6 13.3l6.8 4" stroke="currentColor" stroke-width="2.2"/></svg></button>
+    </div>
+    <div class="konto" id="kontoBox" hidden><b>🐣 Spielstand sichern</b><span>Mit einem kostenlosen PlaySaal-Konto bleiben eure Level erhalten – auch auf einem neuen Handy. (ab 16 Jahren)</span><button type="button" id="kontoBtn">Konto anlegen</button></div>
+  </div>
+</section>
+</main>
+<script type="module" src="ab-in-den-stall/game.js"></script>
+<script src="../assets/playsaal-config.js" defer></script><script src="../assets/playsaal.js" defer></script></body></html>

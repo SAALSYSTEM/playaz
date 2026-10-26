@@ -70,6 +70,8 @@
       info: (g) => { const d = J(g['turmschicht.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
     { id: 'dinoleiter', name: 'Dino-Leiterhelden', prefix: 'dinoleiter.', haupt: ['dinoleiter.v1'],
       info: (g) => { const d = J(g['dinoleiter.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
+    { id: 'stall', name: 'Ab in den Stall!', prefix: 'stall.', haupt: ['stall.v1'],
+      info: (g) => { const d = J(g['stall.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
     { id: 'wassermarsch', name: 'Wasser Marsch!', prefix: 'wassermarsch.', haupt: ['wassermarsch.v1'],
       info: (g) => { const d = J(g['wassermarsch.v1']) || {}; const lv = Object.keys(d.done || {}).length; return { text: lv + ' von 25 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
     { id: 'sprungsebi', name: 'SprungSebi', prefix: 'sprungssebi.', haupt: ['sprungssebi.v1'],
