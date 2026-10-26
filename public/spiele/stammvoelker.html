@@ -1127,7 +1127,7 @@ const NEEDS_ROAD = ['holz', 'foerster', 'stein', 'sammler', 'farm', 'smithy', 'm
 const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 const nbs = t => N4.map(([dx, dz]) => tileAt(t.x + dx, t.z + dz)).filter(Boolean);
 const roadOk = t => !!t && t.ch !== 'w' && t.ch !== 'r' && !t.occ && !t.fog && reach(t) && inTerr(t);
-const isNode = t => roads.has(key(t)) || (t.x === town.x && t.z === town.z) || t.occ === 'bruecke';
+const isNode = t => roads.has(key(t)) || (t.x === town.x && t.z === town.z) || ['bruecke', 'fire', 'logs', 'store'].includes(t.occ);
 const onRoad = (x, z) => { const t = tileAtWorld(x, z); return !!t && (roads.has(key(t)) || t.occ === 'bruecke'); };
 const roadTex = new T.TextureLoader().load('stammvoelker/weg.webp'); roadTex.encoding = T.sRGBEncoding;
 const roadGeo = new T.PlaneGeometry(1, 1); roadGeo.rotateX(-Math.PI / 2);
@@ -1155,7 +1155,7 @@ function drawRoads() {
 }
 function computeConn() {
   conn.clear();
-  const start = tileAt(town.x, town.z), q = [start]; conn.add(key(start));
+  const q = [tileAt(town.x, town.z), ...['fire', 'logs', 'store'].map(k => tileAt(...VILLAGE[k]))]; q.forEach(t => conn.add(key(t))); // Rathaus und Dorfplatz
   while (q.length) { const t = q.shift(); for (const o of nbs(t)) if (!conn.has(key(o)) && isNode(o)) { conn.add(key(o)); q.push(o); } }
   for (const b of built) {
     if (!NEEDS_ROAD.includes(b.kind)) continue;
@@ -1178,12 +1178,14 @@ function autoPath(b) {
 }
 function connectHut(b) {
   const path = autoPath(b);
-  if (!path) { toast('Kein Weg möglich', 'Das Gelände lässt keinen Weg bis zum Rathaus zu'); return; }
+  if (!path) { toast('Kein Platz für einen Weg', 'Rund um die Hütte ist alles bebaut'); return; }
   if (state.wood < path.length) { toast('Es fehlen ' + (path.length - state.wood) + ' Holz', 'Ein Weg kostet 1 Holz je Feld'); return; }
   state.wood -= path.length; path.forEach(k => roads.add(k)); computeConn(); updateHud('pWood'); sound('build');
   dust(W(b.x, b.z), 8); toast('Weg gebaut', path.length + ' Felder · ' + BUILD[b.kind].name + ' arbeitet wieder voll'); chip(upChip(b), 8000); save();
 }
 function roadTap(t) {
+  const hb = t && t.occ && builtAt(t.x, t.z);
+  if (hb && hb.conn === false) { connectHut(hb); showBuildable(true); return; }
   if (t && roads.has(key(t))) { roads.delete(key(t)); computeConn(); showBuildable(true); sound('tap'); save(); return; }
   if (!t || !roadOk(t)) { toast('Hier geht kein Weg', 'Nur auf freiem Land im Gebiet'); return; }
   if (state.wood < 1) { toast('Es fehlt 1 Holz', 'Ein Weg kostet 1 Holz je Feld'); return; }
@@ -1738,7 +1740,7 @@ function upChip(b) {
   let info = 'Stufe ' + b.lvl;
   if (b.conn === false) {
     const path = autoPath(b); info = ico('warn') + 'kein Weg zum Rathaus, halbe Arbeit';
-    if (path) btn.push('<button type="button" class="up" data-road="' + b.x + ',' + b.z + '">Weg bauen' + cost({ wood: path.length }) + '</button>'); else info += ' · kein Weg möglich';
+    if (path) btn.push('<button type="button" class="up" data-road="' + b.x + ',' + b.z + '">Weg bauen' + cost({ wood: path.length }) + '</button>'); else info += '<div class="stats">Kein Platz für einen Weg: alle Felder rundherum sind bebaut. Ein freies Nachbarfeld wird gebraucht.</div>';
   } else {
     if (b.paused) info += ' · pausiert';
     if (b.lvl >= UPG_MAX) info += ' · voll ausgebaut';
