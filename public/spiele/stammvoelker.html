@@ -789,12 +789,12 @@ class Agent {
       if (!c.pts) c.pts = routeTo(o.position, c.to);
       const tg = c.pts[0] || c.to;
       tmpV.set(tg.x - o.position.x, 0, tg.z - o.position.z);
-      const d = tmpV.length(), sp = (c.speed || this.speed) * dt;
+      const d = tmpV.length(), sp = (c.speed || this.speed) * dt * (onRoad(o.position.x, o.position.z) ? 1.5 : 1);
       if (d < 0.02 || d < sp) { o.position.x = tg.x; o.position.z = tg.z; c.pts.shift(); if (!c.pts.length) done = true; }
       else { tmpV.multiplyScalar(sp / d); o.position.x += tmpV.x; o.position.z += tmpV.z; turnTo(o, Math.atan2(tmpV.x, tmpV.z), dt); }
       anim = c.anim || 'walk';
     } else if (c.t === 'work' || c.t === 'wait') {
-      this.tm += dt; anim = c.anim || 'idle';
+      this.tm += dt * (this.home && this.home.conn === false ? 0.5 : 1); anim = c.anim || 'idle';
       if (c.face) turnTo(o, facing(o.position, c.face), dt);
       if (c.until ? c.until(this, dt) : this.tm >= c.d) done = true;
     } else if (c.t === 'do') { c.fn(this); done = true; }
@@ -1083,6 +1083,72 @@ function upgradeTown() {
   toast('Rathaus ausgebaut', 'Stufe ' + town.lvl + ' · das Gebiet wächst auf ' + TOWN_R[town.lvl] + ' Felder');
   updateHud('pWood'); chip(townChip(), 8000); save();
 }
+// ---------- Wege: Hütten brauchen einen Weg zum Rathaus, sonst nur halbe Arbeit ----------
+const roads = new Set(), conn = new Set();
+const key = t => t.x + ',' + t.z;
+const NEEDS_ROAD = ['holz', 'foerster', 'stein', 'sammler', 'farm', 'smithy', 'mine'];
+const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+const nbs = t => N4.map(([dx, dz]) => tileAt(t.x + dx, t.z + dz)).filter(Boolean);
+const roadOk = t => !!t && t.ch !== 'w' && t.ch !== 'r' && !t.occ && !t.fog && reach(t) && inTerr(t);
+const isNode = t => roads.has(key(t)) || (t.x === town.x && t.z === town.z) || t.occ === 'bruecke';
+const onRoad = (x, z) => { const t = tileAtWorld(x, z); return !!t && (roads.has(key(t)) || t.occ === 'bruecke'); };
+const roadTex = new T.TextureLoader().load('stammvoelker/weg.webp'); roadTex.encoding = T.sRGBEncoding;
+const roadGeo = new T.PlaneGeometry(1, 1); roadGeo.rotateX(-Math.PI / 2);
+const roadMesh = new T.InstancedMesh(roadGeo, new T.MeshStandardMaterial({ map: roadTex, roughness: 1 }), 2400);
+roadMesh.count = 0; roadMesh.receiveShadow = true; roadMesh.frustumCulled = false; scene.add(roadMesh);
+const warnTex = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const g = cv.getContext('2d');
+  g.fillStyle = '#E07A3A'; g.beginPath(); g.arc(32, 32, 28, 0, 7); g.fill(); g.lineWidth = 5; g.strokeStyle = '#fff'; g.stroke();
+  g.fillStyle = '#fff'; g.fillRect(28, 14, 8, 24); g.fillRect(28, 43, 8, 8); const tx = new T.CanvasTexture(cv); tx.encoding = T.sRGBEncoding; return tx; })();
+function drawRoads() {
+  let n = 0;
+  const put = (x, y, z, sx, sz) => { if (n >= 2400) return; dummy.position.set(x, y, z); dummy.rotation.set(0, 0, 0); dummy.scale.set(sx, 1, sz); dummy.updateMatrix(); roadMesh.setMatrixAt(n++, dummy.matrix); };
+  for (const k of roads) {
+    const [x, z] = k.split(',').map(Number), t = tileAt(x, z); if (!t) continue;
+    const y = t.top + 0.006; put(t.wx, y, t.wz, 0.5, 0.5);
+    for (const [dx, dz] of N4) {
+      const o = tileAt(x + dx, z + dz); if (!o) continue;
+      const b = o.occ && builtAt(o.x, o.z);
+      if (isNode(o) || (b && NEEDS_ROAD.includes(b.kind))) put(t.wx + dx * 0.375, y, t.wz + dz * 0.375, dx ? 0.25 : 0.5, dz ? 0.25 : 0.5);
+    }
+  }
+  roadMesh.count = n; roadMesh.instanceMatrix.needsUpdate = true;
+}
+function computeConn() {
+  conn.clear();
+  const start = tileAt(town.x, town.z), q = [start]; conn.add(key(start));
+  while (q.length) { const t = q.shift(); for (const o of nbs(t)) if (!conn.has(key(o)) && isNode(o)) { conn.add(key(o)); q.push(o); } }
+  for (const b of built) {
+    if (!NEEDS_ROAD.includes(b.kind)) continue;
+    b.conn = nbs(tileAt(b.x, b.z)).some(o => conn.has(key(o)));
+    if (!b.conn && !b.warn) { b.warn = new T.Sprite(new T.SpriteMaterial({ map: warnTex, depthTest: false })); b.warn.scale.setScalar(0.26); b.warn.renderOrder = 5; const p = W(b.x, b.z); b.warn.position.set(p.x, p.y + 0.95, p.z); scene.add(b.warn); }
+    if (b.warn) b.warn.visible = !b.conn;
+  }
+  drawRoads();
+}
+// kürzester Weg von einer Hütte bis ans Wegenetz (nur neue Felder kosten Holz)
+function autoPath(b) {
+  const prev = new Map(), q = [];
+  for (const o of nbs(tileAt(b.x, b.z))) { if (conn.has(key(o))) return []; if (roadOk(o) || roads.has(key(o))) { prev.set(key(o), null); q.push(o); } }
+  while (q.length) {
+    const t = q.shift();
+    if (nbs(t).some(o => conn.has(key(o)))) { const path = []; for (let k = key(t); k; k = prev.get(k)) path.push(k); return path.filter(k => !roads.has(k)); }
+    for (const o of nbs(t)) if (!prev.has(key(o)) && (roadOk(o) || roads.has(key(o)))) { prev.set(key(o), key(t)); q.push(o); }
+  }
+  return null;
+}
+function connectHut(b) {
+  const path = autoPath(b);
+  if (!path) { toast('Kein Weg möglich', 'Das Gelände lässt keinen Weg bis zum Rathaus zu'); return; }
+  if (state.wood < path.length) { toast('Es fehlen ' + (path.length - state.wood) + ' Holz', 'Ein Weg kostet 1 Holz je Feld'); return; }
+  state.wood -= path.length; path.forEach(k => roads.add(k)); computeConn(); updateHud('pWood'); sound('build');
+  dust(W(b.x, b.z), 8); toast('Weg gebaut', path.length + ' Felder · ' + BUILD[b.kind].name + ' arbeitet wieder voll'); chip(upChip(b), 8000); save();
+}
+function roadTap(t) {
+  if (t && roads.has(key(t))) { roads.delete(key(t)); computeConn(); showBuildable(true); sound('tap'); save(); return; }
+  if (!t || !roadOk(t)) { toast('Hier geht kein Weg', 'Nur auf freiem Land im Gebiet'); return; }
+  if (state.wood < 1) { toast('Es fehlt 1 Holz', 'Ein Weg kostet 1 Holz je Feld'); return; }
+  state.wood -= 1; roads.add(key(t)); computeConn(); showBuildable(true); updateHud('pWood'); sound('build'); save();
+}
 person({ skin: pick(SKIN), hair: pick(HAIR), shirt: '#F6CF5E', sash: '#2F9C95', tool: 'toy', scale: 0.72 }, childPlan, firePos.x + 0.6, firePos.z, { name: 'Kind' });
 const elder = person({ skin: '#D9A066', hair: '#cfc6bb', shirt: '#E07A3A', scarf: '#E6CC9E', sash: '#2F9C95' }, () => [{ t: 'wait', d: 6, anim: 'sit', keepY: true }], firePos.x - 0.32, firePos.z - 0.36, { name: 'Älteste' });
 elder.o.position.set(firePos.x - 0.3, 0.07, firePos.z - 0.48); elder.o.rotation.y = 0.55;
@@ -1123,6 +1189,7 @@ const easeOutBack = k => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow
 // ---------- Gebäude: Auswahl, Kosten, Baustellen ----------
 const BUILD = {
   tent: { name: 'Zelt', info: '4 Wohnplätze', cost: { wood: 6 } },
+  weg: { name: 'Weg', info: 'je Feld, verbindet zum Rathaus', cost: { wood: 1 } },
   holz: { name: 'Holzfäller', info: 'fällt Bäume', cost: { wood: 8 } },
   foerster: { name: 'Förster', info: 'pflanzt Bäume nach', cost: { wood: 10, stone: 2 } },
   stein: { name: 'Steinbruch', info: 'bricht Stein', cost: { wood: 12 } },
@@ -1148,8 +1215,8 @@ const KINDS = Object.keys(BUILD);
 const RES = { wood: 'Holz', stone: 'Stein', food: 'Nahrung', iron: 'Eisen', tools: 'Werkzeug' };
 const lacking = cost => Object.entries(cost).filter(([r, n]) => state[r] < n).map(([r, n]) => (n - state[r]) + ' ' + RES[r]).join(', ');
 const pay = cost => { for (const r in cost) state[r] -= cost[r]; };
-const buildable = t => t.ch === 'g' && !t.occ && !t.fog && reach(t) && inTerr(t) && !(t.x === 3 && t.z === 2) && treesOn(t) === 0;
-const canBuild = (t, k) => k === 'bruecke' ? (t.x === 4 && t.z === 7 && !t.occ) : k === 'mine' ? (t.ch === 'r' && !t.occ && reach(t) && inTerr(t)) : buildable(t);
+const buildable = t => t.ch === 'g' && !t.occ && !roads.has(key(t)) && !t.fog && reach(t) && inTerr(t) && !(t.x === 3 && t.z === 2) && treesOn(t) === 0;
+const canBuild = (t, k) => k === 'weg' ? roadOk(t) && !roads.has(key(t)) : k === 'bruecke' ? (t.x === 4 && t.z === 7 && !t.occ) : k === 'mine' ? (t.ch === 'r' && !t.occ && reach(t) && inTerr(t)) : buildable(t);
 const okTile = (k, t) => k === 'bruecke' ? t.ch === 'w' : k === 'mine' ? t.ch === 'r' : t.ch === 'g';
 const hlMat = new T.MeshBasicMaterial({ color: C('#c8ffd4'), transparent: true, opacity: 0.6, depthWrite: false });
 const hlGeo = new T.BoxGeometry(0.86, 0.02, 0.86);
@@ -1271,9 +1338,9 @@ function finishSite(s) {
   const g = placeBuilding(s.kind, s.tile.x, s.tile.z, true);
   built.push({ kind: s.kind, x: s.tile.x, z: s.tile.z, lvl: 1, g });
   dust(s.p, 14); sound('done');
-  if (s.kind === 'bruecke') { openWest(); sound('done'); save(); return; }
+  if (s.kind === 'bruecke') { openWest(); computeConn(); sound('done'); save(); return; }
   if (s.kind === 'tent') { state.cap += 4; updateHud('pPop'); toast('Neues Zelt', '+4 Wohnplätze'); arrivalT = 8; }
-  else { spawnWorker(s.kind, s.tile.x, s.tile.z); toast(BUILD[s.kind].name + ' fertig', BUILD[s.kind].info); updateHud(); }
+  else { spawnWorker(s.kind, s.tile.x, s.tile.z); computeConn(); const nb = builtAt(s.tile.x, s.tile.z); toast(BUILD[s.kind].name + ' fertig', nb && nb.conn === false ? 'Tippe es an und baue einen Weg zum Rathaus' : BUILD[s.kind].info); updateHud(); }
   save();
 }
 // Neue Leute kommen, wenn Platz und Nahrung da sind
@@ -1436,7 +1503,7 @@ function sound(kind) {
 let toastT = 0;
 function toast(title, sub) { const el = $('#toast'); el.innerHTML = ''; el.append(title); if (sub) { const s = document.createElement('small'); s.textContent = sub; el.append(s); } el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); }
 let chipTimer = 0;
-function chip(html, ms) { const el = $('#chip'); el.innerHTML = html; el.classList.toggle('act', html.includes('data-up') || html.includes('data-tech') || html.includes('data-town') || html.includes('data-explore')); el.hidden = false; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); clearTimeout(chipTimer); chipTimer = setTimeout(() => { el.hidden = true; }, ms || 4200); }
+function chip(html, ms) { const el = $('#chip'); el.innerHTML = html; el.classList.toggle('act', html.includes('data-up') || html.includes('data-tech') || html.includes('data-town') || html.includes('data-road') || html.includes('data-explore')); el.hidden = false; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); clearTimeout(chipTimer); chipTimer = setTimeout(() => { el.hidden = true; }, ms || 4200); }
 const hintAt = {};
 function hintOnce(key, html, every) { const n = Date.now(); if (hintAt[key] && n - hintAt[key] < every) return; hintAt[key] = n; if (started) chip(html); }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -1533,7 +1600,8 @@ function onTap(x, y) {
   if (!sheet.hidden) { closeSheet(); return; }
   const t = pickTile(x, y);
   if (buildMode) {
-    if (t && canBuild(t, buildKind)) startSite(t);
+    if (buildKind === 'weg') roadTap(t);
+    else if (t && canBuild(t, buildKind)) startSite(t);
     else { toast('Hier geht es nicht', 'Wähle ein grün markiertes Feld'); }
     return;
   }
@@ -1551,7 +1619,9 @@ let buildMode = false, buildKind = 'tent';
 const sheet = $('#sheet'), buildBtn = $('#build');
 const ICON = { wood: $('#pWood svg').outerHTML, stone: $('#pStone svg').outerHTML, food: $('#pFood svg').outerHTML, iron: $('#pIron svg').outerHTML, tools: $('#pTool svg').outerHTML };
 const HUTC = { schule: '#3F7F8C', holz: '#8C5A31', foerster: '#4E8B45', stein: '#6F6A62', sammler: '#C0612B', farm: '#C9A33A', bruecke: '#8C5A31' };
-const hutIcon = k => k === 'smithy'
+const hutIcon = k => k === 'weg'
+  ? '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><path d="M6 28C14 20 12 12 22 8s16-2 18-6" fill="none" stroke="#C9A06A" stroke-width="8" stroke-linecap="round"/><path d="M6 28C14 20 12 12 22 8s16-2 18-6" fill="none" stroke="#8C5A31" stroke-width="1.5" stroke-dasharray="2 4"/></svg>'
+  : k === 'smithy'
   ? '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><rect x="8" y="14" width="28" height="13" rx="2" fill="#8F8A84"/><path d="M3 15 22 3l19 12z" fill="#7A3B2A"/><rect x="26" y="1" width="6" height="9" fill="#5E5953"/><rect x="19" y="18" width="6" height="9" fill="#E8742A"/></svg>'
   : k === 'mine'
   ? '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><path d="M3 27 16 7l8 8 6-5 11 17z" fill="#8A8378"/><path d="M16 27v-9a5 5 0 0 1 10 0v9z" fill="#2A2420"/><path d="M14 27V17h14v10" fill="none" stroke="#8C5A31" stroke-width="2.4"/></svg>'
@@ -1574,7 +1644,7 @@ function refreshSheet() {
 function openSheet() { refreshSheet(); sheet.hidden = false; buildBtn.setAttribute('aria-expanded', 'true'); $('#chip').hidden = true; sound('tap'); }
 function closeSheet() { sheet.hidden = true; buildBtn.setAttribute('aria-expanded', 'false'); }
 const label = (main, sub) => { buildBtn.firstElementChild.innerHTML = main + '<span>' + sub + '</span>'; };
-function enterBuild(k) { buildMode = true; buildKind = k; showBuildable(true); sel.visible = false; buildBtn.classList.add('on'); label('Abbrechen', 'Feld antippen'); chip('Tippe auf ein <b>grünes Feld</b> für: ' + BUILD[k].name); }
+function enterBuild(k) { buildMode = true; buildKind = k; showBuildable(true); sel.visible = false; buildBtn.classList.add('on'); label(k === 'weg' ? 'Fertig' : 'Abbrechen', 'Feld antippen'); chip(k === 'weg' ? 'Felder antippen: <b>Weg</b> legen · nochmal tippen entfernt' : 'Tippe auf ein <b>grünes Feld</b> für: ' + BUILD[k].name, k === 'weg' ? 7000 : 4200); }
 function exitBuild() { buildMode = false; showBuildable(false); buildBtn.classList.remove('on'); label('Bauen', 'Auswahl'); }
 function startSite(t) {
   const k = buildKind, cost = BUILD[k].cost;
@@ -1622,6 +1692,10 @@ function research(id) {
 }
 function upChip(b) {
   if (b.kind === 'schule') return techChip();
+  if (b.conn === false) {
+    const path = autoPath(b);
+    return '<b>' + esc(BUILD[b.kind].name) + '</b> · kein Weg zum Rathaus, halbe Arbeit' + (path ? '<button type="button" class="up" data-road="' + b.x + ',' + b.z + '">Weg bauen<span class="' + (state.wood < path.length ? 'lack' : '') + '">' + ICON.wood + path.length + '</span></button>' : ' · kein Weg möglich');
+  }
   if (!know.has('ausbau')) return '<b>' + esc(BUILD[b.kind].name) + '</b> · Ausbau erst in der Schule erforschen';
   const nm = esc(BUILD[b.kind].name) + ' · Stufe ' + b.lvl;
   if (b.lvl >= UPG_MAX) return '<b>' + nm + '</b> · voll ausgebaut';
@@ -1638,7 +1712,7 @@ function upgrade(b) {
   else toast(BUILD[b.kind].name + ' ausgebaut', 'Stufe ' + b.lvl + ' · mehr Ertrag je Fuhre');
   updateHud('pWood'); chip(upChip(b), 8000); save();
 }
-$('#chip').addEventListener('click', e => { const ex = e.target.closest('[data-explore]'); if (ex) { explore(ex.dataset.explore); return; } if (e.target.closest('[data-town]')) { upgradeTown(); return; } const th = e.target.closest('[data-tech]'); if (th) { research(th.dataset.tech); return; } const u = e.target.closest('[data-up]'); if (!u) return; const [x, z] = u.dataset.up.split(',').map(Number), b = builtAt(x, z); if (b) upgrade(b); });
+$('#chip').addEventListener('click', e => { const ex = e.target.closest('[data-explore]'); if (ex) { explore(ex.dataset.explore); return; } if (e.target.closest('[data-town]')) { upgradeTown(); return; } const rd = e.target.closest('[data-road]'); if (rd) { const [x, z] = rd.dataset.road.split(',').map(Number), b = builtAt(x, z); if (b) connectHut(b); return; } const th = e.target.closest('[data-tech]'); if (th) { research(th.dataset.tech); return; } const u = e.target.closest('[data-up]'); if (!u) return; const [x, z] = u.dataset.up.split(',').map(Number), b = builtAt(x, z); if (b) upgrade(b); });
 
 // ---------- Speichern (nur in diesem Browser) ----------
 const KEY = 'stammvoelker.v1';
@@ -1647,7 +1721,7 @@ function save() {
     const f2 = v => Math.round(v * 100) / 100;
     localStorage.setItem(KEY, JSON.stringify({
       v: 1, map: 2, wood: state.wood, stone: state.stone, food: state.food, iron: state.iron, tools: state.tools, pop: state.pop, cap: state.cap, m: Math.round(meal.t), h: meal.hungry, z: zones.filter(z => !z.fog).map(z => z.id),
-      r: town.lvl, k: [...know], b: built.map(b => [b.kind, b.x, b.z, b.lvl]),
+      r: town.lvl, w: [...roads], k: [...know], b: built.map(b => [b.kind, b.x, b.z, b.lvl]),
       s: sites.filter(s => !s.done).map(s => [s.kind, s.tile.x, s.tile.z]),
       t: trees.filter(tr => !tr.fell).map(tr => [tr.tile.x, tr.tile.z, f2(tr.ox), f2(tr.oz), tr.kind === 'c' ? 0 : 1, f2(tr.s), f2(tr.ry), f2(tr.g), f2(tr.tint)])
     }));
@@ -1693,6 +1767,9 @@ function load() {
     const far = [...built, ...sites.map(q => q.tile)].reduce((m, b) => Math.max(m, Math.hypot(b.x - VILLAGE.fire[0], b.z - VILLAGE.fire[1])), 0);
     setTown(far <= TOWN_R[1] ? 1 : far <= TOWN_R[2] ? 2 : 3, true);
   }
+  computeConn();
+  if (Array.isArray(o.w)) { o.w.forEach(k => { const t = typeof k === 'string' && tileAt(...k.split(',').map(Number)); if (t && t.ch !== 'w' && !t.occ) roads.add(key(t)); }); }
+  else built.forEach(b => { if (!NEEDS_ROAD.includes(b.kind)) return; const p = autoPath(b); if (p) { p.forEach(k => roads.add(k)); computeConn(); } }); // alter Spielstand: Wege geschenkt
   for (let i = 0; i < Math.min(10, state.pop - 12); i++) person({ ...look(), shirt: pick(['#E6CC9E', '#C9A876', '#E07A3A']), sash: pick(['#2F9C95', '#E07A3A']), tool: 'basket' }, gathererPlan, firePos.x + R(-0.8, 0.8), firePos.z + R(0.4, 1.0), { name: 'Bewohner' }).res = true;
 }
 
@@ -1758,9 +1835,10 @@ function degrade() {
   if (quality === 0) { renderer.shadowMap.type = T.PCFShadowMap; sun.shadow.mapSize.set(1024, 1024); sun.shadow.map && sun.shadow.map.dispose(); sun.shadow.map = null; pixelRatio = 1; renderer.setPixelRatio(1); resize(); }
 }
 
-if (/[?&]test\b/.test(location.search)) window.__sv = { town, setTown, inTerr, know, TECH, routeTo, zones, openZone, state, tiles, trees, built, BUILD, setSeason, seasons: SEASONS, seasonNow, save, buildNow: (k, x, z) => { const t = tileAt(x, z); t.occ = 'site'; const st = makeSite(t, k); st.progress = 1; finishSite(st); }, screenOf: (x, z) => { const t = tileAt(x, z); const v = V(t.wx, t.top, t.wz).project(cam); return [(v.x * 0.5 + 0.5) * innerWidth, (-v.y * 0.5 + 0.5) * innerHeight]; }, cam: camS, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length }) };
+if (/[?&]test\b/.test(location.search)) window.__sv = { roads, computeConn, autoPath, connectHut, town, setTown, inTerr, know, TECH, routeTo, zones, openZone, state, tiles, trees, built, BUILD, setSeason, seasons: SEASONS, seasonNow, save, buildNow: (k, x, z) => { const t = tileAt(x, z); t.occ = 'site'; const st = makeSite(t, k); st.progress = 1; finishSite(st); }, screenOf: (x, z) => { const t = tileAt(x, z); const v = V(t.wx, t.top, t.wz).project(cam); return [(v.x * 0.5 + 0.5) * innerWidth, (-v.y * 0.5 + 0.5) * innerHeight]; }, cam: camS, info: () => ({ calls: renderer.info.render.calls, tris: renderer.info.render.triangles, programs: renderer.info.programs.length }) };
 setTown(1, true);
 load();
+computeConn();
 rebuildTrees();
 setSeason(seasonNow(), true);
 updateHud();
