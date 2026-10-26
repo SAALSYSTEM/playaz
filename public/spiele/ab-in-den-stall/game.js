@@ -129,7 +129,8 @@ function cheeks(X, x, y, dx, r) { X.fillStyle = 'rgba(255,120,140,.35)'; for (co
 
 // (x, y) = Mitte, s = Größe (Feldbreite). o: { blink, happy }
 function drawAnimal(X, kind, x, y, s, o = {}) {
-  if (drawImg(X, 'tier-' + kind, x, y + s * 0.4, s * 0.92)) return;
+  const im = IMG['tier-' + kind];
+  if (im) { const h = s * 0.86, w = h * im.naturalWidth / im.naturalHeight; X.drawImage(im, x - w / 2, y + s * 0.42 - h, w, h); return; }
   const lw = s * 0.028, bl = !!o.blink;
   X.save(); X.lineJoin = 'round'; X.lineCap = 'round';
   if (kind === 'kueken') {
@@ -212,7 +213,7 @@ function drawHome(X, kind, x, y, s, o = {}) {
     X.beginPath(); X.ellipse(x, y + s * 0.05, s * 0.62, s * 0.58, 0, 0, TAU); X.fill();
   }
   if (kind === 'ente') {
-    if (!drawImg(X, 'teich', x, y + s * 0.42, s * 1.05)) {
+    if (!drawImg(X, 'teich', x, y + s * 0.47, s * 1.0)) {
       blob(X, x, y + s * 0.12, s * 0.48, s * 0.32, '#3b8fc7');
       blob(X, x, y + s * 0.1, s * 0.43, s * 0.27, '#62bdf0');
       X.strokeStyle = 'rgba(255,255,255,.7)'; X.lineWidth = s * 0.025; X.lineCap = 'round';
@@ -225,7 +226,7 @@ function drawHome(X, kind, x, y, s, o = {}) {
       blob(X, x - s * 0.05, y - s * 0.3, s * 0.15, s * 0.15, '#fff', OUT, s * 0.025);
       drawAnimal(X, 'ente', x - s * 0.05, y - s * 0.3, s * 0.36);
     }
-  } else if (!drawImg(X, 'haus-' + kind, x, y + s * 0.47, s * 1.04)) {
+  } else if (!drawImg(X, 'haus-' + kind, x, y + s * 0.47, s * 0.95)) {
     const c = HOUSE[kind], w = s * 0.9, h = s * 0.62, bx = x - w / 2, by = y + s * 0.46 - h;
     X.fillStyle = 'rgba(0,0,0,.15)'; X.beginPath(); X.ellipse(x, y + s * 0.46, w * 0.55, s * 0.07, 0, 0, TAU); X.fill();
     X.fillStyle = c.wall; X.strokeStyle = OUT; X.lineWidth = s * 0.03; roundRect(X, bx, by, w, h, s * 0.04); X.fill(); X.stroke();
@@ -250,7 +251,7 @@ function tileAt(r, c) { return r >= 0 && r < ROWS && c >= 0 && c < COLS ? st.til
 const isWet = (r, c) => { const t = tileAt(r, c); return t === 'bach' || t === 'bruecke'; };
 
 function drawTree(X, x, y, s) {
-  if (drawImg(X, 'baum', x, y + s * 0.45, s * 1.0)) return;
+  if (drawImg(X, 'baum', x, y + s * 0.45, s * 0.95)) return;
   X.fillStyle = 'rgba(0,0,0,.15)'; X.beginPath(); X.ellipse(x, y + s * 0.4, s * 0.32, s * 0.08, 0, 0, TAU); X.fill();
   X.fillStyle = '#8b5a2b'; roundRect(X, x - s * 0.07, y + s * 0.05, s * 0.14, s * 0.36, s * 0.04); X.fill();
   for (const [dx, dy, r, col] of [[-0.17, -0.02, 0.2, '#3f9b45'], [0.17, -0.02, 0.2, '#3f9b45'], [0, -0.2, 0.25, '#4caf50'], [0, 0.02, 0.22, '#45a849']]) blob(X, x + dx * s, y + dy * s, r * s, r * s, col);
@@ -258,7 +259,7 @@ function drawTree(X, x, y, s) {
   X.fillStyle = '#e74c3c'; for (const [dx, dy] of [[-0.12, -0.08], [0.14, -0.15], [0.05, 0.05]]) { X.beginPath(); X.arc(x + dx * s, y + dy * s, s * 0.035, 0, TAU); X.fill(); }
 }
 function drawHay(X, x, y, s) {
-  if (drawImg(X, 'heuballen', x, y + s * 0.42, s * 0.92)) return;
+  if (drawImg(X, 'heuballen', x, y + s * 0.4, s * 0.86)) return;
   X.fillStyle = 'rgba(0,0,0,.15)'; X.beginPath(); X.ellipse(x, y + s * 0.38, s * 0.4, s * 0.07, 0, 0, TAU); X.fill();
   X.fillStyle = '#f2c14e'; X.strokeStyle = '#b88a1e'; X.lineWidth = s * 0.03; roundRect(X, x - s * 0.4, y - s * 0.2, s * 0.8, s * 0.56, s * 0.14); X.fill(); X.stroke();
   X.strokeStyle = '#d9a52f'; X.lineWidth = s * 0.022;
@@ -325,7 +326,7 @@ function drawPuddle(X, r, c, x, y, s, t) {
 }
 function drawGate(X, r, c, x, y, s, open, pulse) {
   const vertical = (tileAt(r - 1, c) === 'zaun' || tileAt(r + 1, c) === 'zaun') && !(tileAt(r, c - 1) === 'zaun' || tileAt(r, c + 1) === 'zaun');
-  if (drawImg(X, open ? 'gatter-auf' : 'gatter-zu', x, y + s * 0.4, s)) { if (pulse && !open) tapRing(X, x, y, s, pulse); return; }
+  if (drawImg(X, open ? 'gatter-auf' : 'gatter-zu', x, y + s * 0.36, s * 1.02)) { if (pulse && !open) tapRing(X, x, y, s, pulse); return; }
   X.save(); X.translate(x, y); if (vertical) X.rotate(Math.PI / 2);
   X.fillStyle = '#c58b4c'; X.strokeStyle = OUT; X.lineWidth = s * 0.025;
   for (const sx of [-1, 1]) { roundRect(X, sx * s * 0.46 - s * 0.06, -s * 0.28, s * 0.12, s * 0.5, s * 0.04); X.fill(); X.stroke(); }
@@ -675,7 +676,7 @@ function drawHero() {
   const hc = $('hero'), X = hc.getContext('2d'), w = hc.width, h = hc.height;
   X.clearRect(0, 0, w, h);
   X.fillStyle = 'rgba(0,0,0,.08)'; X.beginPath(); X.ellipse(w / 2, h * 0.86, w * 0.46, h * 0.07, 0, 0, TAU); X.fill();
-  drawHome(X, 'kalb', w * 0.5, h * 0.42, h * 0.62);
+  drawHome(X, 'kalb', w * 0.5, h * 0.47, h * 0.6);
   drawTree(X, w * 0.13, h * 0.5, h * 0.42);
   drawAnimal(X, 'kueken', w * 0.22, h * 0.78, h * 0.26, { happy: true });
   drawAnimal(X, 'ferkel', w * 0.4, h * 0.8, h * 0.3, { happy: true });

@@ -1,6 +1,6 @@
 # PlaySaal
 
-**Ab in den Stall!:** Bauernhofspiel für Kinder ab 4 im Hochformat: vom Tier mit dem Finger einen Weg zu seinem Zuhause malen (Küken, Ferkel, Kälbchen, Lämmchen, Entchen, Fohlen). 30 Level in 3 Welten mit Bach und Brücke, Gattern zum Antippen und Pfützen nur für Ferkel; kein Scheitern, Herausforderung per Link. Noch `noindex` und nicht auf der Startseite (Test über `/spiele/ab-in-den-stall`), Grafiken sind gezeichnete Platzhalter. Details: [`docs/AB_IN_DEN_STALL.md`](docs/AB_IN_DEN_STALL.md). Test: `node --test tests/ab-in-den-stall-sim.test.mjs`.
+**Ab in den Stall!:** Bauernhofspiel für Kinder ab 4 im Hochformat: vom Tier mit dem Finger einen Weg zu seinem Zuhause malen (Küken, Ferkel, Kälbchen, Lämmchen, Entchen, Fohlen). 30 Level in 3 Welten mit Bach und Brücke, Gattern zum Antippen und Pfützen nur für Ferkel; kein Scheitern, Herausforderung per Link. Veröffentlicht am 26.10.2026 (`/spiele/ab-in-den-stall`). Grafiken: Originale von ChatGPT in `design/ab-in-den-stall/`, als WebP per `tools/ab-in-den-stall-assets.py`; Zaun, Bach und Brücke werden gezeichnet. Details: [`docs/AB_IN_DEN_STALL.md`](docs/AB_IN_DEN_STALL.md). Test: `node --test tests/ab-in-den-stall-sim.test.mjs`.
 
 **Halma:** Springspiel auf 16×16 Feldern (19 Steine je Seite, Sprungketten) mit denselben drei Computergegnern oder zu zweit. Veröffentlicht am 25.10.2026. Details: [`docs/HALMA.md`](docs/HALMA.md). Test: `node --test tests/halma-sim.test.mjs`.
 
