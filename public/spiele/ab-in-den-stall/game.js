@@ -103,7 +103,14 @@ function paintMute() {
     b.setAttribute('aria-label', save.mute ? 'Ton an' : 'Ton aus');
   });
 }
-function toggleMute() { save.mute = !save.mute; persist(); if (!save.mute) { unlockAudio(); SFX.click(); } paintMute(); }
+// Hintergrundlied: läuft nur im Spiel (auch auf dem Geschafft-Bildschirm), nicht in Menü, Levelauswahl und Pause; folgt dem Ton-Knopf
+const music = $('music'); music.volume = 0.3;
+function musicSync() {
+  const want = !save.mute && !document.hidden && (mode === 'play' || mode === 'cheer' || mode === 'won');
+  if (!want) { music.pause(); return; }
+  const p = music.play(); if (p && p.catch) p.catch(() => {});
+}
+function toggleMute() { save.mute = !save.mute; persist(); if (!save.mute) { unlockAudio(); SFX.click(); } paintMute(); musicSync(); }
 
 // ---------- Farben ----------
 const KIND_COL = { kueken: '#f5b800', ferkel: '#ff7aa2', kalb: '#5b6b7a', lamm: '#8c7bd1', ente: '#2f9ee8', fohlen: '#b8682c' };
@@ -705,6 +712,7 @@ function setMode(m) {
   if (m === 'pause') show('pause');
   if (m === 'won') showWin();
   document.body.dataset.mode = m;
+  musicSync();
 }
 function showWin() {
   const last = levelNo === LEVEL_COUNT;
@@ -788,7 +796,7 @@ $('winAgain').addEventListener('click', () => { SFX.click(); startLevel(levelNo)
 $('winLevels').addEventListener('click', () => { SFX.click(); openLevels(); });
 $('winShare').addEventListener('click', () => { SFX.click(); share(); });
 document.querySelectorAll('[data-mute]').forEach((b) => b.addEventListener('click', () => toggleMute()));
-document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); musicSync(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (mode === 'play') pause(); else if (mode === 'pause') resume(); } });
 
 // ---------- Schleife ----------

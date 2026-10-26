@@ -23,6 +23,7 @@ Kein Scheitern, keine Zeitnot: Ein Weg zum falschen Haus wird nicht angenommen (
 - `public/spiele/ab-in-den-stall/img/` – WebP-Teilbilder + `manifest.json` (fehlt ein Bild, wird gezeichnet)
 - `design/ab-in-den-stall/` – Original-PNGs von ChatGPT; `tools/ab-in-den-stall-assets.py` zerlegt sie neu (Pillow, numpy, scipy)
 - `public/bilder/ab-in-den-stall.webp` (Kachel), `public/bilder/ab-in-den-stall-og.jpg` (Teilen-Vorschau)
+- `public/spiele/ab-in-den-stall/musik.mp3` – Hintergrundlied (Denis Pavlov, „Cheerful Game Zoo“, von dir geliefert; mono, 64 kbit/s, 101 s, Schleife). Läuft im Spiel und auf dem Geschafft-Bildschirm, nicht in Menü, Levelauswahl und Pause; folgt dem Ton-Knopf; Lautstärke 0,3
 - `tests/ab-in-den-stall-sim.test.mjs` – Leveldaten, Lösbarkeit, Elemente, Wegmalen, Bot spielt alle 30 Level, Spielstand
 - `supabase/migrations/20261026200000_ab_in_den_stall.sql` – Katalog-Eintrag (Cloud-Spielstände)
 
