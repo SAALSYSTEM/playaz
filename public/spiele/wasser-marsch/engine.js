@@ -9,6 +9,15 @@ export const MIN_HIT = 46;           // Mindestgröße jeder Trefferfläche in C
 export const RESCUE = { extend: 1.6, hop: 0.7, retract: 1.6, settle: 0.6 };
 export const RESCUE_TOTAL = RESCUE.extend + RESCUE.hop + RESCUE.retract + RESCUE.settle;
 
+// Manuelle Leiter (Level ab MANUAL_FIRST): Kind zieht den Korb zum Katzenfenster, danach läuft alles von selbst.
+// Phasen: dock (Korb gleitet ins Fenster) -> hop (Katze steigt ein) -> retract (Rückfahrt zum Wagen) -> settle (Katze springt aufs Pflaster).
+export const MANUAL_FIRST = 21;
+export const RESCUE_M = { dock: 0.35, hop: 0.7, settle: 0.6 };
+export const GRAB_MIN = 56;      // Greifradius um den Korb (CSS-px), großzügig für Kinderfinger
+export const SNAP_MIN = 56, SNAP_MAX = 84;   // Einrastradius um die Korbposition am Fenster
+export const isManual = (level) => !!level && level.ladder === 'manual';
+export const retractTime = (dist) => Math.max(1.2, Math.min(2.4, dist / 300));
+
 // Seitenverhältnisse (Breite/Höhe) der Kernrechtecke aus assets.json
 export const ASPECT = {
   small: 1304 / 951, row: 740 / 1341, floor: 620 / 413, ground: 621 / 413,
@@ -173,6 +182,9 @@ export function validateLevels(levels, scenes) {
       if (!(lv.fires || []).some((f) => buildingOf(f.window) === buildingOf(c.window))) err.push(`${tag}: Katze ${c.window} ohne Feuer im Haus`);
     });
     if ((lv.cats || []).length && lv.id < 7) err.push(`${tag}: Katzen erst ab Level 7`);
+    if (lv.ladder !== undefined && lv.ladder !== 'manual') err.push(`${tag}: unbekannte Leitersteuerung ${lv.ladder}`);
+    if ((lv.ladder === 'manual') !== (lv.id >= MANUAL_FIRST)) err.push(`${tag}: manuelle Leiter nur ab Level ${MANUAL_FIRST}`);
+    if (lv.ladder === 'manual' && !(lv.cats || []).length) err.push(`${tag}: manuelles Level ohne Katze`);
   });
   for (const s of scenes) if (!used.has(s.id)) err.push(`Szene ${s.id} unbenutzt`);
   return err;
@@ -184,7 +196,8 @@ export function newState(level) {
     level: level.id,
     fires: level.fires.map((f) => ({ win: f.window, b: buildingOf(f.window), total: f.waterSeconds, left: f.waterSeconds })),
     cats: (level.cats || []).map((c) => ({ win: c.window, b: buildingOf(c.window), state: 'wait' })),
-    rescue: null,   // { cat, t }
+    manual: isManual(level),
+    rescue: null,   // { cat, t, manual?, retractDur? }
     won: false
   };
 }
@@ -211,6 +224,7 @@ export function spray(st, win, dt) {
 export function tapCat(st, i) {
   const cat = st.cats[i];
   if (!cat || st.won) return 'none';
+  if (st.manual) return 'manual';          // in Leitersteuerungs-Leveln startet nur das Greifen des Korbs eine Rettung
   if (cat.state !== 'wait') return 'done';
   if (st.rescue) return 'busy';
   if (!catUnlocked(st, i)) return 'locked';
@@ -219,6 +233,17 @@ export function tapCat(st, i) {
   return 'start';
 }
 
+// Rettung per Korb am Fenster starten (nur manuelle Level). Gleiche Rückgaben wie tapCat.
+export function startManualRescue(st, i, retractDur = 1.6) {
+  const cat = st.cats[i];
+  if (!cat || st.won || !st.manual) return 'none';
+  if (cat.state !== 'wait') return 'done';
+  if (st.rescue) return 'busy';
+  if (!catUnlocked(st, i)) return 'locked';
+  cat.state = 'rescue';
+  st.rescue = { cat: i, t: 0, manual: true, retractDur: Math.max(1.2, Math.min(2.4, retractDur)) };
+  return 'start';
+}
 export function rescuePhase(t) {
   const a = RESCUE.extend, b = a + RESCUE.hop, c = b + RESCUE.retract;
   if (t < a) return { phase: 'extend', k: t / a };
@@ -227,13 +252,27 @@ export function rescuePhase(t) {
   return { phase: 'settle', k: clamp((t - c) / RESCUE.settle, 0, 1) };
 }
 
+// Phase einer laufenden Rettung (automatisch: extend/hop/retract/settle, manuell: dock/hop/retract/settle)
+export function rescuePhaseOf(r) {
+  if (!r.manual) return rescuePhase(r.t);
+  const a = RESCUE_M.dock, b = a + RESCUE_M.hop, c = b + r.retractDur;
+  if (r.t < a) return { phase: 'dock', k: r.t / a };
+  if (r.t < b) return { phase: 'hop', k: (r.t - a) / RESCUE_M.hop };
+  if (r.t < c) return { phase: 'retract', k: (r.t - b) / r.retractDur };
+  return { phase: 'settle', k: clamp((r.t - c) / RESCUE_M.settle, 0, 1) };
+}
+const rescueMarks = (r) => {
+  if (r.manual) { const a = RESCUE_M.dock, b = a + RESCUE_M.hop, c = b + r.retractDur; return [['hop', a], ['board', b], ['arrive', c], ['done', c + RESCUE_M.settle]]; }
+  return [['hop', RESCUE.extend], ['board', RESCUE.extend + RESCUE.hop], ['arrive', RESCUE.extend + RESCUE.hop + RESCUE.retract], ['done', RESCUE_TOTAL]];
+};
+
 // Rettung fortschreiben. Ereignisse: 'hop' (Katze springt), 'board' (im Korb), 'arrive' (unten, Zähler +1), 'done'
 export function stepRescue(st, dt) {
   const ev = [];
   const r = st.rescue;
   if (!r) return ev;
   const t0 = r.t, t1 = r.t + clamp(dt, 0, 0.1);
-  const marks = [['hop', RESCUE.extend], ['board', RESCUE.extend + RESCUE.hop], ['arrive', RESCUE.extend + RESCUE.hop + RESCUE.retract], ['done', RESCUE_TOTAL]];
+  const marks = rescueMarks(r);
   for (const [name, at] of marks) if (t0 < at && t1 >= at) ev.push(name);
   r.t = t1;
   if (ev.includes('arrive')) st.cats[r.cat].state = 'down';
@@ -245,6 +284,65 @@ export function checkWin(st) {
   if (!st.won && !st.rescue && st.fires.every((f) => !burning(f)) && st.cats.every((c) => c.state === 'down')) st.won = true;
   return st.won;
 }
+
+// ---------- Manuelle Leiter: Geometrie, Greifen, Einrasten ----------
+// Wagen unten rechts; Leiterbasis auf dem Wagen, Korb ruht auf dem Fahrerhaus.
+export function truckGeometry(W, H, ground) {
+  const tw = Math.min(W * 0.56, 300), th = tw / (1502 / 806);
+  const tBottom = Math.min(H - 6, ground + (H - ground) * 0.93);
+  const truck = { x: W - tw - W * 0.012, y: tBottom - th, w: tw, h: th };
+  return {
+    truck,
+    ladderBase: { x: truck.x + 0.83 * tw, y: truck.y + 0.12 * th },
+    restTip: { x: truck.x + tw * 0.36, y: truck.y + th * 0.14 }
+  };
+}
+// Korb- und Katzengröße (gemeinsame Skalierung beider Katzenposen)
+export function basketGeom(truckW, minWinH, korbAspect, catAspect) {
+  const maxBasketH = truckW * 0.27 / korbAspect;      // Korb bleibt klein gegenüber dem Wagen
+  const catH = clamp(Math.min(minWinH * 0.92, maxBasketH * 0.72), 22, 56);
+  const bh = catH / 0.72;
+  return { catH, catW: catH * catAspect, bw: bh * korbAspect, bh };
+}
+// Leiterspitze (Korb-Unterseite Mitte), wenn der Korb am Fensterbrett sitzt
+export function basketTip(w, basket, W) {
+  const top = w.y + w.h - basket.bh * 0.3;
+  const bx = clamp(w.cx - basket.bw / 2, 2, W - basket.bw - 2);
+  return { x: bx + basket.bw * 0.5, y: top + basket.bh * 0.92 };
+}
+// Erlaubter Bereich für die Leiterspitze: Winkel (von der Wagenbasis nach links aufwärts), Auszuglänge, Bildschirmrand, nicht unter Ruhehöhe.
+export function makeReach(geo, view, basket) {
+  const { ladderBase: base, restTip: rest } = geo;
+  const restL = Math.hypot(rest.x - base.x, rest.y - base.y);
+  const minX = basket.bw / 2 + 2, maxX = view.w - basket.bw / 2 - 2;
+  const minY = view.top + basket.bh * 0.92 + 4, maxY = rest.y;
+  return { base, minL: restL * 0.8, maxL: Math.hypot(base.x - minX, base.y - minY), aMin: -0.04, aMax: 2.6, minX, maxX, minY, maxY };
+}
+export function clampTip(reach, p) {
+  const b = reach.base, dx = b.x - p.x, dy = b.y - p.y;
+  const a = clamp(Math.atan2(dy, dx), reach.aMin, reach.aMax), l = clamp(Math.hypot(dx, dy), reach.minL, reach.maxL);
+  return { x: clamp(b.x - l * Math.cos(a), reach.minX, reach.maxX), y: clamp(b.y - l * Math.sin(a), reach.minY, reach.maxY) };
+}
+export const snapRadius = (basket) => clamp(basket.bw * 1.3, SNAP_MIN, SNAP_MAX);
+// Katze, deren Fenster der Korb nahe genug ist (nur freigegebene, wartende; bei laufender Rettung keine). targets: Fenster-ID -> Spitzenposition.
+export function pickSnap(st, targets, tip, radius) {
+  if (!st.manual || st.rescue || st.won) return -1;
+  let best = -1, bd = radius;
+  st.cats.forEach((c, i) => {
+    if (c.state !== 'wait' || !catUnlocked(st, i) || !targets[c.win]) return;
+    const d = Math.hypot(tip.x - targets[c.win].x, tip.y - targets[c.win].y);
+    if (d <= bd) { bd = d; best = i; }
+  });
+  return best;
+}
+// Greifzone um den Korb: 'tight' (auf dem Korb selbst), 'wide' (großzügiger Kreis), sonst null
+export function grabZone(tip, basket, p) {
+  const cx = tip.x, cy = tip.y - basket.bh * 0.46;
+  if (Math.abs(p.x - cx) <= basket.bw / 2 + 10 && Math.abs(p.y - cy) <= basket.bh / 2 + 10) return 'tight';
+  return Math.hypot(p.x - cx, p.y - cy) <= Math.max(GRAB_MIN, basket.bw) ? 'wide' : null;
+}
+// Gibt es eine wartende, freigegebene Katze? (Dann darf der Korb gegriffen werden.)
+export const grabbable = (st) => st.manual && !st.rescue && !st.won && st.cats.some((c, i) => c.state === 'wait' && catUnlocked(st, i));
 
 // ---------- Spielstand ----------
 export const freshSave = () => ({ v: SAVE_VERSION, unlocked: 1, done: {}, mute: false });

@@ -2,7 +2,9 @@
 import { SCENES, LEVELS, LEVEL_COUNT } from './levels.js';
 import {
   STORE, SCENE_LAYOUT, layout, pickWindow, newState, burning, firesOut, catsDown, fireLevel, catUnlocked,
-  spray, tapCat, rescuePhase, stepRescue, checkWin, freshSave, sanitizeSave, recordWin
+  spray, tapCat, rescuePhaseOf, stepRescue, checkWin, freshSave, sanitizeSave, recordWin,
+  truckGeometry, basketGeom, basketTip, makeReach, clampTip, snapRadius, pickSnap, grabZone, grabbable,
+  startManualRescue, retractTime
 } from './engine.js';
 
 const $ = (id) => document.getElementById(id);
@@ -110,6 +112,7 @@ function toggleMute() {
 // ---------- Größe und Aufbau ----------
 let W = 360, H = 640, dpr = 1, view = null, L = null, rig = null;
 function resize() {
+  const oW = W, oH = H;
   W = app.clientWidth; H = app.clientHeight; dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
   cv.style.width = W + 'px'; cv.style.height = H + 'px';
@@ -120,29 +123,26 @@ function resize() {
   const top = Math.max(hud.bottom - ar.top + 10, H * 0.1);
   view = { w: W, h: H, top, ground, bg: { x: (W - bw) / 2, y: by, w: bw, h: bh } };
   // Fahrzeug unten rechts, Feuerwehrmann unten links
-  const tw = Math.min(W * 0.56, 300), th = tw / (1502 / 806);
-  const tBottom = Math.min(H - 6, ground + (H - ground) * 0.93);
-  const truck = { x: W - tw - W * 0.012, y: tBottom - th, w: tw, h: th };
+  const geo = truckGeometry(W, H, ground), truck = geo.truck, tw = truck.w;
   const fh = clamp(H * 0.19, 100, 150), fw = fh * 602 / 1494;
   const feet = Math.min(H - 4, ground + (H - ground) * 0.9);
   const man = { x: W * 0.012, y: feet - fh, w: fw, h: fh };
-  const ladderBase = { x: truck.x + 0.83 * tw, y: truck.y + 0.12 * th };
-  rig = { truck, man, ladderBase, shoulder: { x: man.x + 0.77 * fw, y: man.y + 0.36 * fh }, armLen: 0.4 * fh };
-  if (level) relayout();
+  rig = { truck, man, geo, ladderBase: geo.ladderBase, shoulder: { x: man.x + 0.77 * fw, y: man.y + 0.36 * fh }, armLen: 0.4 * fh };
+  if (level) { relayout(); rescaleBasket(oW, oH); }
 }
 function relayout() {
   L = layout(SCENES.find((s) => s.id === level.scene), view);
   // Katzen- und Korbgröße: gemeinsame Skalierung für beide Katzenposen
   const minWinH = Math.min(...L.windows.map((w) => w.h));
-  const kAsp = coreAspect('korb') || 1.31;
-  const maxBasketH = rig.truck.w * 0.27 / kAsp;           // Korb bleibt klein gegenüber dem Wagen
-  const catH = clamp(Math.min(minWinH * 0.92, maxBasketH * 0.72), 22, 56);
-  const catAsp = coreAspect('katze-wartend') || 0.79;
-  const basketH = catH / 0.72, basketW = basketH * kAsp;
-  rig.cat = { h: catH, w: catH * catAsp };
-  rig.basket = { w: basketW, h: basketH };
-  rig.ladderW = clamp(basketW * 0.3, 12, 30);
-  rig.restTip = { x: rig.truck.x + rig.truck.w * 0.36, y: rig.truck.y + rig.truck.h * 0.14 };   // Korb liegt auf dem Fahrerhaus
+  const bg = basketGeom(rig.truck.w, minWinH, coreAspect('korb') || 1.31, coreAspect('katze-wartend') || 0.79);
+  rig.cat = { h: bg.catH, w: bg.catW };
+  rig.basket = { w: bg.bw, h: bg.bh, bw: bg.bw, bh: bg.bh };
+  rig.ladderW = clamp(bg.bw * 0.3, 12, 30);
+  rig.restTip = rig.geo.restTip;   // Korb liegt auf dem Fahrerhaus
+  // Leitersteuerung (Level 21–25): erlaubter Bereich der Leiterspitze und Korbposition je Katzenfenster
+  rig.reach = makeReach(rig.geo, view, rig.basket);
+  rig.targets = {};
+  for (const c of level.cats) rig.targets[c.window] = basketTip(L.byId[c.window], rig.basket, W);
   rig.sideCats = [0, 1, 2].map((i) => ({ x: W * 0.255 + i * (rig.cat.w * 1.05), y: Math.min(H - 6, view.ground + (H - view.ground) * 0.93) }));
 }
 
@@ -150,6 +150,7 @@ function relayout() {
 let mode = 'menu';          // menu | play | pause | cheer | won
 let level = null, st = null, clock = 0, cheerT = 0;
 let sprayer = null;         // { id, x, y }
+let bk = null, drag = null, wasRescue = false;   // Korb (nur Leitersteuerung): { tip, rest }, gegriffen: { id, dx, dy }
 let aim = null, jetK = 0, armAng = -0.6;
 let idle = 0, hintDone = { spray: false, cat: false }, flash = null, particles = [], outFx = [];
 let hudCache = '';
@@ -158,9 +159,10 @@ function loadLevel(id, play = true) {
   level = LEVELS[clamp(id, 1, LEVEL_COUNT) - 1];
   st = newState(level);
   particles = []; outFx = []; flash = null; idle = 0; cheerT = 0;
-  hintDone = { spray: level.hint !== 'holdToSpray', cat: level.hint !== 'tapCatAfterClearingHouse' };
-  stopSpray();
+  hintDone = { spray: level.hint !== 'holdToSpray', cat: level.hint !== 'tapCatAfterClearingHouse' || st.manual, drag: level.hint !== 'dragBasket' };
+  stopSpray(); dropBasket(); wasRescue = false;
   relayout();
+  bk = { tip: { ...rig.restTip }, rest: true };
   hudCache = '';
   updateHud();
   if (play) setMode('play');
@@ -174,15 +176,36 @@ const catAt = (x, y) => {
 };
 function pos(e) { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
 function stopSpray() { sprayer = null; aim = null; jetK = 0; sprayStop(); }
+function dropBasket() { drag = null; }          // Loslassen: der Korb bleibt stehen und kann wieder gegriffen werden
+function rescaleBasket(oW, oH) {
+  if (!bk || !oW || !oH) return;
+  const sc = (p) => clampTip(rig.reach, { x: p.x * W / oW, y: p.y * H / oH });
+  bk.tip = bk.rest ? { ...rig.restTip } : sc(bk.tip);
+  const r = st && st.rescue;
+  if (r && r.manual) { r.from = sc(r.from); r.to = { ...rig.targets[st.cats[r.cat].win] }; }
+}
 
 cv.addEventListener('pointerdown', (e) => {
   unlockAudio();
-  if (mode !== 'play' || sprayer) return;
+  if (mode !== 'play' || sprayer || drag) return;
   e.preventDefault();
   idle = 0;
-  if (st.rescue) return;                       // während der Rettung kein Wasser, keine weitere Rettung
+  if (st.rescue) return;                       // während der Rettung kein Wasser, keine weitere Rettung, kein Greifen
   const p = pos(e);
+  if (st.manual && grabbable(st)) {            // Korb greifen: auf dem Korb immer, im weiten Kreis nur, wenn dort kein Feuer brennt
+    const z = grabZone(bk.tip, rig.basket, p);
+    if (z === 'tight' || (z === 'wide' && !pickWindow(L.windows, p.x, p.y, (w) => st.fires.some((f) => f.win === w.id && burning(f))))) {
+      drag = { id: e.pointerId, dx: p.x - bk.tip.x, dy: p.y - bk.tip.y };
+      bk.rest = false; hintDone.drag = true;
+      try { cv.setPointerCapture(e.pointerId); } catch { /* egal */ }
+      return;
+    }
+  }
   const ci = catAt(p.x, p.y);
+  if (ci >= 0 && st.manual) {                  // Katze antippen: kein Start; zeigt Feuer bzw. den Korb-Hinweis
+    if (!catUnlocked(st, ci)) flash = { b: st.cats[ci].b, t: 1.4 }; else idle = 99;
+    return;
+  }
   if (ci >= 0) {
     const r = tapCat(st, ci);
     if (r === 'start') { hintDone.cat = true; SFX.ladder(); }
@@ -194,15 +217,23 @@ cv.addEventListener('pointerdown', (e) => {
   sprayStart();
 });
 cv.addEventListener('pointermove', (e) => {
+  if (drag && e.pointerId === drag.id) {
+    const p = pos(e); idle = 0;
+    if (mode === 'play' && !st.rescue) bk.tip = clampTip(rig.reach, { x: p.x - drag.dx, y: p.y - drag.dy });
+    return;
+  }
   if (!sprayer || e.pointerId !== sprayer.id) return;
   const p = pos(e); sprayer.x = p.x; sprayer.y = p.y; idle = 0;
 });
-const endPointer = (e) => { if (sprayer && e.pointerId === sprayer.id) stopSpray(); };
+const endPointer = (e) => {
+  if (drag && e.pointerId === drag.id) dropBasket();
+  if (sprayer && e.pointerId === sprayer.id) stopSpray();
+};
 cv.addEventListener('pointerup', endPointer);
 cv.addEventListener('pointercancel', endPointer);
 cv.addEventListener('lostpointercapture', endPointer);
 cv.addEventListener('contextmenu', (e) => e.preventDefault());
-window.addEventListener('blur', () => stopSpray());
+window.addEventListener('blur', () => { stopSpray(); dropBasket(); });
 
 // ---------- Ablauf ----------
 function update(dt) {
@@ -238,12 +269,27 @@ function update(dt) {
     }
   }
 
+  // Leitersteuerung: Korb nahe genug am Katzenfenster -> einrasten, Rettung startet von selbst
+  if (drag && mode === 'play' && !st.rescue) {
+    const idx = pickSnap(st, rig.targets, bk.tip, snapRadius(rig.basket));
+    if (idx >= 0) {
+      const to = rig.targets[st.cats[idx].win];
+      const dist = Math.hypot(to.x - rig.ladderBase.x, to.y - rig.ladderBase.y);
+      if (startManualRescue(st, idx, retractTime(dist)) === 'start') {
+        st.rescue.from = { ...bk.tip }; st.rescue.to = { ...to };
+        dropBasket(); hintDone.drag = true; SFX.ladder();
+      }
+    }
+  }
+
   // Rettung
   if (st.rescue) {
     const ev = stepRescue(st, dt);
     if (ev.includes('hop')) SFX.meow();
     if (ev.includes('arrive')) { SFX.arrive(); sparkle(rig.restTip.x, rig.restTip.y - rig.basket.h * 0.5, 10); }
   }
+  if (st.rescue) wasRescue = true;
+  else if (wasRescue) { wasRescue = false; if (bk) { bk.tip = { ...rig.restTip }; bk.rest = true; } }
   updateHud();
 
   if (mode === 'play' && checkWin(st)) win();
@@ -360,7 +406,7 @@ function drawFiresAndCats() {
   st.cats.forEach((c, i) => {
     const w = L.byId[c.win];
     const inRescue = st.rescue && st.rescue.cat === i;
-    if (c.state === 'down' || (inRescue && rescuePhase(st.rescue.t).phase !== 'extend')) return;
+    if (c.state === 'down' || (inRescue && !['extend', 'dock'].includes(rescuePhaseOf(st.rescue).phase))) return;
     const unlocked = catUnlocked(st, i) && !st.rescue && mode === 'play';
     let s = 1;
     if (unlocked) {
@@ -382,12 +428,27 @@ function basketTarget(w) {
   const bx = clamp(w.cx - bw / 2, 2, W - bw - 2);
   return { x: bx + bw * 0.5, y: top + bh * 0.92 };   // Leiterspitze sitzt unter dem Korbboden
 }
-function poseFrom(tip) { const dx = tip.x - rig.ladderBase.x, dy = tip.y - rig.ladderBase.y; return { a: Math.atan2(dy, dx), l: Math.hypot(dx, dy) }; }
+// Winkel in 0..2π, damit Drehungen zwischen Ruhelage (knapp unter waagerecht) und Fenstern über der Basis nicht durch die Gegenseite schwingen
+function poseFrom(tip) {
+  const dx = tip.x - rig.ladderBase.x, dy = tip.y - rig.ladderBase.y;
+  let a = Math.atan2(dy, dx); if (a < 0) a += Math.PI * 2;
+  return { a, l: Math.hypot(dx, dy) };
+}
 function ladderPose() {
   const rest = poseFrom(rig.restTip);
-  if (!st.rescue) return { ...rest, cat: null };
-  const r = st.rescue, w = L.byId[st.cats[r.cat].win], far = poseFrom(basketTarget(w));
-  const ph = rescuePhase(r.t);
+  if (!st.rescue) return { ...(st.manual && bk ? poseFrom(bk.tip) : rest), cat: null };
+  const r = st.rescue, w = L.byId[st.cats[r.cat].win], ph = rescuePhaseOf(r);
+  if (r.manual) {                                   // Korb sitzt am Fenster (rastet ein), fährt dann zurück
+    const to = poseFrom(r.to), from = poseFrom(r.from);
+    if (ph.phase === 'dock') { const k = ease(ph.k); return { a: lerp(from.a, to.a, k), l: lerp(from.l, to.l, k), ph, w }; }
+    if (ph.phase === 'hop') return { ...to, ph, w };
+    if (ph.phase === 'retract') {
+      const kl = 1 - ease(clamp(ph.k / 0.7, 0, 1)), ka = 1 - ease(clamp((ph.k - 0.4) / 0.6, 0, 1));
+      return { a: lerp(rest.a, to.a, ka), l: lerp(rest.l, to.l, kl), ph, w };
+    }
+    return { ...rest, ph, w };
+  }
+  const far = poseFrom(basketTarget(w));
   let ka = 0, kl = 0;
   if (ph.phase === 'extend') { ka = ease(clamp(ph.k * 1.7, 0, 1)); kl = ease(clamp((ph.k - 0.3) / 0.7, 0, 1)); }
   else if (ph.phase === 'hop') { ka = 1; kl = 1; }
@@ -419,6 +480,12 @@ function drawTruckAndLadder() {
   drawCore('leiter-gelenk', rig.ladderBase.x - jw / 2, rig.ladderBase.y - jh * 0.55, jw, jh);
   // Korb waagerecht am Leiterende
   const bw = rig.basket.w, bh = rig.basket.h, bx = tip.x - bw * 0.5, by = tip.y - bh * 0.92;
+  if (st.manual && mode === 'play' && !st.rescue && (drag || grabbable(st))) {   // greifbar: sanft pulsierender Ring
+    const p = drag ? 1 : 0.5 + 0.5 * Math.sin(clock * 4.2);
+    ctx.save(); ctx.strokeStyle = `rgba(255,255,255,${0.55 + 0.4 * p})`; ctx.lineWidth = 3 + 2 * p;
+    ctx.shadowColor = 'rgba(255,210,28,.9)'; ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.ellipse(bx + bw / 2, by + bh / 2, bw * (0.72 + 0.06 * p), bh * (0.68 + 0.06 * p), 0, 0, Math.PI * 2); ctx.stroke(); ctx.restore();
+  }
   drawCore('korb', bx, by, bw, bh);
   // Katze im Korb (Pfoten hinter der Vorderkante)
   if (st.rescue && pose.ph) {
@@ -439,12 +506,12 @@ function drawRescuedCats() {
   const n = catsDown(st);
   let shown = 0;
   st.cats.forEach((c, i) => {
-    const inSettle = st.rescue && st.rescue.cat === i && rescuePhase(st.rescue.t).phase === 'settle';
+    const inSettle = st.rescue && st.rescue.cat === i && rescuePhaseOf(st.rescue).phase === 'settle';
     if (c.state !== 'down') return;
     const spot = rig.sideCats[Math.min(2, shown++)], cw = rig.cat.w, ch = rig.cat.h;
     let x = spot.x, y = spot.y;
     if (inSettle) {
-      const k = ease(rescuePhase(st.rescue.t).k), from = { x: rig.restTip.x, y: rig.restTip.y - rig.basket.h * 0.2 };
+      const k = ease(rescuePhaseOf(st.rescue).k), from = { x: rig.restTip.x, y: rig.restTip.y - rig.basket.h * 0.2 };
       x = lerp(from.x, spot.x, k); y = lerp(from.y, spot.y, k) - Math.sin(Math.PI * k) * ch * 0.8;
     } else y -= Math.abs(Math.sin(clock * 3 + i)) * 2;
     drawCore('katze-gluecklich', x - cw / 2, y - ch, cw, ch);
@@ -510,7 +577,8 @@ function star(x, y, r, c) {
 function drawFinger(x, y, kind) {
   const per = kind === 'tap' ? 1.1 : 2.0, k = (clock % per) / per;
   let press = 0, off = 0;
-  if (kind === 'tap') { press = k < 0.25 ? k / 0.25 : k < 0.45 ? 1 - (k - 0.25) / 0.2 : 0; off = (1 - press) * 10; }
+  if (kind === 'drag') { press = 1; off = 0; }
+  else if (kind === 'tap') { press = k < 0.25 ? k / 0.25 : k < 0.45 ? 1 - (k - 0.25) / 0.2 : 0; off = (1 - press) * 10; }
   else { press = k < 0.2 ? k / 0.2 : k < 0.85 ? 1 : 1 - (k - 0.85) / 0.15; off = (1 - press) * 16; }
   // Ring am Zielpunkt
   ctx.save();
@@ -531,11 +599,21 @@ function drawFinger(x, y, kind) {
   ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.restore();
 }
+// Ziehhinweis (Level 21, später nach Wartezeit): Finger zieht den Korb vom Wagen zum Katzenfenster
+function drawDragHint(ci) {
+  const to = rig.targets[st.cats[ci].win], s0 = bk.tip, up = rig.basket.bh * 0.46;
+  const k = (clock % 3.2) / 3.2, m = k < 0.15 ? 0 : k < 0.8 ? ease((k - 0.15) / 0.65) : 1;
+  ctx.save(); ctx.setLineDash([8, 8]); ctx.lineCap = 'round'; ctx.lineDashOffset = -clock * 30;
+  ctx.strokeStyle = 'rgba(17,18,26,.4)'; ctx.lineWidth = 7; ctx.beginPath(); ctx.moveTo(s0.x, s0.y - up); ctx.lineTo(to.x, to.y - up); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 3.5; ctx.stroke(); ctx.restore();
+  drawFinger(lerp(s0.x, to.x, m), lerp(s0.y, to.y, m) - up, 'drag');
+}
 function drawHints() {
-  if (mode !== 'play' || sprayer || st.rescue) return;
-  // Katze antippen
+  if (mode !== 'play' || sprayer || drag || st.rescue) return;
   const ci = st.cats.findIndex((c, i) => c.state === 'wait' && catUnlocked(st, i));
-  if (ci >= 0 && (!hintDone.cat || idle > 4)) { const w = L.byId[st.cats[ci].win]; drawFinger(w.cx, w.cy, 'tap'); return; }
+  if (st.manual) {
+    if (ci >= 0 && ((level.hint === 'dragBasket' && !hintDone.drag) || idle > 6)) { drawDragHint(ci); return; }
+  } else if (ci >= 0 && (!hintDone.cat || idle > 4)) { const w = L.byId[st.cats[ci].win]; drawFinger(w.cx, w.cy, 'tap'); return; }   // Katze antippen
   // Feuer: drücken und halten
   const f = st.fires.find(burning);
   if (f && (!hintDone.spray || idle > 5.5)) { const w = L.byId[f.win]; drawFinger(w.cx, w.cy, 'hold'); }
@@ -582,7 +660,7 @@ const SCREENS = ['start', 'levels', 'pause', 'win'];
 function show(id) { for (const s of SCREENS) $(s).hidden = s !== id; }
 function setMode(m) {
   mode = m;
-  if (m !== 'play') stopSpray();
+  if (m !== 'play') { stopSpray(); dropBasket(); }
   $('hud').classList.toggle('off', m === 'menu');
   if (m === 'play' || m === 'cheer') show(null);
   if (m === 'pause') show('pause');
@@ -632,7 +710,7 @@ $('winNext').addEventListener('click', () => { unlockAudio(); SFX.click(); if (l
 $('winAgain').addEventListener('click', () => { SFX.click(); loadLevel(level.id); });
 $('winLevels').addEventListener('click', () => { SFX.click(); openLevels(); });
 document.querySelectorAll('[data-mute]').forEach((b) => b.addEventListener('click', () => toggleMute()));
-document.addEventListener('visibilitychange', () => { if (document.hidden) { stopSpray(); pause(); } });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { stopSpray(); dropBasket(); pause(); } });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') { if (mode === 'play') pause(); else if (mode === 'pause') resume(); }
 });
@@ -647,7 +725,7 @@ function frame(now) {
 }
 
 // Testzugang (nur für automatisierte Prüfungen): Zustand lesen, ohne das Spiel zu verändern
-window.__wm = { get mode() { return mode; }, get st() { return st; }, get L() { return L; }, get rig() { return rig; }, get save() { return save; }, get level() { return level && level.id; }, nozzle };
+window.__wm = { get mode() { return mode; }, get st() { return st; }, get L() { return L; }, get rig() { return rig; }, get bk() { return bk; }, get drag() { return drag; }, get save() { return save; }, get level() { return level && level.id; }, nozzle };
 
 new ResizeObserver(() => resize()).observe(app);
 paintMute();

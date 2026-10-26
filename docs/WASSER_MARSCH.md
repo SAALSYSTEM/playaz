@@ -1,12 +1,12 @@
 # Wasser Marsch! – Übergabenotiz
 
-Feuerwehrspiel für Kinder ab 4, Hochformat, Finger oder Maus. 20 feste Level in 6 Szenen.
+Feuerwehrspiel für Kinder ab 4, Hochformat, Finger oder Maus. 25 feste Level in 6 Szenen (Level 1–20 Leiter automatisch, Level 21–25 Leiter selbst gesteuert).
 Route: `/spiele/wasser-marsch` (direkt erreichbar, `noindex`, nicht auf der Startseite und nicht in der Sitemap).
 
 ## Dateien
 - `public/spiele/wasser-marsch.html` – Seite, HUD, Menüs (DOM)
 - `public/spiele/wasser-marsch/engine.js` – Regeln, Gebäudeaufbau, Trefferflächen, Rettungsablauf, Spielstand (ohne DOM)
-- `public/spiele/wasser-marsch/levels.js` – 20 Level, Feuer/Katzen 1:1 aus `design/wasser-marsch/briefing/levels.json`
+- `public/spiele/wasser-marsch/levels.js` – 25 Level; 1–20 1:1 aus `design/wasser-marsch/briefing/levels.json`, 21–25 von Hand (`"ladder":"manual"`)
 - `public/spiele/wasser-marsch/game.js` – Canvas-2D-Darstellung, Eingabe, Ton (WebAudio), Menüs
 - `public/spiele/wasser-marsch/img/` – WebP-Teilbilder + `manifest.json` (Kernrechteck je Bild)
 - `design/wasser-marsch/` – Original-PNGs von ChatGPT, Vorschau, Briefing (unverändert)
@@ -21,6 +21,13 @@ Route: `/spiele/wasser-marsch` (direkt erreichbar, `noindex`, nicht auf der Star
 - Trefferflächen mindestens 46 CSS-px, bei engen Fenstern gewinnt der nächste Mittelpunkt.
 - Wasser wird unterdrückt, solange das Ziel auf einer Katze liegt (nie auf die Katze spritzen).
 - Pause per Esc-Taste und automatisch beim Tabwechsel.
+
+## Leitersteuerung (Level 21–25)
+- Nach dem Löschen eines Hauses ist dessen Katze frei; das Kind zieht den Korb (Greifkreis ≥ 56 px, auf dem Korb selbst immer) zum Fenster. Leiterwinkel und -länge folgen, der Korb bleibt waagerecht und im erreichbaren Bereich (`makeReach`/`clampTip` in `engine.js`).
+- Nähe zum Fenster (Einrastradius 56–84 px) rastet ein: Korb fährt an, Katze steigt automatisch ein, Korb fährt allein zurück. Loslassen vorher: Korb bleibt stehen, jederzeit wieder greifbar, keine Strafe, kein Zeitdruck.
+- Während Andocken/Einsteigen/Rückfahrt sind alle Eingaben gesperrt; die Katze zählt erst bei der Ankunft unten. Beim Ziehen kein Wasser.
+- Pause, Tabwechsel, Neustart und Levelwechsel lassen den Korb los; Pause friert die Rettung ein, Neustart setzt alles zurück.
+- Level 21 zeigt einen kurzen Finger-Ziehhinweis (nach Wartezeit auch später). Keine neuen Grafiken; Spielstandformat `wassermarsch.v1` unverändert (wer Level 20 geschafft hat, hat Level 21 offen).
 
 ## Teststand (19.10.2026)
 - `node --test tests/wasser-marsch-sim.test.mjs` – grün

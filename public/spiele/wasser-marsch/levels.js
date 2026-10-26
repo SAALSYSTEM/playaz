@@ -1,4 +1,5 @@
-// Wasser Marsch! – 20 feste Level in 6 Szenen.
+// Wasser Marsch! – 25 feste Level in 6 Szenen. Level 1–20: Leiter fährt automatisch (Katze antippen).
+// Level 21–25 ("ladder":"manual"): das Kind zieht den Rettungskorb selbst zum Katzenfenster; Feuer, Katzen und Szenen von Hand festgelegt.
 // Feuer, Wassermengen und Katzen 1:1 aus design/wasser-marsch/briefing/levels.json (schemaVersion 1).
 // Fenster-IDs: b{Haus}-r{Reihe von oben}-c{Spalte}, nullbasiert. Gebäudeanordnung je Szene: SCENE_LAYOUT in engine.js.
 export const SCENES = [
@@ -30,7 +31,12 @@ export const LEVELS = [
   {"id":17,"scene":6,"title":"Drei Häuser","fires":[{"window":"b0-r0-c0","waterSeconds":3},{"window":"b1-r2-c1","waterSeconds":3.5},{"window":"b2-r3-c0","waterSeconds":3}],"cats":[{"window":"b1-r0-c1","unlock":"buildingFiresCleared"}],"hint":null},
   {"id":18,"scene":6,"title":"Freunde über der Stadt","fires":[{"window":"b0-r1-c0","waterSeconds":3},{"window":"b1-r4-c1","waterSeconds":3.5},{"window":"b2-r0-c0","waterSeconds":3},{"window":"b2-r2-c1","waterSeconds":3.5}],"cats":[{"window":"b0-r0-c1","unlock":"buildingFiresCleared"},{"window":"b2-r1-c1","unlock":"buildingFiresCleared"}],"hint":null},
   {"id":19,"scene":6,"title":"Die große Rettungsrunde","fires":[{"window":"b0-r0-c0","waterSeconds":3},{"window":"b0-r2-c1","waterSeconds":3.5},{"window":"b1-r1-c1","waterSeconds":3},{"window":"b1-r3-c0","waterSeconds":3.5},{"window":"b2-r2-c0","waterSeconds":3}],"cats":[{"window":"b0-r1-c1","unlock":"buildingFiresCleared"},{"window":"b1-r0-c0","unlock":"buildingFiresCleared"},{"window":"b2-r0-c1","unlock":"buildingFiresCleared"}],"hint":null},
-  {"id":20,"scene":6,"title":"Unsere Feuerwehr schafft das","fires":[{"window":"b0-r0-c1","waterSeconds":3},{"window":"b0-r2-c0","waterSeconds":3.5},{"window":"b1-r1-c0","waterSeconds":3},{"window":"b1-r4-c1","waterSeconds":3.5},{"window":"b2-r1-c1","waterSeconds":3},{"window":"b2-r3-c0","waterSeconds":3.5}],"cats":[{"window":"b0-r1-c0","unlock":"buildingFiresCleared"},{"window":"b1-r0-c1","unlock":"buildingFiresCleared"},{"window":"b2-r0-c0","unlock":"buildingFiresCleared"}],"hint":null}
+  {"id":20,"scene":6,"title":"Unsere Feuerwehr schafft das","fires":[{"window":"b0-r0-c1","waterSeconds":3},{"window":"b0-r2-c0","waterSeconds":3.5},{"window":"b1-r1-c0","waterSeconds":3},{"window":"b1-r4-c1","waterSeconds":3.5},{"window":"b2-r1-c1","waterSeconds":3},{"window":"b2-r3-c0","waterSeconds":3.5}],"cats":[{"window":"b0-r1-c0","unlock":"buildingFiresCleared"},{"window":"b1-r0-c1","unlock":"buildingFiresCleared"},{"window":"b2-r0-c0","unlock":"buildingFiresCleared"}],"hint":null},
+  {"id":21,"scene":3,"title":"Leiter lenken","fires":[{"window":"b0-r1-c1","waterSeconds":1.8}],"cats":[{"window":"b0-r2-c0","unlock":"buildingFiresCleared"}],"hint":"dragBasket","ladder":"manual"},
+  {"id":22,"scene":3,"title":"Etwas höher","fires":[{"window":"b0-r2-c1","waterSeconds":2.0}],"cats":[{"window":"b0-r1-c0","unlock":"buildingFiresCleared"}],"hint":null,"ladder":"manual"},
+  {"id":23,"scene":4,"title":"Zwei Katzen nacheinander","fires":[{"window":"b0-r1-c0","waterSeconds":2.2},{"window":"b1-r1-c1","waterSeconds":2.2}],"cats":[{"window":"b0-r2-c1","unlock":"buildingFiresCleared"},{"window":"b1-r1-c0","unlock":"buildingFiresCleared"}],"hint":null,"ladder":"manual"},
+  {"id":24,"scene":5,"title":"Ganz weit oben","fires":[{"window":"b0-r3-c0","waterSeconds":2.4},{"window":"b1-r2-c1","waterSeconds":2.4}],"cats":[{"window":"b0-r0-c1","unlock":"buildingFiresCleared"},{"window":"b1-r1-c0","unlock":"buildingFiresCleared"}],"hint":null,"ladder":"manual"},
+  {"id":25,"scene":6,"title":"Die große Leiterrettung","fires":[{"window":"b0-r2-c0","waterSeconds":2.5},{"window":"b1-r4-c1","waterSeconds":2.5},{"window":"b2-r3-c0","waterSeconds":2.5}],"cats":[{"window":"b0-r1-c1","unlock":"buildingFiresCleared"},{"window":"b1-r0-c0","unlock":"buildingFiresCleared"},{"window":"b2-r1-c1","unlock":"buildingFiresCleared"}],"hint":null,"ladder":"manual"}
 ];
 
 export const LEVEL_COUNT = LEVELS.length;

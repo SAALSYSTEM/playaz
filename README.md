@@ -19,7 +19,7 @@ node --test tests/leitungschaos-sim.test.mjs tests/leitungschaos-pruefung.test.m
 
 **Dartfieber:** Dart-Geschicklichkeitsspiel (5 Pfeile, zwei Tipps pro Wurf, Wind, goldene Bonusziele) mit Tageschallenge und geprüfter Tagesrangliste samt Archiv. Veröffentlicht am 22.10.2026 (in der Übersicht sichtbar, sobald `listed = true` gesetzt ist). Details: [`docs/DARTFIEBER.md`](docs/DARTFIEBER.md). Tests: `node --test tests/dartfieber-sim.test.mjs tests/dartfieber-pruefung.test.mjs tests/dartfieber.test.mjs`.
 
-**Wasser Marsch!:** Feuerwehrspiel für Kinder ab 4 im Hochformat: Finger halten = Wasser spritzt zum Finger, Feuer löschen, danach Katzen antippen – die Drehleiter holt sie herunter. 20 feste Level in 6 Szenen, kein Scheitern, keine Zeit. Noch `noindex` und nicht auf der Startseite (Test über `/spiele/wasser-marsch`). Regeln/Layout: `public/spiele/wasser-marsch/engine.js`, Level: `levels.js`, Oberfläche: `game.js`, Bilder aus `design/wasser-marsch/` per `tools/wasser-marsch-assets.py`. Details und Abweichungen: [`docs/WASSER_MARSCH.md`](docs/WASSER_MARSCH.md). Test: `node --test tests/wasser-marsch-sim.test.mjs`.
+**Wasser Marsch!:** Feuerwehrspiel für Kinder ab 4 im Hochformat: Finger halten = Wasser spritzt zum Finger, Feuer löschen, danach Katzen antippen – die Drehleiter holt sie herunter (ab Level 21 zieht das Kind den Korb selbst zum Fenster). 25 feste Level in 6 Szenen, kein Scheitern, keine Zeit. Noch `noindex` und nicht auf der Startseite (Test über `/spiele/wasser-marsch`). Regeln/Layout: `public/spiele/wasser-marsch/engine.js`, Level: `levels.js`, Oberfläche: `game.js`, Bilder aus `design/wasser-marsch/` per `tools/wasser-marsch-assets.py`. Details und Abweichungen: [`docs/WASSER_MARSCH.md`](docs/WASSER_MARSCH.md). Test: `node --test tests/wasser-marsch-sim.test.mjs`.
 
 **Jungle Runner:** 3D-Dschungel-Läufer mit 30 festen Leveln in 5 Welten, Junge oder Mädchen, Tieren, Power-ups, Awards, Teilen und Endlosmodus; Figuren und Tiere sind deklarierte Platzhalter. Details, Asset-Liste und Teststand in [`docs/JUNGLE_RUNNER.md`](docs/JUNGLE_RUNNER.md); Module in `public/spiele/jungle-runner/`.
 
@@ -72,7 +72,7 @@ node --test tests/jungle-sim.test.mjs                   # nur JUNGLE RUNNER: Reg
 node --test tests/kakerlake-sim.test.mjs                # nur HAU DIE KAKERLAKE!: Level, Logik, Bot-Durchläufe, ohne Browser (schnell)
 node --test tests/sprungsebi-sim.test.mjs           # SPRUNGSEBI: 30 Level, Fortschritt, Teilen-Text und Vorschau
 node --test tests/turmschicht-sim.test.mjs          # TURMSCHICHT: 30 Level beide Modi lösbar (Löser + Bot), Hebel, Jäger, Herzen, Herausforderung
-node --test tests/wasser-marsch-sim.test.mjs        # WASSER MARSCH!: 20 Level, Layout 360×640, Rettung, Spielstand
+node --test tests/wasser-marsch-sim.test.mjs        # WASSER MARSCH!: 25 Level, Leitersteuerung, Layout 360×640, Rettung, Spielstand
 node --test tests/leitungschaos-sim.test.mjs        # LEITUNGSCHAOS: 30 Level + 200 Tagesrätsel gültig und lösbar, Fluss, Prüfung
 node --test tests/muehle-sim.test.mjs               # MÜHLE: Regeln, Remis, Kodierung, Stufen-Turniere, Zeitlimit Meister
 node --test tests/kruemel-sim.test.mjs              # KRÜMEL: Sprunghöhe, Kanten-Toleranz, Puffer, Leiter, Schublade, Kätzchen, Level lösbar ohne Sackgassen

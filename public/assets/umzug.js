@@ -71,7 +71,7 @@
     { id: 'dinoleiter', name: 'Dino-Leiterhelden', prefix: 'dinoleiter.', haupt: ['dinoleiter.v1'],
       info: (g) => { const d = J(g['dinoleiter.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
     { id: 'wassermarsch', name: 'Wasser Marsch!', prefix: 'wassermarsch.', haupt: ['wassermarsch.v1'],
-      info: (g) => { const d = J(g['wassermarsch.v1']) || {}; const lv = Object.keys(d.done || {}).length; return { text: lv + ' von 20 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
+      info: (g) => { const d = J(g['wassermarsch.v1']) || {}; const lv = Object.keys(d.done || {}).length; return { text: lv + ' von 25 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
     { id: 'sprungsebi', name: 'SprungSebi', prefix: 'sprungssebi.', haupt: ['sprungssebi.v1'],
       info: (g) => { const d = J(g['sprungssebi.v1']) || {}; const lv = Object.values(d.levels || {}).filter((x) => x && x.time).length; const st = Object.values(d.levels || {}).reduce((a, x) => a + ((x && x.stars) || 0), 0); return { text: lv + ' von 35 Level · ' + st + ' Sterne', wert: lv * 1000 + st * 10 }; } },
     { id: 'stellwerk', name: 'Stellwerk', prefix: 'stellwerk.', haupt: ['stellwerk.v1'],
