@@ -1080,7 +1080,7 @@ function townChip() {
   let up = '';
   if (town.lvl < 3 && know.has('ausbau')) up = '<button type="button" class="up" data-town="1">Ausbauen' + Object.entries(TOWN_COST[town.lvl + 1]).map(([r, n]) => '<span class="' + (state[r] < n ? 'lack' : '') + '">' + ICON[r] + n + '</span>').join('') + '</button>';
   return '<b>Rathaus</b> · Stufe ' + town.lvl + ' · Gebiet ' + TOWN_R[town.lvl] + ' Felder' + (town.lvl < 3 && !know.has('ausbau') ? ' · Ausbau in der Schule erforschen' : '') +
-    '<div class="stats">' + stats + '</div><div class="stats">Rationen je Person · Arbeit ' + Math.round(RATION[ration.n][1] * 100) + ' %</div><div class="tech">' + rb + '</div>' + (up ? '<div class="tech">' + up + '</div>' : '');
+    '<div class="stats">' + stats + '</div><div class="stats">Rationen je Person · Arbeit ' + Math.round(RATION[ration.n][1] * 100) + ' %</div><div class="tech">' + rb + '</div>' + '<div class="tech">' + up + '<button type="button" class="up off" data-reset="1">Neu beginnen</button></div>';
 }
 function setRation(n) {
   if (!RATION[n] || ration.n === n) return;
@@ -1141,7 +1141,7 @@ function computeConn() {
   while (q.length) { const t = q.shift(); for (const o of nbs(t)) if (!conn.has(key(o)) && isNode(o)) { conn.add(key(o)); q.push(o); } }
   for (const b of built) {
     if (!NEEDS_ROAD.includes(b.kind)) continue;
-    b.conn = nbs(tileAt(b.x, b.z)).some(o => conn.has(key(o)));
+    b.conn = !!b.free || nbs(tileAt(b.x, b.z)).some(o => conn.has(key(o)));
     if (!b.conn && !b.warn) { b.warn = new T.Sprite(new T.SpriteMaterial({ map: warnTex, depthTest: false })); b.warn.scale.setScalar(0.26); b.warn.renderOrder = 5; const p = W(b.x, b.z); b.warn.position.set(p.x, p.y + 0.95, p.z); scene.add(b.warn); }
     if (b.warn) b.warn.visible = !b.conn;
   }
@@ -1526,7 +1526,7 @@ function sound(kind) {
 let toastT = 0;
 function toast(title, sub) { const el = $('#toast'); el.innerHTML = ''; el.append(title); if (sub) { const s = document.createElement('small'); s.textContent = sub; el.append(s); } el.classList.remove('show'); void el.offsetWidth; el.classList.add('show'); }
 let chipTimer = 0;
-function chip(html, ms) { const el = $('#chip'); el.innerHTML = html; el.classList.toggle('act', /data-(up|tech|town|road|explore|ration|pause|first)/.test(html)); el.hidden = false; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); clearTimeout(chipTimer); chipTimer = setTimeout(() => { el.hidden = true; }, ms || 4200); }
+function chip(html, ms) { const el = $('#chip'); el.innerHTML = html; el.classList.toggle('act', /data-(up|tech|town|road|explore|ration|pause|first|reset)/.test(html)); el.hidden = false; el.classList.remove('in'); void el.offsetWidth; el.classList.add('in'); clearTimeout(chipTimer); chipTimer = setTimeout(() => { el.hidden = true; }, ms || 4200); }
 const hintAt = {};
 function hintOnce(key, html, every) { const n = Date.now(); if (hintAt[key] && n - hintAt[key] < every) return; hintAt[key] = n; if (started) chip(html); }
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -1740,6 +1740,7 @@ function upgrade(b) {
   updateHud('pWood'); chip(upChip(b), 8000); save();
 }
 $('#chip').addEventListener('click', e => {
+  if (e.target.closest('[data-reset]')) { if (confirm('Wirklich neu beginnen? Dein Dorf wird gelöscht.')) { resetting = true; try { localStorage.removeItem(KEY); } catch (er) { /* egal */ } location.reload(); } return; }
   const ra = e.target.closest('[data-ration]'); if (ra) { setRation(+ra.dataset.ration); return; }
   const pa = e.target.closest('[data-pause]'); if (pa) { const [x, z] = pa.dataset.pause.split(',').map(Number), b = builtAt(x, z); if (b) { b.paused = !b.paused; sound('tap'); toast(BUILD[b.kind].name + (b.paused ? ' pausiert' : ' arbeitet wieder'), b.paused ? 'Tippe nochmal auf Weiterarbeiten' : ''); chip(upChip(b), 8000); save(); } return; }
   const fi = e.target.closest('[data-first]'); if (fi) { siteFirst(+fi.dataset.first); return; }
@@ -1747,12 +1748,14 @@ $('#chip').addEventListener('click', e => {
 
 // ---------- Speichern (nur in diesem Browser) ----------
 const KEY = 'stammvoelker.v1';
+let resetting = false;
 function save() {
+  if (resetting) return;
   try {
     const f2 = v => Math.round(v * 100) / 100;
     localStorage.setItem(KEY, JSON.stringify({
       v: 1, map: 2, wood: state.wood, stone: state.stone, food: state.food, iron: state.iron, tools: state.tools, pop: state.pop, cap: state.cap, m: Math.round(meal.t), h: meal.hungry, z: zones.filter(z => !z.fog).map(z => z.id),
-      r: town.lvl, w: [...roads], k: [...know], n: ration.n, b: built.map(b => [b.kind, b.x, b.z, b.lvl, b.paused ? 1 : 0]),
+      r: town.lvl, w: [...roads], k: [...know], n: ration.n, wv: 2, b: built.map(b => [b.kind, b.x, b.z, b.lvl, b.paused ? 1 : 0, b.free ? 1 : 0]),
       s: sites.filter(s => !s.done).map(s => [s.kind, s.tile.x, s.tile.z]),
       t: trees.filter(tr => !tr.fell).map(tr => [tr.tile.x, tr.tile.z, f2(tr.ox), f2(tr.oz), tr.kind === 'c' ? 0 : 1, f2(tr.s), f2(tr.ry), f2(tr.g), f2(tr.tint)])
     }));
@@ -1784,7 +1787,7 @@ function load() {
     const [k, x, z] = r, t = tileAt(x, z);
     if (!KINDS.includes(k) || !t || !okTile(k, t) || t.occ) continue;
     const g = placeBuilding(k, x, z, false), lvl = clamp(Math.round(r[3]) || 1, 1, UPG_MAX);
-    built.push({ kind: k, x, z, lvl, g, paused: r[4] === 1 }); g.scale.setScalar(lvlScale(lvl)); if (k === 'bruecke') openWest(true);
+    built.push({ kind: k, x, z, lvl, g, paused: r[4] === 1, free: r[5] === 1 }); g.scale.setScalar(lvlScale(lvl)); if (k === 'bruecke') openWest(true);
     if (k !== 'tent' && k !== 'bruecke') spawnWorker(k, x, z);
   }
   for (const r of Array.isArray(o.s) ? o.s : []) {
@@ -1802,6 +1805,7 @@ function load() {
   computeConn();
   if (Array.isArray(o.w)) { o.w.forEach(k => { const t = typeof k === 'string' && tileAt(...k.split(',').map(Number)); if (t && t.ch !== 'w' && !t.occ) roads.add(key(t)); }); }
   else built.forEach(b => { if (!NEEDS_ROAD.includes(b.kind)) return; const p = autoPath(b); if (p) { p.forEach(k => roads.add(k)); computeConn(); } }); // alter Spielstand: Wege geschenkt
+  if (o.wv !== 2) { computeConn(); built.forEach(b => { if (b.conn === false) b.free = true; }); } // vor den Wegen gebaut: gilt als angeschlossen
   for (let i = 0; i < Math.min(10, state.pop - 12); i++) person({ ...look(), shirt: pick(['#E6CC9E', '#C9A876', '#E07A3A']), sash: pick(['#2F9C95', '#E07A3A']), tool: 'basket' }, gathererPlan, firePos.x + R(-0.8, 0.8), firePos.z + R(0.4, 1.0), { name: 'Bewohner' }).res = true;
 }
 
