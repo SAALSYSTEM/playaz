@@ -75,6 +75,9 @@ body{background:linear-gradient(180deg,#8ccaf0 0%,#c8e6f5 38%,#e9f2f2 62%,#f6efe
 .card b{display:block;font:700 16px/1.1 var(--font)}
 .card small{display:block;margin-top:3px;min-height:30px;font:500 12px/1.25 var(--font);color:var(--ink-2)}
 .card .hi{display:block;width:44px;height:30px;margin-bottom:4px}
+.card .hi.round{width:34px;height:34px;margin:-2px 0 0 4px}
+.chip .ico{width:24px;height:24px;vertical-align:-6px;margin-right:4px}
+.chip .up .ico{width:20px;height:20px;margin:0 2px 0 -6px;vertical-align:middle}
 .card .cost{display:flex;flex-wrap:wrap;gap:2px 8px;margin-top:5px;font:700 14px/1 var(--font)}
 .card .cost span{display:flex;align-items:center;gap:2px}
 .card .cost svg{width:16px;height:16px;flex:none}
@@ -356,7 +359,15 @@ tiles.forEach(t => {
 });
 const grassMat = new T.MeshStandardMaterial({ color: C('#9CC56B'), flatShading: true, roughness: 0.95 });
 const grassMesh = instanced(new T.BoxGeometry(1, 0.14, 1), grassMat, grassItems, { cast: true });
-instanced(new T.BoxGeometry(1, 0.56, 1), M('#9A6A40'), soilA);
+function strataTex() { // Erdkante: Schichten und kleine Steine
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128; const g = cv.getContext('2d');
+  const bands = ['#A8754A', '#9A6A40', '#8C5E38', '#A07048', '#86593A'];
+  let y = 0; while (y < 128) { const h = 10 + Math.random() * 18; g.fillStyle = bands[Math.floor(Math.random() * bands.length)]; g.fillRect(0, y, 128, h + 1); y += h; }
+  for (let i = 0; i < 26; i++) { g.fillStyle = Math.random() < 0.5 ? '#B9AE9E' : '#8E857A'; const x = Math.random() * 128, yy = Math.random() * 128, r = 2 + Math.random() * 4; g.beginPath(); g.ellipse(x, yy, r * 1.4, r, 0, 0, 7); g.fill(); }
+  g.fillStyle = 'rgba(0,0,0,.08)'; for (let i = 0; i < 128; i += 3) g.fillRect(0, i, 128, 1);
+  const tx = new T.CanvasTexture(cv); tx.encoding = T.sRGBEncoding; return tx;
+}
+instanced(new T.BoxGeometry(1, 0.56, 1), new T.MeshStandardMaterial({ map: strataTex(), flatShading: true, roughness: 1 }), soilA);
 instanced(new T.BoxGeometry(1, 1, 1), M('#6E4A2C'), soilB, { cast: false });
 const waterMat = new T.MeshStandardMaterial({ color: C('#3D93BD'), flatShading: true, roughness: 0.18, metalness: 0.08, transparent: true, opacity: 0.86 });
 const waterMesh = instanced(new T.BoxGeometry(1, 0.3, 1), waterMat, waterItems, { cast: false });
@@ -1042,13 +1053,17 @@ function makeTownhall(lvl) {
   }
   g.traverse(m => { if (m.isMesh) { m.castShadow = true; m.receiveShadow = true; } });
   const p = W(town.x, town.z); g.position.copy(p); g.rotation.y = Math.round(facing(p, firePos) / (Math.PI / 2)) * (Math.PI / 2);
+  g.children.forEach(m => { m.position.multiplyScalar(1.15); m.scale.multiplyScalar(1.15); });
   return g;
 }
 // Grenze: Pfähle mit kleinen Bannern am Rand des Gebiets
-const postGeo = merge([[new T.CylinderGeometry(0.032, 0.038, 0.46, 5), mtx(0, 0.23, 0)], [new T.ConeGeometry(0.042, 0.09, 5), mtx(0, 0.5, 0)], [new T.DodecahedronGeometry(0.06, 0), mtx(0, 0.02, 0)]]);
-const pennGeo = new T.BufferGeometry(); pennGeo.setAttribute('position', new T.Float32BufferAttribute([0, 0.44, 0, 0.2, 0.38, 0, 0, 0.3, 0], 3)); pennGeo.computeVertexNormals();
+const postGeo = merge([[new T.CylinderGeometry(0.03, 0.036, 0.5, 6), mtx(0, 0.25, 0)], [new T.ConeGeometry(0.036, 0.09, 6), mtx(0, 0.545, 0)], [new T.CylinderGeometry(0.014, 0.014, 0.2, 5), mtx(0.1, 0.44, 0, 0, 0, Math.PI / 2)]]);
+const ropeGeo = merge([[new T.TorusGeometry(0.038, 0.012, 4, 8), mtx(0, 0.43, 0, Math.PI / 2)], [new T.TorusGeometry(0.038, 0.012, 4, 8), mtx(0, 0.46, 0, Math.PI / 2)]]);
+const postRockGeo = merge([[new T.DodecahedronGeometry(0.06, 0), mtx(0.05, 0.02, 0.03)], [new T.DodecahedronGeometry(0.045, 0), mtx(-0.05, 0.015, -0.02)]]);
+const pennGeo = new T.BufferGeometry(); pennGeo.setAttribute('position', new T.Float32BufferAttribute([0.03, 0.435, 0, 0.2, 0.435, 0, 0.04, 0.24, 0], 3)); pennGeo.computeVertexNormals();
 const posts = new T.InstancedMesh(postGeo, M('#8C5A31'), 600), penns = new T.InstancedMesh(pennGeo, new T.MeshStandardMaterial({ color: C('#E07A3A'), side: T.DoubleSide, roughness: 0.9 }), 300);
-posts.frustumCulled = penns.frustumCulled = false; posts.castShadow = true; scene.add(posts, penns);
+const ropes = new T.InstancedMesh(ropeGeo, M('#E6D3A8'), 600), rocks = new T.InstancedMesh(postRockGeo, M("#A39A8E"), 600);
+posts.frustumCulled = penns.frustumCulled = ropes.frustumCulled = rocks.frustumCulled = false; posts.castShadow = true; scene.add(posts, penns, ropes, rocks);
 function updateBorder() {
   let n = 0, k = 0;
   for (const t of tiles) {
@@ -1056,14 +1071,14 @@ function updateBorder() {
     for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const o = tileAt(t.x + dx, t.z + dz); if (!o || inTerr(o) || n >= 600) continue;
       dummy.position.set(t.wx + dx * 0.44, t.top, t.wz + dz * 0.44); dummy.rotation.set(0, dx ? Math.PI / 2 : 0, 0); dummy.scale.set(1, 1, 1); dummy.updateMatrix();
-      posts.setMatrixAt(n++, dummy.matrix);
+      ropes.setMatrixAt(n, dummy.matrix); rocks.setMatrixAt(n, dummy.matrix); posts.setMatrixAt(n++, dummy.matrix);
       if (k < 300) penns.setMatrixAt(k++, dummy.matrix);
     }
   }
   const col = new T.Color(); // Land außerhalb etwas blasser
   grassTiles.forEach((t, i) => { const f = grassItems[i].tint * (inTerr(t) ? 1 : 0.8); col.setRGB(f, f * (inTerr(t) ? 1 : 0.97), f * (inTerr(t) ? 1 : 0.92)); grassMesh.setColorAt(i, col); });
   grassMesh.instanceColor.needsUpdate = true;
-  posts.count = n; penns.count = k; posts.instanceMatrix.needsUpdate = penns.instanceMatrix.needsUpdate = true;
+  posts.count = ropes.count = rocks.count = n; penns.count = k; posts.instanceMatrix.needsUpdate = penns.instanceMatrix.needsUpdate = ropes.instanceMatrix.needsUpdate = rocks.instanceMatrix.needsUpdate = true;
 }
 function setTown(lvl, instant) {
   town.lvl = clamp(lvl, 1, 3);
@@ -1079,8 +1094,8 @@ function townChip() {
   const rb = [1, 2, 3].map(n => '<button type="button" class="up' + (ration.n === n ? '' : ' off') + '" data-ration="' + n + '">' + RATION[n][0] + '<span>' + ICON.food + n + '</span></button>').join('');
   let up = '';
   if (town.lvl < 3 && know.has('ausbau')) up = '<button type="button" class="up" data-town="1">Ausbauen' + Object.entries(TOWN_COST[town.lvl + 1]).map(([r, n]) => '<span class="' + (state[r] < n ? 'lack' : '') + '">' + ICON[r] + n + '</span>').join('') + '</button>';
-  return '<b>Rathaus</b> · Stufe ' + town.lvl + ' · Gebiet ' + TOWN_R[town.lvl] + ' Felder' + (town.lvl < 3 && !know.has('ausbau') ? ' · Ausbau in der Schule erforschen' : '') +
-    '<div class="stats">' + stats + '</div><div class="stats">Rationen je Person · Arbeit ' + Math.round(RATION[ration.n][1] * 100) + ' %</div><div class="tech">' + rb + '</div>' + '<div class="tech">' + up + '<button type="button" class="up off" data-reset="1">Neu beginnen</button></div>';
+  return ico('rathaus') + '<b>Rathaus</b> · Stufe ' + town.lvl + ' · ' + ico('gebiet') + 'Gebiet ' + TOWN_R[town.lvl] + ' Felder' + (town.lvl < 3 && !know.has('ausbau') ? ' · Ausbau in der Schule erforschen' : '') +
+    '<div class="stats">' + stats + '</div><div class="stats">' + ico('ration') + 'Rationen je Person · Arbeit ' + Math.round(RATION[ration.n][1] * 100) + ' %</div><div class="tech">' + rb + '</div>' + '<div class="tech">' + up + '<button type="button" class="up off" data-reset="1">Neu beginnen</button></div>';
 }
 function setRation(n) {
   if (!RATION[n] || ration.n === n) return;
@@ -1118,6 +1133,9 @@ const roadTex = new T.TextureLoader().load('stammvoelker/weg.webp'); roadTex.enc
 const roadGeo = new T.PlaneGeometry(1, 1); roadGeo.rotateX(-Math.PI / 2);
 const roadMesh = new T.InstancedMesh(roadGeo, new T.MeshStandardMaterial({ map: roadTex, roughness: 1 }), 2400);
 roadMesh.count = 0; roadMesh.receiveShadow = true; roadMesh.frustumCulled = false; scene.add(roadMesh);
+const iconTex = n => { const tx = new T.TextureLoader().load('stammvoelker/icons/' + n + '.webp'); tx.encoding = T.sRGBEncoding; return tx; };
+const warnIcon = iconTex('warn'), pauseIcon = iconTex('pause');
+const ico = n => '<img class="ico" src="stammvoelker/icons/' + n + '.webp" alt="">';
 const warnTex = (() => { const cv = document.createElement('canvas'); cv.width = cv.height = 64; const g = cv.getContext('2d');
   g.fillStyle = '#E07A3A'; g.beginPath(); g.arc(32, 32, 28, 0, 7); g.fill(); g.lineWidth = 5; g.strokeStyle = '#fff'; g.stroke();
   g.fillStyle = '#fff'; g.fillRect(28, 14, 8, 24); g.fillRect(28, 43, 8, 8); const tx = new T.CanvasTexture(cv); tx.encoding = T.sRGBEncoding; return tx; })();
@@ -1142,8 +1160,8 @@ function computeConn() {
   for (const b of built) {
     if (!NEEDS_ROAD.includes(b.kind)) continue;
     b.conn = !!b.free || nbs(tileAt(b.x, b.z)).some(o => conn.has(key(o)));
-    if (!b.conn && !b.warn) { b.warn = new T.Sprite(new T.SpriteMaterial({ map: warnTex, depthTest: false })); b.warn.scale.setScalar(0.26); b.warn.renderOrder = 5; const p = W(b.x, b.z); b.warn.position.set(p.x, p.y + 0.95, p.z); scene.add(b.warn); }
-    if (b.warn) b.warn.visible = !b.conn;
+    if ((!b.conn || b.paused) && !b.warn) { b.warn = new T.Sprite(new T.SpriteMaterial({ map: warnIcon, depthTest: false })); b.warn.scale.setScalar(0.36); b.warn.renderOrder = 5; const p = W(b.x, b.z); b.warn.position.set(p.x, p.y + 0.95, p.z); scene.add(b.warn); }
+    if (b.warn) { b.warn.visible = !b.conn || !!b.paused; const m = b.conn ? pauseIcon : warnIcon; if (b.warn.material.map !== m) { b.warn.material.map = m; b.warn.material.needsUpdate = true; } }
   }
   drawRoads();
 }
@@ -1644,7 +1662,7 @@ const sheet = $('#sheet'), buildBtn = $('#build');
 const ICON = { wood: $('#pWood svg').outerHTML, stone: $('#pStone svg').outerHTML, food: $('#pFood svg').outerHTML, iron: $('#pIron svg').outerHTML, tools: $('#pTool svg').outerHTML };
 const HUTC = { schule: '#3F7F8C', holz: '#8C5A31', foerster: '#4E8B45', stein: '#6F6A62', sammler: '#C0612B', farm: '#C9A33A', bruecke: '#8C5A31' };
 const hutIcon = k => k === 'weg'
-  ? '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><path d="M6 28C14 20 12 12 22 8s16-2 18-6" fill="none" stroke="#C9A06A" stroke-width="8" stroke-linecap="round"/><path d="M6 28C14 20 12 12 22 8s16-2 18-6" fill="none" stroke="#8C5A31" stroke-width="1.5" stroke-dasharray="2 4"/></svg>'
+  ? '<img class="hi round" src="stammvoelker/icons/weg.webp" alt="">'
   : k === 'smithy'
   ? '<svg class="hi" viewBox="0 0 44 30" aria-hidden="true"><rect x="8" y="14" width="28" height="13" rx="2" fill="#8F8A84"/><path d="M3 15 22 3l19 12z" fill="#7A3B2A"/><rect x="26" y="1" width="6" height="9" fill="#5E5953"/><rect x="19" y="18" width="6" height="9" fill="#E8742A"/></svg>'
   : k === 'mine'
@@ -1719,7 +1737,7 @@ function upChip(b) {
   const btn = [], cost = c => Object.entries(c).map(([r, n]) => '<span class="' + (state[r] < n ? 'lack' : '') + '">' + ICON[r] + n + '</span>').join('');
   let info = 'Stufe ' + b.lvl;
   if (b.conn === false) {
-    const path = autoPath(b); info = 'kein Weg zum Rathaus, halbe Arbeit';
+    const path = autoPath(b); info = ico('warn') + 'kein Weg zum Rathaus, halbe Arbeit';
     if (path) btn.push('<button type="button" class="up" data-road="' + b.x + ',' + b.z + '">Weg bauen' + cost({ wood: path.length }) + '</button>'); else info += ' · kein Weg möglich';
   } else {
     if (b.paused) info += ' · pausiert';
@@ -1727,7 +1745,7 @@ function upChip(b) {
     else if (!know.has('ausbau')) info += ' · Ausbau in der Schule erforschen';
     else btn.push('<button type="button" class="up" data-up="' + b.x + ',' + b.z + '">Ausbauen <small>' + (b.kind === 'tent' ? '+' + (b.lvl === 1 ? 4 : 6) + ' Plätze' : '+50 %') + '</small>' + cost(upCost(b)) + '</button>');
   }
-  if (NEEDS_ROAD.includes(b.kind)) btn.push('<button type="button" class="up off" data-pause="' + b.x + ',' + b.z + '">' + (b.paused ? 'Weiterarbeiten' : 'Pause') + '</button>');
+  if (NEEDS_ROAD.includes(b.kind)) btn.push('<button type="button" class="up off" data-pause="' + b.x + ',' + b.z + '">' + ico('pause') + (b.paused ? 'Weiterarbeiten' : 'Pause') + '</button>');
   return '<b>' + esc(BUILD[b.kind].name) + '</b> · ' + info + (btn.length ? '<div class="tech">' + btn.join('') + '</div>' : '');
 }
 function upgrade(b) {
@@ -1742,7 +1760,7 @@ function upgrade(b) {
 $('#chip').addEventListener('click', e => {
   if (e.target.closest('[data-reset]')) { if (confirm('Wirklich neu beginnen? Dein Dorf wird gelöscht.')) { resetting = true; try { localStorage.removeItem(KEY); } catch (er) { /* egal */ } location.reload(); } return; }
   const ra = e.target.closest('[data-ration]'); if (ra) { setRation(+ra.dataset.ration); return; }
-  const pa = e.target.closest('[data-pause]'); if (pa) { const [x, z] = pa.dataset.pause.split(',').map(Number), b = builtAt(x, z); if (b) { b.paused = !b.paused; sound('tap'); toast(BUILD[b.kind].name + (b.paused ? ' pausiert' : ' arbeitet wieder'), b.paused ? 'Tippe nochmal auf Weiterarbeiten' : ''); chip(upChip(b), 8000); save(); } return; }
+  const pa = e.target.closest('[data-pause]'); if (pa) { const [x, z] = pa.dataset.pause.split(',').map(Number), b = builtAt(x, z); if (b) { b.paused = !b.paused; computeConn(); sound('tap'); toast(BUILD[b.kind].name + (b.paused ? ' pausiert' : ' arbeitet wieder'), b.paused ? 'Tippe nochmal auf Weiterarbeiten' : ''); chip(upChip(b), 8000); save(); } return; }
   const fi = e.target.closest('[data-first]'); if (fi) { siteFirst(+fi.dataset.first); return; }
   const ex = e.target.closest('[data-explore]'); if (ex) { explore(ex.dataset.explore); return; } if (e.target.closest('[data-town]')) { upgradeTown(); return; } const rd = e.target.closest('[data-road]'); if (rd) { const [x, z] = rd.dataset.road.split(',').map(Number), b = builtAt(x, z); if (b) connectHut(b); return; } const th = e.target.closest('[data-tech]'); if (th) { research(th.dataset.tech); return; } const u = e.target.closest('[data-up]'); if (!u) return; const [x, z] = u.dataset.up.split(',').map(Number), b = builtAt(x, z); if (b) upgrade(b); });
 
