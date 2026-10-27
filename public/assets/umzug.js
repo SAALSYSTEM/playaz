@@ -70,6 +70,8 @@
       info: (g) => { const d = J(g['turmschicht.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
     { id: 'dinoleiter', name: 'Dino-Leiterhelden', prefix: 'dinoleiter.', haupt: ['dinoleiter.v1'],
       info: (g) => { const d = J(g['dinoleiter.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
+    { id: 'sternenpups', name: 'Sternenpups', prefix: 'sternenpups.', haupt: ['sternenpups.v1'],
+      info: (g) => { const d = J(g['sternenpups.v1']) || {}; const b = d.best || {}; const lv = Object.keys(b).length; const st = Object.values(b).reduce((a, x) => a + (Number(x) || 0), 0); return { text: lv + ' von 20 Level · ' + st + ' ★', wert: lv * 100 + st }; } },
     { id: 'stall', name: 'Ab in den Stall!', prefix: 'stall.', haupt: ['stall.v1'],
       info: (g) => { const d = J(g['stall.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
     { id: 'wassermarsch', name: 'Wasser Marsch!', prefix: 'wassermarsch.', haupt: ['wassermarsch.v1'],
