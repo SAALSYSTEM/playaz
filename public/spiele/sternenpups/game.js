@@ -120,7 +120,7 @@ function paintMute() {
   });
 }
 // Hintergrundlied: nur im Spiel (auch auf dem Geschafft-Bildschirm), folgt dem Ton-Knopf
-const music = $('music'); music.volume = 0.12;
+const music = $('music'); music.volume = 0.07;
 function musicSync() {
   const want = !save.mute && !document.hidden && (mode === 'play' || mode === 'won');
   if (!want) { music.pause(); return; }

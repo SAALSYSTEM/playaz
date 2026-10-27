@@ -55,7 +55,7 @@ Level stehen als 6-Spalten-Raster in `levels.js` (Legende im Dateikopf).
 - `public/spiele/sternenpups/img/` – WebP-Bilder + `manifest.json` (fehlt ein Bild, zeichnet das Spiel einen Platzhalter)
 - `design/sternenpups/PROMPTS.md` – alle ChatGPT-Bildprompts; Originale als `design/sternenpups/<name>.png`, dann `python3 tools/sternenpups-assets.py`
 - `design/sternenpups/sound/` – gelieferte Original-Sounds (Pixabay)
-- `public/spiele/sternenpups/*.mp3` – zugeschnitten, mono, 64 kbit/s: `pups-1…4` (Pupse, zufällig, leicht verschiedene Tonhöhe), `funkel` (Stern, Zauberstab), `zauber` (Fee, Ranke wächst, Regenbogen), `musik` (Hintergrundlied, Schleife, Lautstärke 0,12, nur im Spiel, folgt dem Ton-Knopf). Fehlt eine Datei, wird der Ton per WebAudio nachgebaut. Der „Trompeten-Pups“ wurde nicht verwendet (zu lang und zu „eklig“ für ab 4).
+- `public/spiele/sternenpups/*.mp3` – zugeschnitten, mono, 64 kbit/s: `pups-1…4` (Pupse, zufällig, leicht verschiedene Tonhöhe), `funkel` (Stern, Zauberstab), `zauber` (Fee, Ranke wächst, Regenbogen), `musik` (Hintergrundlied, Schleife, Lautstärke 0,07, nur im Spiel, folgt dem Ton-Knopf). Fehlt eine Datei, wird der Ton per WebAudio nachgebaut. Der „Trompeten-Pups“ wurde nicht verwendet (zu lang und zu „eklig“ für ab 4).
 - `tests/sternenpups-sim.test.mjs` – Raster, Etagen-Lernkurve, Einführungsreihenfolge, Lösbarkeit, Pflichtaufgaben nötig, keine Sackgassen, Sterne erreichbar, Spielstand, Einladungslink
 - `supabase/migrations/20261027190000_sternenpups.sql` – Katalog-Eintrag (`listed = false` bis zur Veröffentlichung)
 
