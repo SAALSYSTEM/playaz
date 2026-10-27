@@ -114,9 +114,10 @@ def main():
         sky.paste(tile, (540, 0), m.filter(ImageFilter.GaussianBlur(2)))
         sky.save(BILDER / 'sternenpups-og.jpg', 'JPEG', quality=86)
     if s:
-        im = Image.open(s).convert('RGB'); h = round(im.width * 630 / 1200)
-        top = max(0, (im.height - h) // 2)
-        im.crop((0, top, im.width, top + h)).resize((1200, 630), Image.LANCZOS).save(BILDER / 'sternenpups-og.jpg', 'JPEG', quality=86)
+        im = Image.open(s).convert('RGB')
+        h = min(im.height, round(im.width * 630 / 1200)); w = min(im.width, round(im.height * 1200 / 630))
+        left, top = (im.width - w) // 2, (im.height - h) // 2
+        im.crop((left, top, left + w, top + h)).resize((1200, 630), Image.LANCZOS).save(BILDER / 'sternenpups-og.jpg', 'JPEG', quality=86)
     print('Bilder:', ', '.join(made) or '–', '| Kachel:', 'ja' if k else 'nein', '| Vorschau:', 'ja' if s else 'nein')
 
 

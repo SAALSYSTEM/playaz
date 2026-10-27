@@ -1,7 +1,7 @@
 # Sternenpups – Hoch zu den Feen · Übergabenotiz
 
 Einhorn-Kletterspiel für Kinder ab 4, Handy hochkant, Finger oder Maus. 20 feste Level in 4 Welten (Wolkenwiese 1–5, Rankenhimmel 6–10, Regenbogenland 11–15, Feenschloss 16–20).
-Route: `/spiele/sternenpups`. Veröffentlicht am 27.10.2026 (Startseite unter „Neu“, Sitemap). Grafiken von ChatGPT; Regenbogen noch gezeichnet, Teilen-Vorschau vorläufig aus Kachel + Himmel gebaut.
+Route: `/spiele/sternenpups`. Veröffentlicht am 27.10.2026 (Startseite unter „Neu“, Sitemap). Grafiken von ChatGPT; Regenbogen noch gezeichnet; Teilen-Vorschau von ChatGPT.
 
 ## Spielprinzip
 Eine leuchtend markierte Wolke antippen → das Einhorn dreht sich, geht kurz in die Hocke und pupst sich mit einer bunten Sternenstaubwolke hinüber. Flugbahn und Landung macht das Spiel.
