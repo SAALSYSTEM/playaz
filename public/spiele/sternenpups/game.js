@@ -98,7 +98,7 @@ let lastPups = -1;
 const SFX = {
   pups: () => {
     let i = Math.floor(Math.random() * 4); if (i === lastPups) i = (i + 1) % 4; lastPups = i;
-    if (!playBuf('pups-' + (i + 1), 0.75, 0.95 + Math.random() * 0.15)) { tone(90 + Math.random() * 30, 0.32, 'sawtooth', 0.09, 0.7, 0, 500); noise(0.3, 260, 0.08, 1.5); }
+    if (!playBuf('pups-' + (i + 1), 1.0, 0.95 + Math.random() * 0.15)) { tone(90 + Math.random() * 30, 0.32, 'sawtooth', 0.09, 0.7, 0, 500); noise(0.3, 260, 0.08, 1.5); }
   },
   funkel: () => { if (!playBuf('funkel', 0.5)) [1319, 1568, 2093].forEach((f, i) => tone(f, 0.18, 'triangle', 0.06, 0, i * 0.06)); },
   zauber: () => { if (!playBuf('zauber', 0.55)) [784, 988, 1175, 1568, 1976].forEach((f, i) => tone(f, 0.3, 'sine', 0.06, 0, i * 0.07)); },
@@ -120,7 +120,7 @@ function paintMute() {
   });
 }
 // Hintergrundlied: nur im Spiel (auch auf dem Geschafft-Bildschirm), folgt dem Ton-Knopf
-const music = $('music'); music.volume = 0.28;
+const music = $('music'); music.volume = 0.12;
 function musicSync() {
   const want = !save.mute && !document.hidden && (mode === 'play' || mode === 'won');
   if (!want) { music.pause(); return; }
