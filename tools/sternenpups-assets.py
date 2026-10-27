@@ -22,7 +22,7 @@ BILDER = ROOT / 'public' / 'bilder'
 BILDER_FREI = {
     'einhorn': 300, 'einhorn-flug': 300, 'einhorn-jubel': 300,
     'fee': 260, 'fee-traurig': 260, 'elf': 250,
-    'wolke-1': 180, 'wolke-2': 200, 'wolke-3': 220, 'ziel': 520, 'boden': 360,
+    'wolke-1': 180, 'wolke-2': 200, 'wolke-3': 220, 'ziel': 520, 'boden': 1000,
     'ranke': 900, 'regenbogen': 420, 'zauberstab': 120, 'stern': 140,
 }
 
@@ -59,11 +59,30 @@ def remove_background(rgba):
     return out
 
 
+def drop_specks(rgba, keep_small=False):
+    """Lose Krümel (kleine, abgetrennte Pixelinseln) entfernen, damit der Zuschnitt stimmt.
+    keep_small: kleine Teile in der Nähe des Hauptteils behalten (Funken am Zauberstab)."""
+    a = rgba[..., 3]
+    lab, n = ndimage.label(a > 24)
+    if n <= 1:
+        return rgba
+    sizes = ndimage.sum(np.ones_like(a), lab, range(1, n + 1))
+    big = sizes.max()
+    keep = np.zeros(n + 1, bool)
+    keep[1:] = sizes >= big * (0.002 if keep_small else 0.03)
+    mask = keep[lab]
+    mask = ndimage.binary_dilation(mask, iterations=3)
+    out = rgba.copy()
+    out[..., 3] = np.where(mask, a, 0)
+    return out
+
+
 def cut(name, height):
     f = find(name)
     if not f:
         return None
     rgba = remove_background(np.array(Image.open(f).convert('RGBA')))
+    rgba = drop_specks(rgba, keep_small=name in ('zauberstab', 'ranke'))
     ys, xs = np.nonzero(rgba[..., 3] > 8)
     crop = Image.fromarray(rgba[ys.min():ys.max() + 1, xs.min():xs.max() + 1])
     w = round(crop.width * height / crop.height)
@@ -85,6 +104,15 @@ def main():
         im = Image.open(k).convert('RGB'); s = min(im.size)
         im.crop(((im.width - s) // 2, (im.height - s) // 2, (im.width + s) // 2, (im.height + s) // 2)).resize((720, 720), Image.LANCZOS).save(BILDER / 'sternenpups.webp', 'WEBP', quality=84, method=6)
     s = find('social-preview')
+    if not s and k and bg:
+        # Ersatz, bis ein eigenes Motiv da ist: Kachel rechts auf dem Himmel
+        sky = Image.open(bg).convert('RGB').resize((1200, 1800), Image.LANCZOS).crop((0, 600, 1200, 1230))
+        tile = Image.open(k).convert('RGB').resize((630, 630), Image.LANCZOS)
+        m = Image.new('L', (630, 630), 0)
+        from PIL import ImageDraw, ImageFilter
+        ImageDraw.Draw(m).rounded_rectangle((30, 30, 600, 600), 60, fill=255)
+        sky.paste(tile, (540, 0), m.filter(ImageFilter.GaussianBlur(2)))
+        sky.save(BILDER / 'sternenpups-og.jpg', 'JPEG', quality=86)
     if s:
         im = Image.open(s).convert('RGB'); h = round(im.width * 630 / 1200)
         top = max(0, (im.height - h) // 2)

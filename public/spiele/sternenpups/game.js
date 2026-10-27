@@ -28,7 +28,7 @@ async function loadImages() {
   })));
 }
 // Wo liegt in den Wolkenbildern die Standfläche? (Anteil der Bildhöhe von oben)
-const SURF = { 'wolke-1': 0.26, 'wolke-2': 0.26, 'wolke-3': 0.26, ziel: 0.7, boden: 0.16 };
+const SURF = { 'wolke-1': 0.1, 'wolke-2': 0.1, 'wolke-3': 0.1, ziel: 0.58, boden: 0.05 };
 const aspect = (k) => IMG[k].naturalHeight / IMG[k].naturalWidth;
 
 // ---------- Spielstand ----------

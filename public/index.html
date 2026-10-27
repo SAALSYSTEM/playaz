@@ -245,6 +245,7 @@
     <section class="block block-neu" id="neu" aria-labelledby="neu-titel">
       <div class="block-kopf"><h2 id="neu-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Neu</h2><p>Neu bei PlaySaal</p></div>
       <ul class="kacheln" data-lay="neu">
+      <li class="kachel" data-slug="sternenpups" data-kategorien="abenteuer,kinder" data-rec="sternenpups" data-name="Sternenpups" data-arten="Für Kinder,Einhorn,Klettern" data-kat="neu"><a href="/spiele/sternenpups"><img src="/bilder/sternenpups.webp" width="720" height="720" alt="Sternenpups: Ein kleines Einhorn pupst sich mit Sternenstaub durch die Wolken nach oben zu einer Fee" decoding="async" loading="lazy"><span class="name">Sternenpups</span></a></li>
       <li class="kachel" data-slug="ab-in-den-stall" data-kategorien="raetsel,kinder" data-rec="stall" data-name="Ab in den Stall!" data-arten="Für Kinder,Bauernhof,Puzzle" data-kat="neu"><a href="/spiele/ab-in-den-stall"><img src="/bilder/ab-in-den-stall.webp" width="720" height="720" alt="Ab in den Stall!: Küken, Ferkel, Lämmchen und Kälbchen laufen auf einem Weg zum roten Stall" decoding="async" loading="lazy"><span class="name">Ab in den Stall!</span></a></li>
       <li class="kachel" data-slug="halma" data-kategorien="brettspiele" data-rec="halma" data-name="Halma" data-arten="Brettspiel,Springen,Zu zweit" data-kat="neu"><a href="/spiele/halma"><img src="/bilder/halma.webp" width="720" height="720" alt="Halma: Holzbrett mit hellen und dunklen Steinen in den Ecken, ein Stein springt in einer Kette" decoding="async" loading="lazy"><span class="name">Halma</span></a></li>
       <li class="kachel" data-slug="backgammon" data-kategorien="brettspiele" data-rec="backgammon" data-name="Backgammon" data-arten="Brettspiel,Würfeln,Zu zweit" data-kat="neu"><a href="/spiele/backgammon"><img src="/bilder/backgammon.webp" width="720" height="720" alt="Backgammon: Holzbrett mit Zacken, gestapelte Steine und zwei rollende Würfel" decoding="async" loading="lazy"><span class="name">Backgammon</span></a></li>
@@ -444,6 +445,8 @@
   if (hs) show('hochstapler', 'Rekord ' + n(hs));
   const pp = read('papierpilot.v1');
   if (pp && Number(pp.best) >= 100) show('papierpilot', 'Bestflug ' + n(Math.floor(pp.best / 100)) + ' m');
+  const spp = read('sternenpups.v1');
+  if (spp && spp.best && Object.keys(spp.best).length) { const st = Object.values(spp.best).reduce((a, b) => a + (Number(b) || 0), 0); show('sternenpups', Object.keys(spp.best).length + ' von 20 Level · ' + st + ' ★'); }
   const ais = read('stall.v1');
   if (ais && ais.best && Object.keys(ais.best).length) show('stall', Object.keys(ais.best).length + ' von 30 Level');
   const hm = read('halma.v1');
