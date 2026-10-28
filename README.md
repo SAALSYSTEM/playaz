@@ -4,6 +4,8 @@
 
 **Ab in den Stall!:** Bauernhofspiel für Kinder ab 4 im Hochformat: vom Tier mit dem Finger einen Weg zu seinem Zuhause malen (Küken, Ferkel, Kälbchen, Lämmchen, Entchen, Fohlen). 30 Level in 3 Welten mit Bach und Brücke, Gattern zum Antippen und Pfützen nur für Ferkel; kein Scheitern, Herausforderung per Link. Veröffentlicht am 26.10.2026 (`/spiele/ab-in-den-stall`). Grafiken: Originale von ChatGPT in `design/ab-in-den-stall/`, als WebP per `tools/ab-in-den-stall-assets.py`; Zaun, Bach und Brücke werden gezeichnet. Details: [`docs/AB_IN_DEN_STALL.md`](docs/AB_IN_DEN_STALL.md). Test: `node --test tests/ab-in-den-stall-sim.test.mjs`.
 
+**Schach:** alle Regeln (Rochade, en passant, Umwandlung, Matt, Patt, Remisregeln) mit denselben drei Computergegnern oder zu zweit; Brett von Dame. Veröffentlicht am 28.10.2026. Details: [`docs/SCHACH.md`](docs/SCHACH.md). Test: `node --test tests/schach-sim.test.mjs`.
+
 **Halma:** Springspiel auf 16×16 Feldern (19 Steine je Seite, Sprungketten) mit denselben drei Computergegnern oder zu zweit. Veröffentlicht am 25.10.2026. Details: [`docs/HALMA.md`](docs/HALMA.md). Test: `node --test tests/halma-sim.test.mjs`.
 
 **Backgammon:** Würfel-Brettspiel im Hochformat (Brett quer, Bande und Würfel in der Mitte) mit denselben drei Computergegnern oder zu zweit. Veröffentlicht am 24.10.2026. Details: [`docs/BACKGAMMON.md`](docs/BACKGAMMON.md). Test: `node --test tests/backgammon-sim.test.mjs`.
