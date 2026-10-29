@@ -10,9 +10,9 @@ import {
 const floors = (lv) => lv.map.length - 1;
 const has = (lv, ch) => lv.map.join('').includes(ch);
 
-test('20 Level in 4 Welten, gültige Raster', () => {
-  assert.equal(LEVEL_COUNT, 20);
-  assert.deepEqual(WORLDS.map((w) => [w.from, w.to]), [[1, 5], [6, 10], [11, 15], [16, 20]]);
+test('50 Level in 7 Welten, gültige Raster', () => {
+  assert.equal(LEVEL_COUNT, 50);
+  assert.deepEqual(WORLDS.map((w) => [w.from, w.to]), [[1, 5], [6, 10], [11, 15], [16, 20], [21, 30], [31, 40], [41, 50]]);
   LEVELS.forEach((lv, i) => {
     assert.equal(lv.id, i + 1);
     assert.ok(lv.title && lv.tip && lv.tip.icon && lv.tip.text, `Level ${lv.id}: Titel/Tipp`);
@@ -30,14 +30,30 @@ test('Etagen wachsen behutsam: 1–2, dann 3–5, 6–10, bis 20', () => {
   for (let i = 15; i < 20; i++) assert.ok(f[i] >= 11 && f[i] <= 20, `Level ${i + 1}: ${f[i]} Etagen`);
   assert.equal(f[19], 20);
   for (let i = 1; i < 20; i++) assert.ok(f[i] >= f[i - 1], 'nie wieder kürzer');
+  // Welten 5–7: jede Welt beginnt kürzer und wird dann länger, nie kürzer innerhalb einer Welt
+  for (const w of WORLDS.filter((x) => x.id >= 5)) {
+    for (let n = w.from + 1; n <= w.to; n++) assert.ok(f[n - 1] >= f[n - 2], `Level ${n}: nie kürzer innerhalb der Welt`);
+  }
+  assert.ok(f[20] >= 4 && f[20] <= 6, 'Level 21 (neuer Schmetterling) bleibt kurz');
+  for (let i = 20; i < 50; i++) assert.ok(f[i] >= 4 && f[i] <= 26, `Level ${i + 1}: ${f[i]} Etagen`);
+  assert.ok(f[49] >= f[39], 'Finale ist am höchsten');
 });
 
-test('Mechaniken kommen einzeln: Ranke 6, Zauberstab 8, Regenbogen 11, Elf 13', () => {
+test('Mechaniken kommen einzeln: Ranke 6, Zauberstab 8, Regenbogen 11, Elf 13, Schmetterling 21', () => {
   const first = (ch) => LEVELS.findIndex((lv) => has(lv, ch)) + 1;
   assert.equal(first('|'), 6);
   assert.equal(first('w'), 8);
   assert.equal(first('R'), 11);
   assert.equal(first('E'), 13);
+  assert.equal(first('B'), 21);
+  // Schmetterling: 21–23 nur er allein, danach je eine bekannte Mechanik dazu
+  for (const n of [21, 22, 23]) for (const ch of '|wREF:g') assert.ok(!has(LEVELS[n - 1], ch), `Level ${n} ohne ${ch}`);
+  assert.ok(has(LEVELS[23], '|') && !has(LEVELS[23], 'R') && !has(LEVELS[23], 'E') && !has(LEVELS[23], 'w'), 'Level 24: Schmetterling + Ranke');
+  assert.ok(has(LEVELS[24], 'w') && !has(LEVELS[24], 'R') && !has(LEVELS[24], 'E'), 'Level 25: + Fee');
+  assert.ok(has(LEVELS[26], 'R') && !has(LEVELS[26], 'E') && !has(LEVELS[26], 'w'), 'Level 27: + Regenbogen');
+  assert.ok(has(LEVELS[27], 'E') && !has(LEVELS[27], 'R') && !has(LEVELS[27], 'w'), 'Level 28: + Elf');
+  // ab Level 21 ist der Schmetterling fast immer dabei; Level 34 ist eine bewusste Pause ohne ihn
+  assert.deepEqual(LEVELS.filter((x) => x.id >= 21 && !has(x, 'B')).map((x) => x.id), [34]);
   // Einführungslevel bringen nur ihr eigenes neues Element mit
   assert.ok(!has(LEVELS[7], '|') && !has(LEVELS[10], 'w') && !has(LEVELS[12], 'R') && !has(LEVELS[12], 'w'));
   // Ruhewolken nach etwa 4–5 Etagen in langen Leveln
@@ -57,9 +73,10 @@ test('jedes Level lösbar, alle Sterne und Wolken erreichbar', () => {
   }
 });
 
-test('Pflichtaufgaben sind wirklich nötig (Fee, Elf, Regenbogen; Ranke außer in Level 10)', () => {
+test('Pflichtaufgaben sind wirklich nötig (Fee, Elf, Regenbogen, Schmetterling; Ranke außer in Level 10)', () => {
   for (const lv of LEVELS) {
     const L = parseLevel(lv);
+    if (L.taxis.length) assert.ok(!solvableWithout(lv, 'taxi'), `Level ${lv.id}: Schmetterling umgehbar`);
     if (L.fairy >= 0) assert.ok(!solvableWithout(lv, 'fairy'), `Level ${lv.id}: Fee umgehbar`);
     if (L.elves.length) assert.ok(!solvableWithout(lv, 'elf'), `Level ${lv.id}: Elf umgehbar`);
     if (L.rainbows.length) assert.ok(!solvableWithout(lv, 'rainbow'), `Level ${lv.id}: Regenbogen umgehbar`);
@@ -138,6 +155,22 @@ test('Ranke, Elf und Regenbogen funktionieren hoch und runter', () => {
   moveTo(s11, rb.b); assert.equal(canMove(s11, rb.a).via, 'rainbow');
 });
 
+test('Schmetterlings-Taxi: bis 3 Etagen hoch/runter, nur von der Schmetterlingswolke, kein Absturz', () => {
+  const lv = LEVELS[20], st = newState(lv), L = st.L;   // Level 21
+  const b = L.taxis[0], top = L.plats[L.goal];
+  // zur Schmetterlingswolke (auf der Wiese kein Taxi)
+  assert.ok(!moves(st).some((m) => m.via === 'taxi'));
+  moveTo(st, b.plat);
+  const t = moves(st).filter((m) => m.via === 'taxi');
+  assert.ok(t.length > 0 && t.every((m) => Math.abs(L.plats[m.plat].row - L.plats[b.plat].row) <= 3));
+  assert.ok(t.every((m) => L.plats[m.plat].row < L.plats[b.plat].row), 'in Level 21 nur nach oben');
+  assert.ok(!t.some((m) => m.plat === top.i), 'Ziel liegt 4 Etagen höher: nicht direkt per Taxi');
+  const r = moveTo(st, t[0].plat);
+  assert.equal(r.move.via, 'taxi'); assert.equal(st.plat, t[0].plat);
+  // von einer Wolke ohne Schmetterling gibt es kein Taxi
+  assert.ok(!moves(st).some((m) => m.via === 'taxi'));
+});
+
 test('Spielstand: Sterne, Freischalten, begonnenes Level fortsetzen', () => {
   const s = freshSave();
   assert.equal(recordWin(s, 1, 2, LEVEL_COUNT), true);
@@ -153,8 +186,12 @@ test('Spielstand: Sterne, Freischalten, begonnenes Level fortsetzen', () => {
   // kaputte Daten
   assert.equal(restoreRun(lv, { l: 14, p: 999 }).plat, newState(lv).plat);
   assert.equal(restoreRun(lv, { l: 3, p: 1 }).plat, newState(lv).plat);
-  const clean = sanitizeSave({ unlocked: 99, best: { 1: 3, 2: 7, 50: 1, x: 2 }, run: { l: 2 }, mute: 1 }, LEVEL_COUNT);
-  assert.deepEqual(clean.best, { 1: 3 }); assert.equal(clean.unlocked, 20); assert.equal(clean.mute, true); assert.equal(clean.run.l, 2);
+  const clean = sanitizeSave({ unlocked: 99, best: { 1: 3, 2: 7, 51: 1, 50: 2, x: 2 }, run: { l: 2 }, mute: 1 }, LEVEL_COUNT);
+  assert.deepEqual(clean.best, { 1: 3, 50: 2 }); assert.equal(clean.unlocked, 50);
+  // Wer die ersten 20 Level schon geschafft hatte, darf mit Level 21 weitermachen
+  assert.equal(sanitizeSave({ unlocked: 20, best: { 20: 2 } }, LEVEL_COUNT).unlocked, 21);
+  assert.equal(sanitizeSave({ unlocked: 20, best: { 19: 2 } }, LEVEL_COUNT).unlocked, 20);
+  assert.equal(sanitizeSave({ unlocked: 7, best: { 3: 1 } }, LEVEL_COUNT).unlocked, 7); assert.equal(clean.mute, true); assert.equal(clean.run.l, 2);
   s.run = { l: 1 }; recordWin(s, 1, 3, LEVEL_COUNT); assert.equal(s.run, null, 'geschafft = kein offener Lauf');
 });
 

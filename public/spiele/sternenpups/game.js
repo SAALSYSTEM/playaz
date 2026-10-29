@@ -14,7 +14,7 @@ const ease = (k) => k * k * (3 - 2 * k);
 const TAU = Math.PI * 2;
 
 // ---------- Bilder (optional) ----------
-// Namen: einhorn, einhorn-flug, einhorn-jubel, fee, fee-traurig, elf, wolke-1, wolke-2, wolke-3, ziel, boden, ranke, regenbogen, zauberstab, stern, hintergrund
+// Namen: einhorn, einhorn-flug, einhorn-jubel, fee, fee-traurig, elf, wolke-1, wolke-2, wolke-3, ziel, boden, ranke, regenbogen, zauberstab, stern, schmetterling, hintergrund
 const IMG = {};
 const base = new URL('img/', import.meta.url);
 async function loadImages() {
@@ -107,6 +107,7 @@ const SFX = {
   hm: () => { tone(392, 0.14, 'triangle', 0.05); tone(349, 0.2, 'triangle', 0.05, 0, 0.14); },
   climb: () => { for (let i = 0; i < 3; i++) tone(420 + i * 90, 0.07, 'triangle', 0.04, 0, i * 0.12); },
   rest: () => [659, 784, 1047].forEach((f, i) => tone(f, 0.2, 'triangle', 0.07, 0, i * 0.1)),
+  taxi: () => { if (!playBuf('funkel', 0.45, 0.85)) [988, 1175, 1480, 1760].forEach((f, i) => tone(f, 0.16, 'sine', 0.05, 0, i * 0.08)); },
   win: () => [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.26, 'triangle', 0.1, 0, i * 0.12)),
   click: () => tone(520, 0.06, 'sine', 0.06)
 };
@@ -133,9 +134,12 @@ const SKY = {
   1: ['#a9d8ff', '#cfe6ff', '#e9dcff'],
   2: ['#9fd6f0', '#c8ecd9', '#e5f3c8'],
   3: ['#b7c8ff', '#e3cdfa', '#ffd3e8'],
-  4: ['#8f86d8', '#c3a8f0', '#ffcfe2']
+  4: ['#8f86d8', '#c3a8f0', '#ffcfe2'],
+  5: ['#a7e0e6', '#d8f1d2', '#fff0c4'],
+  6: ['#5f6fb8', '#9a8fd8', '#e4b8e8'],
+  7: ['#3c4a9a', '#7a6cc8', '#f0b4dc']
 };
-const LVL_COL = { 1: '#ffd166', 2: '#9be8b0', 3: '#ffb3d1', 4: '#c9b3ff' };
+const LVL_COL = { 1: '#ffd166', 2: '#9be8b0', 3: '#ffb3d1', 4: '#c9b3ff', 5: '#8fe0e8', 6: '#9db4ff', 7: '#ffa8d8' };
 const MANE = ['#ff9ecf', '#c8a2ff', '#9fd4ff'];
 const OUT = 'rgba(110,80,150,.45)';
 
@@ -196,7 +200,7 @@ function startLevel(n, fresh = false) {
   vis = {
     stars: st.stars.map((s) => !s), ghost: st.fairyHelped ? 1 : 0, wand: st.fairyHelped ? 'fairy' : st.wand ? 'horn' : 'cloud',
     elves: st.elves.map((e) => (e ? 1 : 0)), rainbows: st.rainbows.map((r) => (r ? 1 : 0)), rests: st.rests.slice(),
-    bounce: {}, wobble: {}, elfJoy: L.elves.map(() => 0), fairyJoy: 0
+    bounce: {}, wobble: {}, elfJoy: L.elves.map(() => 0), fairyJoy: 0, bf: {}
   };
   const p = L.plats[st.plat];
   U.x = colX(st.col); U.y = floorY(p.floor); U.face = st.col >= COLS / 2 ? -1 : 1; U.pose = 'stand'; U.sq = 0; U.plat = st.plat;
@@ -277,6 +281,24 @@ function animateMove(res) {
       end: () => { U.x = vx; U.y = y1; U.pose = 'stand'; } });
     if (!up) { /* herunter: gleich stehen */ }
     landing(to, true);
+  } else if (via === 'taxi') {
+    // Schmetterlings-Taxi: Lumi hüpft auf den Schmetterling, der trägt sie hoch (kein Pups) und flattert danach zurück
+    const bx = colX(from.taxiCol), by = y0 + cs * 0.42, hold = cs * 1.15;
+    const bf = (vis.bf[from.i] = { x: bx, y: by });
+    walkTo(bx);
+    run({ dur: 0.18, start: () => { U.pose = 'crouch'; }, update: (k) => { U.sq = Math.sin(k * Math.PI / 2) * 0.16; } });
+    let trail = 0;
+    const dist = Math.hypot(x1 - bx, y1 - y0);
+    run({ dur: 0.7 + dist / (cs * 5.5), start: () => { U.pose = 'fly'; U.sq = 0; U.plat = -1; U.face = Math.sign(x1 - bx) || U.face; SFX.taxi(); },
+      update: (k) => {
+        const e = ease(k), lift = Math.sin(e * Math.PI) * rowH * 0.9;
+        U.x = lerp(bx, x1, e) + Math.sin(k * 14) * cs * 0.05; U.y = lerp(y0, y1, e) + lift;
+        bf.x = U.x; bf.y = U.y + hold;
+        if (++trail % 3 === 0) spark(bf.x, bf.y, 1);
+      },
+      end: () => { U.x = x1; U.y = y1; } });
+    landing(to, true);
+    run({ dur: 0.7, update: (k) => { const e = ease(k); bf.x = lerp(x1, bx, e); bf.y = lerp(y1 + hold, by, e) + Math.sin(k * Math.PI) * cs * 0.5; }, end: () => { delete vis.bf[from.i]; } });
   } else {
     const rb = L.rainbows[res.move.ref], fromCol = rb.a === res.from ? rb.colA : rb.colB;
     const xa = colX(fromCol), xb = x1, arcH = rowH * 0.7;
@@ -468,6 +490,25 @@ function drawWand(X, x, y, s, rot) {
   X.restore();
 }
 
+// Schmetterling (Mitte bei (x, y)); flattert mit den Flügeln
+function drawButterfly(X, x, y, s, t) {
+  const flap = 0.45 + 0.55 * Math.abs(Math.sin(t * 9));
+  if (IMG.schmetterling) { const h = s * 1.1, w = h / aspect('schmetterling'); X.save(); X.translate(x, y); X.scale(0.55 + 0.45 * flap, 1); X.drawImage(IMG.schmetterling, -w / 2, -h / 2, w, h); X.restore(); return; }
+  X.save(); X.translate(x, y); X.lineJoin = 'round';
+  for (const sx of [-1, 1]) {
+    X.save(); X.scale(sx * flap, 1);
+    X.fillStyle = '#ffb3d9'; X.strokeStyle = 'rgba(140,90,170,.55)'; X.lineWidth = s * 0.03;
+    X.beginPath(); X.ellipse(s * 0.28, -s * 0.16, s * 0.3, s * 0.24, -0.5, 0, TAU); X.fill(); X.stroke();
+    X.fillStyle = '#c9a8ff'; X.beginPath(); X.ellipse(s * 0.22, s * 0.18, s * 0.2, s * 0.16, 0.5, 0, TAU); X.fill(); X.stroke();
+    X.fillStyle = 'rgba(255,255,255,.75)'; X.beginPath(); X.arc(s * 0.32, -s * 0.2, s * 0.06, 0, TAU); X.fill();
+    X.restore();
+  }
+  X.fillStyle = '#7a5aa0'; X.beginPath(); X.ellipse(0, 0, s * 0.045, s * 0.24, 0, 0, TAU); X.fill();
+  X.strokeStyle = '#7a5aa0'; X.lineWidth = s * 0.025; X.lineCap = 'round';
+  X.beginPath(); X.moveTo(0, -s * 0.2); X.quadraticCurveTo(-s * 0.1, -s * 0.38, -s * 0.16, -s * 0.36); X.moveTo(0, -s * 0.2); X.quadraticCurveTo(s * 0.1, -s * 0.38, s * 0.16, -s * 0.36); X.stroke();
+  X.restore();
+}
+
 // Wolke: Standfläche bei ys (Bildschirm), von Spalte a bis b
 function drawCloud(X, p, ys, alpha) {
   const len = p.b - p.a + 1, x0 = p.a * cs, w = len * cs;
@@ -649,6 +690,7 @@ function render() {
   // fliegende Sachen
   if (vis.flyStar) goldStar(ctx, vis.flyStar.x, scrY(vis.flyStar.y), cs * 0.42 * (vis.flyStar.s || 1));
   drawUnicornNow();
+  for (const k of Object.keys(vis.bf)) { const b = vis.bf[k]; drawButterfly(ctx, b.x, scrY(b.y), cs * 0.62, clock * 1.4); }
   if (vis.wand === 'fly' && vis.wandPos) drawWand(ctx, vis.wandPos.x, scrY(vis.wandPos.y), cs * 0.55, vis.wandPos.r || 0);
   drawParticles();
   if (hint !== null && hint !== undefined) {
@@ -693,6 +735,8 @@ function drawOnCloud(p, ys) {
     const v = L.vines[e.vine], off = v.col === p.b ? -0.32 : 0.32;
     drawElf(ctx, colX(e.col) + off * cs, ys + 1, cs * 0.9, vis.elfJoy[e.i], clock);
   }
+  // Schmetterling (Taxi-Haltestelle); unterwegs wird er beim Einhorn gezeichnet
+  if (p.taxiCol !== undefined && !vis.bf[p.i]) drawButterfly(ctx, colX(p.taxiCol), ys - cs * 0.38 + Math.sin(clock * 3 + p.i) * cs * 0.04, cs * 0.62, clock + p.i);
   // Ruhewolke
   for (let i = 0; i < L.rests.length; i++) { const r = L.rests[i]; if (r.plat === p.i) drawLantern(ctx, colX(r.col) + cs * 0.3, ys, vis.rests[i], clock); }
   // Ziel: Feen-Freunde winken
@@ -842,7 +886,7 @@ function setMode(m) {
 }
 function showWin() {
   const last = levelNo === LEVEL_COUNT;
-  $('winTitle').textContent = last ? 'Feenfest!' : ['Juhu!', 'Super!', 'Toll gepupst!', 'Hurra!'][levelNo % 4];
+  $('winTitle').textContent = levelNo === 20 ? 'Feenfest!' : last ? 'Sternenfest!' : ['Juhu!', 'Super!', 'Toll gepupst!', 'Hurra!'][levelNo % 4];
   $('winStars').innerHTML = [0, 1, 2].map((i) => (i < lastStars ? STAR_ON.replace('<svg', `<svg class="on" style="animation-delay:${0.15 + i * 0.25}s"`) : STAR_OFF)).join('');
   $('winStars').setAttribute('aria-label', `${lastStars} von 3 Sternen`);
   [0, 1, 2].forEach((i) => { if (i < lastStars) setTimeout(() => SFX.funkel(), 150 + i * 250); });
@@ -888,7 +932,11 @@ function buildLevels() {
     }
   }
 }
-function openLevels() { buildLevels(); setMode('menu'); show('levels'); }
+function openLevels() {
+  buildLevels(); setMode('menu'); show('levels');
+  const nx = $('levelGrid').querySelector('.lvl.next');   // bei 50 Leveln: zum nächsten offenen scrollen
+  if (nx) nx.scrollIntoView({ block: 'center' }); else $('levels').scrollTop = 0;
+}
 function pause() { if (mode === 'play') setMode('pause'); }
 function resume() { if (mode === 'pause') setMode('play'); }
 function toast(text) { const t = $('toast'); t.textContent = text; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => (t.hidden = true), 3200); }
@@ -903,7 +951,7 @@ async function share() {
 // Hinweis aufs Konto: nur ohne Anmeldung und erst, wenn es etwas zu verlieren gibt (ab 2 geschafften Leveln)
 function kontoHinweis(id) {
   const P = window.PlaySaal, n = Object.keys(save.best).length;
-  const meilenstein = id === 'kontoBoxMenu' || [2, 5, 10, 15, 20].includes(n);
+  const meilenstein = id === 'kontoBoxMenu' || [2, 5, 10, 15, 20, 30, 40, 50].includes(n);
   let zeigen = false;
   try { zeigen = !!(P && P.hostOk && !P.user() && n >= 2 && meilenstein); } catch { zeigen = false; }
   $(id).hidden = !zeigen;

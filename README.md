@@ -1,6 +1,6 @@
 # PlaySaal
 
-**Sternenpups – Hoch zu den Feen:** Einhorn-Kletterspiel für Kinder ab 4 im Hochformat: erreichbare Wolke antippen, das Einhorn pupst sich mit Sternenstaub hinüber. 20 Level (1 bis 20 Etagen) mit Ranken, Zauberstab für die Fee (Zauberwolken), Regenbogen und Elf; kein Absturz, keine Zeit, je Level 3 freiwillige Sterne, begonnene Level werden fortgesetzt. Veröffentlicht am 27.10.2026 (`/spiele/sternenpups`). Details: [`docs/STERNENPUPS.md`](docs/STERNENPUPS.md), Bildprompts: [`design/sternenpups/PROMPTS.md`](design/sternenpups/PROMPTS.md). Test: `node --test tests/sternenpups-sim.test.mjs`.
+**Sternenpups – Hoch zu den Feen:** Einhorn-Kletterspiel für Kinder ab 4 im Hochformat: erreichbare Wolke antippen, das Einhorn pupst sich mit Sternenstaub hinüber. 50 Level (1 bis 25 Etagen) mit Ranken, Zauberstab für die Fee (Zauberwolken), Regenbogen, Elf und Schmetterlings-Taxi; kein Absturz, keine Zeit, je Level 3 freiwillige Sterne, begonnene Level werden fortgesetzt. Veröffentlicht am 27.10.2026 (`/spiele/sternenpups`). Details: [`docs/STERNENPUPS.md`](docs/STERNENPUPS.md), Bildprompts: [`design/sternenpups/PROMPTS.md`](design/sternenpups/PROMPTS.md). Test: `node --test tests/sternenpups-sim.test.mjs`.
 
 **Ab in den Stall!:** Bauernhofspiel für Kinder ab 4 im Hochformat: vom Tier mit dem Finger einen Weg zu seinem Zuhause malen (Küken, Ferkel, Kälbchen, Lämmchen, Entchen, Fohlen). 30 Level in 3 Welten mit Bach und Brücke, Gattern zum Antippen und Pfützen nur für Ferkel; kein Scheitern, Herausforderung per Link. Veröffentlicht am 26.10.2026 (`/spiele/ab-in-den-stall`). Grafiken: Originale von ChatGPT in `design/ab-in-den-stall/`, als WebP per `tools/ab-in-den-stall-assets.py`; Zaun, Bach und Brücke werden gezeichnet. Details: [`docs/AB_IN_DEN_STALL.md`](docs/AB_IN_DEN_STALL.md). Test: `node --test tests/ab-in-den-stall-sim.test.mjs`.
 
@@ -83,7 +83,7 @@ node --test tests/wasser-marsch-sim.test.mjs        # WASSER MARSCH!: 25 Level, 
 node --test tests/leitungschaos-sim.test.mjs        # LEITUNGSCHAOS: 30 Level + 200 Tagesrätsel gültig und lösbar, Fluss, Prüfung
 node --test tests/muehle-sim.test.mjs               # MÜHLE: Regeln, Remis, Kodierung, Stufen-Turniere, Zeitlimit Meister
 node --test tests/kruemel-sim.test.mjs              # KRÜMEL: Sprunghöhe, Kanten-Toleranz, Puffer, Leiter, Schublade, Kätzchen, Level lösbar ohne Sackgassen
-node --test tests/sternenpups-sim.test.mjs          # STERNENPUPS: 20 Level lösbar, Pflichtaufgaben nötig, keine Sackgassen, Sterne erreichbar, Spielstand
+node --test tests/sternenpups-sim.test.mjs          # STERNENPUPS: 50 Level lösbar, Pflichtaufgaben nötig, keine Sackgassen, Sterne erreichbar, Spielstand
 node --test tests/dino-leiterhelden-sim.test.mjs    # DINO-LEITERHELDEN: 90 Level lösbar (Löser + Bot), Regeln inkl. Rutsche/Brücke/Wechsel-Monster/Ballon/Langhals, Spielstand, Herausforderung
 node tools/domain.mjs                                   # Canonical/Sitemap/robots konsistent?
 ```

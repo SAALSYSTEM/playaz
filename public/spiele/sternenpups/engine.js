@@ -7,9 +7,10 @@
 export const STORE = 'sternenpups.v1';
 export const COLS = 6;
 export const MAX_GAP = 2;          // so viele leere Spalten darf ein Pups überbrücken (gleiche Etage oder eine hoch/runter)
+export const TAXI_FLOORS = 3;      // Schmetterlings-Taxi: von einer Wolke mit Schmetterling (B) zu jeder Wolke bis zu 3 Etagen höher oder tiefer
 
 // Zeichen, die zu einer festen Wolke gehören
-const CLOUD = new Set(['=', '*', 'Z', 'P', 'E', 'w', 'F', 'R', 'f']);
+const CLOUD = new Set(['=', '*', 'Z', 'P', 'E', 'w', 'F', 'R', 'f', 'B']);
 const GROUND = new Set(['_', 'S']);
 const GHOST = 'g';
 const VINE = '|', ELFVINE = ':';
@@ -45,6 +46,7 @@ export function parseLevel(lv) {
 
   // Besonderheiten je Wolke
   let start = -1, startCol = 0, goal = -1, wand = -1, fairy = -1;
+  const taxis = [];
   const stars = [], rests = [], elves = [], decoFairies = [];
   for (const p of plats) {
     for (const [cs, ch] of Object.entries(p.cells)) {
@@ -56,6 +58,7 @@ export function parseLevel(lv) {
       if (ch === 'w') { if (wand >= 0) throw new Error(`Level ${lv.id}: höchstens ein Zauberstab`); wand = p.i; p.wandCol = col; }
       if (ch === 'F') { if (fairy >= 0) throw new Error(`Level ${lv.id}: höchstens eine Fee ohne Stab`); fairy = p.i; p.fairyCol = col; }
       if (ch === 'f') decoFairies.push({ plat: p.i, col });
+      if (ch === 'B') { if (p.taxiCol !== undefined) throw new Error(`Level ${lv.id}: ein Schmetterling je Wolke`); p.taxiCol = col; taxis.push({ plat: p.i, col }); }
       if (ch === 'E') elves.push({ i: elves.length, plat: p.i, col, vine: -1 });
     }
   }
@@ -96,7 +99,7 @@ export function parseLevel(lv) {
     if (cols.length !== 2 || cellPlat[r][cols[0]] === cellPlat[r][cols[1]]) throw new Error(`Level ${lv.id}: Regenbogen braucht genau zwei R auf zwei Wolken einer Reihe`);
     rainbows.push({ i: rainbows.length, row: r, a: cellPlat[r][cols[0]], b: cellPlat[r][cols[1]], colA: cols[0], colB: cols[1] });
   }
-  return { id: lv.id, rows: R, plats, cellPlat, start, startCol, goal, stars, rests, elves, vines, rainbows, wand, fairy, decoFairies, has };
+  return { id: lv.id, rows: R, plats, cellPlat, start, startCol, goal, stars, rests, elves, vines, rainbows, taxis, wand, fairy, decoFairies, has };
 }
 
 // ---------- Zustand ----------
@@ -129,6 +132,11 @@ export function moves(st, from = st.plat) {
     if (v.down === from && !out.has(v.up)) out.set(v.up, { plat: v.up, via: 'vine', ref: v.i });
     else if (v.up === from && !out.has(v.down)) out.set(v.down, { plat: v.down, via: 'vine', ref: v.i });
   }
+  // Schmetterlings-Taxi: von einer Wolke mit Schmetterling zu jeder festen Wolke bis TAXI_FLOORS Etagen höher/tiefer
+  if (L.plats[from].taxiCol !== undefined) {
+    const p = L.plats[from];
+    for (const q of L.plats) if (q.i !== from && solid(st, q) && Math.abs(q.row - p.row) <= TAXI_FLOORS && !out.has(q.i)) out.set(q.i, { plat: q.i, via: 'taxi', ref: from });
+  }
   for (const rb of L.rainbows) {
     if (!st.rainbows[rb.i]) continue;
     if (rb.a === from) out.set(rb.b, { plat: rb.b, via: 'rainbow', ref: rb.i });
@@ -143,7 +151,7 @@ export function landingCol(st, m) {
   const L = st.L, q = L.plats[m.plat];
   if (m.via === 'vine') return L.vines[m.ref].col;
   if (m.via === 'rainbow') { const rb = L.rainbows[m.ref]; return rb.a === m.plat ? rb.colA : rb.colB; }
-  const busy = (c) => ['F', 'E', 'f'].includes(q.cells[c]);
+  const busy = (c) => ['F', 'E', 'f', 'B'].includes(q.cells[c]);
   let best = q.a, bd = Infinity;
   for (let c = q.a; c <= q.b; c++) { const d = Math.abs(c - st.col) + (busy(c) ? 10 : 0); if (d < bd) { bd = d; best = c; } }
   return best;
@@ -212,7 +220,7 @@ export function solvableWithout(lv, what) {
     if (what === 'fairy') s.fairyHelped = false;
     if (what === 'elf') s.elves = s.elves.map(() => false);
     if (what === 'rainbow') s.rainbows = s.rainbows.map(() => false);
-    if (what === 'vine') return;
+    if (what === 'vine' || what === 'taxi') return;
   };
   const start = { ...snap(st), L };
   const seen = new Set([keyOf(start)]), q = [start];
@@ -220,6 +228,7 @@ export function solvableWithout(lv, what) {
     const s = q.shift();
     for (const m of moves(s)) {
       if (what === 'vine' && m.via === 'vine' && L.vines[m.ref].elf < 0) continue;
+      if (what === 'taxi' && m.via === 'taxi') continue;
       const n = { ...snap(s), L };
       moveTo(n, m.plat); block(n);
       if (n.done) return true;
@@ -255,12 +264,15 @@ export function sanitizeSave(raw, count) {
   const s = freshSave();
   if (!raw || typeof raw !== 'object') return s;
   s.unlocked = Math.max(1, Math.min(count, Math.floor(Number(raw.unlocked)) || 1));
+  const unlockedBefore = s.unlocked;
   if (raw.best && typeof raw.best === 'object') {
     for (const [k, v] of Object.entries(raw.best)) {
       const n = Math.floor(Number(k)), t = Math.floor(Number(v));
       if (n >= 1 && n <= count && t >= 0 && t <= 3) s.best[n] = t;
     }
   }
+  // Neue Level nach einem früheren Ende: war das letzte freigeschaltete Level schon geschafft, geht es weiter
+  if (unlockedBefore < count && s.best[unlockedBefore] !== undefined) s.unlocked = unlockedBefore + 1;
   if (raw.run && typeof raw.run === 'object' && raw.run.l >= 1 && raw.run.l <= count) s.run = raw.run;
   s.mute = !!raw.mute;
   return s;

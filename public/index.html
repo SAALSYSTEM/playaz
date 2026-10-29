@@ -427,7 +427,7 @@
   const sl = read('schraeglage.v1');
   if (sl && sl.levels && typeof sl.levels === 'object') { const lv = Object.values(sl.levels).filter((l) => l && l.done); const g = lv.filter((l) => l.gold).length; if (lv.length) show('schraeglage', lv.length + ' von 60 Level' + (g ? ' · ' + g + ' Gold' : '')); }
   const zs = read('zahlensturm.v1');
-  if (zs && zs.levels && typeof zs.levels === 'object') { const lv = Object.values(zs.levels).filter((l) => l && l.done); const st = lv.reduce((a, l) => a + (l.stars || 0), 0); if (lv.length) show('zahlensturm', lv.length + ' von 20 Level · ' + st + ' Sterne'); }
+  if (zs && zs.levels && typeof zs.levels === 'object') { const lv = Object.values(zs.levels).filter((l) => l && l.done); const st = lv.reduce((a, l) => a + (l.stars || 0), 0); if (lv.length) show('zahlensturm', lv.length + ' von 50 Level · ' + st + ' Sterne'); }
   const jr = read('jungle.v1');
   if (jr && jr.levels && typeof jr.levels === 'object') { const lv = Object.values(jr.levels).filter((l) => l && l.done); const st = lv.reduce((a, l) => a + (l.stars || 0), 0); const eb = jr.endless && jr.endless.best; if (lv.length || eb) show('jungle-runner', (lv.length ? lv.length + ' von 30 Level · ' + st + ' ★' : '') + (eb ? (lv.length ? ' · ' : '') + 'Endlos ' + n(eb) + ' m' : '')); }
   const sv = read('stammvoelker.v1');
@@ -447,7 +447,7 @@
   const pp = read('papierpilot.v1');
   if (pp && Number(pp.best) >= 100) show('papierpilot', 'Bestflug ' + n(Math.floor(pp.best / 100)) + ' m');
   const spp = read('sternenpups.v1');
-  if (spp && spp.best && Object.keys(spp.best).length) { const st = Object.values(spp.best).reduce((a, b) => a + (Number(b) || 0), 0); show('sternenpups', Object.keys(spp.best).length + ' von 20 Level · ' + st + ' ★'); }
+  if (spp && spp.best && Object.keys(spp.best).length) { const st = Object.values(spp.best).reduce((a, b) => a + (Number(b) || 0), 0); show('sternenpups', Object.keys(spp.best).length + ' von 50 Level · ' + st + ' ★'); }
   const ais = read('stall.v1');
   if (ais && ais.best && Object.keys(ais.best).length) show('stall', Object.keys(ais.best).length + ' von 30 Level');
   const sc = read('schach.v1');

@@ -159,3 +159,10 @@ Szene in seitlicher Spielansicht von unten nach oben: unten eine Blumenwiese; Lu
 Stil: hochwertiger, weicher 3D-Cartoon-Look wie ein moderner Animationsfilm für Kleinkinder, sanftes Licht von oben links, Pastellfarben Cremeweiß, Rosa, Lavendel, Himmelblau, dezentes Gold.
 Technik: vollflächiges Bild, keine Schrift, keine Buttons, keine Bedienhinweise.
 ```
+
+## 20. schmetterling.png (1024 × 1024, optional, ab Level 21)
+```
+Erzeuge ein einzelnes freigestelltes Spielobjekt für ein Kinder-Handyspiel: einen großen, freundlichen Schmetterling („Schmetterlings-Taxi“) in Draufsicht von vorn, Flügel weit geöffnet und symmetrisch. Zarte, schillernde Flügel in Rosa, Lavendel und Himmelblau mit goldenen Pünktchen und weichem Glanz, kleiner rundlicher cremeweißer Körper, zwei geschwungene Fühler mit goldenen Kügelchen, zwei kleine freundliche dunkelviolette Augen, kleines Lächeln.
+Stil: hochwertiger, weicher 3D-Cartoon-Look für Kleinkinder, sanftes Licht von oben links, Pastellfarben und dezentes Gold, passend zu Lumi dem Einhorn.
+Technik: echter transparenter Hintergrund (PNG mit Alphakanal), kein Schachbrettmuster, kein Boden, kein Schatten. Schmetterling mittig, vollständig im Bild mit etwa 8 % Rand. Kein Text.
+```

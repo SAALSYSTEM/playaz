@@ -23,7 +23,7 @@ BILDER_FREI = {
     'einhorn': 300, 'einhorn-flug': 300, 'einhorn-jubel': 300,
     'fee': 260, 'fee-traurig': 260, 'elf': 250,
     'wolke-1': 180, 'wolke-2': 200, 'wolke-3': 220, 'ziel': 520, 'boden': 1000,
-    'ranke': 900, 'regenbogen': 420, 'zauberstab': 120, 'stern': 140,
+    'ranke': 900, 'regenbogen': 420, 'zauberstab': 120, 'stern': 140, 'schmetterling': 160,
 }
 
 
