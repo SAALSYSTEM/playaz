@@ -283,7 +283,7 @@ function animateMove(res) {
     landing(to, true);
   } else if (via === 'taxi') {
     // Schmetterlings-Taxi: Lumi hüpft auf den Schmetterling, der trägt sie hoch (kein Pups) und flattert danach zurück
-    const bx = colX(from.taxiCol), by = y0 + cs * 0.42, hold = cs * 1.15;
+    const bx = colX(from.taxiCol), by = y0 + cs * 0.5, hold = cs * 1.4;
     const bf = (vis.bf[from.i] = { x: bx, y: by });
     walkTo(bx);
     run({ dur: 0.18, start: () => { U.pose = 'crouch'; }, update: (k) => { U.sq = Math.sin(k * Math.PI / 2) * 0.16; } });
@@ -690,7 +690,7 @@ function render() {
   // fliegende Sachen
   if (vis.flyStar) goldStar(ctx, vis.flyStar.x, scrY(vis.flyStar.y), cs * 0.42 * (vis.flyStar.s || 1));
   drawUnicornNow();
-  for (const k of Object.keys(vis.bf)) { const b = vis.bf[k]; drawButterfly(ctx, b.x, scrY(b.y), cs * 0.62, clock * 1.4); }
+  for (const k of Object.keys(vis.bf)) { const b = vis.bf[k]; drawButterfly(ctx, b.x, scrY(b.y), cs * 0.8, clock * 1.4); }
   if (vis.wand === 'fly' && vis.wandPos) drawWand(ctx, vis.wandPos.x, scrY(vis.wandPos.y), cs * 0.55, vis.wandPos.r || 0);
   drawParticles();
   if (hint !== null && hint !== undefined) {
@@ -736,7 +736,7 @@ function drawOnCloud(p, ys) {
     drawElf(ctx, colX(e.col) + off * cs, ys + 1, cs * 0.9, vis.elfJoy[e.i], clock);
   }
   // Schmetterling (Taxi-Haltestelle); unterwegs wird er beim Einhorn gezeichnet
-  if (p.taxiCol !== undefined && !vis.bf[p.i]) drawButterfly(ctx, colX(p.taxiCol), ys - cs * 0.38 + Math.sin(clock * 3 + p.i) * cs * 0.04, cs * 0.62, clock + p.i);
+  if (p.taxiCol !== undefined && !vis.bf[p.i]) drawButterfly(ctx, colX(p.taxiCol), ys - cs * 0.46 + Math.sin(clock * 3 + p.i) * cs * 0.04, cs * 0.8, clock + p.i);
   // Ruhewolke
   for (let i = 0; i < L.rests.length; i++) { const r = L.rests[i]; if (r.plat === p.i) drawLantern(ctx, colX(r.col) + cs * 0.3, ys, vis.rests[i], clock); }
   // Ziel: Feen-Freunde winken

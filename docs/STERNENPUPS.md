@@ -98,7 +98,7 @@ Level stehen als 6-Spalten-Raster in `levels.js` (Legende im Dateikopf). Level 2
 Speicherschlüssel `sternenpups.v1` (in `public/assets/umzug.js` und `playsaal-config.js` eingetragen).
 
 ## Bilder (Namen in `img/`, Platzierung im Code)
-`einhorn`, `einhorn-flug`, `einhorn-jubel` (optional), `fee`, `fee-traurig`, `elf`, `wolke-1`, `wolke-2`, `wolke-3`, `ziel`, `boden`, `ranke`, `regenbogen`, `zauberstab`, `stern`, `schmetterling` (optional, Prompt 20), `hintergrund`; Kachel `public/bilder/sternenpups.webp`, Vorschau `public/bilder/sternenpups-og.jpg`.
+`einhorn`, `einhorn-flug`, `einhorn-jubel` (optional), `fee`, `fee-traurig`, `elf`, `wolke-1`, `wolke-2`, `wolke-3`, `ziel`, `boden`, `ranke`, `regenbogen`, `zauberstab`, `stern`, `schmetterling` (Prompt 20), `hintergrund`; Kachel `public/bilder/sternenpups.webp`, Vorschau `public/bilder/sternenpups-og.jpg`.
 Standfläche in den Wolkenbildern: Tabelle `SURF` in `game.js` (Anteil der Bildhöhe von oben) – nach Lieferung der Bilder einmal prüfen und ggf. anpassen.
 Per Code: Pups-Wolke, Funkel, Flugbahn, Wolkenwippen, Landedelle, Markierungsringe, Gedankenblase, Laterne, Spross, blasser Regenbogen (Graustufen), Zauberwolken (durchscheinend), Konfetti, Schmetterling (ohne Bild gezeichnet) samt Taxiflug.
 
@@ -112,5 +112,4 @@ Per Code: Pups-Wolke, Funkel, Flugbahn, Wolkenwippen, Landedelle, Markierungsrin
 Wer die ersten 20 Level schon geschafft hatte, bekommt Level 21 beim Laden freigeschaltet (`sanitizeSave`: war das letzte freigeschaltete Level geschafft, geht es eins weiter). Die Levelauswahl scrollt zum nächsten offenen Level.
 
 ## Offen
-- Schmetterlings-Bild von ChatGPT (Prompt 20) fehlt noch, bis dahin zeichnet das Spiel ihn selbst.
 - Nicht geprüft: echte Touch-Geräte, Ton hörbar (im Headless-Browser alle 50 Level per Antippen durchgespielt).
