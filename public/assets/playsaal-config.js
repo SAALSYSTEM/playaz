@@ -33,7 +33,7 @@ window.PLAYSAAL_CFG = {
     'turmschicht': 'turmschicht', 'dino-leiterhelden': 'dinoleiter', 'geisterschloss': 'geisterschloss',
     'kristallrausch': 'kristallrausch', 'mysupermarkt': 'mysupermarkt', 'sprungsebi': 'sprungsebi',
     'jungle-runner': 'jungle-runner', 'zahlensturm': 'zahlensturm', 'stammvoelker': 'stammvoelker',
-    'sondengaenger': 'sondengaenger', 'anbiss': 'anbiss', 'hau-die-kakerlake': 'kakerlake', 'blocksaal': 'blocksaal', 'seitenwechsel': 'seitenwechsel', 'punktlandung': 'punktlandung', 'papierpilot': 'papierpilot', 'dartfieber': 'dartfieber', 'leitungschaos': 'leitungschaos', 'ausfahrt-frei': 'ausfahrt', 'kruemel': 'kruemel', 'muehle': 'muehle', 'dame': 'dame', 'backgammon': 'backgammon', 'halma': 'halma', 'schach': 'schach', 'ab-in-den-stall': 'stall', 'sternenpups': 'sternenpups'
+    'sondengaenger': 'sondengaenger', 'anbiss': 'anbiss', 'hau-die-kakerlake': 'kakerlake', 'blocksaal': 'blocksaal', 'seitenwechsel': 'seitenwechsel', 'punktlandung': 'punktlandung', 'papierpilot': 'papierpilot', 'dartfieber': 'dartfieber', 'leitungschaos': 'leitungschaos', 'ausfahrt-frei': 'ausfahrt', 'kruemel': 'kruemel', 'muehle': 'muehle', 'dame': 'dame', 'backgammon': 'backgammon', 'halma': 'halma', 'schach': 'schach', 'ab-in-den-stall': 'stall', 'sternenpups': 'sternenpups', 'hexis-zaubersuppe': 'zaubersuppe'
   },
 
   // Anzeigenamen (nur für Konto-Seite und Admin; Portal nutzt seine eigenen Kacheln)
@@ -42,7 +42,7 @@ window.PLAYSAAL_CFG = {
     'eiszeit': 'Eiszeit', 'stellwerk': 'Stellwerk', 'wasser-marsch': 'Wasser Marsch!', 'turmschicht': 'Turmschicht', 'dino-leiterhelden': 'Dino-Leiterhelden',
     'geisterschloss': 'Geisterschloss', 'kristallrausch': 'Kristallrausch', 'mysupermarkt': 'MySupermarkt', 'sprungsebi': 'SprungSebi',
     'jungle-runner': 'Jungle Runner', 'zahlensturm': 'Zahlensturm', 'stammvoelker': 'Stammvölker', 'sondengaenger': 'Sondengänger',
-    'anbiss': 'Anbiss', 'hau-die-kakerlake': 'Hau die Kakerlake!', 'blocksaal': 'BlockSaal', 'seitenwechsel': 'Seitenwechsel', 'punktlandung': 'Punktlandung', 'papierpilot': 'Papierpilot', 'dartfieber': 'Dartfieber', 'leitungschaos': 'Leitungschaos', 'ausfahrt-frei': 'Ausfahrt frei', 'kruemel': 'Krümel', 'muehle': 'Mühle', 'dame': 'Dame', 'backgammon': 'Backgammon', 'halma': 'Halma', 'schach': 'Schach', 'ab-in-den-stall': 'Ab in den Stall!', 'sternenpups': 'Sternenpups'
+    'anbiss': 'Anbiss', 'hau-die-kakerlake': 'Hau die Kakerlake!', 'blocksaal': 'BlockSaal', 'seitenwechsel': 'Seitenwechsel', 'punktlandung': 'Punktlandung', 'papierpilot': 'Papierpilot', 'dartfieber': 'Dartfieber', 'leitungschaos': 'Leitungschaos', 'ausfahrt-frei': 'Ausfahrt frei', 'kruemel': 'Krümel', 'muehle': 'Mühle', 'dame': 'Dame', 'backgammon': 'Backgammon', 'halma': 'Halma', 'schach': 'Schach', 'ab-in-den-stall': 'Ab in den Stall!', 'sternenpups': 'Sternenpups', 'hexis-zaubersuppe': 'Hexis Zaubersuppe'
   },
 
   // Schlüssel-Präfixe im localStorage je Spiel (identisch zu public.games.save_prefix)
@@ -51,7 +51,7 @@ window.PLAYSAAL_CFG = {
     eiszeit: 'eiszeit.', stellwerk: 'stellwerk.', wassermarsch: 'wassermarsch.', turmschicht: 'turmschicht.', dinoleiter: 'dinoleiter.',
     geisterschloss: 'geisterschloss.', kristallrausch: 'kristallrausch.', mysupermarkt: 'mysupermarkt.', sprungsebi: 'sprungssebi.',
     'jungle-runner': 'jungle.', zahlensturm: 'zahlensturm.', stammvoelker: 'stammvoelker.', sondengaenger: 'sondengaenger.',
-    anbiss: 'anbiss.', kakerlake: 'kakerlake.', blocksaal: 'blocksaal.', seitenwechsel: 'seitenwechsel.', punktlandung: 'punktlandung.', papierpilot: 'papierpilot.', dartfieber: 'dartfieber.', leitungschaos: 'leitungschaos.', ausfahrt: 'ausfahrt.', kruemel: 'kruemel.', muehle: 'muehle.', dame: 'dame.', backgammon: 'backgammon.', halma: 'halma.', schach: 'schach.', stall: 'stall.', sternenpups: 'sternenpups.'
+    anbiss: 'anbiss.', kakerlake: 'kakerlake.', blocksaal: 'blocksaal.', seitenwechsel: 'seitenwechsel.', punktlandung: 'punktlandung.', papierpilot: 'papierpilot.', dartfieber: 'dartfieber.', leitungschaos: 'leitungschaos.', ausfahrt: 'ausfahrt.', kruemel: 'kruemel.', muehle: 'muehle.', dame: 'dame.', backgammon: 'backgammon.', halma: 'halma.', schach: 'schach.', stall: 'stall.', sternenpups: 'sternenpups.', zaubersuppe: 'zaubersuppe.'
   },
 
   // Kategorien (Grundstand, identisch zur Datenbank; die Datenbank überschreibt, solange sie erreichbar ist)

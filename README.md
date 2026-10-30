@@ -1,5 +1,7 @@
 # PlaySaal
 
+**Hexis Zaubersuppe:** Halloween-Spiel für Kinder ab 5 im Hochformat: Zutaten laut Bildrezept antippen oder in den Kessel ziehen (zählen bis 3), die Suppe färbt sich, am Ende verzaubert Hexi ihren Kater Kasimir (6 Verwandlungen im Zauberbuch). 15 Level, falsche Zutat macht nur „Puff!“, 3 Sterne ohne Puff. Details: [`docs/HEXIS_ZAUBERSUPPE.md`](docs/HEXIS_ZAUBERSUPPE.md). Test: `node --test tests/hexis-zaubersuppe-sim.test.mjs`.
+
 **Sternenpups – Hoch zu den Feen:** Einhorn-Kletterspiel für Kinder ab 4 im Hochformat: erreichbare Wolke antippen, das Einhorn pupst sich mit Sternenstaub hinüber. 50 Level (1 bis 25 Etagen) mit Ranken, Zauberstab für die Fee (Zauberwolken), Regenbogen, Elf und Schmetterlings-Taxi; kein Absturz, keine Zeit, je Level 3 freiwillige Sterne, begonnene Level werden fortgesetzt. Veröffentlicht am 27.10.2026 (`/spiele/sternenpups`). Details: [`docs/STERNENPUPS.md`](docs/STERNENPUPS.md), Bildprompts: [`design/sternenpups/PROMPTS.md`](design/sternenpups/PROMPTS.md). Test: `node --test tests/sternenpups-sim.test.mjs`.
 
 **Ab in den Stall!:** Bauernhofspiel für Kinder ab 4 im Hochformat: vom Tier mit dem Finger einen Weg zu seinem Zuhause malen (Küken, Ferkel, Kälbchen, Lämmchen, Entchen, Fohlen). 30 Level in 3 Welten mit Bach und Brücke, Gattern zum Antippen und Pfützen nur für Ferkel; kein Scheitern, Herausforderung per Link. Veröffentlicht am 26.10.2026 (`/spiele/ab-in-den-stall`). Grafiken: Originale von ChatGPT in `design/ab-in-den-stall/`, als WebP per `tools/ab-in-den-stall-assets.py`; Zaun, Bach und Brücke werden gezeichnet. Details: [`docs/AB_IN_DEN_STALL.md`](docs/AB_IN_DEN_STALL.md). Test: `node --test tests/ab-in-den-stall-sim.test.mjs`.
@@ -83,6 +85,7 @@ node --test tests/wasser-marsch-sim.test.mjs        # WASSER MARSCH!: 25 Level, 
 node --test tests/leitungschaos-sim.test.mjs        # LEITUNGSCHAOS: 30 Level + 200 Tagesrätsel gültig und lösbar, Fluss, Prüfung
 node --test tests/muehle-sim.test.mjs               # MÜHLE: Regeln, Remis, Kodierung, Stufen-Turniere, Zeitlimit Meister
 node --test tests/kruemel-sim.test.mjs              # KRÜMEL: Sprunghöhe, Kanten-Toleranz, Puffer, Leiter, Schublade, Kätzchen, Level lösbar ohne Sackgassen
+node --test tests/hexis-zaubersuppe-sim.test.mjs    # HEXIS ZAUBERSUPPE: 15 Level, Lernkurve, Zugeben/Puff, Sterne, Zauberbuch, Spielstand
 node --test tests/sternenpups-sim.test.mjs          # STERNENPUPS: 50 Level lösbar, Pflichtaufgaben nötig, keine Sackgassen, Sterne erreichbar, Spielstand
 node --test tests/dino-leiterhelden-sim.test.mjs    # DINO-LEITERHELDEN: 90 Level lösbar (Löser + Bot), Regeln inkl. Rutsche/Brücke/Wechsel-Monster/Ballon/Langhals, Spielstand, Herausforderung
 node tools/domain.mjs                                   # Canonical/Sitemap/robots konsistent?
@@ -90,7 +93,7 @@ node tools/domain.mjs                                   # Canonical/Sitemap/robo
 
 ## Spielstände
 
-Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `sternenpups.v1`, `leitungschaos.v1`, `stall.v1`, `wassermarsch.v1`, `jungle.v1`, `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Ohne Konto bleibt alles auf dem Gerät. Optional gibt es Konten mit Cloud-Speicherständen (Supabase), siehe [docs/KONTEN.md](docs/KONTEN.md). Keine Cookies, keine Werbe- oder Analysedienste Dritter.
+Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `zaubersuppe.v1`, `sternenpups.v1`, `leitungschaos.v1`, `stall.v1`, `wassermarsch.v1`, `jungle.v1`, `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Ohne Konto bleibt alles auf dem Gerät. Optional gibt es Konten mit Cloud-Speicherständen (Supabase), siehe [docs/KONTEN.md](docs/KONTEN.md). Keine Cookies, keine Werbe- oder Analysedienste Dritter.
 `localStorage` hängt an der Adresse: Ein neues Spiel mit eigenem Schlüssel-Präfix muss in `public/assets/umzug.js` (Liste `SPIELE`) eingetragen werden, sonst wird es beim Umzug nicht mitgenommen.
 
 ## Vor dem Livegang

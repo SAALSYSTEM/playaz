@@ -245,6 +245,7 @@
     <section class="block block-neu" id="neu" aria-labelledby="neu-titel">
       <div class="block-kopf"><h2 id="neu-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Neu</h2><p>Neu bei PlaySaal</p></div>
       <ul class="kacheln" data-lay="neu">
+      <li class="kachel" data-slug="hexis-zaubersuppe" data-kategorien="raetsel,kinder" data-rec="zaubersuppe" data-name="Hexis Zaubersuppe" data-arten="Für Kinder,Halloween,Hexe,Zählen" data-kat="neu"><a href="/spiele/hexis-zaubersuppe"><img src="/bilder/hexis-zaubersuppe.webp" width="720" height="720" alt="Hexis Zaubersuppe: Hexe Hexi rührt im blubbernden Kessel, Kater Kasimir schwebt mit Fledermausflügeln daneben" decoding="async" loading="lazy"><span class="name">Hexis Zaubersuppe</span></a></li>
       <li class="kachel" data-slug="sternenpups" data-kategorien="abenteuer,kinder" data-rec="sternenpups" data-name="Sternenpups" data-arten="Für Kinder,Einhorn,Klettern" data-kat="neu"><a href="/spiele/sternenpups"><img src="/bilder/sternenpups.webp" width="720" height="720" alt="Sternenpups: Ein kleines Einhorn pupst sich mit Sternenstaub durch die Wolken nach oben zu einer Fee" decoding="async" loading="lazy"><span class="name">Sternenpups</span></a></li>
       <li class="kachel" data-slug="ab-in-den-stall" data-kategorien="raetsel,kinder" data-rec="stall" data-name="Ab in den Stall!" data-arten="Für Kinder,Bauernhof,Puzzle" data-kat="neu"><a href="/spiele/ab-in-den-stall"><img src="/bilder/ab-in-den-stall.webp" width="720" height="720" alt="Ab in den Stall!: Küken, Ferkel, Lämmchen und Kälbchen laufen auf einem Weg zum roten Stall" decoding="async" loading="lazy"><span class="name">Ab in den Stall!</span></a></li>
       <li class="kachel" data-slug="schach" data-kategorien="brettspiele" data-rec="schach" data-name="Schach" data-arten="Brettspiel,Strategie,Zu zweit" data-kat="neu"><a href="/spiele/schach"><img src="/bilder/schach.webp" width="720" height="720" alt="Schach: Holzfiguren auf einem Schachbrett, der dunkle König kippt um" decoding="async" loading="lazy"><span class="name">Schach</span></a></li>
@@ -446,6 +447,8 @@
   if (hs) show('hochstapler', 'Rekord ' + n(hs));
   const pp = read('papierpilot.v1');
   if (pp && Number(pp.best) >= 100) show('papierpilot', 'Bestflug ' + n(Math.floor(pp.best / 100)) + ' m');
+  const hzs = read('zaubersuppe.v1');
+  if (hzs && hzs.best && Object.keys(hzs.best).length) { const st = Object.values(hzs.best).reduce((a, b) => a + (Number(b) || 0), 0); show('zaubersuppe', Object.keys(hzs.best).length + ' von 15 Level · ' + st + ' ★'); }
   const spp = read('sternenpups.v1');
   if (spp && spp.best && Object.keys(spp.best).length) { const st = Object.values(spp.best).reduce((a, b) => a + (Number(b) || 0), 0); show('sternenpups', Object.keys(spp.best).length + ' von 50 Level · ' + st + ' ★'); }
   const ais = read('stall.v1');
