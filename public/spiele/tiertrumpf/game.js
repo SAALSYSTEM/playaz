@@ -530,7 +530,7 @@ function showMenu(start = false) {
   $('mSound').addEventListener('click', (e) => { setMuted(!muted); e.currentTarget.setAttribute('aria-pressed', String(!muted)); SFX.click(); });
   $('mVoice')?.addEventListener('click', async (e) => { const b = e.currentTarget; await setVoice(!save.voice); b.setAttribute('aria-pressed', String(save.voice)); });
 }
-function cardFaceHtml(c, w, rot) { const el = cardFace({ ...c, id: 0 }, w); el.style.transform = `rotate(${rot}deg)`; return el.outerHTML; }
+function cardFaceHtml(c, w, rot) { const el = cardFace({ ...c, id: 0 }, w); el.style.transform = `rotate(${rot}deg)`; el.dataset.v = c.value; el.dataset.c = c.color; return el.outerHTML; }
 
 function showHelp(back) {
   const m = (c) => cardFaceHtml(c, 34, 0);
@@ -649,17 +649,21 @@ let rz = 0; addEventListener('resize', () => { cancelAnimationFrame(rz); rz = re
 
 $('fieteAvatar').innerHTML = fieteHtml();
 render();
-showMenu(true);
-if (state) speak('Willkommen zurück!');
 
-// Grafiken nachladen (fehlende Bilder bleiben Platzhalter)
+// Grafiken laden (fehlende Bilder bleiben Platzhalter). Das Startmenü wartet höchstens 1,2 s darauf.
+let menuShown = false;
+function startMenu() { if (menuShown) return; menuShown = true; showMenu(true); if (state) speak('Willkommen zurück!'); }
+setTimeout(startMenu, 1200);
 fetch(new URL('img/manifest.json', BASE)).then((r) => (r.ok ? r.json() : [])).catch(() => []).then((list) => {
-  if (!Array.isArray(list) || !list.length) return;
+  if (!Array.isArray(list) || !list.length) { startMenu(); return; }
   bilder = new Set(list.filter((x) => typeof x === 'string'));
   if (bilder.has('hintergrund')) { document.body.style.setProperty('--bg', `url("${new URL('img/hintergrund.webp', BASE)}")`); document.body.classList.add('bg'); }
   for (const el of handEls.values()) el.remove(); handEls.clear();
   $('fieteAvatar').innerHTML = fieteHtml();
   render({ keepMsg: true });
+  if (menuShown) content.querySelectorAll('.hero .avatar, .winpic .avatar').forEach((el) => { el.innerHTML = fieteHtml(); });
+  if (menuShown) content.querySelectorAll('.hero .card').forEach((el) => { const v = el.dataset.v, c = el.dataset.c; if (v) el.innerHTML = cardInner({ color: c, value: v }); });
+  startMenu();
 });
 
 // Für Tests: Zustand lesen (ohne Einfluss auf das Spiel)

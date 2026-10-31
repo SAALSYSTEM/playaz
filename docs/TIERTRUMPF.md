@@ -36,8 +36,8 @@ Eigenständiges, kindgerechtes Ablegespiel für PlaySaal (`/spiele/tiertrumpf`).
 ## Grafik
 
 - Zahlen, Formsymbole, Sonderkarten (Regenbogen, Mond, +1), Kartenrücken und Farbfelder zeichnet das Spiel selbst (scharf in jeder Größe).
-- **Platzhalter:** Die sechs Tiere und Fiete sind System-Emoji, bis ChatGPT-Bilder vorliegen. Prompts: `design/tiertrumpf/PROMPTS.md`. Fertige PNGs nach `design/tiertrumpf/` legen und `python3 tools/tiertrumpf-assets.py` ausführen: schreibt `public/spiele/tiertrumpf/img/*.webp` und `manifest.json`; das Spiel nutzt jedes vorhandene Bild, der Rest bleibt Platzhalter. Ein Tierbild gilt für alle vier Farben.
-- Kachel `public/bilder/tiertrumpf.webp` und Teilen-Vorschau `public/bilder/tiertrumpf-og.jpg` sind gezeichnete Platzhalter (`node tools/tiertrumpf-platzhalter.mjs`), bis `kachel.png` / `social-preview.png` geliefert sind.
+- Tiere, Fiete (drei Posen), Hintergrund, Kachel und Teilen-Vorschau sind ChatGPT-Bilder (geliefert 31.10.2026). Fehlt ein Bild, zeigt das Spiel ein System-Emoji als Platzhalter. Prompts: `design/tiertrumpf/PROMPTS.md`. Fertige PNGs nach `design/tiertrumpf/` legen und `python3 tools/tiertrumpf-assets.py` ausführen: schreibt `public/spiele/tiertrumpf/img/*.webp` und `manifest.json`; das Spiel nutzt jedes vorhandene Bild, der Rest bleibt Platzhalter. Ein Tierbild gilt für alle vier Farben.
+- Kachel `public/bilder/tiertrumpf.webp` und Teilen-Vorschau `public/bilder/tiertrumpf-og.jpg` erzeugt das Asset-Skript aus `kachel.png` / `social-preview.png`; `tools/tiertrumpf-platzhalter.mjs` zeichnet nur Ersatz, falls diese fehlen.
 
 ## Hosting und Pfade
 
