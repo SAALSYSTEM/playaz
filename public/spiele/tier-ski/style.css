@@ -1,0 +1,102 @@
+/* Tier-Ski – Oberfläche. Himmel als Verlauf hinter der transparenten 3D-Fläche; Unterkante = Nebelfarbe (#d8ecff). */
+:root{--navy:#1d2547;--navy2:#2e3a6b;--gelb:#ffd21c;--gelb2:#ffb800;--orange:#ff8a1f;--weiss:#fff;--eis:#e9f4ff;--schatten:0 6px 0 rgba(29,37,71,.18),0 10px 26px rgba(29,37,71,.18)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{background:linear-gradient(180deg,#3d8fe0 0%,#7cbcf3 38%,#bfe0ff 62%,#d8ecff 100%);color:var(--navy);font-family:'Fredoka','Barlow',system-ui,sans-serif;
+  -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+[hidden]{display:none!important}
+.pz-home{position:fixed;z-index:40;top:calc(env(safe-area-inset-top,0px) + 10px);left:calc(env(safe-area-inset-left,0px) + 12px);width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(17,18,26,.72);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}
+body.in-fahrt .pz-home{display:none}
+
+.muenze{display:inline-block;width:.95em;height:.95em;border-radius:50%;vertical-align:-.12em;margin-right:.25em;
+  background:radial-gradient(circle at 38% 34%,#fff3b0 0 18%,#ffd84a 19% 55%,#e9a400 56% 100%);box-shadow:inset 0 0 0 2px #c98a00}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;z-index:20;left:0;right:0;top:0;display:flex;gap:8px;align-items:flex-start;justify-content:center;pointer-events:none;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) calc(env(safe-area-inset-right,0px) + 64px) 0 calc(env(safe-area-inset-left,0px) + 12px)}
+.hud-box{min-width:78px;padding:6px 10px 5px;border-radius:14px;background:rgba(255,255,255,.86);box-shadow:0 3px 0 rgba(29,37,71,.15);text-align:center;line-height:1}
+.hud-box b{display:block;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.hud-box small{display:block;margin-top:2px;font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:#56608a}
+#bPause{position:fixed;pointer-events:auto;top:calc(env(safe-area-inset-top,0px) + 10px);right:calc(env(safe-area-inset-right,0px) + 12px)}
+.rund{width:44px;height:44px;border-radius:50%;border:0;display:grid;place-items:center;background:rgba(255,255,255,.9);color:var(--navy);box-shadow:0 3px 0 rgba(29,37,71,.2)}
+.rund svg{width:22px;height:22px}
+.rund.gross{width:56px;height:56px}.rund.gross svg{width:28px;height:28px}
+.rund:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(29,37,71,.2)}
+
+/* ---------- Steuerung ---------- */
+#steuer{position:fixed;z-index:20;left:0;right:0;bottom:0;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;
+  padding:0 calc(env(safe-area-inset-right,0px) + 10px) calc(env(safe-area-inset-bottom,0px) + 12px) calc(env(safe-area-inset-left,0px) + 10px);max-width:640px;margin:0 auto}
+.taste{height:min(19vh,118px);min-height:76px;border-radius:22px;border:0;display:grid;place-items:center;
+  background:rgba(255,255,255,.34);color:var(--navy);box-shadow:inset 0 0 0 2px rgba(255,255,255,.75),0 4px 0 rgba(29,37,71,.12);
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);touch-action:none}
+.taste svg{width:40px;height:40px}
+.taste.an{background:rgba(255,255,255,.75);transform:translateY(2px)}
+.taste.mitte .trick{display:none}
+.taste.mitte small{display:block;font-size:13px;font-weight:700;letter-spacing:.03em;margin-top:-2px}
+.taste.mitte span{display:grid;place-items:center}
+body.luft .taste.mitte{background:var(--gelb);box-shadow:inset 0 0 0 3px #fff,0 4px 0 var(--gelb2);animation:puls .45s ease-in-out infinite alternate}
+body.luft .taste.mitte .duck{display:none}
+body.luft .taste.mitte .trick{display:grid}
+body.trick-weg .taste.mitte{animation:none;background:rgba(255,255,255,.34);box-shadow:inset 0 0 0 2px rgba(255,255,255,.75)}
+@keyframes puls{to{transform:scale(1.06)}}
+
+#pop{position:fixed;z-index:25;left:50%;top:30%;transform:translateX(-50%);pointer-events:none;text-align:center}
+#pop span{display:block;font-size:30px;font-weight:700;color:#fff;-webkit-text-stroke:1.5px var(--navy);paint-order:stroke fill;text-shadow:0 3px 0 var(--navy);animation:hoch 1s ease-out forwards;white-space:nowrap}
+#pop span.gold{color:var(--gelb)}
+#pop span.blau{color:#9fe1ff}
+@keyframes hoch{0%{opacity:0;transform:translateY(16px) scale(.7)}15%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-34px)}}
+#hinweis{position:fixed;z-index:22;left:50%;top:calc(env(safe-area-inset-top,0px) + 74px);transform:translateX(-50%);
+  max-width:calc(100% - 32px);padding:10px 16px;border-radius:16px;background:rgba(29,37,71,.82);color:#fff;font-size:16px;font-weight:600;text-align:center;pointer-events:none;line-height:1.3}
+
+/* ---------- Schichten ---------- */
+.schicht{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:calc(env(safe-area-inset-top,0px) + 16px) calc(env(safe-area-inset-right,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 16px) calc(env(safe-area-inset-left,0px) + 16px)}
+.dialog{background:rgba(29,37,71,.35)}
+.karte{width:min(100%,360px);padding:22px 20px 18px;border-radius:26px;background:#fff;box-shadow:var(--schatten);text-align:center;display:flex;flex-direction:column;gap:10px}
+.karte h2{margin:0;font-size:26px;line-height:1.1}
+.unter{margin:-4px 0 4px;color:#56608a;font-size:16px}
+.knopf{min-height:52px;border:0;border-radius:18px;padding:10px 18px;font-size:19px;font-weight:700;background:var(--eis);color:var(--navy);box-shadow:0 4px 0 #c5d8f0}
+.knopf.haupt{background:var(--gelb);box-shadow:0 5px 0 var(--gelb2);font-size:22px;min-height:60px}
+.knopf:active{transform:translateY(3px);box-shadow:0 1px 0 #c5d8f0}
+.knopf.haupt:active{box-shadow:0 2px 0 var(--gelb2)}
+.knopf:disabled{opacity:.6;cursor:default;transform:none}
+.klein{align-self:center;border:0;background:none;color:#56608a;font-size:15px;font-weight:600;padding:8px 12px;text-decoration:underline}
+.werte{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:2px 0}
+.werte div{padding:10px 4px;border-radius:16px;background:var(--eis)}
+.werte b{display:block;font-size:24px;font-variant-numeric:tabular-nums}
+.werte small{font-size:12px;font-weight:600;color:#56608a;text-transform:uppercase;letter-spacing:.04em}
+.rekord{margin:0;font-size:16px;font-weight:600;color:#56608a;min-height:1.3em}
+.rekord.neu{color:#e0560a}
+
+/* Menü: oben Titel, Mitte bleibt frei für das 3D-Tier, unten Auswahl und Start */
+#menu{justify-content:space-between;background:none;pointer-events:none}
+#menu>*{pointer-events:auto}
+#menu .kopf{width:100%;max-width:440px;display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:44px}
+.logo{margin:0;font-family:'Dela Gothic One','Fredoka',sans-serif;font-weight:400;font-size:clamp(44px,13vw,64px);line-height:1;color:#fff;letter-spacing:.01em;
+  -webkit-text-stroke:3px var(--navy);paint-order:stroke fill;text-shadow:0 5px 0 var(--navy)}
+.logo span{color:var(--orange)}
+.konto{padding:6px 14px;border-radius:999px;background:rgba(255,255,255,.88);font-size:20px;font-weight:700;box-shadow:0 3px 0 rgba(29,37,71,.15)}
+#menu .wahl{width:100%;max-width:440px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;margin-bottom:12px}
+#menu .name{flex:1;text-align:center;padding:8px 6px;border-radius:18px;background:rgba(255,255,255,.88);box-shadow:0 3px 0 rgba(29,37,71,.15);line-height:1.15}
+#menu .name b{display:block;font-size:22px}
+#menu .name small{display:block;font-size:15px;font-weight:600;color:#56608a}
+#menu .name small.zu{color:#c0392b}
+#menu .unten{width:100%;max-width:360px;display:flex;flex-direction:column;gap:8px}
+.punkte-reihe{display:flex;justify-content:center;gap:7px}
+.punkte-reihe i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.6);box-shadow:inset 0 0 0 1.5px rgba(29,37,71,.35)}
+.punkte-reihe i.an{background:var(--navy)}
+#menu .rekord{text-align:center;color:var(--navy);text-shadow:0 1px 0 rgba(255,255,255,.7)}
+#menu .klein{color:var(--navy)}
+
+#laden{background:linear-gradient(180deg,#3d8fe0,#bfe0ff)}
+.balken{height:12px;border-radius:999px;background:var(--eis);overflow:hidden}
+.balken i{display:block;height:100%;width:0;background:var(--orange);border-radius:inherit;transition:width .2s}
+.fehler{position:fixed;inset:auto 16px 40% 16px;z-index:50;padding:16px;border-radius:16px;background:#fff;text-align:center;font-weight:600}
+
+@media (min-width:700px) and (min-height:600px){.taste{height:96px}}
+@media (max-height:600px){#menu .kopf{padding-top:12px}.logo{font-size:40px}.knopf.haupt{min-height:52px}}
+@media (prefers-reduced-motion:reduce){body.luft .taste.mitte{animation:none}#pop span{animation-duration:1.4s}}
+body.foto .schicht,body.foto .pz-home{display:none!important}

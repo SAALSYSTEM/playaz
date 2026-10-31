@@ -1,0 +1,71 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Tier-Ski · 3D-Skispiel für Kinder | PlaySaal</title><meta name="description" content="Hase, Fuchs, Pinguin und Bär fahren Ski: ausweichen, unter Ästen ducken, über Schanzen springen und Münzen sammeln. Kostenloses 3D-Skispiel für Kinder ab 5, ohne Anmeldung."><link rel="canonical" href="https://playsaal.com/spiele/tier-ski"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Tier-Ski · Ab auf die Piste!"><meta property="og:description" content="Ausweichen, ducken, springen, Münzen sammeln – mit Hase, Fuchs, Pinguin und Bär. Wie weit kommst du?"><meta property="og:url" content="https://playsaal.com/spiele/tier-ski"><meta property="og:image" content="https://playsaal.com/bilder/tier-ski-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Tier-Ski · Ab auf die Piste!"><meta name="twitter:description" content="Ausweichen, ducken, springen, Münzen sammeln – wie weit kommst du?"><meta name="twitter:image" content="https://playsaal.com/bilder/tier-ski-og.jpg"><meta name="theme-color" content="#5aa9f0"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/spiele/tier-ski/style.css?v=1"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'tier-ski',t:Date.now()}))}catch(e){}</script></head>
+<body class="im-menu">
+<canvas id="c" aria-label="Skipiste"></canvas>
+<a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
+
+<div id="hud" hidden>
+  <div class="hud-box"><b id="hPunkte">0</b><small>Punkte</small></div>
+  <div class="hud-box mitte"><b id="hMeter">0</b><small>Meter</small></div>
+  <div class="hud-box"><b><i class="muenze" aria-hidden="true"></i><span id="hMuenzen">0</span></b><small>Münzen</small></div>
+  <button id="bPause" class="rund" type="button" aria-label="Pause" title="Pause (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/></svg></button>
+</div>
+<div id="pop" aria-live="polite"></div>
+<div id="hinweis" hidden></div>
+
+<div id="steuer" hidden>
+  <button id="tLinks" class="taste" type="button" aria-label="Nach links lenken"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  <button id="tMitte" class="taste mitte" type="button" aria-label="Ducken, in der Luft: Trick"><span class="duck"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v13M6 12l6 6 6-6" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg><small>Ducken</small></span><span class="trick"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.6l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z" fill="currentColor"/></svg><small>Trick!</small></span></button>
+  <button id="tRechts" class="taste" type="button" aria-label="Nach rechts lenken"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+</div>
+
+<section id="menu" class="schicht" hidden>
+  <header class="kopf">
+    <h1 class="logo">Tier<span>-Ski</span></h1>
+    <div class="konto"><i class="muenze" aria-hidden="true"></i><b id="mMuenzen">0</b><span class="sr"> Münzen</span></div>
+  </header>
+  <div class="wahl">
+    <button id="mLinks" class="rund gross" type="button" aria-label="Vorheriges Tier"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="name"><b id="mName">Hase Hoppel</b><small id="mInfo">Bereit!</small></div>
+    <button id="mRechts" class="rund gross" type="button" aria-label="Nächstes Tier"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+  </div>
+  <div class="unten">
+    <div class="punkte-reihe" id="mPunkte" aria-hidden="true"></div>
+    <button id="mStart" class="knopf haupt" type="button">Los geht's!</button>
+    <button id="mKaufen" class="knopf haupt" type="button" hidden>Freischalten</button>
+    <p class="rekord" id="mRekord"></p>
+    <button id="mTon" class="klein" type="button" aria-pressed="true">Ton: an</button>
+  </div>
+</section>
+
+<section id="pause" class="schicht dialog" hidden>
+  <div class="karte">
+    <h2>Pause</h2>
+    <button id="pWeiter" class="knopf haupt" type="button">Weiterfahren</button>
+    <button id="pNeu" class="knopf" type="button">Neu starten</button>
+    <button id="pMenu" class="knopf" type="button">Hauptmenü</button>
+    <button id="pTon" class="klein" type="button" aria-pressed="true">Ton: an</button>
+  </div>
+</section>
+
+<section id="ende" class="schicht dialog" hidden>
+  <div class="karte">
+    <h2 id="eTitel">Oje, Schnee gefuttert!</h2>
+    <p class="unter" id="eGrund"></p>
+    <div class="werte">
+      <div><b id="eMeter">0</b><small>Meter</small></div>
+      <div><b id="ePunkte">0</b><small>Punkte</small></div>
+      <div><b><i class="muenze" aria-hidden="true"></i><span id="eMuenzen">0</span></b><small>Münzen</small></div>
+    </div>
+    <p class="rekord" id="eRekord"></p>
+    <button id="eNochmal" class="knopf haupt" type="button">Nochmal fahren</button>
+    <button id="eTiere" class="knopf" type="button">Tier wählen</button>
+  </div>
+</section>
+
+<div id="laden" class="schicht"><div class="karte"><h2>Tier-Ski</h2><p id="ladeText">Die Piste wird gewalzt …</p><div class="balken"><i id="ladeBalken"></i></div></div></div>
+<noscript><p class="fehler">Tier-Ski braucht JavaScript.</p></noscript>
+
+<script src="/assets/three.min.js"></script>
+<script src="/spiele/tier-ski/GLTFLoader.js?v=r128"></script>
+<script type="module" src="/spiele/tier-ski/game.js?v=1"></script>
+<script src="/assets/playsaal-config.js" defer></script><script src="/assets/playsaal.js" defer></script></body></html>
