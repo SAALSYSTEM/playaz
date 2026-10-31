@@ -1,6 +1,9 @@
 # PlaySaal
 
-**Hexis Zaubersuppe:** Halloween-Spiel für Kinder ab 5 im Hochformat: Zutaten laut Bildrezept antippen oder in den Kessel ziehen (zählen bis 3), die Suppe färbt sich, am Ende verzaubert Hexi ihren Kater Kasimir (6 Verwandlungen im Zauberbuch). 15 Level, falsche Zutat macht nur „Puff!“, 3 Sterne ohne Puff. Details: [`docs/HEXIS_ZAUBERSUPPE.md`](docs/HEXIS_ZAUBERSUPPE.md). Test: `node --test tests/hexis-zaubersuppe-sim.test.mjs`.
+**Neon Coast – Sternenfahrt:** Autospiel für Kinder ab 5 im Hochformat, Draufsicht: Das Auto fährt von selbst, nur zwei Tasten (links/rechts, je Druck genau eine Spur), Sterne sammeln, Kegeln, Absperrungen und langsamen Autos ausweichen. 10 Level (Stadt, Strandpromenade, Hafen), Berührung macht nur „Hoppla!“ (kein Game-over), Übung in Level 1, zwei Autos zum Freischalten, Autoradio mit 4 Sendern. Details: [`docs/STERNENFAHRT.md`](docs/STERNENFAHRT.md). Test: `node --test tests/sternenfahrt-sim.test.mjs`.
+
+**Hexis Zaubersuppe:** Halloween-Spiel für Kinder ab 5 im Hochformat: Zutaten laut Bildrezept antippen oder in den Kessel ziehen (zählen bis 3), die Suppe färbt sich, am Ende verzaubert Hexi ihren Kater Kasimir (6 Verwandlungen im Zauberbuch). 15 Level, falsche Zutat macht nur „Puff!“, 3 Sterne ohne Puff. Details: [`docs/HEXIS_ZAUBERSUPPE.md`](docs/HEXIS_ZAUBERSUPPE.md). Test: `node --test tests/sternenfahrt-sim.test.mjs         # STERNENFAHRT: 10 Level fair (Prüf-Fahrer mit Kinder-Reaktionszeit), Steuerung, Schutzzeit, Bildraten, Spielstand
+node --test tests/hexis-zaubersuppe-sim.test.mjs`.
 
 **Sternenpups – Hoch zu den Feen:** Einhorn-Kletterspiel für Kinder ab 4 im Hochformat: erreichbare Wolke antippen, das Einhorn pupst sich mit Sternenstaub hinüber. 50 Level (1 bis 25 Etagen) mit Ranken, Zauberstab für die Fee (Zauberwolken), Regenbogen, Elf und Schmetterlings-Taxi; kein Absturz, keine Zeit, je Level 3 freiwillige Sterne, begonnene Level werden fortgesetzt. Veröffentlicht am 27.10.2026 (`/spiele/sternenpups`). Details: [`docs/STERNENPUPS.md`](docs/STERNENPUPS.md), Bildprompts: [`design/sternenpups/PROMPTS.md`](design/sternenpups/PROMPTS.md). Test: `node --test tests/sternenpups-sim.test.mjs`.
 
@@ -93,7 +96,7 @@ node tools/domain.mjs                                   # Canonical/Sitemap/robo
 
 ## Spielstände
 
-Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `zaubersuppe.v1`, `sternenpups.v1`, `leitungschaos.v1`, `stall.v1`, `wassermarsch.v1`, `jungle.v1`, `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Ohne Konto bleibt alles auf dem Gerät. Optional gibt es Konten mit Cloud-Speicherständen (Supabase), siehe [docs/KONTEN.md](docs/KONTEN.md). Keine Cookies, keine Werbe- oder Analysedienste Dritter.
+Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `sternenfahrt.v1`, `zaubersuppe.v1`, `sternenpups.v1`, `leitungschaos.v1`, `stall.v1`, `wassermarsch.v1`, `jungle.v1`, `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Ohne Konto bleibt alles auf dem Gerät. Optional gibt es Konten mit Cloud-Speicherständen (Supabase), siehe [docs/KONTEN.md](docs/KONTEN.md). Keine Cookies, keine Werbe- oder Analysedienste Dritter.
 `localStorage` hängt an der Adresse: Ein neues Spiel mit eigenem Schlüssel-Präfix muss in `public/assets/umzug.js` (Liste `SPIELE`) eingetragen werden, sonst wird es beim Umzug nicht mitgenommen.
 
 ## Vor dem Livegang

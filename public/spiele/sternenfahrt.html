@@ -1,0 +1,189 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Neon Coast – Sternenfahrt · Autospiel für Kinder</title><meta name="description" content="Mit dem Türkis-Flitzer durch die Küstenstadt: Sterne sammeln, Hütchen ausweichen, nur zwei Tasten. 10 Level für Kinder ab 5 Jahren – ohne Anmeldung, ohne Game-over."><link rel="canonical" href="https://playsaal.com/spiele/sternenfahrt"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Neon Coast – Sternenfahrt · Autospiel für Kinder"><meta property="og:description" content="Sterne sammeln, Hütchen ausweichen – 10 Level für Kinder ab 5, nur links und rechts."><meta property="og:url" content="https://playsaal.com/spiele/sternenfahrt"><meta property="og:image" content="https://playsaal.com/bilder/sternenfahrt-og.jpg"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Neon Coast – Sternenfahrt · Autospiel für Kinder"><meta name="twitter:description" content="Sterne sammeln, Hütchen ausweichen – 10 Level für Kinder ab 5, nur links und rechts."><meta name="twitter:image" content="https://playsaal.com/bilder/sternenfahrt-og.jpg"><meta name="theme-color" content="#11121A"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/fonts.css"><style>
+:root{color-scheme:light;--ink:#11121A;--brand:#FF9200;--act:#FFD21C;--tuerkis:#1ED6E0;--tuerkis-d:#0aa7b8;--pink:#FF5FA2;--creme:#FFF3E0;--lav:#B9A3F5;--nacht:#1b2236;--glass:rgba(255,255,255,.9);font-family:"Fredoka","Barlow",system-ui,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;touch-action:none}
+body{background:#0f1a2e;color:var(--ink)}
+.pz-home{position:fixed;z-index:2147483000;top:calc(env(safe-area-inset-top,0px) + 12px);left:calc(env(safe-area-inset-left,0px) + 12px);width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(17,18,26,.72);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}
+.pz-home:focus-visible{outline:3px solid #FFD21C;outline-offset:2px}
+body[data-mode="play"] .pz-home,body[data-mode="pause"] .pz-home,body[data-mode="won"] .pz-home{display:none}
+#app{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(100vw,calc(100dvh * .62));overflow:hidden;background:#3b4152}
+@supports not (height:100dvh){#app{width:min(100vw,calc(100vh * .62))}}
+#game{position:absolute;inset:0;display:block;touch-action:none}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:3px solid var(--act);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* HUD: Fortschritt, Sterne, Handy */
+#hud{position:absolute;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 10px) 10px 0 12px;display:flex;gap:8px;align-items:center;pointer-events:none;z-index:3;transition:opacity .2s}
+#hud.off{opacity:0;visibility:hidden}
+.bahn{flex:1;min-width:0;height:22px;border-radius:12px;background:rgba(17,18,26,.55);border:2px solid rgba(255,255,255,.85);position:relative;box-shadow:0 2px 8px rgba(17,18,26,.25)}
+.bahn i{position:absolute;left:3px;top:3px;bottom:3px;width:0;border-radius:8px;background:linear-gradient(90deg,var(--tuerkis),var(--pink))}
+.bahn b{position:absolute;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35);display:grid;place-items:center;font-size:15px;left:0}
+.bahn em{position:absolute;right:-4px;top:50%;transform:translateY(-50%);font-style:normal;font-size:18px;filter:drop-shadow(0 1px 1px rgba(0,0,0,.4))}
+.chip{height:40px;min-width:40px;padding:0 12px;border-radius:14px;background:var(--glass);box-shadow:0 2px 8px rgba(17,18,26,.25);display:flex;align-items:center;gap:6px;font-weight:700;font-size:21px;white-space:nowrap}
+.chip svg{width:24px;height:24px}
+.chip.pop{animation:chip .3s ease-out}
+@keyframes chip{40%{transform:scale(1.18)}}
+#btnPhone{pointer-events:auto;width:44px;height:44px;border:0;border-radius:14px;background:var(--nacht);box-shadow:0 2px 8px rgba(17,18,26,.3);display:grid;place-items:center;color:#fff}
+#btnPhone svg{width:24px;height:28px}
+/* Lenktasten */
+#ctl{position:absolute;left:0;right:0;bottom:0;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;gap:14px;z-index:3;transition:opacity .2s}
+#ctl.off{opacity:0;visibility:hidden}
+.pfeil{flex:1;height:clamp(78px,13dvh,112px);border:0;border-radius:26px;background:rgba(255,255,255,.86);box-shadow:0 5px 0 rgba(17,18,26,.25),0 8px 22px rgba(17,18,26,.25);display:grid;place-items:center;color:var(--tuerkis-d);touch-action:none;position:relative;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.pfeil svg{width:clamp(48px,9dvh,70px);height:clamp(48px,9dvh,70px);filter:drop-shadow(0 2px 0 rgba(0,0,0,.12))}
+.pfeil.down{transform:translateY(4px);box-shadow:0 1px 0 rgba(17,18,26,.25),0 4px 10px rgba(17,18,26,.2);background:#fff}
+.pfeil.lern{animation:lern 1s ease-in-out infinite;background:#fff}
+@keyframes lern{50%{box-shadow:0 5px 0 rgba(17,18,26,.25),0 0 0 8px rgba(255,210,28,.85),0 0 30px rgba(255,210,28,.9)}}
+.hand{position:absolute;left:58%;top:52%;font-size:46px;pointer-events:none;animation:tap 1s ease-in-out infinite;filter:drop-shadow(0 3px 3px rgba(0,0,0,.35))}
+@keyframes tap{0%,100%{transform:translate(0,14px)}50%{transform:translate(0,0)}}
+@media (prefers-reduced-motion:reduce){.pfeil.lern,.hand{animation:none}}
+/* Tipp */
+#tip{position:absolute;left:0;right:0;margin:0 auto;width:fit-content;max-width:calc(100% - 24px);top:calc(env(safe-area-inset-top,0px) + 66px);z-index:3;display:flex;align-items:center;gap:10px;padding:8px 16px;border-radius:18px;background:rgba(255,255,255,.96);box-shadow:0 4px 14px rgba(17,18,26,.25);font-weight:600;font-size:18px;line-height:1.2;pointer-events:none;transition:opacity .35s,transform .35s}
+#tip.away{opacity:0;transform:translateY(-12px)}
+#tip .ic{font-size:28px}
+#tip small{display:block;font-size:13px;font-weight:600;color:#c2357a}
+/* Bildschirme */
+.screen{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 64px) 18px calc(env(safe-area-inset-bottom,0px) + 18px);background:rgba(15,26,46,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);color:#fff;text-align:center;overflow:auto}
+#start,#levels,#autos{background:radial-gradient(120% 60% at 50% 0%,#2fd9e6 0%,#3a7bd5 38%,#1f2a52 78%,#151b36 100%)}
+.title{margin:0;font-weight:700;line-height:.95}
+.title .nc{display:block;font-size:clamp(20px,6vw,28px);letter-spacing:.14em;color:#c9fbff;text-shadow:0 0 10px rgba(30,214,224,.9),0 0 22px rgba(30,214,224,.6)}
+.title .sf{display:block;margin-top:6px;font-size:clamp(40px,12.5vw,56px);color:#fff;text-shadow:0 4px 0 var(--pink),0 0 18px rgba(255,95,162,.7),0 8px 18px rgba(0,0,0,.35)}
+#hero{--hs:min(250px,62vw,30dvh);width:var(--hs);height:var(--hs);flex-shrink:0;border-radius:30px;box-shadow:0 0 0 4px rgba(255,255,255,.85),0 0 30px rgba(30,214,224,.7),0 12px 30px rgba(0,0,0,.45);object-fit:cover;background:#2b3448}
+.big{display:flex;align-items:center;justify-content:center;gap:10px;min-width:200px;height:74px;padding:0 28px;border:0;border-radius:24px;background:var(--act);color:var(--ink);font-weight:700;font-size:28px;box-shadow:0 6px 0 #c99c00,0 10px 20px rgba(0,0,0,.25)}
+.big:active{transform:translateY(3px);box-shadow:0 3px 0 #c99c00}
+.big svg{width:34px;height:34px}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.sec{display:flex;align-items:center;gap:8px;height:54px;padding:0 16px;border:0;border-radius:18px;background:rgba(255,255,255,.95);color:var(--ink);font-weight:600;font-size:19px;box-shadow:0 3px 0 rgba(0,0,0,.2)}
+.sec svg,.sec .ico{width:26px;height:26px;display:grid;place-items:center}
+.sec .ico svg{width:26px;height:26px}
+.round{width:54px;padding:0;justify-content:center;border-radius:16px}
+#mStart{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px}
+.panel{background:rgba(21,27,54,.92);border:2px solid rgba(30,214,224,.5);border-radius:26px;padding:20px 18px;display:flex;flex-direction:column;gap:12px;align-items:center;width:min(330px,90vw);box-shadow:0 10px 30px rgba(0,0,0,.45),0 0 24px rgba(30,214,224,.25)}
+.panel h2{margin:0;font-size:30px;font-weight:700;color:#fff}
+.panel .sub{margin:-6px 0 0;font-size:17px;color:#bdf6fb}
+#winAuto{height:min(130px,18dvh);width:auto;filter:drop-shadow(0 8px 10px rgba(0,0,0,.45));animation:fahr 1.2s ease-in-out infinite alternate}
+@keyframes fahr{to{transform:translateY(-6px)}}
+.zahl{font-weight:700;font-size:24px;color:#ffe9a8;display:flex;align-items:center;gap:6px}
+.zahl svg{width:28px;height:28px}
+.neu{display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:16px;background:linear-gradient(90deg,var(--tuerkis),var(--pink));color:#fff;font-weight:700;font-size:17px;text-align:left}
+.neu img{height:56px;width:auto}
+.stars{display:flex;gap:6px;justify-content:center}
+.stars svg{width:48px;height:48px}
+.stars svg.on{animation:pop .45s cubic-bezier(.3,1.6,.5,1) both}
+.stars svg:nth-child(2){animation-delay:.15s}.stars svg:nth-child(3){animation-delay:.3s}
+@keyframes pop{0%{transform:scale(0)}100%{transform:scale(1)}}
+.konto{padding:12px;border-radius:18px;background:#fff3d6;border:2px dashed #e0a24a;display:grid;gap:6px;justify-items:center;font:600 14px/1.35 "Barlow";color:#7a4c26;max-width:320px}
+.konto b{font:700 17px/1.1 "Fredoka";color:#a2560a}
+.konto button{height:44px;padding:0 16px;border:0;border-radius:14px;background:var(--act);font-weight:700;font-size:16px;box-shadow:0 3px 0 #c99c00}
+.invite{margin:0;padding:10px 14px;border-radius:18px;background:#fff3d6;border:3px dashed #e0a24a;font:600 16px/1.3 "Fredoka";color:#7a4c26;max-width:320px}
+/* Levelauswahl */
+#levels,#autos{justify-content:flex-start}
+#levels h2,#autos h2{margin:0;font-size:32px}
+.welt{font-size:15px;font-weight:600;color:#c9fbff;letter-spacing:.06em;text-transform:uppercase;margin:4px 0 -4px;width:min(100%,360px);text-align:left}
+.grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:min(100%,360px)}
+.lvl{position:relative;aspect-ratio:1;border:0;border-radius:16px;background:#fff;color:var(--ink);font-weight:700;font-size:26px;box-shadow:0 4px 0 rgba(0,0,0,.3);display:grid;place-items:center;line-height:1}
+.lvl[data-w="stadt"]{background:#c9f7fb}.lvl[data-w="strand"]{background:#ffe3b8}.lvl[data-w="hafen"]{background:#d8ccff}
+.lvl small{position:absolute;left:0;right:0;bottom:3px;font-size:11px;letter-spacing:-1px;color:#b07a00}
+.lvl.next{outline:4px solid var(--act);animation:pulse 1.4s ease-in-out infinite}
+.lvl:disabled{background:#3d4670;color:#8f98c4;box-shadow:none;cursor:default}
+@keyframes pulse{50%{transform:scale(1.06)}}
+@media (prefers-reduced-motion:reduce){.lvl.next,.stars svg.on,#winAuto{animation:none}}
+.gesamt{font-weight:600;font-size:18px;color:#ffe9a8}
+/* Autos */
+.garage{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;width:min(100%,360px)}
+.auto{border:0;border-radius:20px;background:rgba(255,255,255,.95);color:var(--ink);padding:10px 4px 8px;display:grid;justify-items:center;gap:6px;font-weight:600;font-size:15px;line-height:1.1;box-shadow:0 4px 0 rgba(0,0,0,.3)}
+.auto img{height:min(140px,20dvh);width:auto;filter:drop-shadow(0 4px 4px rgba(0,0,0,.3))}
+.auto.on{outline:5px solid var(--act);background:#fff}
+.auto:disabled{background:#3d4670;color:#b5bde3;box-shadow:none;cursor:default}
+.auto:disabled img{filter:brightness(0) opacity(.35)}
+.auto .lock{font-size:13px;color:#d9defa}
+/* Handy-Menü (Pause) */
+#pause{background:rgba(15,26,46,.6)}
+.handy{width:min(300px,82vw);border-radius:42px;padding:12px;background:#151821;box-shadow:0 0 0 3px #3a3f52,0 18px 40px rgba(0,0,0,.55);position:relative}
+.handy::before{content:"";position:absolute;top:12px;left:50%;transform:translateX(-50%);width:84px;height:20px;border-radius:0 0 14px 14px;background:#151821;z-index:1}
+.display{border-radius:32px;padding:42px 16px 18px;background:linear-gradient(160deg,#5ee7f0 0%,#8fb4ff 45%,#ff8cc0 100%);display:grid;gap:12px;color:var(--ink)}
+.display .uhr{font-weight:700;font-size:15px;color:rgba(17,18,26,.65);margin-top:-26px;display:flex;justify-content:space-between;padding:0 8px}
+.display .big{min-width:0;width:100%;padding:0 14px;font-size:25px;height:68px}
+.display .big svg{flex-shrink:0;width:30px;height:30px}
+.display h2{margin:0;font-size:28px;color:#fff;text-shadow:0 2px 0 rgba(17,18,26,.25)}
+.apps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.app{border:0;background:none;display:grid;justify-items:center;gap:5px;font-weight:600;font-size:15px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);padding:0}
+.app .ico{width:66px;height:66px;border-radius:20px;display:grid;place-items:center;box-shadow:0 4px 0 rgba(0,0,0,.2);color:#fff}
+.app .ico svg{width:34px;height:34px}
+#toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);z-index:9;padding:10px 16px;border-radius:14px;background:var(--ink);color:#fff;font-weight:600;font-size:16px;max-width:calc(100% - 24px);text-align:center}
+body:not(.ready) #btnPlay{opacity:.6;pointer-events:none}
+</style></head><body data-mode="menu"><a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
+<main id="app">
+<canvas id="game" aria-label="Straße von oben: Das Auto fährt nach oben. Mit den Pfeiltasten die Spur wechseln, Sterne sammeln, Hindernissen ausweichen."></canvas>
+<div id="hud" class="off">
+  <div class="bahn" role="progressbar" aria-label="Strecke bis zum Ziel" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="bahn"><i id="bahnFill"></i><b id="bahnAuto" aria-hidden="true">🚗</b><em aria-hidden="true">🏁</em></div>
+  <div class="chip" id="chipStars" role="status" aria-live="polite"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17l-6.1 3.4 1.5-6.8L2.2 9l6.9-.7z" fill="#FFD21C" stroke="#c48a00" stroke-width="1.3" stroke-linejoin="round"/></svg><span class="sr">Sterne: </span><span id="hudStars">0</span></div>
+  <button id="btnPhone" type="button" aria-label="Handy: Pause und Menü"><svg viewBox="0 0 20 24" aria-hidden="true"><rect x="2" y="1" width="16" height="22" rx="4" fill="#fff"/><rect x="4" y="4" width="12" height="15" rx="1.5" fill="#1ED6E0"/><rect x="5.5" y="6" width="3.5" height="3.5" rx="1" fill="#FF5FA2"/><rect x="11" y="6" width="3.5" height="3.5" rx="1" fill="#FFD21C"/><rect x="5.5" y="11.5" width="3.5" height="3.5" rx="1" fill="#B9A3F5"/><rect x="11" y="11.5" width="3.5" height="3.5" rx="1" fill="#fff"/><circle cx="10" cy="21" r="1" fill="#151821"/></svg></button>
+</div>
+<div id="tip" class="away" aria-live="polite"><span class="ic" id="tipIcon">⭐</span><span><small id="tipLevel">Level 1</small><span id="tipText"></span></span></div>
+<div id="ctl" class="off">
+  <button class="pfeil" id="btnL" type="button" aria-label="Nach links"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M29 9L13 24l16 15" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 24h22" stroke="currentColor" stroke-width="9" stroke-linecap="round"/></svg><span class="hand" id="handL" hidden>👆</span></button>
+  <button class="pfeil" id="btnR" type="button" aria-label="Nach rechts"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M19 9l16 15-16 15" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="M33 24H11" stroke="currentColor" stroke-width="9" stroke-linecap="round"/></svg><span class="hand" id="handR" hidden>👆</span></button>
+</div>
+<div id="toast" hidden></div>
+
+<section id="start" class="screen" aria-label="Start">
+  <button class="sec round" id="mStart" type="button" data-mute><span class="ico"></span></button>
+  <h1 class="title"><span class="nc">NEON COAST</span><span class="sf">Sternenfahrt</span></h1>
+  <img id="hero" src="../bilder/sternenfahrt.webp" width="720" height="720" alt="Ein türkises Auto fährt auf der Küstenstraße zwischen Palmen und sammelt goldene Sterne">
+  <p id="inviteBox" class="invite" hidden></p>
+  <button class="big" id="btnPlay" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg><span id="playLabel">Losfahren</span></button>
+  <div class="row">
+    <button class="sec" id="btnLevels" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="2" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="2" fill="currentColor"/><rect x="13" y="13" width="8" height="8" rx="2" fill="currentColor"/></svg>Level</button>
+    <button class="sec" id="btnAutos" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="3" y="10.5" width="18" height="7" rx="2.5" fill="#1ED6E0" stroke="currentColor" stroke-width="2"/><circle cx="7.5" cy="18" r="2.2" fill="currentColor"/><circle cx="16.5" cy="18" r="2.2" fill="currentColor"/></svg>Autos</button>
+  </div>
+  <div class="konto" id="kontoBoxMenu" hidden><b>🚗 Spielstand sichern</b><span>Mit kostenlosem Konto gehen eure Level und Autos nicht verloren. (ab 16 Jahren)</span><button type="button" id="kontoBtnMenu">Konto anlegen</button></div>
+</section>
+
+<section id="levels" class="screen" aria-label="Levelauswahl" hidden>
+  <h2>Level</h2>
+  <div class="gesamt" id="levelStars"></div>
+  <div id="levelGrid" style="display:grid;gap:8px;justify-items:center;width:100%"></div>
+  <button class="sec" id="levelsBack" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Zurück</button>
+</section>
+
+<section id="autos" class="screen" aria-label="Fahrzeugauswahl" hidden>
+  <h2>Deine Autos</h2>
+  <div class="garage" id="garage"></div>
+  <button class="sec" id="autosBack" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Zurück</button>
+</section>
+
+<section id="pause" class="screen" aria-label="Pause – Handy-Menü" hidden>
+  <div class="handy"><div class="display">
+    <div class="uhr"><span id="uhr">12:00</span><span>📶 🔋</span></div>
+    <h2>Pause</h2>
+    <button class="big" id="pResume" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg>Weiterfahren</button>
+    <div class="apps">
+      <button class="app" id="pLevels" type="button"><span class="ico" style="background:#1EB8C8"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="2" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="2" fill="currentColor"/><rect x="13" y="13" width="8" height="8" rx="2" fill="currentColor"/></svg></span>Level</button>
+      <button class="app" id="pAutos" type="button"><span class="ico" style="background:#FF5FA2"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l1.6-4.2A2 2 0 0 1 8.5 5.5h7a2 2 0 0 1 1.9 1.3L19 11" fill="none" stroke="currentColor" stroke-width="2.2"/><rect x="3" y="10.5" width="18" height="7" rx="2.5" fill="currentColor"/><circle cx="7.5" cy="18" r="2.2" fill="#151821"/><circle cx="16.5" cy="18" r="2.2" fill="#151821"/></svg></span>Autos</button>
+      <button class="app" id="pMute" type="button" data-mute><span class="ico" style="background:#8a6ee8"></span>Ton</button>
+      <a class="app" id="pHome" href="/" style="text-decoration:none"><span class="ico" style="background:#FF9200"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11.5L12 4l9 7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9.5h4.5V15h3v4.5H18V10" fill="currentColor"/></svg></span>Startseite</a>
+    </div>
+  </div></div>
+</section>
+
+<section id="win" class="screen" aria-label="Geschafft" hidden>
+  <div class="panel">
+    <h2 id="winTitle">Super gefahren!</h2>
+    <p class="sub" id="winSub"></p>
+    <img id="winAuto" src="" alt="">
+    <div class="stars" id="winStars" role="img"></div>
+    <div class="zahl" id="winZahl"></div>
+    <div class="neu" id="winNeu" hidden><img id="winNeuImg" src="" alt=""><span id="winNeuText"></span></div>
+    <button class="big" id="winNext" type="button"><span class="lbl">Weiter</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="row">
+      <button class="sec round" id="winAgain" type="button" aria-label="Nochmal fahren"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><path d="M4 4v5h5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="sec round" id="winLevels" type="button" aria-label="Levelauswahl"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2" fill="currentColor"/><rect x="13" y="3" width="8" height="8" rx="2" fill="currentColor"/><rect x="3" y="13" width="8" height="8" rx="2" fill="currentColor"/><rect x="13" y="13" width="8" height="8" rx="2" fill="currentColor"/></svg></button>
+      <button class="sec round" id="winShare" type="button" aria-label="Freunde einladen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3" fill="currentColor"/><circle cx="6" cy="12" r="3" fill="currentColor"/><circle cx="18" cy="19" r="3" fill="currentColor"/><path d="M8.6 10.7l6.8-4M8.6 13.3l6.8 4" stroke="currentColor" stroke-width="2.2"/></svg></button>
+    </div>
+    <div class="konto" id="kontoBox" hidden><b>🚗 Spielstand sichern</b><span>Mit einem kostenlosen PlaySaal-Konto bleiben eure Level und Autos erhalten – auch auf einem neuen Handy. (ab 16 Jahren)</span><button type="button" id="kontoBtn">Konto anlegen</button></div>
+  </div>
+</section>
+</main>
+<script type="module" src="sternenfahrt/game.js"></script>
+<script src="../assets/playsaal-config.js" defer></script><script src="../assets/playsaal.js" defer></script></body></html>
