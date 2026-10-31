@@ -57,7 +57,7 @@ test('HTML/Module/SEO/Startseite: neue Verweise existieren, keine Fremd-CDNs',()
   assert.doesNotMatch(html,/<script[^>]+src="https?:/);
   assert.ok(readFileSync(resolve(root,'public/index.html'),'utf8').includes('data-slug="mysupermarkt"'));
   assert.ok(readFileSync(resolve(root,'public/assets/umzug.js'),'utf8').includes("prefix: 'mysupermarkt.'"));
-  assert.ok(existsSync(resolve(root,'public/bilder/mysupermarkt.png')));
+  assert.ok(existsSync(resolve(root,'public/bilder/mysupermarkt-og.jpg')));
 });
 
 test('360°: jedes Körperteil und getragene Kartons drehen um denselben Ursprung',()=>{

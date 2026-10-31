@@ -34,7 +34,7 @@ const tagVoll = (n) => tagText(n) + String(n).slice(0, 4);
 
 // ---------- Bilder (mit Platzhalter, wenn eine Datei fehlt) ----------
 const bild = {};
-const DATEIEN = { hg: 'df-hintergrund.jpg', holz: 'df-holzfassung.webp', pfeil: 'df-pfeil-bereit.png', treff: 'df-pfeil-treffer.png', icon: 'df-pfeil-icon.png' };
+const DATEIEN = { hg: 'df-hintergrund.webp', holz: 'df-holzfassung.webp', pfeil: 'df-pfeil-bereit.webp', treff: 'df-pfeil-treffer.webp', icon: 'df-pfeil-icon.webp' };
 let bilderOffen = Object.keys(DATEIEN).length, bilderFehlen = 0;
 function bilderFertig() {
   if (--bilderOffen > 0) return;

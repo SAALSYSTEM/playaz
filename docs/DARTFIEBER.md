@@ -132,7 +132,7 @@ KEIN Text, KEIN Logo, KEINE Zahlen und keine Schrift irgendwo (den Zahlenring de
 | `public/spiele/dartfieber.html` | Seite, Oberfläche, Regeltext (Testphase: `noindex`) |
 | `public/spiele/dartfieber/sim.js` | alle Regeln, ganzzahlig und deterministisch: Wertung, Sektoren, Challenge aus Seed + Version, Linien, Wind, Bonus, Rundenablauf, Nachrechnen. Kopie läuft auf dem Server |
 | `public/spiele/dartfieber/game.js` | Zeichnen (Scheibe aus den Regel-Konstanten), Eingabe, Ton, lokaler Stand, Tageschallenge, Rangliste |
-| `public/spiele/dartfieber/img/` | die ChatGPT-Bilder in Laufzeitgröße (Hintergrund `.jpg`, Holzfassung `.webp`, Pfeile `.png`); fehlt eine Datei, zeichnet das Spiel einen technischen Platzhalter und zeigt „Platzhalter-Grafik“ an |
+| `public/spiele/dartfieber/img/` | die ChatGPT-Bilder in Laufzeitgröße (alle als `.webp`); fehlt eine Datei, zeichnet das Spiel einen technischen Platzhalter und zeigt „Platzhalter-Grafik“ an |
 | `design/dartfieber/` | Originale der Bilder und die Stilreferenz |
 | `supabase/migrations/20261022170000_dartfieber.sql` | Tabellen, Funktionen, Rechte, Katalogeintrag (`listed = false`) |
 | `supabase/functions/dartfieber-lauf/` | Prüf-Funktion (`handler.js`, `index.ts`, `sim.js` = Kopie per `node tools/edge-sync.mjs`) |

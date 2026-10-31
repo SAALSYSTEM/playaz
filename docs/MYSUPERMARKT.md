@@ -19,7 +19,7 @@ Stand: Implementierung einschließlich neuer 3D-Figuren, Cover und 360°-Ansicht
 - Arme bewegen sich abhängig von Tätigkeit und Tragezustand; Gehen bleibt zwischen 30-Hz-Simulationsschritten kontinuierlich. Körper und Kartons verwenden denselben räumlichen Drehursprung.
 - Farbe pro Instanz statt zusätzlichem Materialbatch pro Kundenfarbe; zusätzliche Instanzseiten vermeiden fehlende Körperteile oberhalb von 1.024 Instanzen.
 - Überarbeitete Regale mit sichtbarer unterer Warenebene, Holzablagen/Preisschildformen, Kühllichtleisten, petrolfarbene Kassen, Markisen und offener Lieferwagen-Aufbau.
-- Freigegebenes generiertes Cover: Original unter `tools/art/mysupermarkt-cover.png`; WebP für Startseite/Spielstart, 1200 × 630 PNG für OG. `node tools/mysupermarkt-cover.mjs` erzeugt beide Größen.
+- Freigegebenes generiertes Cover: Original unter `tools/art/mysupermarkt-cover.png`; WebP für Startseite/Spielstart, 1200 × 630 JPG (`mysupermarkt-og.jpg`) für OG. `node tools/mysupermarkt-cover.mjs` erzeugt beide Größen.
 - `docs/mysupermarkt-figuren.png` zeigt die tatsächliche Modellgeometrie aus vier Richtungen, mit einem Offline-CPU-Renderer gezeichnet. Kein Browser-Screenshot und kein Nachweis der Echtzeitbeleuchtung. Reproduzierbar mit `tools/mysupermarkt-model-export.mjs` und `tools/mysupermarkt-model-preview.py` (NumPy/Pillow).
 - Das hochwertige Marketing-Cover ist eine Stilvorlage. Die prozeduralen Echtzeitmodelle entsprechen nicht seiner Filmrenderqualität.
 
