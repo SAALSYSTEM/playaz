@@ -53,7 +53,12 @@ const C = {
   cLM: ['cc.', '..*', '..*', '..*', '...', '...', '...', '...', '...', '...'],
   cMR: ['.cc', '*..', '*..', '*..', '...', '...', '...', '...', '...', '...'],
   // Auto und Kegel kombiniert: Kegel in der freien Spur weit vorher
-  cMk: ['.c.', '*..', '*..', '...', '...', '...', '..k', '...', '...', '...']
+  cMk: ['.c.', '*..', '*..', '...', '...', '...', '..k', '...', '...', '...'],
+  // ab Level 11: Slalom, Doppel-Hütchen, Sternengasse
+  sla: ['k..', '...', '...', '...', '...', '...', '.k.', '...', '...', '...', '...', '...', '..k'],
+  slaR: ['..k', '...', '...', '...', '...', '...', '.k.', '...', '...', '...', '...', '...', 'k..'],
+  dop: ['.*.', '...', 'k.k', '...', '...', '...', '...', '...', '.k.'],
+  gasse: ['.*.', '.*.', 'a*a', '...', '.*.']
 };
 
 const DEFS = [
@@ -97,7 +102,48 @@ const DEFS = [
     tip: { icon: '🏆', text: 'Die große Sternenfahrt!' },
     seq: `_4 sZ _5 cM _6 kuMR _8 sLM _4 bauM _6 cR _6 zuLR _8
           tor _8 cLM _6 kuLM _8 sZR _5 cMk _6 bauR _6 zuMR _8
-          torB _8 sZ _5 sM _4` }
+          torB _8 sZ _5 sM _4` },
+  // Teil 2: dieselben Welten bei Nacht und im Abendrot
+  { id: 11, name: 'Neonstadt', welt: 'stadt', licht: 'nacht', speed: 3.0,
+    tip: { icon: '🌙', text: 'Nachtfahrt! Die Sterne leuchten.' },
+    seq: `_4 sM _5 sZ _5 kL _7 kR _7 sRM _4 sla _7 sMR _4 aM _7 bauL _6 sZR _5
+          dop _7 sML _4 aRh _7 kuMR _8 sM _4` },
+  { id: 12, name: 'Lichterallee', welt: 'stadt', licht: 'nacht', speed: 3.1,
+    tip: { icon: '💡', text: 'Folge den Lichtern!' },
+    seq: `_4 sZ _5 gasse _7 slaR _7 sLM _4 bauR _6 kuLM _8 sZR _5 dop _7 aL _7
+          bM _7 sMR _4 tor _8 sla _7 sM _4` },
+  { id: 13, name: 'Mitternacht', welt: 'stadt', licht: 'nacht', speed: 3.2,
+    tip: { icon: '✨', text: 'Durch die Sternengasse!' },
+    seq: `_4 sM _5 gasse _7 sla _7 zuMR _8 sZ _5 dop _7 kuLM _8 sRM _4 bauM _6
+          slaR _7 torB _8 aR _7 gasse _7 sZR _5 sM _4` },
+  { id: 14, name: 'Abendrot', welt: 'strand', licht: 'abend', speed: 3.2,
+    tip: { icon: '🌅', text: 'Sonnenuntergang am Strand!' },
+    seq: `_4 sZ _5 cL _6 sla _7 cR _6 sZR _5 dop _7 cM _6 kuMR _8 sLM _4 gasse _7
+          cLM _6 aR _7 sM _4` },
+  { id: 15, name: 'Goldene Bucht', welt: 'strand', licht: 'abend', speed: 3.3,
+    tip: { icon: '🐚', text: 'Viele Autos am Abend!' },
+    seq: `_4 sM _5 cLR _6 slaR _7 cMR _6 sZ _5 zuLR _8 cL _6 dop _7 sZR _5 cMk _6
+          gasse _7 kuLM _8 cR _6 sM _4` },
+  { id: 16, name: 'Strandlaternen', welt: 'strand', licht: 'abend', speed: 3.35,
+    tip: { icon: '🏮', text: 'Weiter so!' },
+    seq: `_4 sZ _5 sla _7 cM _6 gasse _7 zuMR _8 cLM _6 sRM _4 bauR _6 dop _7
+          cMR _6 tor _8 slaR _7 sZ _5 cL _6 sM _4` },
+  { id: 17, name: 'Letzte Welle', welt: 'strand', licht: 'abend', speed: 3.4,
+    tip: { icon: '🌊', text: 'Bald wird es dunkel!' },
+    seq: `_4 sM _5 dop _7 cR _6 sla _7 kuLM _8 cLR _6 gasse _7 sZR _5 zuLM _8
+          cMk _6 slaR _7 torB _8 cM _6 sM _4` },
+  { id: 18, name: 'Leuchtturmhafen', welt: 'hafen', licht: 'nacht', speed: 3.45,
+    tip: { icon: '🗼', text: 'Nachts im Hafen!' },
+    seq: `_4 sZ _5 cM _6 sla _7 gasse _7 cLM _6 dop _7 zuMR _8 sZR _5 cR _6
+          bauL _6 slaR _7 tor _8 cL _6 sM _4` },
+  { id: 19, name: 'Nachtschicht', welt: 'hafen', licht: 'nacht', speed: 3.5,
+    tip: { icon: '📦', text: 'Kisten, Kegel, Sterne!' },
+    seq: `_4 sM _5 dop _7 cMR _6 slaR _7 zuLR _8 cL _6 gasse _7 sZ _5 kuMR _8
+          cM _6 sla _7 aL _7 cLR _6 torB _8 sM _4` },
+  { id: 20, name: 'Sternenfinale', welt: 'hafen', licht: 'nacht', speed: 3.6,
+    tip: { icon: '🏆', text: 'Das große Sternenfinale!' },
+    seq: `_4 sZ _5 sZR _5 gasse _7 cM _6 sla _7 dop _7 cLR _6 slaR _7 zuMR _8
+          cL _6 gasse _7 kuLM _8 cMk _6 tor _8 sZ _5 sM _4` }
 ];
 
 export const LEVELS = DEFS.map((d) => buildLevel({ vorlauf: 6, auslauf: 6, ...d }, C));

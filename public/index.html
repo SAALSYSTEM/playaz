@@ -449,7 +449,7 @@
   const pp = read('papierpilot.v1');
   if (pp && Number(pp.best) >= 100) show('papierpilot', 'Bestflug ' + n(Math.floor(pp.best / 100)) + ' m');
   const sfa = read('sternenfahrt.v1');
-  if (sfa && sfa.best && Object.keys(sfa.best).length) { const st = Object.values(sfa.best).reduce((a, b) => a + (Number(b) || 0), 0); show('sternenfahrt', Object.keys(sfa.best).length + ' von 10 Level · ' + st + ' ★'); }
+  if (sfa && sfa.best && Object.keys(sfa.best).length) { const st = Object.values(sfa.best).reduce((a, b) => a + (Number(b) || 0), 0); show('sternenfahrt', Object.keys(sfa.best).length + ' von 20 Level · ' + st + ' ★'); }
   const hzs = read('zaubersuppe.v1');
   if (hzs && hzs.best && Object.keys(hzs.best).length) { const st = Object.values(hzs.best).reduce((a, b) => a + (Number(b) || 0), 0); show('zaubersuppe', Object.keys(hzs.best).length + ' von 15 Level · ' + st + ' ★'); }
   const spp = read('sternenpups.v1');

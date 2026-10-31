@@ -27,9 +27,11 @@ export const KINDS = {
 const CHAR_KIND = { k: 'kegel', b: 'bake', a: 'absperrung', c: 'auto' };
 
 export const AUTOS = {
-  tuerkis: { name: 'Türkis-Flitzer', ab: 0 },
-  pink: { name: 'Pinke Rakete', ab: 3 },     // frei nach Level 3
-  orange: { name: 'Orange Blitz', ab: 6 }    // frei nach Level 6
+  tuerkis: { name: 'Türkis-Flitzer', ab: 0, img: 'auto-tuerkis' },
+  pink: { name: 'Pinke Rakete', ab: 3, img: 'auto-pink' },        // frei nach Level 3
+  orange: { name: 'Orange Blitz', ab: 6, img: 'auto-orange' },    // frei nach Level 6
+  lila: { name: 'Lila Limousine', ab: 12, img: 'verkehr-lila' },  // frei nach Level 12
+  taxi: { name: 'Sonnen-Taxi', ab: 16, img: 'verkehr-taxi' }      // frei nach Level 16
 };
 export const AUTO_IDS = Object.keys(AUTOS);
 

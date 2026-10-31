@@ -5,7 +5,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { LEVELS, LEVEL_COUNT } from '../public/spiele/sternenfahrt/levels.js';
 import {
   newRun, step, advance, press, kidBot, award, freshSave, sanitizeSave, recordWin, carsUnlocked, parseInvite,
-  STEP, CAR_RUN, KINDS
+  STEP, CAR_RUN, KINDS, AUTOS
 } from '../public/spiele/sternenfahrt/engine.js';
 
 const IMG = new URL('../public/spiele/sternenfahrt/img/', import.meta.url);
@@ -22,17 +22,20 @@ function drive(lv, bot, { dt = 1 / 60, tutorial = false, max = 300 } = {}) {
   return { st, ev };
 }
 
-test('10 Level, Dauer 45–75 s, Tempo steigt moderat, Welten Stadt → Strand → Hafen', () => {
-  assert.equal(LEVEL_COUNT, 10);
+test('20 Level, Dauer 45–75 s, Tempo steigt moderat, Welten Stadt → Strand → Hafen (Teil 2 bei Nacht/Abendrot)', () => {
+  assert.equal(LEVEL_COUNT, 20);
   let last = 0;
   for (const lv of LEVELS) {
     const dauer = lv.length / lv.speed + 1;
     assert.ok(dauer >= 45 && dauer <= 75, `Level ${lv.id}: ${dauer.toFixed(0)} s`);
-    assert.ok(lv.speed >= last && lv.speed <= 3.5, `Level ${lv.id}: Tempo ${lv.speed}`);
+    if (lv.id === 11) last = 0;   // Teil 2 beginnt wieder etwas ruhiger
+    assert.ok(lv.speed >= last && lv.speed <= 3.6, `Level ${lv.id}: Tempo ${lv.speed}`);
     last = lv.speed;
     assert.ok(lv.stars >= 25, `Level ${lv.id}: ${lv.stars} Sterne`);
   }
-  assert.deepEqual(LEVELS.map((l) => l.welt), ['stadt', 'stadt', 'stadt', 'strand', 'strand', 'strand', 'strand', 'hafen', 'hafen', 'hafen']);
+  const welten = ['stadt', 'stadt', 'stadt', 'strand', 'strand', 'strand', 'strand', 'hafen', 'hafen', 'hafen'];
+  assert.deepEqual(LEVELS.map((l) => l.welt), [...welten, ...welten]);
+  assert.ok(LEVELS.slice(0, 10).every((l) => !l.licht) && LEVELS.slice(10).every((l) => l.licht === 'nacht' || l.licht === 'abend'));
 });
 
 test('Lernkurve: Level 1 ohne Hindernisse am Anfang, Level 1–3 ohne Autos, Level 1–4 nie zwei Spuren gleichzeitig zu', () => {
@@ -173,8 +176,9 @@ test('Level 1: Übung erst links, dann rechts – das Level startet erst danach'
   assert.ok(s2.done);
 });
 
-test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3 und 6', () => {
+test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6, 12 und 16', () => {
   const s = sanitizeSave({ unlocked: 99, best: { 1: 3, 2: 9, x: 1 }, got: { 1: 30, 2: 5 }, car: 'orange', mute: true }, 10);
+  assert.equal(sanitizeSave({ unlocked: 99 }, 20).unlocked, 20);
   assert.deepEqual(s.best, { 1: 3 }); assert.deepEqual(s.got, { 1: 30 });
   assert.equal(s.unlocked, 10); assert.equal(s.car, 'tuerkis'); assert.equal(s.mute, true);
   assert.deepEqual(sanitizeSave('kaputt', 10), freshSave());
@@ -188,6 +192,11 @@ test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3 und
     else if (n === 6) assert.equal(r.neuAuto, 'orange');
     else assert.equal(r.neuAuto, null);
   }
+  for (let n = 7; n <= 16; n++) {
+    const r = recordWin(save, LEVELS[n - 1], { gotLevel: 1 }, 20);
+    assert.equal(r.neuAuto, n === 12 ? 'lila' : n === 16 ? 'taxi' : null, `Level ${n}`);
+  }
+  assert.deepEqual(carsUnlocked(save), ['tuerkis', 'pink', 'orange', 'lila', 'taxi']);
   const r = recordWin(save, LEVELS[0], { gotLevel: LEVELS[0].stars }, 10);
   assert.equal(r.stars, 3); assert.equal(save.best[1], 3);
   recordWin(save, LEVELS[0], { gotLevel: 1 }, 10);
@@ -196,7 +205,7 @@ test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3 und
   const s3 = freshSave(); recordWin(s3, LEVELS[7], { gotLevel: 40 }, 10); assert.equal(s3.unlocked, 1);
   assert.deepEqual(parseInvite('?l=4', 10), { l: 4 }); assert.equal(parseInvite('?l=11', 10), null);
   // Rundreise über JSON
-  assert.deepEqual(sanitizeSave(JSON.parse(JSON.stringify(save)), 10), save);
+  assert.deepEqual(sanitizeSave(JSON.parse(JSON.stringify(save)), 20), save);
 });
 
 test('Auszeichnung: 90 % → 3, 60 % → 2, sonst 1', () => {
@@ -205,6 +214,6 @@ test('Auszeichnung: 90 % → 3, 60 % → 2, sonst 1', () => {
 
 test('alle Bilder aus manifest.json sind vorhanden', () => {
   const list = JSON.parse(readFileSync(new URL('manifest.json', IMG)));
-  for (const n of ['auto-tuerkis', 'auto-pink', 'auto-orange', 'absperrung', 'bake', 'verkehr-taxi', 'figur-mann', 'palme']) assert.ok(list.includes(n), n);
+  for (const n of ['absperrung', 'bake', 'verkehr-taxi', 'figur-mann', 'palme', ...Object.values(AUTOS).map((a) => a.img)]) assert.ok(list.includes(n), n);
   for (const n of list) assert.ok(existsSync(new URL(n + '.webp', IMG)), n);
 });

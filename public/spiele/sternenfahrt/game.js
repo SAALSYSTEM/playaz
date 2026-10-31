@@ -114,14 +114,15 @@ function paintMute() {
 function toggleMute() { save.mute = !save.mute; persist(); if (!save.mute) { unlockAudio(); SFX.click(); } paintMute(); radioSync(); }
 
 // ---------- Autoradio ----------
-// Während der Fahrt (und auf dem Geschafft-Bildschirm) läuft ein zufälliger Sender. Nach 45–90 s Fahrzeit (oder am Liedende)
-// rauscht es kurz und ein anderer Sender kommt, mitten im Lied wie beim echten Radio. In Menü und Pause ist es still.
+// Ab der ersten Berührung läuft immer ein zufälliger Sender – in der Fahrt, im Menü, in der Pause und nach dem Level.
+// Nach 45–90 s (oder am Liedende) rauscht es kurz und ein anderer Sender kommt, mitten im Lied wie beim echten Radio.
+// Still nur bei Ton aus oder wenn der Tab im Hintergrund ist.
 const SENDER = ['sender-1', 'sender-2', 'sender-3', 'sender-4'];
 const radioUrl = (k) => new URL('radio/' + k + '.mp3', import.meta.url).href;
 const VOL_M = 0.3, VOL_R = 0.2;
 const musik = new Audio(); musik.preload = 'none'; musik.volume = VOL_M;
 const rausch = new Audio(radioUrl('rauschen')); rausch.preload = 'none'; rausch.volume = VOL_R;
-let sender = -1, radioNext = 0, tuning = false, radioGain = null;
+let sender = -1, radioNext = 0, radioClock = 0, tuning = false, radioGain = null, beruehrt = false;
 function radioRoute() {   // über WebAudio, damit die Lautstärke auch auf dem iPhone gilt
   if (radioGain || !actx) return;
   try {
@@ -136,11 +137,11 @@ function musikVol(v) {
   if (radioGain) { try { radioGain.m.gain.setTargetAtTime(v, actx.currentTime, 0.08); return; } catch { /* unten */ } }
   musik.volume = radioGain ? 1 : v;
 }
-const radioWant = () => !save.mute && !document.hidden && !!st && (mode === 'play' || mode === 'won');
+const radioWant = () => beruehrt && !save.mute && !document.hidden;
 const playSafe = (a) => { const p = a.play(); if (p && p.catch) p.catch(() => {}); };
 function umschalten() {
   let n; do { n = Math.floor(Math.random() * SENDER.length); } while (n === sender);
-  sender = n; tuning = true; radioNext = clock + 45 + Math.random() * 45;
+  sender = n; tuning = true; radioNext = radioClock + 45 + Math.random() * 45;
   radioRoute();
   musikVol(0);
   musik.src = radioUrl(SENDER[n]);
@@ -158,6 +159,9 @@ function radioSync() {
   playSafe(musik);
 }
 musik.addEventListener('ended', () => { if (radioWant()) umschalten(); });
+// Browser erlauben Musik erst nach einer echten Berührung/Taste: dann startet das Radio
+function ersteBeruehrung() { if (beruehrt) return; beruehrt = true; unlockAudio(); radioSync(); }
+for (const ev of ['pointerup', 'touchend', 'click', 'keydown']) document.addEventListener(ev, ersteBeruehrung, { capture: true, passive: true });
 
 // ---------- Zustand ----------
 let mode = 'menu', st = null, lv = null, levelNo = 1, lastResult = null, backTo = 'start';
@@ -470,6 +474,11 @@ function drawObjects(X) {
       const k = VERKEHR[(typeof o.id === 'number' ? o.id : 0) % VERKEHR.length], h = s * (k === 'verkehr-bus' ? 1.55 : 1.35);
       X.fillStyle = 'rgba(0,0,0,.25)'; rr(X, x - s * 0.3 + 4, y - h / 2 + 6, s * 0.6, h, s * 0.18); X.fill();
       if (!sprite(X, k, x, y, h, 0, alpha)) { X.fillStyle = '#ff8a7a'; rr(X, x - s * 0.3, y - h / 2, s * 0.6, h, s * 0.15); X.fill(); }
+      if (lv.licht === 'nacht') {
+        X.save(); X.globalCompositeOperation = 'lighter';
+        for (const dx of [-0.2, 0.2]) { const g = X.createRadialGradient(x + dx * s, y + h * 0.47, 0, x + dx * s, y + h * 0.47, s * 0.3); g.addColorStop(0, 'rgba(255,60,60,.7)'); g.addColorStop(1, 'rgba(255,60,60,0)'); X.fillStyle = g; X.beginPath(); X.arc(x + dx * s, y + h * 0.47, s * 0.3, 0, TAU); X.fill(); }
+        X.restore();
+      }
       // Blinker blinkt sanft, wenn man es antippt
       if (o.hit && clock - o.hitT < 0.9 && Math.floor(clock * 6) % 2) { X.fillStyle = 'rgba(255,200,40,.9)'; X.beginPath(); X.arc(x - s * 0.25, y + h * 0.45, s * 0.07, 0, TAU); X.arc(x + s * 0.25, y + h * 0.45, s * 0.07, 0, TAU); X.fill(); }
     } else {
@@ -482,7 +491,7 @@ function drawObjects(X) {
 }
 
 function drawCar(X) {
-  const s = L.s, k = 'auto-' + save.car, i = IMG[k];
+  const s = L.s, k = AUTOS[save.car].img, i = IMG[k];
   const h = s * 1.5, w = i ? h * iw(i) / ih(i) : s * 0.66;
   let x = SX(st.x), y = L.carY, rot = 0;
   if (st.k < 1) rot += (st.x1 - st.x0) * Math.sin(Math.PI * st.k) * 0.13;
@@ -555,6 +564,46 @@ function drawTutorial(X) {
   X.restore();
 }
 
+// Licht: Nacht (dunkel, Laternen, Neon, Scheinwerfer) oder Abendrot (warm). Spielobjekte werden danach in voller Helligkeit gezeichnet.
+function drawLicht(X) {
+  const s = L.s, p = st.p;
+  if (lv.licht === 'abend') {
+    X.save(); X.globalCompositeOperation = 'multiply';
+    const g = X.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#ff9a8a'); g.addColorStop(0.5, '#ffc49a'); g.addColorStop(1, '#ffe0b0');
+    X.fillStyle = g; X.fillRect(0, 0, W, H);
+    X.globalCompositeOperation = 'source-over'; X.fillStyle = 'rgba(255,120,80,.08)'; X.fillRect(0, 0, W, H);
+    X.restore();
+    return;
+  }
+  X.fillStyle = 'rgba(10,14,46,.62)'; X.fillRect(0, 0, W, H);
+  X.save(); X.globalCompositeOperation = 'lighter';
+  // Straßenlaternen auf beiden Gehwegen
+  const step = 3.2, first = Math.floor((p - 3) / step) * step;
+  for (let y = first; y < p + L.ahead + 3; y += step) {
+    for (const side of [-1, 1]) {
+      const yy = y + (side > 0 ? step / 2 : 0), sy = SY(yy), x = (side < 0 ? L.x0 : L.x1) + side * 0.5 * s;
+      const g = X.createRadialGradient(x - side * s * 0.25, sy, 0, x - side * s * 0.25, sy, s * 1.25);
+      g.addColorStop(0, 'rgba(255,205,120,.42)'); g.addColorStop(1, 'rgba(255,205,120,0)');
+      X.fillStyle = g; X.beginPath(); X.arc(x - side * s * 0.25, sy, s * 1.25, 0, TAU); X.fill();
+      X.fillStyle = 'rgba(255,240,200,.95)'; X.beginPath(); X.arc(x, sy, s * 0.07, 0, TAU); X.fill();
+    }
+  }
+  // Scheinwerfer des eigenen Autos
+  const cx = SX(st.x), cy = L.carY - s * 0.7;
+  for (const dx of [-0.2, 0.2]) {
+    const g = X.createRadialGradient(cx + dx * s, cy - s * 1.2, 0, cx + dx * s, cy - s * 1.2, s * 1.6);
+    g.addColorStop(0, 'rgba(255,250,215,.38)'); g.addColorStop(1, 'rgba(255,250,215,0)');
+    X.fillStyle = g; X.beginPath(); X.moveTo(cx + dx * s, cy); X.lineTo(cx + dx * s - s * 0.75, cy - s * 2.8); X.lineTo(cx + dx * s + s * 0.75, cy - s * 2.8); X.closePath(); X.fill();
+  }
+  X.restore();
+  // Neon-Bordsteine leuchten
+  X.save(); X.lineWidth = 3;
+  for (const [x, c] of [[L.x0 - 1.5, '#FF5FA2'], [L.x1 + 1.5, '#1ED6E0']]) {
+    X.strokeStyle = c; X.shadowColor = c; X.shadowBlur = 12; X.beginPath(); X.moveTo(x, 0); X.lineTo(x, H); X.stroke();
+  }
+  X.restore();
+}
+
 function drawParticles(X, dt) {
   for (const p of parts) {
     p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.92; p.vy *= 0.92;
@@ -581,9 +630,10 @@ function render(now) {
   drawPeds(X);
   drawSidesItems(X, 2, 2);
   drawRoad(X);
+  drawSidesItems(X, 3, 3);
+  if (lv.licht) drawLicht(X);
   drawObjects(X);
   drawFinishArch(X);
-  drawSidesItems(X, 3, 3);
   drawCar(X);
   drawTutorial(X);
   drawParticles(X, mode === 'pause' ? 0 : dt);
@@ -637,7 +687,7 @@ function lernUI() {
   const ph = st ? st.phase : 'fahrt';
   $('btnL').classList.toggle('lern', ph === 'links'); $('handL').hidden = ph !== 'links';
   $('btnR').classList.toggle('lern', ph === 'rechts'); $('handR').hidden = ph !== 'rechts';
-  if (ph === 'links') showTip('⬅️', 'Tippe auf den linken Pfeil!', 999);
+  if (ph === 'links') showTip('⬅️', 'Tippe links – oder wische nach links!', 999);
   else if (ph === 'rechts') showTip('➡️', 'Super! Jetzt nach rechts!', 999);
 }
 
@@ -662,13 +712,13 @@ function showWin() {
   const r = lastResult, last = levelNo === LEVEL_COUNT;
   $('winTitle').textContent = last ? 'Großer Sieger!' : ['Super gefahren!', 'Klasse!', 'Toll gemacht!', 'Wow, super!'][levelNo % 4];
   $('winSub').textContent = `Level ${levelNo} · ${lv.name}`;
-  $('winAuto').src = imgUrl('auto-' + save.car); $('winAuto').alt = AUTOS[save.car].name;
+  $('winAuto').src = imgUrl(AUTOS[save.car].img); $('winAuto').alt = AUTOS[save.car].name;
   $('winStars').innerHTML = [0, 1, 2].map((i) => STAR_SVG(i < r.stars)).join('');
   $('winStars').setAttribute('aria-label', `${r.stars} von 3 Auszeichnungssternen`);
   $('winZahl').innerHTML = `${STAR_SMALL}<span>${r.got} von ${r.total} Sternen</span>`;
   for (let i = 0; i < r.stars; i++) SFX.award(i);
   $('winNeu').hidden = !r.neuAuto;
-  if (r.neuAuto) { $('winNeuImg').src = imgUrl('auto-' + r.neuAuto); $('winNeuText').textContent = `Neues Auto: ${AUTOS[r.neuAuto].name}! Wähle es unter „Autos“.`; SFX.neu(); }
+  if (r.neuAuto) { $('winNeuImg').src = imgUrl(AUTOS[r.neuAuto].img); $('winNeuText').textContent = `Neues Auto: ${AUTOS[r.neuAuto].name}! Wähle es unter „Autos“.`; SFX.neu(); }
   $('winNext').querySelector('.lbl').textContent = last ? 'Fertig' : 'Weiter';
   $('winNext').setAttribute('aria-label', last ? 'Fertig, zur Levelauswahl' : 'Weiter zu Level ' + (levelNo + 1));
   show('win');
@@ -683,19 +733,20 @@ function openMenu() {
   else { box.hidden = true; $('playLabel').textContent = save.best[1] ? 'Weiterfahren' : 'Losfahren'; }
   kontoHinweis('kontoBoxMenu');
 }
-const WELT = { stadt: 'Stadt', strand: 'Strandpromenade', hafen: 'Hafen' };
+const WELT = { stadt: 'Stadt', strand: 'Strandpromenade', hafen: 'Hafen', 'stadt-nacht': 'Neonstadt bei Nacht', 'strand-abend': 'Strand im Abendrot', 'hafen-nacht': 'Hafen bei Nacht' };
+const abschnitt = (l) => l.welt + (l.licht ? '-' + l.licht : '');
 function openLevels(from) {
   backTo = from || (mode === 'pause' ? 'pause' : 'start');
   const g = $('levelGrid'); g.innerHTML = '';
   const nx = nextLevel();
   $('levelStars').textContent = `★ ${totalAwards(save)} von ${LEVEL_COUNT * 3}`;
-  for (const w of ['stadt', 'strand', 'hafen']) {
-    const h = document.createElement('div'); h.className = 'welt'; h.textContent = WELT[w]; g.appendChild(h);
+  for (const w of [...new Set(LEVELS.map(abschnitt))]) {
+    const h = document.createElement('div'); h.className = 'welt'; h.textContent = WELT[w] || w; g.appendChild(h);
     const row = document.createElement('div'); row.className = 'grid'; g.appendChild(row);
-    for (const l of LEVELS.filter((x) => x.welt === w)) {
+    for (const l of LEVELS.filter((x) => abschnitt(x) === w)) {
       const n = l.id, b = document.createElement('button'), best = save.best[n];
       const locked = n > save.unlocked && !(invite && invite.l === n);
-      b.className = 'lvl' + (n === nx && !best ? ' next' : ''); b.dataset.w = w;
+      b.className = 'lvl' + (n === nx && !best ? ' next' : ''); b.dataset.w = l.welt; if (l.licht) b.dataset.l = l.licht;
       b.disabled = locked;
       b.innerHTML = `${n}${best ? `<small>${'★'.repeat(best)}${'☆'.repeat(3 - best)}</small>` : ''}`;
       b.setAttribute('aria-label', `Level ${n}: ${l.name}${best ? `, ${best} von 3 Sternen` : locked ? ', gesperrt' : ''}`);
@@ -713,7 +764,7 @@ function openAutos(from) {
   for (const id of AUTO_IDS) {
     const on = frei.includes(id), b = document.createElement('button');
     b.className = 'auto' + (save.car === id ? ' on' : ''); b.disabled = !on;
-    b.innerHTML = `<img src="${imgUrl('auto-' + id)}" alt="" loading="lazy"><span>${on ? AUTOS[id].name : '???'}</span>${on ? '' : `<span class="lock">🔒 nach Level ${AUTOS[id].ab}</span>`}`;
+    b.innerHTML = `<img src="${imgUrl(AUTOS[id].img)}" alt="" loading="lazy"><span>${on ? AUTOS[id].name : '???'}</span>${on ? '' : `<span class="lock">🔒 nach Level ${AUTOS[id].ab}</span>`}`;
     b.setAttribute('aria-label', on ? `${AUTOS[id].name}${save.car === id ? ', ausgewählt' : ''}` : `Gesperrt, frei nach Level ${AUTOS[id].ab}`);
     b.setAttribute('aria-pressed', String(save.car === id));
     b.addEventListener('click', () => { SFX.click(); save.car = id; persist(); openAutos(backTo); });
@@ -782,6 +833,20 @@ for (const [id, dir, set] of [['btnL', -1, downL], ['btnR', 1, downR]]) {
   b.addEventListener('click', (e) => e.preventDefault());
   b.addEventListener('contextmenu', (e) => e.preventDefault());
 }
+const wisch = new Map();
+cv.addEventListener('pointerdown', (e) => {
+  if (mode !== 'play') return;
+  e.preventDefault();
+  wisch.set(e.pointerId, { x: e.clientX, y: e.clientY, fertig: false });
+  try { cv.setPointerCapture(e.pointerId); } catch { /* egal */ }
+});
+cv.addEventListener('pointermove', (e) => {
+  const w = wisch.get(e.pointerId);
+  if (!w || w.fertig || mode !== 'play') return;
+  const dx = e.clientX - w.x, dy = e.clientY - w.y, min = Math.max(22, W * 0.06);
+  if (Math.abs(dx) >= min && Math.abs(dx) > Math.abs(dy) * 1.2) { w.fertig = true; steer(dx < 0 ? -1 : 1); }
+});
+for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) cv.addEventListener(ev, (e) => wisch.delete(e.pointerId));
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') { if (mode === 'play') pause(); else if (mode === 'pause') resume(); return; }
   if (mode !== 'play') return;
@@ -832,8 +897,8 @@ function frame(now) {
     handleEvents();
     updateHud();
     if (tipTimer > 0 && tipTimer < 900) { tipTimer -= dt; if (tipTimer <= 0) hideTip(); }
-    if (sender >= 0 && !tuning && clock >= radioNext && radioWant()) umschalten();
   } else if (mode === 'won' && st) { clock += dt; }
+  if (radioWant() && sender >= 0 && !tuning) { radioClock += dt; if (radioClock >= radioNext) umschalten(); }
   render(now);
   requestAnimationFrame(frame);
 }
