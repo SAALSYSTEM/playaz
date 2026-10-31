@@ -2,7 +2,7 @@
 
 3D-Endlos-Skispiel für Kinder ab etwa 5, Hochformat, `/spiele/tier-ski`. Ein Tier fährt von selbst bergab; das Kind lenkt, duckt sich unter Ästen, springt über Schanzen (automatisch), macht in der Luft einen Trick und sammelt Münzen. Mit Münzen werden weitere Tiere freigeschaltet. Kein Konto nötig, keine Werbung, keine Käufe.
 
-Stand 31.10.2026: auf Branch `feature/tier-ski`, noch nicht auf `main`.
+Stand 31.10.2026: auf `main` (Kachel unter „Neu“, sobald der Katalog-Eintrag ausgeführt ist). Optik-Überarbeitung auf Branch `tier-ski-optik`.
 
 ## Regeln
 
@@ -43,6 +43,8 @@ Tiere: Hase (frei), Fuchs (50), Pinguin (120), Bär (220 Münzen).
 ## Modelle und Animation
 
 In Blender (5.2) per Python gebaut: Low-Poly-Formen (Ikosphären, Kegel, Quader), flache Schattierung, nur Grundfarben. Jedes Tier hat die Gelenke `Rig` (ganzes Tier mit Skiern), `Koerper`, `Kopf`, `Ski_L`, `Ski_R`. Die Clips `fahren`, `links`, `rechts`, `ducken`, `sprung`, `trick`, `sturz` sind Objekt-Animationen, als NLA-Spuren exportiert (`export_animation_mode='NLA_TRACKS'`, ohne Animations-Optimierung, damit jeder Clip alle 15 Kanäle enthält). Im Spiel blendet ein `AnimationMixer` per `crossFadeFrom` weich zwischen den Clips über.
+
+Darstellung im Spiel (Comic-Look, alles in `game.js`, ohne neue Modelle): `MeshToonMaterial` mit drei harten Helligkeitsstufen; Normalen werden beim Laden über flache Knicke geglättet (wie Blenders „Auto Smooth“, 48°), dadurch sind Köpfe und Körper rund und Kanten bleiben scharf. Dunkle Umrisslinien entstehen aus nach außen geschobenen Rückseiten (Attribut `kontur`, Linienbreite bildschirmkonstant); bei den Tieren je animiertem Gelenk zu einem Mesh zusammengelegt, bei Strecken-Objekten als zweites `InstancedMesh` mit derselben Instanz-Matrix. Berge werden aus dem Blender-Berg in Höhenringe unterteilt und bekommen eine weiße Schneekappe. Hinter dem Tier entstehen Skispuren (zwei Rillen, Lücken beim Sprung). Rund 60 Zeichenaufrufe pro Bild.
 
 Strecken-Objekte (`welt.glb`: Tanne, Fels, Schneemann, Schanze, Ast, Muenze, Flocke, Huegel, Stange, Berg) werden beim Laden je zu einer Geometrie mit Vertex-Farben verschmolzen und als `InstancedMesh` gezeichnet: rund 45 Zeichenaufrufe pro Bild. Schatten sind weiche Flecken, keine Schattenberechnung. Bei langsamen Geräten senkt das Spiel die Pixeldichte.
 

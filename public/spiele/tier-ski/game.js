@@ -33,9 +33,71 @@ const scene = new THREE.Scene();
 const NEBEL = col('#d8ecff');
 scene.fog = new THREE.Fog(NEBEL, 42, 118);
 const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 500);
-scene.add(new THREE.HemisphereLight(col('#eaf6ff'), col('#8fa6cc'), 0.95));
-const sonne = new THREE.DirectionalLight(col('#fff6e8'), 0.85);
-sonne.position.set(-4, 10, 6); scene.add(sonne);
+scene.add(new THREE.HemisphereLight(col('#f4faff'), col('#9db3d8'), 0.75));
+const sonne = new THREE.DirectionalLight(col('#fff3df'), 1.05);
+sonne.position.set(-5, 10, 7); scene.add(sonne);
+
+// ---------- Comic-Look: Stufen-Schattierung, weiche Rundungen, Konturlinien ----------
+// Drei harte Helligkeitsstufen statt Verlauf → wirkt wie gezeichnet
+const stufen = (() => {
+  const d = new Uint8Array([120, 120, 120, 255, 200, 200, 200, 255, 255, 255, 255, 255]);
+  const t = new THREE.DataTexture(d, 3, 1, THREE.RGBAFormat);
+  t.minFilter = t.magFilter = THREE.NearestFilter; t.generateMipmaps = false; t.needsUpdate = true; return t;
+})();
+const toon = (opt) => new THREE.MeshToonMaterial({ gradientMap: stufen, ...opt });
+
+// Normalen glätten, aber nur über flache Knicke (wie „Auto Smooth“ in Blender): Kugeln werden rund, Kanten bleiben scharf.
+// Zusätzlich das Attribut „kontur“ (über alle Flächen gemittelt) für lückenlose Umrisslinien.
+function glaette(geo, winkel = 48) {
+  const g = geo.index ? geo.toNonIndexed() : geo;
+  const P = g.attributes.position, n = P.count, grenz = Math.cos(winkel * Math.PI / 180);
+  const fn = new Float32Array(n * 3), a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  for (let i = 0; i < n; i += 3) {
+    a.fromBufferAttribute(P, i); b.fromBufferAttribute(P, i + 1); c.fromBufferAttribute(P, i + 2);
+    c.sub(b); a.sub(b); c.cross(a).normalize();
+    for (let k = 0; k < 3; k++) fn.set([c.x, c.y, c.z], (i + k) * 3);
+  }
+  const gruppen = new Map(), key = (i) => `${Math.round(P.getX(i) * 1e4)},${Math.round(P.getY(i) * 1e4)},${Math.round(P.getZ(i) * 1e4)}`;
+  for (let i = 0; i < n; i++) { const k = key(i); (gruppen.get(k) || gruppen.set(k, []).get(k)).push(i); }
+  const nor = new Float32Array(n * 3), kon = new Float32Array(n * 3);
+  for (const idx of gruppen.values()) {
+    let kx = 0, ky = 0, kz = 0;
+    for (const j of idx) { kx += fn[j * 3]; ky += fn[j * 3 + 1]; kz += fn[j * 3 + 2]; }
+    const kl = Math.hypot(kx, ky, kz) || 1;
+    for (const i of idx) {
+      let x = 0, y = 0, z = 0;
+      for (const j of idx) {
+        if (fn[i * 3] * fn[j * 3] + fn[i * 3 + 1] * fn[j * 3 + 1] + fn[i * 3 + 2] * fn[j * 3 + 2] < grenz) continue;
+        x += fn[j * 3]; y += fn[j * 3 + 1]; z += fn[j * 3 + 2];
+      }
+      const l = Math.hypot(x, y, z) || 1;
+      nor.set([x / l, y / l, z / l], i * 3); kon.set([kx / kl, ky / kl, kz / kl], i * 3);
+    }
+  }
+  g.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  g.setAttribute('kontur', new THREE.BufferAttribute(kon, 3));
+  return g;
+}
+
+// Umriss: Rückseiten etwas nach außen geschoben, dunkel gefärbt. Linienbreite bleibt auf dem Bildschirm gleich.
+function konturMat(farbe, dicke) {
+  const m = new THREE.MeshBasicMaterial({ color: col(farbe), side: THREE.BackSide });
+  m.onBeforeCompile = (s) => {
+    s.uniforms.dicke = { value: dicke };
+    s.vertexShader = 'attribute vec3 kontur;\nuniform float dicke;\n' + s.vertexShader.replace('#include <project_vertex>', `
+      vec4 mvPosition = vec4( transformed, 1.0 );
+      vec3 kn = kontur;
+      #ifdef USE_INSTANCING
+        mvPosition = instanceMatrix * mvPosition; kn = mat3( instanceMatrix ) * kn;
+      #endif
+      mvPosition = modelViewMatrix * mvPosition;
+      mvPosition.xyz += normalize( normalMatrix * kn ) * dicke * min( -mvPosition.z, 14.0 );
+      gl_Position = projectionMatrix * mvPosition;`);
+  };
+  return m;
+}
+const TIER_KONTUR = konturMat('#1d2547', 0.0042);
+const WELT_KONTUR = konturMat('#24345e', 0.0034);
 
 const NEIGUNG = -0.17;                      // der Hang fällt in Fahrtrichtung ab
 const hang = new THREE.Group(); hang.rotation.x = NEIGUNG; scene.add(hang);
@@ -80,8 +142,8 @@ const loader = new THREE.GLTFLoader();
 const url = (n) => new URL(`./modelle/${n}.glb?v=1`, import.meta.url).href;
 const ladeGlb = (n) => new Promise((ok, err) => loader.load(url(n), ok, undefined, err));
 
-const weltMat = new THREE.MeshLambertMaterial({ vertexColors: true });
-const glanzMat = new THREE.MeshLambertMaterial({ vertexColors: true, emissive: col('#4a3300') });
+const weltMat = toon({ vertexColors: true });
+const glanzMat = toon({ vertexColors: true, emissive: col('#5a3d00') });
 const bergMat = new THREE.MeshLambertMaterial({ vertexColors: true, fog: false });
 
 // Alle Teile eines Objekts zu einer Geometrie mit Vertex-Farben verschmelzen (ein Zeichenaufruf pro Objektart)
@@ -110,25 +172,76 @@ function backe(root) {
   return geo;
 }
 
-const MENGE = { tanne: 170, fels: 30, schneemann: 20, schanze: 6, ast: 6, muenze: 70, flocke: 10, huegel: 70, stange: 60, berg: 14, fleck: 260 };
-const inst = {};
-function instanzen(typ, geo, mat, eltern = hang) {
-  const m = new THREE.InstancedMesh(geo, mat, MENGE[typ]);
-  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.count = 0; m.frustumCulled = false;
-  eltern.add(m); inst[typ] = m; return m;
+// Berge: gleiche Größe wie das Blender-Modell, aber in Höhenringe unterteilt → klare weiße Schneekappe, darunter Fels
+function schneeBerg(vorlage) {
+  vorlage.computeBoundingBox();
+  const { min, max } = vorlage.boundingBox, r = Math.max(max.x - min.x, max.z - min.z) / 2, h = max.y - min.y;
+  const g = new THREE.ConeGeometry(r, h, 7, 5).toNonIndexed(); g.translate(0, min.y + h / 2, 0);
+  const P = g.attributes.position;
+  for (let i = 0; i < P.count; i++) {               // Ringe leicht verbeulen (fest, nicht zufällig)
+    const y = P.getY(i), t = (y - min.y) / h;
+    if (t > 0.01 && t < 0.99) { const w = Math.atan2(P.getZ(i), P.getX(i)), k = 1 + 0.16 * Math.sin(w * 3 + t * 9) * (1 - t); P.setX(i, P.getX(i) * k); P.setZ(i, P.getZ(i) * k); }
+  }
+  g.computeVertexNormals();
+  const farbe = new Float32Array(P.count * 3), weiss = col('#f7fbff'), fels = col('#7f8fb8'), fuss = col('#aebfe2'), f = new THREE.Color();
+  for (let i = 0; i < P.count; i += 3) {
+    const t = ((P.getY(i) + P.getY(i + 1) + P.getY(i + 2)) / 3 - min.y) / h;
+    if (t > 0.6) f.copy(weiss); else f.copy(fuss).lerp(fels, t / 0.6);
+    for (let k = 0; k < 3; k++) farbe.set([f.r, f.g, f.b], (i + k) * 3);
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(farbe, 3));
+  return g;
 }
 
-// Tiere: Materialien auf das günstigere Lambert umstellen, Clips vorbereiten
+const MENGE = { tanne: 170, fels: 30, schneemann: 20, schanze: 6, ast: 6, muenze: 70, flocke: 10, huegel: 70, stange: 60, berg: 14, fleck: 260 };
+const inst = {}, umriss = {};
+function instanzen(typ, geo, mat, eltern = hang, kontur = null) {
+  const m = new THREE.InstancedMesh(geo, mat, MENGE[typ]);
+  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.count = 0; m.frustumCulled = false;
+  eltern.add(m); inst[typ] = m;
+  if (kontur && geo.attributes.kontur) {
+    // Umriss teilt sich die Positionen mit dem Objekt → ein Zeichenaufruf mehr, keine doppelte Rechnung
+    const u = new THREE.InstancedMesh(geo, kontur, MENGE[typ]);
+    u.instanceMatrix = m.instanceMatrix; u.count = 0; u.frustumCulled = false; eltern.add(u); umriss[typ] = u;
+  }
+  return m;
+}
+
+// Tiere: Comic-Material, gerundete Formen, Umrisslinie; Clips vorbereiten
 const tiere = {};
 function richteTierEin(name, gltf) {
   const root = gltf.scene;
-  const cache = new Map();
-  root.traverse((o) => {
-    if (!o.isMesh) return;
+  const cache = new Map(), meshes = [];
+  root.updateMatrixWorld(true);
+  root.traverse((o) => { if (o.isMesh) meshes.push(o); });
+  // Animierte Gelenke (Rig, Koerper, Kopf, Ski_L, Ski_R): Umrisse werden je Gelenk zu einem Mesh zusammengelegt
+  const gelenke = new Set(gltf.animations.flatMap((c) => c.tracks.map((t) => THREE.PropertyBinding.parseTrackName(t.name).nodeName)));
+  const proGelenk = new Map(), rel = new THREE.Matrix4(), nm = new THREE.Matrix3(), v = new THREE.Vector3();
+  for (const o of meshes) {
     const m = o.material;
-    if (!cache.has(m)) cache.set(m, new THREE.MeshLambertMaterial({ color: m.color, emissive: m.emissive || new THREE.Color(0) }));
+    if (!cache.has(m)) cache.set(m, toon({ color: m.color, emissive: m.emissive || new THREE.Color(0) }));
     o.material = cache.get(m);
-  });
+    o.geometry = glaette(o.geometry);
+    // Sehr kleine Teile (Augen-Glanz, Schnurrhaare, Stockteller) ohne Umriss, sonst wirken sie wie Kleckse
+    o.geometry.computeBoundingSphere();
+    const ws = new THREE.Vector3(); o.getWorldScale(ws);
+    if (o.geometry.boundingSphere.radius * Math.max(ws.x, ws.y, ws.z) < 0.05) continue;
+    let g = o; while (g !== root && !gelenke.has(g.name)) g = g.parent;
+    rel.copy(g.matrixWorld).invert().multiply(o.matrixWorld); nm.getNormalMatrix(rel);
+    const P = o.geometry.attributes.position, K = o.geometry.attributes.kontur;
+    const ziel = proGelenk.get(g) || proGelenk.set(g, { pos: [], kon: [] }).get(g);
+    for (let i = 0; i < P.count; i++) {
+      v.fromBufferAttribute(P, i).applyMatrix4(rel); ziel.pos.push(v.x, v.y, v.z);
+      v.fromBufferAttribute(K, i).applyMatrix3(nm).normalize(); ziel.kon.push(v.x, v.y, v.z);
+    }
+  }
+  for (const [g, { pos, kon }] of proGelenk) {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute('kontur', new THREE.Float32BufferAttribute(kon, 3));
+    const u = new THREE.Mesh(geo, TIER_KONTUR); u.name = g.name + '_Umriss'; u.renderOrder = -1; u.frustumCulled = false;
+    g.add(u);
+  }
   const mixer = new THREE.AnimationMixer(root);
   const a = {};
   for (const clip of gltf.animations) {
@@ -199,6 +312,36 @@ function bewegeSpritzer(dt) {
     spPos[i * 3] += spVel[i * 3] * dt; spPos[i * 3 + 1] = Math.max(0.02, spPos[i * 3 + 1] + spVel[i * 3 + 1] * dt); spPos[i * 3 + 2] += spVel[i * 3 + 2] * dt;
   }
   spGeo.attributes.position.needsUpdate = true;
+}
+
+// ---------- Skispuren im Schnee (zwei Rillen hinter dem Tier) ----------
+const SPUR_N = 110, SPUR_ABST = 0.4;
+const spur = [];                               // { x, d, an } – an = Skier auf dem Boden
+const spurPos = new Float32Array((SPUR_N - 1) * 2 * 6 * 3);
+const spurGeo = new THREE.BufferGeometry(); spurGeo.setAttribute('position', new THREE.BufferAttribute(spurPos, 3));
+const spurMesh = new THREE.Mesh(spurGeo, new THREE.MeshBasicMaterial({ color: col('#9fbbe6'), transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide }));
+spurMesh.frustumCulled = false; spurMesh.renderOrder = 1; hang.add(spurMesh);
+function spurMerken() {
+  const letzte = spur[spur.length - 1];
+  if (letzte && fahrt.d - letzte.d < SPUR_ABST) return;
+  spur.push({ x: fahrt.x, d: fahrt.d, an: !fahrt.luft && !fahrt.tot && !fahrt.schanze });
+  if (spur.length > SPUR_N) spur.shift();
+}
+function zeichneSpur() {
+  spurPos.fill(0);
+  let o = 0;
+  for (let i = 1; i < spur.length; i++) {
+    const a = spur[i - 1], b = spur[i];
+    if (a.an && b.an) {
+      for (const s of [-0.17, 0.17]) {
+        const ax = a.x + s, bx = b.x + s, w = 0.055, y = 0.022;
+        spurPos.set([ax - w, y, -a.d, ax + w, y, -a.d, bx - w, y, -b.d, ax + w, y, -a.d, bx + w, y, -b.d, bx - w, y, -b.d], o);
+        o += 18;
+      }
+    }
+  }
+  spurGeo.setDrawRange(0, o / 3);
+  spurGeo.attributes.position.needsUpdate = true;
 }
 
 // ---------- Berge am Horizont ----------
@@ -289,7 +432,7 @@ function tonKnoepfe() {
 }
 function zeigeMenu() {
   zustand = 'menu'; zeige('menu');
-  fahrt = L.neueFahrt(1); fahrt.strecke.items = []; fahrt.strecke.next = 1e9;
+  fahrt = L.neueFahrt(1); fahrt.strecke.items = []; fahrt.strecke.next = 1e9; spur.length = 0;
   if (!tiere[auswahl]) auswahl = 'hase';
   waehleTier(auswahl);
   aktualisiereMenu();
@@ -335,7 +478,7 @@ function starte() {
   if (!stand.tiere.includes(auswahl)) auswahl = stand.tier;
   stand.tier = auswahl; speichere();
   const seed = TEST && Q.get('seed') ? Number(Q.get('seed')) : (Date.now() % 1e9);
-  fahrt = L.neueFahrt(seed);
+  fahrt = L.neueFahrt(seed); spur.length = 0;
   waehleTier(auswahl);
   zustand = 'fahrt'; zeige(null);
   sturzZeit = 0; neuerRekord = false;
@@ -435,7 +578,9 @@ function zeichneWelt(zeit) {
   for (const typ in inst) {
     if (typ === 'berg') continue;
     inst[typ].count = zaehler[typ] || 0; inst[typ].instanceMatrix.needsUpdate = true;
+    if (umriss[typ]) umriss[typ].count = inst[typ].count;
   }
+  zeichneSpur();
 }
 
 // ---------- Kamera ----------
@@ -449,7 +594,7 @@ function kamera(dt) {
   tmpA.set(camX, (hoch ? 4.1 : 3.7) + camY, -d + (hoch ? 7.4 : 7.0));
   tmpB.set(camX * 0.85, 0.6 + camY * 1.2, -d - 10);
   // Menü: vor dem Tier, schaut es an
-  if (foto) { kamZiel.set(0.6, 1.75, -d - 6.1); kamBlick.set(0.75, 1.05, -d + 0.6); }
+  if (foto) { const q = camera.aspect < 1.3; kamZiel.set(q ? 0.85 : 0.7, q ? 1.45 : 1.35, -d - (q ? 5.9 : 4.7)); kamBlick.set(0.85, q ? 0.85 : 0.95, -d + 0.8); }
   else if (hoch) { kamZiel.set(0.9, 1.55, -d - 5.6); kamBlick.set(0, 1.15, -d); }
   else { kamZiel.set(2.0, 1.35, -d - 5.4); kamBlick.set(0.8, 0.5, -d); }
   kamZiel.lerp(tmpA, 1 - menuMix); kamBlick.lerp(tmpB, 1 - menuMix);
@@ -502,6 +647,7 @@ function bewegeFigur(dt, zeit) {
   else if (fahrt.lenk < -0.35) pose = 'links';
   else if (fahrt.lenk > 0.35) pose = 'rechts';
   setzePose(pose, pose === 'trick' ? 0.06 : 0.16);
+  if (zustand === 'fahrt') spurMerken();
   // Schnee spritzt in Kurven und bei hohem Tempo
   if (!fahrt.luft && !fahrt.tot && zustand === 'fahrt') {
     const menge = Math.abs(fahrt.lenk) > 0.45 ? 2 : (Math.random() < L.tempo(fahrt.d) / 60 ? 1 : 0);
@@ -573,12 +719,12 @@ async function start() {
     const glbs = await Promise.all(namen.map((n) => ladeGlb(n).then((g) => { fertig++; balken.style.width = (fertig / namen.length * 100) + '%'; return g; })));
     const welt = glbs[0].scene;
     const teil = (n) => welt.children.find((c) => c.name === n);
-    for (const typ of ['tanne', 'fels', 'schneemann', 'schanze', 'ast', 'huegel', 'stange']) {
-      instanzen(typ, backe(teil(typ[0].toUpperCase() + typ.slice(1))), weltMat);
-    }
-    instanzen('muenze', backe(teil('Muenze')), glanzMat);
-    instanzen('flocke', backe(teil('Flocke')), glanzMat);
-    const berg = instanzen('berg', backe(teil('Berg')), bergMat, bergGruppe);
+    // [Typ, Glättungswinkel (klein = facettiert lassen), Umriss?]
+    const ART = [['tanne', 5, true], ['fels', 5, true], ['schneemann', 48, true], ['schanze', 30, true], ['ast', 40, true], ['huegel', 60, false], ['stange', 40, false]];
+    for (const [typ, w, u] of ART) instanzen(typ, glaette(backe(teil(typ[0].toUpperCase() + typ.slice(1))), w), weltMat, hang, u ? WELT_KONTUR : null);
+    instanzen('muenze', glaette(backe(teil('Muenze')), 48), glanzMat, hang, WELT_KONTUR);
+    instanzen('flocke', glaette(backe(teil('Flocke')), 30), glanzMat, hang, WELT_KONTUR);
+    const berg = instanzen('berg', schneeBerg(backe(teil('Berg'))), bergMat, bergGruppe);
     BERGE.forEach(([x, z, s, r], i) => { E.set(0, r, 0); Qn.setFromEuler(E); V.set(x, 0, z); S.set(s, s * 0.9, s); M.compose(V, Qn, S); berg.setMatrixAt(i, M); });
     berg.count = BERGE.length; berg.instanceMatrix.needsUpdate = true;
     instanzen('fleck', fleckGeo, fleckMat).renderOrder = 1;
