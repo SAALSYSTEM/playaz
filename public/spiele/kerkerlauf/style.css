@@ -1,0 +1,95 @@
+/* Kerkerlauf – Oberfläche im PlaySaal-Farbschema: Anthrazit = Basis, Orange = Marke, Gelb = Aktionen. */
+:root{--basis:#11121a;--basis2:#1c1e2b;--rand:rgba(246,247,249,.14);--text:#f6f7f9;--grau:#a7abbd;--orange:#ff9200;--gelb:#ffd21c;--gelb2:#d9a800;--schatten:0 10px 30px rgba(0,0,0,.45)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{background:#14121b;color:var(--text);font-family:'Fredoka','Barlow',system-ui,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+[hidden]{display:none!important}
+.pz-home{position:fixed;z-index:40;top:calc(env(safe-area-inset-top,0px) + 10px);left:calc(env(safe-area-inset-left,0px) + 12px);width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(17,18,26,.72);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}
+body.im-lauf .pz-home{display:none}
+.muenze{display:inline-block;width:.95em;height:.95em;border-radius:50%;vertical-align:-.12em;margin-right:.25em;
+  background:radial-gradient(circle at 38% 34%,#fff3b0 0 18%,#ffd84a 19% 55%,#e9a400 56% 100%);box-shadow:inset 0 0 0 2px #c98a00}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;z-index:20;left:0;right:0;top:0;display:flex;gap:8px;align-items:flex-start;justify-content:center;pointer-events:none;
+  padding:calc(env(safe-area-inset-top,0px) + 10px) calc(env(safe-area-inset-right,0px) + 64px) 0 calc(env(safe-area-inset-left,0px) + 12px)}
+.hud-box{min-width:76px;padding:6px 10px 5px;border-radius:14px;background:rgba(17,18,26,.72);border:1px solid var(--rand);text-align:center;line-height:1;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.hud-box b{display:block;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.hud-box small{display:block;margin-top:2px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--grau)}
+#bPause{position:fixed;pointer-events:auto;top:calc(env(safe-area-inset-top,0px) + 10px);right:calc(env(safe-area-inset-right,0px) + 12px)}
+.rund{width:44px;height:44px;border-radius:50%;border:1px solid var(--rand);display:grid;place-items:center;background:rgba(17,18,26,.78);color:var(--text)}
+.rund svg{width:22px;height:22px}
+.rund.gross{width:56px;height:56px}.rund.gross svg{width:28px;height:28px}
+.rund:active{transform:translateY(2px)}
+
+#kombo{position:fixed;z-index:21;right:calc(env(safe-area-inset-right,0px) + 14px);top:calc(env(safe-area-inset-top,0px) + 66px);pointer-events:none;text-align:center;
+  padding:6px 12px;border-radius:14px;background:var(--orange);color:var(--basis);line-height:1;box-shadow:0 4px 0 #b86900;animation:pop .25s ease-out}
+#kombo b{display:block;font-size:26px;font-weight:700}
+#kombo small{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+@keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.12)}100%{transform:none}}
+
+#pop{position:fixed;z-index:25;left:50%;top:32%;transform:translateX(-50%);pointer-events:none;text-align:center}
+#pop span{display:block;font-size:30px;font-weight:700;color:#fff;-webkit-text-stroke:1.5px var(--basis);paint-order:stroke fill;text-shadow:0 3px 0 var(--basis);animation:hoch 1s ease-out forwards;white-space:nowrap}
+#pop span.gold{color:var(--gelb)}
+#pop span.orange{color:var(--orange)}
+@keyframes hoch{0%{opacity:0;transform:translateY(16px) scale(.7)}15%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-34px)}}
+#hinweis{position:fixed;z-index:22;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);transform:translateX(-50%);width:max-content;
+  max-width:calc(100% - 32px);padding:12px 16px;border-radius:16px;background:rgba(17,18,26,.86);border:1px solid var(--rand);color:#fff;font-size:16px;font-weight:600;text-align:center;pointer-events:none;line-height:1.4}
+#hinweis b{color:var(--gelb)}
+/* Fläche für Wischen und Tippen während des Laufs */
+#fang{position:fixed;inset:0;z-index:10;display:none;touch-action:none}
+body.im-lauf #fang{display:block}
+#fang .spur{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;border:3px solid rgba(255,210,28,.8);pointer-events:none;animation:weg .35s ease-out forwards}
+@keyframes weg{to{opacity:0;transform:scale(1.8)}}
+
+/* ---------- Schichten ---------- */
+.schicht{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:calc(env(safe-area-inset-top,0px) + 16px) calc(env(safe-area-inset-right,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 16px) calc(env(safe-area-inset-left,0px) + 16px)}
+.dialog{background:rgba(8,8,12,.5)}
+.karte{width:min(100%,360px);padding:22px 20px 18px;border-radius:24px;background:var(--basis2);border:1px solid var(--rand);box-shadow:var(--schatten);text-align:center;display:flex;flex-direction:column;gap:10px}
+.karte h2{margin:0;font-size:26px;line-height:1.1}
+.unter{margin:-4px 0 4px;color:var(--grau);font-size:16px}
+.extra{margin:0;color:var(--orange);font-weight:700;font-size:16px;min-height:1.2em}
+.knopf{min-height:52px;border:1px solid var(--rand);border-radius:16px;padding:10px 18px;font-size:19px;font-weight:700;background:#2a2d3d;color:var(--text)}
+.knopf.haupt{background:var(--gelb);color:var(--basis);border:0;box-shadow:0 5px 0 var(--gelb2);font-size:22px;min-height:60px}
+.knopf:active{transform:translateY(3px)}
+.knopf.haupt:active{box-shadow:0 2px 0 var(--gelb2)}
+.knopf:disabled{opacity:.55;cursor:default;transform:none}
+.klein{align-self:center;border:0;background:none;color:var(--grau);font-size:15px;font-weight:600;padding:8px 12px;text-decoration:underline}
+.werte{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:2px 0}
+.werte div{padding:10px 4px;border-radius:16px;background:#262838}
+.werte b{display:block;font-size:24px;font-variant-numeric:tabular-nums}
+.werte small{font-size:12px;font-weight:600;color:var(--grau);text-transform:uppercase;letter-spacing:.04em}
+.rekord{margin:0;font-size:16px;font-weight:600;color:var(--grau);min-height:1.3em}
+.rekord.neu{color:var(--gelb)}
+
+/* Menü: oben Titel, Mitte frei für den 3D-Helden, unten Auswahl und Start */
+#menu{justify-content:space-between;background:none;pointer-events:none}
+#menu>*{pointer-events:auto}
+#menu .kopf{width:100%;max-width:440px;display:flex;flex-direction:column;align-items:center;gap:8px;padding-top:44px}
+.logo{margin:0;font-family:'Dela Gothic One','Fredoka',sans-serif;font-weight:400;font-size:clamp(42px,12.5vw,62px);line-height:1;color:#fff;letter-spacing:.01em;
+  -webkit-text-stroke:3px var(--basis);paint-order:stroke fill;text-shadow:0 5px 0 var(--basis)}
+.logo span{color:var(--orange)}
+.konto{padding:6px 14px;border-radius:999px;background:rgba(17,18,26,.8);border:1px solid var(--rand);font-size:20px;font-weight:700}
+#menu .wahl{width:100%;max-width:440px;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;margin-bottom:12px}
+#menu .name{flex:1;text-align:center;padding:8px 6px;border-radius:18px;background:rgba(17,18,26,.82);border:1px solid var(--rand);line-height:1.15}
+#menu .name b{display:block;font-size:22px}
+#menu .name small{display:block;font-size:15px;font-weight:600;color:var(--grau)}
+#menu .name small.zu{color:var(--orange)}
+#menu .unten{width:100%;max-width:360px;display:flex;flex-direction:column;gap:8px}
+.punkte-reihe{display:flex;justify-content:center;gap:7px}
+.punkte-reihe i{width:9px;height:9px;border-radius:50%;background:rgba(246,247,249,.25)}
+.punkte-reihe i.an{background:var(--orange)}
+#menu .rekord{text-align:center;color:var(--text);text-shadow:0 1px 2px rgba(0,0,0,.8)}
+#menu .klein{color:var(--text)}
+
+#laden{background:radial-gradient(circle at 50% 40%,#2a2233,#0d0c12)}
+.balken{height:12px;border-radius:999px;background:#2a2d3d;overflow:hidden}
+.balken i{display:block;height:100%;width:0;background:var(--orange);border-radius:inherit;transition:width .2s}
+.fehler{position:fixed;inset:auto 16px 40% 16px;z-index:50;padding:16px;border-radius:16px;background:var(--basis2);text-align:center;font-weight:600}
+
+@media (max-height:600px){#menu .kopf{padding-top:12px}.logo{font-size:40px}.knopf.haupt{min-height:52px}}
+@media (prefers-reduced-motion:reduce){#pop span{animation-duration:1.4s}#kombo{animation:none}}
+body.foto .schicht,body.foto .pz-home,body.foto #hud,body.foto #kombo{display:none!important}

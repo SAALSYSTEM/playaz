@@ -245,6 +245,7 @@
     <section class="block block-neu" id="neu" aria-labelledby="neu-titel">
       <div class="block-kopf"><h2 id="neu-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Neu</h2><p>Neu bei PlaySaal</p></div>
       <ul class="kacheln" data-lay="neu">
+      <li class="kachel" data-slug="kerkerlauf" data-kategorien="action,geschick,abenteuer" data-rec="kerkerlauf" data-name="Kerkerlauf" data-arten="3D,Runner,Kerker" data-kat="neu"><a href="/spiele/kerkerlauf"><img src="/bilder/kerkerlauf.webp?v=1" width="720" height="720" alt="Kerkerlauf: Ritter, Barbarin, Schurke, Waldläuferin und Magier im Fackelschein eines Kerkers, dahinter Skelette und Gold" decoding="async" loading="lazy"><span class="name">Kerkerlauf</span><span class="badge" title="Neu">★</span></a></li>
       <li class="kachel" data-slug="tier-ski" data-kategorien="geschick,kinder" data-rec="tierski" data-name="Tier-Ski" data-arten="Für Kinder,3D,Ski" data-kat="neu"><a href="/spiele/tier-ski"><img src="/bilder/tier-ski.webp?v=2" width="720" height="720" alt="Tier-Ski: Hase, Fuchs, Pinguin und Bär fahren auf Skiern die verschneite Piste hinunter" decoding="async" loading="lazy"><span class="name">Tier-Ski</span><span class="badge" title="Neu">★</span></a></li>
       <li class="kachel" data-slug="tiertrumpf" data-kategorien="brettspiele,kinder" data-rec="tiertrumpf" data-name="Tiertrumpf" data-arten="Für Kinder,Kartenspiel,Tiere" data-kat="neu"><a href="/spiele/tiertrumpf"><img src="/bilder/tiertrumpf.webp" width="720" height="720" alt="Tiertrumpf: Fuchs Fiete hält bunte Tierkarten mit Elefant, Panda, Frosch, Katze, Löwe und Hase" decoding="async" loading="lazy"><span class="name">Tiertrumpf</span></a></li>
       <li class="kachel" data-slug="sternenfahrt" data-kategorien="rennen,kinder" data-rec="sternenfahrt" data-name="Neon Coast – Sternenfahrt" data-arten="Für Kinder,Autos,Sterne sammeln" data-kat="neu"><a href="/spiele/sternenfahrt"><img src="/bilder/sternenfahrt.webp" width="720" height="720" alt="Neon Coast – Sternenfahrt: Ein türkises Auto fährt auf der Strandpromenade zwischen Palmen auf drei goldene Sterne zu" decoding="async" loading="lazy"><span class="name">Sternenfahrt</span></a></li>
@@ -450,6 +451,8 @@
   if (hs) show('hochstapler', 'Rekord ' + n(hs));
   const pp = read('papierpilot.v1');
   if (pp && Number(pp.best) >= 100) show('papierpilot', 'Bestflug ' + n(Math.floor(pp.best / 100)) + ' m');
+  const kel = read('kerkerlauf.v1');
+  if (kel && kel.rekord) show('kerkerlauf', 'Rekord ' + n(kel.rekord) + ' · ' + n(kel.gold || 0) + ' Gold');
   const tsk = read('tierski.v1');
   if (tsk && tsk.rekord) show('tierski', 'Rekord ' + n(tsk.rekord) + ' · ' + n(tsk.muenzen || 0) + ' Münzen');
   const ttr = read('tiertrumpf.v1');
