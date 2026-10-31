@@ -1,5 +1,7 @@
 # PlaySaal
 
+**Tiertrumpf:** Tierkartenspiel für Kinder ab 4 im Hochformat gegen Fuchs Fiete: gleiche Farbe oder gleiches Tier ablegen (Elefant 1, Panda 2, Frosch 3, Katze 4, Löwe 5, Hase 6), wer zuerst keine Karten mehr hat, gewinnt. Drei Stufen: Entdecken (nur Tiere), Zaubern (+ Farbwechsel), Abenteuer (+ Pause und +1, kein Stapeln). Kein Zeitdruck, keine Strafkarten, Fiete nutzt nur offene Informationen. Laufende Runde und Bilanz in `tiertrumpf.v1`. Grafiken: Tiere und Fiete sind noch Emoji-Platzhalter, ChatGPT-Bilder nach [`design/tiertrumpf/PROMPTS.md`](design/tiertrumpf/PROMPTS.md) per `python3 tools/tiertrumpf-assets.py`; Kachel/Teilen-Vorschau bis dahin aus `node tools/tiertrumpf-platzhalter.mjs`. Details: [`docs/TIERTRUMPF.md`](docs/TIERTRUMPF.md). Tests: `node --test tests/tiertrumpf-sim.test.mjs tests/tiertrumpf-browser.test.mjs`.
+
 **Neon Coast – Sternenfahrt:** Autospiel für Kinder ab 5 im Hochformat, Draufsicht: Das Auto fährt von selbst, nur zwei Tasten (links/rechts, je Druck genau eine Spur), Sterne sammeln, Kegeln, Absperrungen und langsamen Autos ausweichen; auch Wischen. 20 Level (Stadt, Strandpromenade, Hafen – Teil 2 bei Nacht und im Abendrot), Berührung macht nur „Hoppla!“ (kein Game-over), Übung in Level 1, vier Autos zum Freischalten, Autoradio mit 4 Sendern (läuft durchgehend). Details: [`docs/STERNENFAHRT.md`](docs/STERNENFAHRT.md). Test: `node --test tests/sternenfahrt-sim.test.mjs`.
 
 **Hexis Zaubersuppe:** Halloween-Spiel für Kinder ab 5 im Hochformat: Zutaten laut Bildrezept antippen oder in den Kessel ziehen (zählen bis 3), die Suppe färbt sich, am Ende verzaubert Hexi ihren Kater Kasimir (6 Verwandlungen im Zauberbuch). 15 Level, falsche Zutat macht nur „Puff!“, 3 Sterne ohne Puff. Details: [`docs/HEXIS_ZAUBERSUPPE.md`](docs/HEXIS_ZAUBERSUPPE.md). Test: `node --test tests/sternenfahrt-sim.test.mjs         # STERNENFAHRT: 20 Level fair (Prüf-Fahrer mit Kinder-Reaktionszeit), Steuerung, Schutzzeit, Bildraten, Spielstand
@@ -89,6 +91,7 @@ node --test tests/leitungschaos-sim.test.mjs        # LEITUNGSCHAOS: 30 Level + 
 node --test tests/muehle-sim.test.mjs               # MÜHLE: Regeln, Remis, Kodierung, Stufen-Turniere, Zeitlimit Meister
 node --test tests/kruemel-sim.test.mjs              # KRÜMEL: Sprunghöhe, Kanten-Toleranz, Puffer, Leiter, Schublade, Kätzchen, Level lösbar ohne Sackgassen
 node --test tests/hexis-zaubersuppe-sim.test.mjs    # HEXIS ZAUBERSUPPE: 15 Level, Lernkurve, Zugeben/Puff, Sterne, Zauberbuch, Spielstand
+node --test tests/tiertrumpf-sim.test.mjs tests/tiertrumpf-browser.test.mjs   # TIERTRUMPF: Regeln, 900+ Partien, faire KI, Bedienung im Browser (alle Stufen, kleine Handys, Doppeltipp, Fortsetzen)
 node --test tests/sternenpups-sim.test.mjs          # STERNENPUPS: 50 Level lösbar, Pflichtaufgaben nötig, keine Sackgassen, Sterne erreichbar, Spielstand
 node --test tests/dino-leiterhelden-sim.test.mjs    # DINO-LEITERHELDEN: 90 Level lösbar (Löser + Bot), Regeln inkl. Rutsche/Brücke/Wechsel-Monster/Ballon/Langhals, Spielstand, Herausforderung
 node tools/domain.mjs                                   # Canonical/Sitemap/robots konsistent?
@@ -96,7 +99,7 @@ node tools/domain.mjs                                   # Canonical/Sitemap/robo
 
 ## Spielstände
 
-Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `sternenfahrt.v1`, `zaubersuppe.v1`, `sternenpups.v1`, `leitungschaos.v1`, `stall.v1`, `wassermarsch.v1`, `jungle.v1`, `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Ohne Konto bleibt alles auf dem Gerät. Optional gibt es Konten mit Cloud-Speicherständen (Supabase), siehe [docs/KONTEN.md](docs/KONTEN.md). Keine Cookies, keine Werbe- oder Analysedienste Dritter.
+Alle Rekorde liegen nur im `localStorage` des Browsers (unter anderem `tiertrumpf.v1`, `sternenfahrt.v1`, `zaubersuppe.v1`, `sternenpups.v1`, `leitungschaos.v1`, `stall.v1`, `wassermarsch.v1`, `jungle.v1`, `turmschicht.v1`, `dinoleiter.v1`, `sprungssebi.v1`, `zahlensturm.v1`, `kakerlake.v1`, `schraeglage.v1`, `anbiss.v1`, `stellwerk.v1`, `eiszeit.*`, `linkespur.v1`, `schwindelfrei.*`, `hochstapler.*`, `richtfest.*`). Ohne Konto bleibt alles auf dem Gerät. Optional gibt es Konten mit Cloud-Speicherständen (Supabase), siehe [docs/KONTEN.md](docs/KONTEN.md). Keine Cookies, keine Werbe- oder Analysedienste Dritter.
 `localStorage` hängt an der Adresse: Ein neues Spiel mit eigenem Schlüssel-Präfix muss in `public/assets/umzug.js` (Liste `SPIELE`) eingetragen werden, sonst wird es beim Umzug nicht mitgenommen.
 
 ## Vor dem Livegang

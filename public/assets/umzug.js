@@ -76,6 +76,8 @@
       info: (g) => { const d = J(g['sternenfahrt.v1']) || {}; const b = d.best || {}; const lv = Object.keys(b).length; const st = Object.values(b).reduce((a, x) => a + (Number(x) || 0), 0); return { text: lv + ' von 20 Level · ' + st + ' ★', wert: lv * 100 + st }; } },
     { id: 'zaubersuppe', name: 'Hexis Zaubersuppe', prefix: 'zaubersuppe.', haupt: ['zaubersuppe.v1'],
       info: (g) => { const d = J(g['zaubersuppe.v1']) || {}; const b = d.best || {}; const lv = Object.keys(b).length; const st = Object.values(b).reduce((a, x) => a + (Number(x) || 0), 0); return { text: lv + ' von 15 Level · ' + st + ' ★', wert: lv * 100 + st }; } },
+    { id: 'tiertrumpf', name: 'Tiertrumpf', prefix: 'tiertrumpf.', haupt: ['tiertrumpf.v1'],
+      info: (g) => { const d = J(g['tiertrumpf.v1']) || {}; const b = d.bilanz || {}; const s = Number(b.s) || 0, r = s + (Number(b.n) || 0) + (Number(b.u) || 0); return { text: s + (s === 1 ? ' Sieg' : ' Siege') + ' gegen Fiete' + (d.game ? ' · Runde läuft' : ''), wert: s * 10 + r }; } },
     { id: 'sternenpups', name: 'Sternenpups', prefix: 'sternenpups.', haupt: ['sternenpups.v1'],
       info: (g) => { const d = J(g['sternenpups.v1']) || {}; const b = d.best || {}; const lv = Object.keys(b).length; const st = Object.values(b).reduce((a, x) => a + (Number(x) || 0), 0); return { text: lv + ' von 50 Level · ' + st + ' ★', wert: lv * 100 + st }; } },
     { id: 'stall', name: 'Ab in den Stall!', prefix: 'stall.', haupt: ['stall.v1'],
