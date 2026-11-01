@@ -2,7 +2,7 @@
 
 3D-Endlos-Skispiel für Kinder ab etwa 5, Hochformat, `/spiele/tier-ski`. Ein Tier fährt von selbst bergab; das Kind lenkt, duckt sich unter Ästen, springt über Schanzen (automatisch), macht in der Luft einen Trick und sammelt Münzen. Mit Münzen werden weitere Tiere freigeschaltet. Kein Konto nötig, keine Werbung, keine Käufe.
 
-Stand 31.10.2026: auf `main` (Kachel unter „Neu“, sobald der Katalog-Eintrag ausgeführt ist). Optik-Überarbeitung auf Branch `tier-ski-optik`.
+Stand 01.11.2026: veröffentlicht auf `main` inkl. Comic-Look (Kachel unter „Neu“, sobald der Katalog-Eintrag ausgeführt ist).
 
 ## Regeln
 
