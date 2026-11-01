@@ -80,6 +80,8 @@
       info: (g) => { const d = J(g['tierski.v1']) || {}; const r = Number(d.rekord) || 0, m = Number(d.muenzen) || 0; return { text: 'Rekord ' + r + ' · ' + m + ' Münzen', wert: r + m }; } },
     { id: 'kerkerlauf', name: 'Kerkerlauf', prefix: 'kerkerlauf.', haupt: ['kerkerlauf.v1'],
       info: (g) => { const d = J(g['kerkerlauf.v1']) || {}; const r = Number(d.rekord) || 0, m = Number(d.gold) || 0; return { text: 'Rekord ' + r + ' · ' + m + ' Gold', wert: r + m }; } },
+    { id: 'schattenschritt', name: 'Schattenschritt', prefix: 'schattenschritt.', haupt: ['schattenschritt.v1'],
+      info: (g) => { const d = J(g['schattenschritt.v1']) || {}; const s = Array.isArray(d.sterne) ? d.sterne : []; const st = s.reduce((a, x) => a + (Number(x) || 0), 0), lv = s.filter((x) => Number(x) > 0).length; return { text: lv + ' von 24 Level · ' + st + ' ★', wert: lv * 100 + st }; } },
     { id: 'bastion', name: 'Letzte Bastion', prefix: 'bastion.', haupt: ['bastion.v1'],
       info: (g) => { const d = J(g['bastion.v1']) || {}; const r = Number(d.rekord) || 0, w = Number(d.welle) || 0, m = Number(d.gold) || 0; return { text: 'Rekord ' + r + ' · Welle ' + w + ' · ' + m + ' Gold', wert: r + m }; } },
     { id: 'tiertrumpf', name: 'Tiertrumpf', prefix: 'tiertrumpf.', haupt: ['tiertrumpf.v1'],

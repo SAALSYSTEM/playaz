@@ -1,0 +1,71 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Schattenschritt · Schleich-Rätsel im Kerker | PlaySaal</title><meta name="description" content="Schleich dich als Schurke an Skelett-Wachen vorbei: Zug um Zug, durch Schatten, mit Schlüsseln und Toren. 24 Rätsel-Level mit Sternen. Kostenlos, ohne Anmeldung, direkt im Browser."><link rel="canonical" href="https://playsaal.com/spiele/schattenschritt"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Schattenschritt · Kommst du ungesehen durch?"><meta property="og:description" content="Schleich-Rätsel Zug um Zug: Wachen umgehen, ausschalten, im Schatten verschwinden."><meta property="og:url" content="https://playsaal.com/spiele/schattenschritt"><meta property="og:image" content="https://playsaal.com/bilder/schattenschritt-og.jpg?v=1"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Schattenschritt · Kommst du ungesehen durch?"><meta name="twitter:description" content="Schleich-Rätsel Zug um Zug – kommst du ungesehen durch?"><meta name="twitter:image" content="https://playsaal.com/bilder/schattenschritt-og.jpg?v=1"><meta name="theme-color" content="#11121A"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/spiele/schattenschritt/style.css?v=1"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'schattenschritt',t:Date.now()}))}catch(e){}</script></head>
+<body class="im-menu">
+<canvas id="c" aria-label="Kerker"></canvas>
+<a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
+
+<div id="hud" hidden>
+  <div class="hud-box breit"><b id="hLevel">1</b><small id="hName">Erste Schritte</small></div>
+  <div class="hud-box"><b id="hZuege">0</b><small>Züge</small></div>
+  <div class="hud-box"><b><i class="muenze" aria-hidden="true"></i><span id="hMuenzen">0/0</span></b><small>Münzen</small></div>
+  <button id="bPause" class="rund" type="button" aria-label="Pause" title="Pause (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/></svg></button>
+</div>
+<div id="steuer" hidden>
+  <button id="bZurueck" class="steuer" type="button" title="Zug zurück (Z)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5M4.5 12H15a5 5 0 0 1 0 10h-2" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Zurück</span></button>
+  <button id="bWarten" class="steuer" type="button" title="Warten (Leertaste)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10M7 21h10M8 3c0 5 8 5 8 9s-8 4-8 9M16 3c0 5-8 5-8 9s8 4 8 9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span>Warten</span></button>
+  <button id="bNeu" class="steuer" type="button" title="Neu starten (R)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7M20 4v5h-5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Neu</span></button>
+</div>
+<div id="pop" aria-live="polite"></div>
+<div id="hinweis" hidden></div>
+<div id="fang" aria-hidden="true"></div>
+
+<section id="menu" class="schicht" hidden>
+  <header class="kopf">
+    <h1 class="logo">Schatten<span>schritt</span></h1>
+    <div class="konto"><span class="stern an" aria-hidden="true"></span><b id="mSterne">0</b><span> / <span id="mMax">72</span></span><span class="sr"> Sterne</span></div>
+  </header>
+  <div class="levelwahl" id="mLevel"></div>
+  <div class="unten">
+    <button id="mStart" class="knopf haupt" type="button">Weiter schleichen</button>
+    <button id="mTon" class="klein" type="button" aria-pressed="true">Ton: an</button>
+  </div>
+</section>
+
+<section id="pause" class="schicht dialog" hidden>
+  <div class="karte">
+    <h2>Pause</h2>
+    <button id="pWeiter" class="knopf haupt" type="button">Weiter</button>
+    <button id="pNeu" class="knopf" type="button">Level neu starten</button>
+    <button id="pMenu" class="knopf" type="button">Levelauswahl</button>
+    <button id="pTon" class="klein" type="button" aria-pressed="true">Ton: an</button>
+  </div>
+</section>
+
+<section id="erwischt" class="schicht unten-dialog" hidden>
+  <div class="karte">
+    <h2>Erwischt!</h2>
+    <p class="unter" id="xGrund"></p>
+    <button id="xZurueck" class="knopf haupt" type="button">Zug zurück</button>
+    <button id="xNeu" class="knopf" type="button">Level neu starten</button>
+  </div>
+</section>
+
+<section id="ende" class="schicht dialog" hidden>
+  <div class="karte">
+    <h2 id="eTitel">Geschafft!</h2>
+    <div class="sterne-gross" id="eSterne" aria-hidden="true"><span class="stern"></span><span class="stern"></span><span class="stern"></span></div>
+    <ul class="ziele" id="eZiele"></ul>
+    <p class="rekord" id="eRekord"></p>
+    <button id="eWeiter" class="knopf haupt" type="button">Nächstes Level</button>
+    <div class="zwei"><button id="eNochmal" class="knopf" type="button">Nochmal</button><button id="eMenu" class="knopf" type="button">Levelauswahl</button></div>
+  </div>
+</section>
+
+<div id="laden" class="schicht"><div class="karte"><h2>Schattenschritt</h2><p id="ladeText">Die Fackeln flackern …</p><div class="balken"><i id="ladeBalken"></i></div></div></div>
+<noscript><p class="fehler">Schattenschritt braucht JavaScript.</p></noscript>
+
+<script src="/assets/three.min.js"></script>
+<script src="/spiele/kerkerlauf/GLTFLoader.js?v=r128"></script>
+<script src="/spiele/kerkerlauf/SkeletonUtils.js?v=r128"></script>
+<script src="/spiele/kerkerlauf/BufferGeometryUtils.js?v=r128"></script>
+<script type="module" src="/spiele/schattenschritt/game.js?v=1"></script>
+<script src="/assets/playsaal-config.js" defer></script><script src="/assets/playsaal.js" defer></script></body></html>
