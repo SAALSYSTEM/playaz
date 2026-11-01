@@ -75,8 +75,9 @@ def cut(name, size):
     if not f:
         return None
     rgba = drop_specks(remove_background(np.array(Image.open(f).convert('RGBA'))))
-    ys, xs = np.nonzero(rgba[..., 3] > 8)
-    crop = Image.fromarray(rgba[ys.min():ys.max() + 1, xs.min():xs.max() + 1])
+    ys, xs = np.nonzero(rgba[..., 3] > 90)  # schwacher Leuchtschein am Rand zählt nicht zur Größe
+    m = 6; y0, y1, x0, x1 = max(0, ys.min() - m), min(rgba.shape[0], ys.max() + m + 1), max(0, xs.min() - m), min(rgba.shape[1], xs.max() + m + 1)
+    crop = Image.fromarray(rgba[y0:y1, x0:x1])
     s = size / max(crop.width, crop.height)
     crop.resize((round(crop.width * s), round(crop.height * s)), Image.LANCZOS).save(OUT / f'{name}.webp', 'WEBP', quality=86, method=6)
     return f'{name}.webp'

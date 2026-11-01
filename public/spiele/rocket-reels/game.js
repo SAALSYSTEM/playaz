@@ -191,8 +191,10 @@ function layout() {
   dpr = Math.min(2.5, window.devicePixelRatio || 1);
   const b = $('.buehne'), ob = $('.oben'), an = $('#anzeige');
   const breite = b.clientWidth - 8;
+  const rahmen = document.body.classList.contains('mit-rahmen'); // Rahmenbild ragt seitlich 7 %, oben/unten ~0,5 Zellen über
   const hoehe = b.clientHeight - Math.max(54, Math.min(90, b.clientHeight * 0.12)) - an.offsetHeight - 22;
-  zelle = Math.max(40, Math.floor(Math.min(breite / 5, hoehe / 3)));
+  zelle = Math.max(40, Math.floor(Math.min(breite / (rahmen ? 5.75 : 5), hoehe / (rahmen ? 3.85 : 3))));
+  document.documentElement.style.setProperty('--zelle', zelle + 'px');
   const box = $('#walzen'); box.style.width = zelle * 5 + 4 + 'px'; box.style.height = zelle * 3 + 4 + 'px';
   rollen.width = zelle * 5 * dpr; rollen.height = zelle * 3 * dpr;
   rk.width = rk.clientWidth * dpr; rk.height = rk.clientHeight * dpr;
@@ -214,8 +216,9 @@ function zeigeCoins(ziel, puls = false) {
   f();
 }
 function text(html, gross = false) { const a = $('#anzeige'); $('#aText').innerHTML = html; a.classList.toggle('gross', gross); }
+let bonusStartLaeuft = false; // während des Raketenstarts noch das normale Spielfeld zeigen
 function aktualisieren() {
-  const frei = z.phase === 'bonus';
+  const frei = z.phase === 'bonus' && !bonusStartLaeuft;
   if (!beschaeftigt && z.phase === 'bereit') passEinsatz();
   document.body.classList.toggle('frei', frei);
   $('#bonusHud').hidden = !frei;
@@ -403,8 +406,13 @@ function warpBild(g, w, h, t, staerke, farbe) {
 }
 function zeichnePlanet(g, x, y, r, t) {
   const bild = G.BILDER['bonus-hintergrund'];
-  if (bild) { g.save(); g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.clip(); const f = (2 * r) / Math.min(bild.width, bild.height) * 1.6; g.drawImage(bild, x - bild.width * f / 2, y - bild.height * f * 0.62, bild.width * f, bild.height * f); g.restore(); }
-  else {
+  if (bild) { // neue Galaxie: Bonus-Hintergrund zoomt heran und blendet ein (Stärke aus dem Radius)
+    const w = g.canvas.clientWidth, h = g.canvas.clientHeight, s = Math.max(0, Math.min(1, (r / Math.min(w, h) - 0.15) / 0.45));
+    const f = Math.max(w / bild.width, h / bild.height) * (1.35 - 0.35 * s);
+    g.save(); g.globalAlpha = 0.25 + 0.75 * s; g.drawImage(bild, (w - bild.width * f) / 2, (h - bild.height * f) / 2 + (1 - s) * h * 0.25, bild.width * f, bild.height * f); g.restore();
+    void x; void y; void t; return;
+  }
+  {
     const p = g.createRadialGradient(x - r * 0.35, y - r * 0.4, r * 0.05, x, y, r); p.addColorStop(0, '#b8fff4'); p.addColorStop(.4, '#18a9b8'); p.addColorStop(.8, '#0b3a6b'); p.addColorStop(1, '#061433');
     g.fillStyle = p; g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill();
     g.strokeStyle = 'rgba(255,201,60,.5)'; g.lineWidth = r * 0.03; g.beginPath(); g.arc(x, y, r * 1.01, Math.PI * 1.05, Math.PI * 1.75); g.stroke();
@@ -434,6 +442,7 @@ function szene(teile, ende) {
   });
 }
 async function raketenstart(sym) {
+  bonusStartLaeuft = true; aktualisieren();
   // 1. Walzen dunkel, Stargates leuchten
   anzeigeHL.fokusW = true; anzeigeHL.linien = []; anzeigeHL.index = -1;
   T.sfx.stargate(); text('Das Stargate öffnet sich …'); anstossen(jetzt() + 2);
@@ -466,6 +475,7 @@ async function raketenstart(sym) {
     knopf.addEventListener('click', weiter);
     if (TT) weiter(); else setTimeout(() => { if (!knopf.hidden && !$('#szene').hidden) weiter(); }, 6000);
   });
+  bonusStartLaeuft = false;
   aktualisieren(); layout();
 }
 async function rueckflug(ende) {
@@ -493,11 +503,22 @@ async function rueckflug(ende) {
 const rc = $('#risikoCanvas'); const rcg = rc.getContext('2d');
 let rLeiter = [], rStufe = 0, rAnim = null, rLaeuft = false;
 function risikoGroesse() { const d = Math.min(2, window.devicePixelRatio || 1); rc.width = rc.clientWidth * d; rc.height = rc.clientHeight * d; rcg.setTransform(d, 0, 0, d, 0, 0); }
-function stationY(i, h) { const n = Math.max(2, rLeiter.length); const unten = h * 0.74, oben = h * 0.22; return unten - (unten - oben) * (i / (n - 1)); }
+// Stationen: mit Hintergrundbild genau auf dessen Ringen (Bildpixel: Mitte y, Breite), sonst gleichmäßig verteilt
+const RINGE = [[950, 880], [670, 615], [465, 435], [325, 305], [225, 205]];
+function station(i) {
+  const w = rc.clientWidth, h = rc.clientHeight, bild = G.BILDER['risiko-hintergrund'];
+  if (bild && i < RINGE.length) {
+    const f = Math.max(w / bild.width, h / bild.height), oy = (h - bild.height * f) / 2, sx = bild.width / 1024;
+    return { y: oy + RINGE[i][0] * sx * f, breit: RINGE[i][1] * sx * f, bild: true };
+  }
+  const n = Math.max(2, rLeiter.length), unten = h * 0.74, oben = h * 0.22;
+  return { y: unten - (unten - oben) * (i / (n - 1)), breit: w * (0.5 - i * 0.05), bild: false };
+}
+const stationY = (i) => station(i).y;
 function zeichneRisiko(t) {
   const w = rc.clientWidth, h = rc.clientHeight, g = rcg;
   const bild = G.BILDER['risiko-hintergrund'];
-  if (bild) { const f = Math.max(w / bild.width, h / bild.height); g.drawImage(bild, (w - bild.width * f) / 2, (h - bild.height * f) / 2, bild.width * f, bild.height * f); g.fillStyle = 'rgba(0,0,10,.35)'; g.fillRect(0, 0, w, h); }
+  if (bild) { const f = Math.max(w / bild.width, h / bild.height); g.drawImage(bild, (w - bild.width * f) / 2, (h - bild.height * f) / 2, bild.width * f, bild.height * f); g.fillStyle = 'rgba(0,0,10,.2)'; g.fillRect(0, 0, w, h); }
   else {
     const bg = g.createLinearGradient(0, 0, 0, h); bg.addColorStop(0, '#1a0b3f'); bg.addColorStop(.5, '#07082a'); bg.addColorStop(1, '#02020c'); g.fillStyle = bg; g.fillRect(0, 0, w, h);
     const gl = g.createRadialGradient(w / 2, h * 0.12, 0, w / 2, h * 0.12, w * 0.6); gl.addColorStop(0, 'rgba(255,201,60,.45)'); gl.addColorStop(1, 'rgba(255,201,60,0)'); g.fillStyle = gl; g.fillRect(0, 0, w, h);
@@ -508,30 +529,37 @@ function zeichneRisiko(t) {
   }
   // Stationen
   rLeiter.forEach((wert, i) => {
-    const y = stationY(i, h), breit = w * (0.5 - i * 0.05);
+    const st = station(i), y = st.y, breit = st.bild ? st.breit * 0.92 : st.breit;
     const erreicht = i <= rStufe, aktuell = i === rStufe;
-    g.save(); g.lineWidth = aktuell ? 5 : 3;
-    g.strokeStyle = aktuell ? '#ffc93c' : erreicht ? '#3be8ff' : 'rgba(155,92,255,.85)'; g.shadowColor = g.strokeStyle; g.shadowBlur = aktuell ? 22 : 10;
-    g.beginPath(); g.ellipse(w / 2, y, breit / 2, breit * 0.09, 0, 0, Math.PI * 2); g.stroke(); g.restore();
-    g.font = '400 ' + Math.round(Math.min(26, w * 0.06) - i) + 'px Bungee, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle';
-    g.fillStyle = aktuell ? '#ffc93c' : erreicht ? '#bff6ff' : '#d9c8ff';
-    g.fillText(fmt(wert), w / 2 + breit / 2 + 10, y);
-    g.font = '600 12px "Barlow Semi Condensed", sans-serif'; g.textAlign = 'right'; g.fillStyle = 'rgba(220,225,255,.7)';
-    g.fillText(i === 0 ? 'Start' : 'Stufe ' + i, w / 2 - breit / 2 - 10, y);
+    if (!st.bild || erreicht) {
+      g.save(); g.lineWidth = aktuell ? 5 : 3; const puls = REDUZIERT ? 1 : 0.7 + 0.3 * Math.sin(t * 5);
+      g.strokeStyle = aktuell ? '#ffc93c' : erreicht ? '#3be8ff' : 'rgba(155,92,255,.85)'; g.shadowColor = g.strokeStyle; g.shadowBlur = (aktuell ? 26 : 10) * (aktuell ? puls : 1);
+      g.beginPath(); g.ellipse(w / 2, y, breit / 2, breit * (st.bild ? 0.16 : 0.09), 0, 0, Math.PI * 2); g.stroke(); g.restore();
+    }
+    // Betrag als Schild rechts neben der Station
+    const gr = Math.round(Math.max(14, Math.min(24, w * 0.055) - i)), tx = Math.min(w - 8, w / 2 + breit / 2 + 10);
+    g.font = '400 ' + gr + 'px Bungee, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle';
+    const tw = g.measureText(fmt(wert)).width, x0 = Math.min(tx, w - tw - 14);
+    g.fillStyle = 'rgba(6,6,24,.72)'; g.fillRect(x0 - 6, y - gr * 0.75, tw + 12, gr * 1.5);
+    g.fillStyle = aktuell ? '#ffc93c' : erreicht ? '#bff6ff' : '#e2d6ff';
+    g.fillText(fmt(wert), x0, y);
+    g.font = '600 12px "Barlow Semi Condensed", sans-serif'; g.textAlign = 'right'; g.fillStyle = 'rgba(230,235,255,.85)';
+    g.fillText(i === 0 ? 'Start' : 'Stufe ' + i, Math.max(40, w / 2 - breit / 2 - 8), y);
   });
   // Rakete
-  let x = w / 2, y = stationY(rStufe, h) - 34, alpha = 1, groesse = Math.min(w, h) * 0.16, flamme = 0.2;
+  const groesse = Math.min(w, h) * 0.17, hoch = groesse * 0.42;
+  let x = w / 2, y = stationY(rStufe) - hoch, alpha = 1, flamme = 0.2;
   if (rAnim) {
     const s = Math.min(1, (t - rAnim.t0) / rAnim.d), seite = rAnim.route ? 1 : -1;
     if (rAnim.erfolg) {
       const s1 = Math.min(1, s / 0.3), s2 = Math.max(0, (s - 0.3) / 0.7);
       x = w / 2 + seite * w * 0.2 * Math.sin(s1 * Math.PI / 2) * (1 - s2);
-      y = stationY(rAnim.von, h) - 34 + (stationY(rAnim.von + 1, h) - stationY(rAnim.von, h)) * (s2 * s2 * (3 - 2 * s2));
+      y = stationY(rAnim.von) - hoch + (stationY(rAnim.von + 1) - stationY(rAnim.von)) * (s2 * s2 * (3 - 2 * s2));
       flamme = 1;
       if (s2 > 0) { g.save(); g.globalCompositeOperation = 'lighter'; g.strokeStyle = 'rgba(160,240,255,.55)'; g.lineWidth = 2; for (let i = 0; i < 12; i++) { const xx = x + (i - 6) * 9; g.beginPath(); g.moveTo(xx, y + 40); g.lineTo(xx, y + 40 + 120 * (1 - s2)); g.stroke(); } g.restore(); }
     } else {
       x = w / 2 + seite * w * 0.2 * Math.min(1, s / 0.3) + (s > 0.3 ? Math.sin(t * 70) * 6 * (1 - s) : 0);
-      y = stationY(rAnim.von, h) - 34 - Math.min(1, s / 0.3) * 30;
+      y = stationY(rAnim.von) - hoch - Math.min(1, s / 0.3) * 30;
       flamme = s < 0.5 ? 0.8 : 0;
       alpha = s < 0.55 ? 1 : Math.max(0, 1 - (s - 0.55) / 0.3);
       // Asteroiden
