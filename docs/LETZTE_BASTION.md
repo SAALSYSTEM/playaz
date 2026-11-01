@@ -39,12 +39,13 @@ Balance (Bot, `tests/bastion-sim.test.mjs`): guter Spieler Welle ~20–30 (6–8
 | `public/spiele/letzte-bastion/modelle/` | Raum, Skelett-Magier, Skelett-Schurke, Zusatz-Animationen (`node tools/bastion-assets.mjs`) |
 | `/spiele/kerkerlauf/modelle/`, `/spiele/kerkerlauf/sound/` | gemeinsam genutzt: Helden, Diener, Krieger, Grund-Animationen, alle Sounds |
 | `tools/bastion-bot.mjs` | Bot für Balance-Tests |
-| `tools/bastion-bilder.mjs` | Kachel `public/bilder/letzte-bastion.webp` und Teilen-Bild `letzte-bastion-og.jpg` aus dem Spiel gerendert |
+| `public/spiele/letzte-bastion/sound/` | eigene Sounds (`python3 tools/bastion-sound.py`, Originale in `design/letzte-bastion/sound/`) |
+| `public/bilder/letzte-bastion.webp`, `letzte-bastion-og.jpg` | Kachel und Teilen-Bild (von ChatGPT, Originale in `design/letzte-bastion/bilder/`) |
 | `supabase/functions/bastion-lauf/` | Prüf-Funktion (Edge Function), `logik.js` ist eine Kopie (`node tools/edge-sync.mjs`) |
 
 ## Modelle, Ton, Lizenz
 
-KayKit Adventurers, Skeletons, Character Animations und Dungeon Pack (FREE, CC0) von Kay Lousberg – wie im Kerkerlauf (`design/kerkerlauf/kaykit/`). Der Saal ist 12 × 20 m (Tore hinten und links/rechts), statisch in eine Geometrie gebacken. Figuren werden 1,3-fach gezeigt; Skelette sind ein Pool aus je 10 Klonen pro Art. Rund 65–95 Zeichenaufrufe pro Bild. Ton: dieselben Dateien wie im Kerkerlauf (siehe `docs/KERKERLAUF.md`).
+KayKit Adventurers, Skeletons, Character Animations und Dungeon Pack (FREE, CC0) von Kay Lousberg – wie im Kerkerlauf (`design/kerkerlauf/kaykit/`). Der Saal ist 12 × 20 m (Tore hinten und links/rechts), statisch in eine Geometrie gebacken. Figuren werden 1,3-fach gezeigt; Skelette sind ein Pool aus je 10 Klonen pro Art. Rund 65–95 Zeichenaufrufe pro Bild. Ton: Schwert, Knochen, Truhe, Kombo, Rekord, Freischalten, Fackel und Menümusik aus dem Kerkerlauf (siehe `docs/KERKERLAUF.md`). Eigene Sounds von Pixabay (Lieferung Auftraggeber): Kampfmusik „Short Percussive Orchestral Tension“ (montogoronto, als nahtlose 24-s-Schleife), Kriegshorn zum Wellenstart (dragon-studio, „Mega Horn“), Magier zaubert (gargamel10, „Magic Spell Cast“), Kugel weggeschlagen (daviddumaisaudio, „Magical Spell Cast“), Held getroffen (freesound_community, „Male Hurt“), Wirbelhieb-Schrei (freesound_community, „Male Attack Grunt“). Menü und Ende spielen die Kerker-Musik, im Kampf wird auf die Kampfmusik überblendet.
 
 ## Spielstand
 

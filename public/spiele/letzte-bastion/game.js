@@ -248,11 +248,14 @@ function bewegeFunken(dt) {
   fGeo.attributes.position.needsUpdate = true; fGeo.attributes.color.needsUpdate = true;
 }
 
-// ---------- Ton (Dateien aus /spiele/kerkerlauf/sound/) ----------
+// ---------- Ton (eigene Dateien in ./sound/, der Rest aus /spiele/kerkerlauf/sound/) ----------
 const SOUNDS = ['musik', 'fackel', 'kill', 'schwert', 'sturz', 'kombo', 'rekord', 'freischalten', 'truhe', 'landung'];
-const LAUT = { kill: 0.6, schwert: 0.45, sturz: 0.75, kombo: 0.65, rekord: 0.75, freischalten: 0.75, truhe: 0.7, landung: 0.35 };
-const MUSIK = { menu: 0.3, kampf: 0.42, wahl: 0.25, pause: 0.12, ende: 0.22, rang: 0.22 };
-let audio = null, master = null, musikBus = null, fxBus = null, schleifenLaufen = false;
+const EIGENE = ['kampf', 'zauber', 'kugel', 'au', 'schrei', 'horn'];   // tools/bastion-sound.py
+const LAUT = { kill: 0.6, schwert: 0.45, sturz: 0.75, kombo: 0.65, rekord: 0.75, freischalten: 0.75, truhe: 0.7, landung: 0.35, zauber: 0.4, kugel: 0.5, au: 0.85, schrei: 0.5, horn: 0.45 };
+// Menü/Ende: Kerker-Musik; im Kampf (auch Karten-Wahl und Pause) die eigene Kampfmusik – beide laufen durch und werden überblendet
+const MUSIK = { menu: ['musik', 0.3], kampf: ['kampf', 0.5], wahl: ['kampf', 0.3], pause: ['kampf', 0.14], ende: ['musik', 0.22], rang: ['musik', 0.22] };
+let audio = null, master = null, musikBus = null, fxBus = null, schleifenLaufen = false, kampfLaeuft = false;
+const musikGain = {};
 const puffer = {};
 function audioStart() {
   try {
@@ -261,10 +264,10 @@ function audioStart() {
       master = audio.createGain(); master.connect(audio.destination);
       musikBus = audio.createGain(); musikBus.gain.value = 0; musikBus.connect(master);
       fxBus = audio.createGain(); fxBus.connect(master);
-      for (const n of SOUNDS) {
-        fetch(new URL(`../kerkerlauf/sound/${n}.mp3?v=3`, import.meta.url)).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
+      for (const n of [...SOUNDS, ...EIGENE]) {
+        fetch(new URL(EIGENE.includes(n) ? `./sound/${n}.mp3?v=1` : `../kerkerlauf/sound/${n}.mp3?v=3`, import.meta.url)).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
           .then((b) => new Promise((ok, err) => audio.decodeAudioData(b, ok, err)))
-          .then((buf) => { puffer[n] = buf; if (n === 'musik' || n === 'fackel') starteSchleifen(); }).catch(() => {});
+          .then((buf) => { puffer[n] = buf; if (n === 'musik' || n === 'fackel' || n === 'kampf') starteSchleifen(); }).catch(() => {});
       }
     }
     if (audio.state === 'suspended' && !document.hidden) audio.resume();
@@ -282,15 +285,20 @@ function schleife(buf, ziel, laut) {
   const s = audio.createBufferSource(), g = audio.createGain();
   s.buffer = buf; s.loop = true; [s.loopStart, s.loopEnd] = schleifenGrenzen(buf);
   g.gain.value = laut; s.connect(g).connect(ziel); s.start(0, s.loopStart);
+  return g;
 }
 function starteSchleifen() {
-  if (schleifenLaufen || !puffer.musik || !puffer.fackel) return;
-  schleifenLaufen = true; schleife(puffer.musik, musikBus, 1); schleife(puffer.fackel, master, 0.3); musikLautstaerke();
+  if (!schleifenLaufen && puffer.musik && puffer.fackel) { schleifenLaufen = true; musikGain.musik = schleife(puffer.musik, musikBus, 0); schleife(puffer.fackel, master, 0.3); }
+  if (!kampfLaeuft && puffer.kampf) { kampfLaeuft = true; musikGain.kampf = schleife(puffer.kampf, musikBus, 0); }
+  musikLautstaerke();
 }
 function musikLautstaerke() {
   if (!musikBus) return;
   const z = zustand === 'lauf' ? (lauf.phase === 'wahl' ? 'wahl' : 'kampf') : zustand;
-  musikBus.gain.setTargetAtTime(MUSIK[z] ?? 0.3, audio.currentTime, 0.35);
+  let [stueck, laut] = MUSIK[z] || MUSIK.menu;
+  if (!musikGain[stueck]) stueck = 'musik';   // Kampfmusik noch nicht geladen
+  musikBus.gain.value = 1;
+  for (const [n, g] of Object.entries(musikGain)) g.gain.setTargetAtTime(n === stueck ? laut : 0, audio.currentTime, 0.35);
 }
 addEventListener('pointerdown', audioStart, { capture: true });
 addEventListener('keydown', audioStart, { capture: true });
@@ -545,6 +553,7 @@ function behandle(evs) {
         if (e.rund) zeigePose('Melee_2H_Attack_Spin', 0.05, held.a.Melee_2H_Attack_Spin.getClip().duration / 0.45);
         else { const c = held.a[ANGRIFF_CLIP[held.name]]; zeigePose(ANGRIFF_CLIP[held.name], 0.04, c.getClip().duration / 0.36); }
         zeigeHieb(e.g, e.rund); ton('schwert', 0.95 + Math.random() * 0.1);
+        if (e.rund) ton('schrei', 0.95 + Math.random() * 0.1);
         break;
       }
       case 'kill': {
@@ -557,15 +566,16 @@ function behandle(evs) {
         break;
       }
       case 'schlag': { const g = lauf.gegner.find((x) => x.id === e.id); if (g) funke(g.x, 1.3, g.z, 8, '#ffd21c', 0.8); ton('landung', 1.3); break; }
-      case 'kugelWeg': { const k = lauf.kugeln.find((x) => x.id === e.id); if (k) funke(k.x, 1.2, k.z, 12, '#c690ff', 1); break; }
+      case 'kugelWeg': { const k = lauf.kugeln.find((x) => x.id === e.id); if (k) funke(k.x, 1.2, k.z, 12, '#c690ff', 1); ton('kugel', 1.1); break; }
+      case 'zauber': { ton('zauber', 0.95 + Math.random() * 0.1); const s = Object.values(pool).flat().find((p) => p.e && p.e.id === e.id); if (s) skPose(s, 'Ranged_Magic_Shoot', 0.08); break; }
       case 'treffer': {
-        ton('sturz'); $('kombo').hidden = true; wackeln = 0.35;
+        ton('au', 0.95 + Math.random() * 0.1); $('kombo').hidden = true; wackeln = 0.35;
         const h = $('hHerzen'); h.classList.remove('au'); void h.offsetWidth; h.classList.add('au');
         if (!lauf.tot) zeigePose('Hit_B', 0.05, 1.4);
         break;
       }
       case 'neu': if (e.boden) ton('landung', 0.7); break;
-      case 'welle': banner(`Welle ${e.n}`, e.n === 1 ? 'Halte die Bastion!' : ''); zeige(null); break;
+      case 'welle': ton('horn'); banner(`Welle ${e.n}`, e.n === 1 ? 'Halte die Bastion!' : ''); zeige(null); break;
       case 'geschafft': ton('truhe'); popup(`Welle geschafft! +${e.bonus}`, 'gold'); zeigePose('Cheering', 0.2); if (lauf.phase === 'wahl') setTimeout(() => { if (zustand === 'lauf' && lauf.phase === 'wahl') zeigeWahl(); }, 700); break;
       case 'upgrade': ton('kombo'); popup(L.UPGRADES[e.u].name + '!', 'gold'); zeige(null); break;
     }

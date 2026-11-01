@@ -58,7 +58,10 @@ async function starte(page) { await page.click('#mStart'); await warte(page, () 
 // Testgegner direkt setzen (Plan der Welle leeren); danach zählt der Lauf nicht für die Rangliste
 const gegner = (page, liste) => T(page, (l) => window.__bastion.gegner(l), liste);
 // Auf dem Handy echte Touch-Taps (die Maus-Emulation im Handy-Modus verschluckt Folgeklicks), am Rechner Mausklicks
-async function tippe(page, x, z) { const p = await T(page, ([x, z]) => window.__bastion.bildschirm(x, z), [x, z]); if (page.__mobil) await page.touchscreen.tap(p.x, p.y); else await page.mouse.click(p.x, p.y); }
+async function tippe(page, x, z) {
+  // erst wenn der letzte Hieb abgeklungen ist (Software-Grafik im Test: Spielzeit läuft langsamer als echte Zeit)
+  await warte(page, () => window.__bastion.lauf.abklingen <= 0);
+  const p = await T(page, ([x, z]) => window.__bastion.bildschirm(x, z), [x, z]); if (page.__mobil) await page.touchscreen.tap(p.x, p.y); else await page.mouse.click(p.x, p.y); }
 
 test('Laden: Raum, vier Skelett-Arten, Animationen und Startheld ohne Fehler; Ton; kein Querscrollen', async () => {
   const { page, errors, glb } = await open();
@@ -70,7 +73,7 @@ test('Laden: Raum, vier Skelett-Arten, Animationen und Startheld ohne Fehler; To
   assert.ok(await T(page, () => document.documentElement.scrollWidth <= innerWidth));
   assert.match(await page.textContent('#mName'), /Ritter/);
   await page.mouse.click(195, 400);
-  await warte(page, () => window.__bastion.ton.geladen.length === 10 && window.__bastion.ton.schleifen, null, 30000);
+  await warte(page, () => window.__bastion.ton.geladen.length === 16 && window.__bastion.ton.schleifen, null, 30000);
   await page.click('#mTon'); assert.equal((await T(page, () => window.__bastion.stand)).ton, false);
   assert.deepEqual(errors, []);
 });
