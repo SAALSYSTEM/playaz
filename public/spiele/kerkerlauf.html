@@ -1,4 +1,4 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Kerkerlauf · 3D-Runner durch den Kerker | PlaySaal</title><meta name="description" content="Renn durch den endlosen Kerker: Wische zum Ausweichen, spring über Stachelfallen, besiege Skelette und sammle Gold für neue Helden. Kostenlos, ohne Anmeldung, direkt im Browser."><link rel="canonical" href="https://playsaal.com/spiele/kerkerlauf"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Kerkerlauf · Wie weit kommst du?"><meta property="og:description" content="Ausweichen, springen, Skelette besiegen, Gold sammeln – ein Endlos-Lauf durch den Kerker."><meta property="og:url" content="https://playsaal.com/spiele/kerkerlauf"><meta property="og:image" content="https://playsaal.com/bilder/kerkerlauf-og.jpg?v=1"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Kerkerlauf · Wie weit kommst du?"><meta name="twitter:description" content="Ausweichen, springen, Skelette besiegen – wie weit kommst du?"><meta name="twitter:image" content="https://playsaal.com/bilder/kerkerlauf-og.jpg?v=1"><meta name="theme-color" content="#11121A"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/spiele/kerkerlauf/style.css?v=1"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'kerkerlauf',t:Date.now()}))}catch(e){}</script></head>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Kerkerlauf · 3D-Runner durch den Kerker | PlaySaal</title><meta name="description" content="Renn durch den endlosen Kerker: Wische zum Ausweichen, spring über Stachelfallen, besiege Skelette und sammle Gold für neue Helden. Kostenlos, ohne Anmeldung, direkt im Browser."><link rel="canonical" href="https://playsaal.com/spiele/kerkerlauf"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Kerkerlauf · Wie weit kommst du?"><meta property="og:description" content="Ausweichen, springen, Skelette besiegen, Gold sammeln – ein Endlos-Lauf durch den Kerker."><meta property="og:url" content="https://playsaal.com/spiele/kerkerlauf"><meta property="og:image" content="https://playsaal.com/bilder/kerkerlauf-og.jpg?v=1"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Kerkerlauf · Wie weit kommst du?"><meta name="twitter:description" content="Ausweichen, springen, Skelette besiegen – wie weit kommst du?"><meta name="twitter:image" content="https://playsaal.com/bilder/kerkerlauf-og.jpg?v=1"><meta name="theme-color" content="#11121A"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/spiele/kerkerlauf/style.css?v=2"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'kerkerlauf',t:Date.now()}))}catch(e){}</script></head>
 <body class="im-menu">
 <canvas id="c" aria-label="Kerker"></canvas>
 <a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
@@ -29,6 +29,7 @@
     <button id="mStart" class="knopf haupt" type="button">Loslaufen!</button>
     <button id="mKaufen" class="knopf haupt" type="button" hidden>Freischalten</button>
     <p class="rekord" id="mRekord"></p>
+    <button id="mRang" class="knopf" type="button">🏆 Tagesrangliste</button>
     <button id="mTon" class="klein" type="button" aria-pressed="true">Ton: an</button>
   </div>
 </section>
@@ -54,8 +55,19 @@
     </div>
     <p class="extra" id="eExtra"></p>
     <p class="rekord" id="eRekord"></p>
+    <p class="status" id="eStatus" aria-live="polite"></p>
     <button id="eNochmal" class="knopf haupt" type="button">Nochmal laufen</button>
-    <button id="eHelden" class="knopf" type="button">Held wählen</button>
+    <div class="zwei"><button id="eHelden" class="knopf" type="button">Held wählen</button><button id="eRang" class="knopf" type="button">🏆 Rangliste</button></div>
+  </div>
+</section>
+
+<section id="rang" class="schicht dialog" hidden>
+  <div class="karte rangkarte">
+    <h2>Tagesrangliste</h2>
+    <p class="unter">Heute laufen alle dieselbe Strecke. Gewertet wird dein bester Lauf – vom Server nachgespielt.</p>
+    <div class="tabs" id="rTabs" role="group" aria-label="Zeitraum"><button type="button" data-z="heute" aria-pressed="true">Heute</button><button type="button" data-z="monat" aria-pressed="false">Monat</button><button type="button" data-z="gesamt" aria-pressed="false">Gesamt</button></div>
+    <ol class="rangliste" id="rListe"></ol>
+    <button id="rZu" class="knopf" type="button">Zurück</button>
   </div>
 </section>
 
@@ -66,5 +78,5 @@
 <script src="/spiele/kerkerlauf/GLTFLoader.js?v=r128"></script>
 <script src="/spiele/kerkerlauf/SkeletonUtils.js?v=r128"></script>
 <script src="/spiele/kerkerlauf/BufferGeometryUtils.js?v=r128"></script>
-<script type="module" src="/spiele/kerkerlauf/game.js?v=1"></script>
+<script type="module" src="/spiele/kerkerlauf/game.js?v=2"></script>
 <script src="/assets/playsaal-config.js" defer></script><script src="/assets/playsaal.js" defer></script></body></html>

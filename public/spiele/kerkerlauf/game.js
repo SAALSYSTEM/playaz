@@ -254,6 +254,10 @@ let zustand = 'laden';           // laden | menu | lauf | pause | ende
 let lauf = L.neuerLauf(1);
 let auswahl = stand.held;
 let menuMix = 1, camX = 0, camY = 0, sturzZeit = 0, hinweisBis = 0, neuerRekord = false, ersterSkelett = true;
+// Feste Takte (1/60 s) und Aufzeichnung der Eingaben: so kann der Server den Lauf exakt nachspielen
+let takt = 0, rest = 0, aufnahme = [], tagSeed = 0, geprueft = true;
+const CFG = () => window.PLAYSAAL_CFG || {};
+const PS = () => window.PlaySaal || null;
 
 // ---------- Eingabe: Wischen und Tippen, Tastatur ----------
 const ein = { links: false, rechts: false, sprung: false, angriff: false };
@@ -280,7 +284,7 @@ fang.addEventListener('contextmenu', (e) => e.preventDefault());
 const TASTEN = { ArrowLeft: 'links', KeyA: 'links', ArrowRight: 'rechts', KeyD: 'rechts', ArrowUp: 'sprung', KeyW: 'sprung', Space: 'angriff', KeyF: 'angriff', KeyJ: 'angriff', Enter: 'angriff', ArrowDown: 'angriff', KeyS: 'angriff' };
 addEventListener('keydown', (e) => {
   if (zustand === 'lauf' && TASTEN[e.code]) { e.preventDefault(); if (!e.repeat) ein[TASTEN[e.code]] = true; }
-  if (e.code === 'Escape' || e.code === 'KeyP') { if (zustand === 'lauf') pausiere(); else if (zustand === 'pause') weiter(); }
+  if (e.code === 'Escape' || e.code === 'KeyP') { if (zustand === 'lauf') pausiere(); else if (zustand === 'pause') weiter(); else if (zustand === 'rang') rangZu(); }
   if (zustand === 'menu' && !e.repeat) {
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') blaettere(-1);
     if (e.code === 'ArrowRight' || e.code === 'KeyD') blaettere(1);
@@ -293,7 +297,7 @@ document.addEventListener('touchmove', (e) => { if (e.touches.length > 1 || zust
 
 // ---------- Oberfläche ----------
 function zeige(id) {
-  for (const s of ['menu', 'pause', 'ende', 'laden']) $(s).hidden = s !== id;
+  for (const s of ['menu', 'pause', 'ende', 'laden', 'rang']) $(s).hidden = s !== id;
   const laufend = id === null || id === 'pause';
   $('hud').hidden = !laufend;
   document.body.classList.toggle('im-lauf', id === null);
@@ -318,7 +322,8 @@ function aktualisiereMenu() {
   const k = $('mKaufen'); k.hidden = frei;
   if (!frei) { const fehlt = preis - stand.gold; k.disabled = fehlt > 0; k.textContent = fehlt > 0 ? `Noch ${fehlt} Gold sammeln` : `Freischalten für ${preis} Gold`; }
   $('mPunkte').innerHTML = L.HELDEN.map((h) => `<i class="${h === auswahl ? 'an' : ''}"></i>`).join('');
-  $('mRekord').textContent = stand.rekord ? `Rekord: ${stand.rekord.toLocaleString('de-DE')} Punkte` : 'Weiche aus, spring und besiege die Skelette!';
+  const heute = stand.tag === L.berlinTag() ? stand.tagBest : 0;
+  $('mRekord').textContent = stand.rekord ? `Heute: ${heute.toLocaleString('de-DE')} · Rekord: ${stand.rekord.toLocaleString('de-DE')} Punkte` : 'Weiche aus, spring und besiege die Skelette!';
   tonKnoepfe();
 }
 let blaetterNr = 0;
@@ -348,8 +353,9 @@ async function starte() {
   if (!stand.helden.includes(auswahl)) auswahl = stand.held;
   stand.held = auswahl; speichere();
   await ladeHeld(auswahl);
-  const seed = TEST && Q.get('seed') ? Number(Q.get('seed')) : (Date.now() % 1e9);
-  lauf = L.neuerLauf(seed);
+  // Alle spielen heute dieselbe Strecke (Tagesstrecke, Datum in Berlin)
+  tagSeed = TEST && Q.get('seed') ? Number(Q.get('seed')) : L.berlinTag();
+  lauf = L.neuerLauf(tagSeed); takt = 0; rest = 0; aufnahme = []; geprueft = true;
   for (const p of Object.values(pool)) for (const s of p) { s.item = null; s.root.visible = false; }
   zustand = 'lauf'; zeige(null);
   waehleHeld(auswahl);
@@ -383,6 +389,62 @@ function zeigeEnde() {
   setTimeout(() => { if (zustand === 'ende') $('eNochmal').focus({ preventScroll: true }); }, 50);
 }
 
+// ---------- Tagesrangliste (geprüft) ----------
+function zeigeStatus(text, ok = false) { const st = $('eStatus'); st.textContent = text; st.className = 'status' + (ok ? ' ok' : ''); }
+async function melden(l) {
+  const p = PS(); if (!p || !p.online) return { status: 'lokal' };
+  if (!(p.hatSitzung && p.hatSitzung())) return { status: 'gast' };
+  try {
+    const tk = p.token && p.token(); if (!tk) return { status: 'gast' };
+    const r = await fetch(CFG().url + '/functions/v1/kerkerlauf-lauf', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tk, apikey: CFG().key || '' }, body: JSON.stringify(l) });
+    if (r.status === 404) return { status: 'lokal' };
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.verifiziert) return { status: 'verifiziert', platz: j.platz_heute || null, von: j.spieler_heute || null };
+    if (r.ok) return { status: 'abgelehnt', grund: j.grund || '' };
+    return { status: 'fehler' };
+  } catch (e) { return { status: 'fehler' }; }
+}
+function meldeLauf(l) {
+  zeigeStatus('Wird geprüft …');
+  melden(l).then((r) => {
+    if (r.status === 'verifiziert') zeigeStatus('✓ Vom Server nachgespielt' + (r.platz ? ` · Platz ${r.platz}${r.von ? ' von ' + r.von : ''} heute` : ''), true);
+    else if (r.status === 'gast') zeigeStatus('Melde dich an (Reiter am Rand), dann kommst du in die Tagesrangliste.');
+    else if (r.status === 'abgelehnt') zeigeStatus(r.grund === 'zu_oft' ? 'Zu viele Meldungen. Gleich wieder versuchen.' : r.grund === 'kein_profil' ? 'Lege zuerst einen Spielernamen an (Konto).' : 'Nicht in die Rangliste übernommen.');
+    else if (r.status === 'fehler') zeigeStatus('Rangliste gerade nicht erreichbar. Dein Lauf bleibt auf diesem Gerät.');
+    else zeigeStatus('Neuer Tagesbestwert – gespeichert auf diesem Gerät.');
+  });
+}
+const avatar = (p, a) => ((p && p.avatare) || [])[(parseInt(String(a || 'a1').slice(1), 10) || 1) - 1] || '🙂';
+let rangZeit = 'heute', rangVon = 'menu';
+async function rangliste(zeit) {
+  rangZeit = zeit;
+  if (zustand !== 'rang') { rangVon = zustand; zustand = 'rang'; }
+  for (const s of ['menu', 'ende']) $(s).hidden = true;
+  $('rang').hidden = false;
+  for (const b of document.querySelectorAll('#rTabs button')) b.setAttribute('aria-pressed', String(b.dataset.z === zeit));
+  const liste = $('rListe'); liste.textContent = 'Lädt …';
+  const p = PS();
+  const res = p && p.online && p.rpc ? await p.rpc('kerkerlauf_rangliste', { p_zeitraum: zeit, p_anzahl: 50 }).catch(() => null) : null;
+  if (zeit !== rangZeit || zustand !== 'rang') return;
+  if (!res || res.fehler) { liste.textContent = 'Die Rangliste ist gerade nicht erreichbar.'; return; }
+  const rows = res.daten || [];
+  liste.textContent = '';
+  if (!rows.length) { liste.textContent = zeit === 'heute' ? 'Heute noch kein Eintrag. Lauf vor!' : 'Noch keine Einträge.'; return; }
+  for (const r of rows) {
+    const li = document.createElement('li'); if (r.ich) li.className = 'ich';
+    const a = document.createElement('span'); a.className = 'pl'; a.textContent = String(r.platz);
+    const b = document.createElement('span'); b.className = 'av'; b.textContent = avatar(p, r.avatar);
+    const c = document.createElement('span'); c.className = 'nm'; c.textContent = r.name + (r.ich ? ' (du)' : '');
+    const d = document.createElement('b'); d.textContent = Number(r.punkte).toLocaleString('de-DE');
+    const e = document.createElement('small'); e.textContent = Number(r.meter).toLocaleString('de-DE') + ' m';
+    li.append(a, b, c, d, e); liste.appendChild(li);
+  }
+}
+function rangZu() { $('rang').hidden = true; zustand = rangVon; $(rangVon === 'ende' ? 'ende' : 'menu').hidden = false; }
+for (const id of ['mRang', 'eRang']) $(id).addEventListener('click', () => { ton('klick'); rangliste('heute'); });
+for (const b of document.querySelectorAll('#rTabs button')) b.addEventListener('click', () => rangliste(b.dataset.z));
+$('rZu').addEventListener('click', rangZu);
+
 function behandle(evs) {
   for (const e of evs) {
     if (e === 'muenze') { ton('muenze'); funke(lauf.x, 1.2 + lauf.y, -lauf.d - 0.5, 4, '#ffd84a', 0.6); }
@@ -395,7 +457,10 @@ function behandle(evs) {
     else if (e === 'sturz') {
       ton('sturz'); sturzZeit = performance.now(); zeigePose('Death_A', 0.1);
       funke(lauf.x, 1, -lauf.d - 0.6, 30, '#ff9a3d', 1.2);
-      neuerRekord = L.verbuche(stand, lauf); speichere();
+      neuerRekord = L.verbuche(stand, lauf, tagSeed); speichere();
+      $('eStatus').textContent = ''; $('eStatus').className = 'status';
+      if (lauf.tagesBest && geprueft && L.punkte(lauf) > 0) meldeLauf({ v: L.SIM_VERSION, seed: tagSeed, inputs: L.kodiere(aufnahme), takte: takt, punkte: L.punkte(lauf), gold: lauf.muenzen, kills: lauf.kills });
+      else if (stand.tagBest && stand.tag === tagSeed) $('eStatus').textContent = `Dein Tagesbestwert (${stand.tagBest.toLocaleString('de-DE')} Punkte) steht noch.`;
     } else if (e && e.typ === 'kill') {
       ton('kill');
       popup(e.mal > 1 ? `+${e.punkte} ×${e.mal}` : `+${e.punkte}`, e.mal > 1 ? 'orange' : '');
@@ -528,9 +593,16 @@ function frame(jetzt) {
   const dt = Math.min(0.05, dtEcht), zeit = jetzt / 1000;
   if (zustand === 'laden') return;
   if (zustand === 'lauf') {
-    const evs = L.schritt(lauf, dt, ein);
-    for (const k of Object.keys(ein)) ein[k] = false;
-    if (evs.length) behandle(evs);
+    rest = Math.min(rest + dtEcht, 0.1);   // bei Rucklern lieber kurz langsamer als ein Sprung nach vorn
+    while (rest >= L.DT && !lauf.tot) {
+      rest -= L.DT;
+      const m = L.maske(ein);
+      if (m) aufnahme.push([takt, m]);
+      for (const k of Object.keys(ein)) ein[k] = false;
+      const evs = L.schritt(lauf, L.DT, { links: !!(m & 1), rechts: !!(m & 2), sprung: !!(m & 4), angriff: !!(m & 8) });
+      takt++;
+      if (evs.length) behandle(evs);
+    }
     if (lauf.tot && performance.now() - sturzZeit > 1500) zeigeEnde();
     if (hinweisBis && performance.now() > hinweisBis) { hinweisBis = 0; zeigeHinweis(''); }
     if (ersterSkelett && !hinweisBis && lauf.strecke.items.some((it) => it.typ === 'skelett' && !it.besiegt && Math.abs(L.SPUREN[it.spur] - lauf.x) < 1 && it.d - lauf.d < 16 && it.d > lauf.d)) {
@@ -613,5 +685,6 @@ window.__kerker = {
   get skelette() { return Object.values(pool).flat().filter((s) => s.item).map((s) => ({ id: s.item.id, pose: s.pose, sichtbar: s.root.visible })); },
   get zeichnungen() { return renderer.info.render.calls; }, get clips() { return Object.keys(CLIPS); },
   get instanzen() { const o = {}; for (const k in inst) o[k] = inst[k].count; return o; },
-  ...(TEST ? { foto: fotoModus, strecke(items) { lauf.strecke.items = items.map((it, i) => ({ id: 9000 + i, ...it })); lauf.strecke.next = 1e9; } } : {}),
+  get aufnahme() { return { seed: tagSeed, takte: takt, inputs: L.kodiere(aufnahme) }; },
+  ...(TEST ? { foto: fotoModus, strecke(items) { geprueft = false; lauf.strecke.items = items.map((it, i) => ({ id: 9000 + i, ...it })); lauf.strecke.next = 1e9; } } : {}),
 };

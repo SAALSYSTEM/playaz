@@ -93,3 +93,21 @@ body.im-lauf #fang{display:block}
 @media (max-height:600px){#menu .kopf{padding-top:12px}.logo{font-size:40px}.knopf.haupt{min-height:52px}}
 @media (prefers-reduced-motion:reduce){#pop span{animation-duration:1.4s}#kombo{animation:none}}
 body.foto .schicht,body.foto .pz-home,body.foto #hud,body.foto #kombo{display:none!important}
+
+/* Tagesrangliste */
+.status{margin:0;font-size:15px;font-weight:600;color:var(--grau);min-height:1.2em}
+.status.ok{color:#7be07b}
+.zwei{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.zwei .knopf{font-size:17px;padding:10px 8px}
+.rangkarte{max-height:calc(100dvh - 32px);width:min(100%,400px)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tabs button{border:1px solid var(--rand);border-radius:12px;background:#2a2d3d;padding:8px;font-weight:700}
+.tabs button[aria-pressed=true]{background:var(--gelb);color:var(--basis);border-color:var(--gelb)}
+.rangliste{list-style:none;margin:0;padding:0;overflow:auto;min-height:120px;max-height:52dvh;text-align:left}
+.rangliste li{display:grid;grid-template-columns:28px 28px 1fr auto;grid-template-rows:auto auto;column-gap:8px;align-items:center;padding:8px 6px;border-bottom:1px solid var(--rand)}
+.rangliste li.ich{background:rgba(255,146,0,.16);border-radius:10px}
+.rangliste .pl{grid-row:1/3;font-weight:700;color:var(--orange);text-align:center}
+.rangliste .av{grid-row:1/3;font-size:20px}
+.rangliste .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rangliste b{text-align:right;font-variant-numeric:tabular-nums}
+.rangliste small{grid-column:3/5;color:var(--grau);font-size:12px}

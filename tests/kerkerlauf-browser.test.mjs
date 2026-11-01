@@ -9,6 +9,7 @@ import { execSync } from 'node:child_process';
 import { readFileSync, existsSync, statSync } from 'node:fs';
 import { join, extname, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import * as L from '../public/spiele/kerkerlauf/logik.js';
 
 const ROOT = fileURLToPath(new URL('../public/', import.meta.url));
 function ladePlaywright() {
@@ -99,7 +100,7 @@ test('Stachelfalle: ohne Sprung Sturz mit Ergebnis, Nochmal laufen startet neu; 
   await page.click('#eNochmal'); await warte(page, () => window.__kerker.zustand === 'lauf');
   assert.ok((await F(page)).d < 3);
   await setzeVorne(page, [{ typ: 'stachel', spur: 1, vor: 9 }]);
-  await warte(page, () => { const f = window.__kerker.lauf; return f.strecke.items[0].d - f.d < 2.6; });
+  await warte(page, () => { const f = window.__kerker.lauf; return f.strecke.items[0].d - f.d < 4; });
   await wische(page, 0, -140);
   await warte(page, () => { const f = window.__kerker.lauf; return f.d > f.strecke.items[0].d + 3 || f.tot; });
   assert.ok(!(await F(page)).tot, 'Sprung über die Stacheln');
@@ -205,6 +206,41 @@ test('Dauerlauf: Bot läuft 30 s über die echte Strecke, Skelette aus dem Pool,
   assert.ok(await T(page, () => window.__kerker.zeichnungen) < 70, 'wenige Zeichenaufrufe');
   assert.ok((await T(page, () => window.__kerker.skelette)).length <= 14);
   await T(page, () => clearInterval(window.__bot));
+  assert.deepEqual(errors, []);
+});
+
+test('Rangliste: Lauf im Browser wird aufgezeichnet und in Node exakt nachgespielt; Tagesrangliste öffnet und schließt', async () => {
+  const { page, errors } = await open({ seed: 20261101 });
+  await starte(page);
+  // Bot über Tastatur, echte Tagesstrecke (keine Testhindernisse), nach ~250 m keine Eingaben mehr → Sturz
+  await T(page, () => {
+    const BLOCK = new Set(['kiste', 'fass', 'stapel']), send = (code) => dispatchEvent(new KeyboardEvent('keydown', { code }));
+    window.__bot = setInterval(() => {
+      const f = window.__kerker.lauf; if (f.tot || f.d > 250) return;
+      const vor = f.strecke.items.filter((it) => !it.weg && !it.besiegt && !['muenze', 'truhe'].includes(it.typ) && it.d > f.d - 0.2 && it.d < f.d + 40).sort((a, b) => a.d - b.d);
+      if (!vor.length) return;
+      const reihe = vor.filter((it) => it.d === vor[0].d), art = (l) => { const it = reihe.find((i) => i.spur === l); return it ? (BLOCK.has(it.typ) ? 9 : 1) : 0; };
+      let ziel = f.spur, best = 99;
+      for (const l of [0, 1, 2]) { const k = art(l) * 3 + Math.abs(l - f.spur); if (k < best) { best = k; ziel = l; } }
+      if (ziel < f.spur) send('ArrowLeft'); else if (ziel > f.spur) send('ArrowRight');
+      const hier = reihe.find((i) => i.spur === f.spur), abst = vor[0].d - f.d;
+      if (hier && hier.typ === 'stachel' && !f.luft && abst < 4.5) send('ArrowUp');
+      if (hier && hier.typ === 'skelett' && abst < 5) send('Space');
+    }, 30);
+  });
+  await warte(page, () => window.__kerker.zustand === 'ende', null, 240000);
+  await T(page, () => clearInterval(window.__bot));
+  const m = await T(page, () => { const f = window.__kerker.lauf, a = window.__kerker.aufnahme; return { v: 1, seed: a.seed, inputs: a.inputs, takte: a.takte, punkte: Math.floor(f.d) + f.muenzen * 10 + f.bonus, gold: f.muenzen, kills: f.kills }; });
+  const r = L.pruefeLauf(m);
+  assert.equal(r.ok, true, 'Server-Nachspielen: ' + JSON.stringify({ ...r, takte: m.takte, punkte: m.punkte }));
+  assert.equal(r.punkte, m.punkte);
+  assert.ok(m.inputs.length > 10);
+  assert.match(await page.textContent('#eStatus'), /Tagesbestwert|Gerät/);
+  await page.click('#eRang'); assert.ok(await page.isVisible('#rang'));
+  await warte(page, () => !/Lädt/.test(document.getElementById('rListe').textContent));
+  assert.match(await page.textContent('#rListe'), /nicht erreichbar/);   // ohne PlaySaal-Konto (im Test abgeschaltet)
+  await page.click('#rTabs button[data-z="monat"]'); assert.equal(await page.getAttribute('#rTabs button[data-z="monat"]', 'aria-pressed'), 'true');
+  await page.click('#rZu'); assert.ok(await page.isVisible('#ende')); assert.ok(!(await page.isVisible('#rang')));
   assert.deepEqual(errors, []);
 });
 

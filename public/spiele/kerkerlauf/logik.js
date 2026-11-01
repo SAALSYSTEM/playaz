@@ -9,6 +9,8 @@ export const NAMEN = { ritter: 'Ritter Rudi', barbar: 'Barbarin Bruni', schurke:
 export const PUNKTE = { muenze: 10, kill: 50, truhe: 100 };
 export const SPRUNG = { v: 9.5, g: 27 };    // Sprunghöhe ≈ 1,7 m, Flugzeit ≈ 0,7 s
 export const ANGRIFF = { reichweite: 6.5, dauer: 0.42 };
+export const TAKT = 60, DT = 1 / TAKT;      // feste Schrittweite: im Browser und auf dem Server identisch
+export const SIM_VERSION = 1;               // erhöhen, sobald sich Regeln ändern (alte Läufe zählen dann nicht mehr)
 const START_FREI = 45;
 
 export function tempo(d) { return Math.min(22, 9 + d / 190); }          // 9 m/s → 22 m/s nach ~2,5 km
@@ -140,20 +142,68 @@ export function schritt(f, dt, ein = {}) {
   return ev;
 }
 
+// ---------- Eingaben kodieren und Lauf nachspielen (für die geprüfte Rangliste) ----------
+// Eingabe je Takt als Bitmaske: 1 links, 2 rechts, 4 Sprung, 8 Angriff. Kodiert als "Abstand:Maske,…" (nur Takte mit Eingabe).
+export const BIT = { links: 1, rechts: 2, sprung: 4, angriff: 8 };
+export function maske(ein) { return (ein.links ? 1 : 0) | (ein.rechts ? 2 : 0) | (ein.sprung ? 4 : 0) | (ein.angriff ? 8 : 0); }
+export function kodiere(eingaben) {          // eingaben: [[takt, maske], …] aufsteigend
+  let vor = 0; const teile = [];
+  for (const [t, m] of eingaben) { teile.push((t - vor) + ':' + m); vor = t; }
+  return teile.join(',');
+}
+export function dekodiere(text) {
+  if (typeof text !== 'string') return null;
+  if (!text) return [];
+  const out = []; let t = 0;
+  for (const teil of text.split(',')) {
+    const m = /^(\d{1,6}):(\d{1,2})$/.exec(teil); if (!m) return null;
+    const d = Number(m[1]), k = Number(m[2]);
+    if ((out.length && d < 1) || k < 1 || k > 15) return null;
+    t += d; out.push([t, k]);
+  }
+  return out;
+}
+// Spielt einen gemeldeten Lauf mit festen Takten nach. Gültig nur, wenn der Held genau im letzten Takt stürzt
+// und Punkte, Gold und Skelette übereinstimmen.
+export const MAX_TAKTE = TAKT * 60 * 20;    // 20 Minuten
+export function pruefeLauf(l) {
+  if (!l || l.v !== SIM_VERSION || !Number.isInteger(l.seed) || !Number.isInteger(l.takte) || l.takte < 1 || l.takte > MAX_TAKTE) return { ok: false, grund: 'ungueltig' };
+  const ein = dekodiere(l.inputs);
+  if (!ein || ein.length > l.takte) return { ok: false, grund: 'eingaben' };
+  const f = neuerLauf(l.seed); let i = 0;
+  for (let t = 0; t < l.takte; t++) {
+    if (f.tot) return { ok: false, grund: 'zu_lang' };
+    let m = 0; if (i < ein.length && ein[i][0] === t) m = ein[i++][1];
+    if (i < ein.length && ein[i][0] <= t) return { ok: false, grund: 'eingaben' };
+    schritt(f, DT, { links: !!(m & 1), rechts: !!(m & 2), sprung: !!(m & 4), angriff: !!(m & 8) });
+  }
+  if (!f.tot) return { ok: false, grund: 'kein_ende' };
+  if (i !== ein.length) return { ok: false, grund: 'eingaben' };
+  const p = punkte(f);
+  if (p !== l.punkte || f.muenzen !== l.gold || f.kills !== l.kills) return { ok: false, grund: 'abweichung' };
+  return { ok: true, punkte: p, meter: Math.floor(f.d), kills: f.kills, gold: f.muenzen, takte: l.takte };
+}
+// Tagesstrecke: Datum in Berlin als Zahl JJJJMMTT – alle spielen am selben Tag dieselbe Strecke
+export function berlinTag(jetzt = new Date(), tage = 0) {
+  const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(jetzt.getTime() + tage * 86400000));
+  return Number(p.replace(/-/g, ''));
+}
+
 // ---------- Spielstand ----------
-export function leerStand() { return { v: 1, gold: 0, rekord: 0, meter: 0, kills: 0, helden: ['ritter'], held: 'ritter', ton: true }; }
+export function leerStand() { return { v: 1, gold: 0, rekord: 0, meter: 0, kills: 0, helden: ['ritter'], held: 'ritter', ton: true, tag: 0, tagBest: 0 }; }
 export function pruefeStand(s) {
   const l = leerStand();
   if (!s || typeof s !== 'object') return l;
   const zahl = (x) => (Number.isFinite(x) && x >= 0 ? Math.floor(x) : 0);
   const helden = Array.isArray(s.helden) ? s.helden.filter((h) => HELDEN.includes(h)) : [];
   if (!helden.includes('ritter')) helden.unshift('ritter');
-  return { v: 1, gold: zahl(s.gold), rekord: zahl(s.rekord), meter: zahl(s.meter), kills: zahl(s.kills), helden: [...new Set(helden)], held: helden.includes(s.held) ? s.held : 'ritter', ton: s.ton !== false };
+  return { v: 1, gold: zahl(s.gold), rekord: zahl(s.rekord), meter: zahl(s.meter), kills: zahl(s.kills), helden: [...new Set(helden)], held: helden.includes(s.held) ? s.held : 'ritter', ton: s.ton !== false, tag: zahl(s.tag), tagBest: zahl(s.tagBest) };
 }
 // Lauf ins Spielstand übernehmen; gibt true zurück bei neuem Rekord
-export function verbuche(st, f) {
+export function verbuche(st, f, tag = 0) {
   const p = punkte(f);
   st.gold += f.muenzen; st.kills += f.kills; st.meter = Math.max(st.meter, Math.floor(f.d));
+  if (tag) { if (st.tag !== tag) { st.tag = tag; st.tagBest = 0; } if (p > st.tagBest) { st.tagBest = p; f.tagesBest = true; } }
   if (p > st.rekord) { st.rekord = p; return true; }
   return false;
 }

@@ -57,9 +57,20 @@ Im Spiel: Hautteile jeder Figur werden beim Laden zu einem `SkinnedMesh` verschm
 
 ```sh
 node --test tests/kerkerlauf-sim.test.mjs                                # Regeln, faire Strecke, Bot, Spielstand (ohne Browser)
-node --test --test-concurrency=1 tests/kerkerlauf-browser.test.mjs       # Laden, Clips, Wischen/Tippen, Sprung, Kampf, Sturz, Speichern, Freischalten, Pause, Dauerlauf, Handy-Layout
+node --test tests/kerkerlauf-pruefung.test.mjs                           # Prüf-Funktion: echter Lauf bestätigt, Manipulationen abgelehnt, Tage, CORS
+node --test --test-concurrency=1 tests/kerkerlauf-browser.test.mjs       # Laden, Clips, Wischen/Tippen, Sprung, Kampf, Sturz, Speichern, Freischalten, Pause, Dauerlauf, Browser-Lauf in Node nachgespielt, Handy-Layout
+node --test tests/db.test.mjs                                            # u. a. KERKERLAUF-Rangliste (PGlite)
 ```
+
+## Tagesstrecke und geprüfte Rangliste
+
+- **Tagesstrecke:** Startwert = Datum in Europe/Berlin (JJJJMMTT) – alle laufen am selben Tag dieselbe Strecke, um Mitternacht kommt eine neue.
+- **Feste Takte:** Die Regeln laufen in festen Schritten von 1/60 s (`L.DT`), jede Eingabe wird mit ihrem Takt aufgezeichnet (`kodiere`: „Abstand:Maske,…“, Maske 1 links, 2 rechts, 4 Sprung, 8 Angriff). Ruckelt das Gerät, holt das Spiel höchstens 0,1 s pro Bild nach.
+- **Rangliste:** Nur mit Konto. Gemeldet wird nur ein neuer Tagesbestwert: Strecke, Eingaben, Takte, Punkte, Gold, Skelette. Die Edge Function `kerkerlauf-lauf` spielt den Lauf mit `logik.js` nach (`pruefeLauf`) und trägt nur bestätigte Läufe ein. Wertung: Punkte, bei Gleichstand weniger Takte. Zeiträume Heute/Monat/Gesamt (Knopf „Tagesrangliste“ im Menü und „Rangliste“ nach dem Lauf).
+- **Einrichtung (einmalig, nur du):** 1. SQL aus `supabase/migrations/20261101040000_kerkerlauf_rangliste.sql` im SQL Editor ausführen. 2. `npx supabase functions deploy kerkerlauf-lauf --project-ref cphwxikfrxgejiqghlwn --no-verify-jwt`. Ohne diese Schritte läuft das Spiel normal, Läufe bleiben dann nur auf dem Gerät.
+- **Regeländerungen:** `SIM_VERSION` in `logik.js` erhöhen und `node tools/edge-sync.mjs` ausführen (kopiert `logik.js` in die Edge Function).
+- **Ehrliche Grenze:** wie bei den anderen Ranglisten. Der Server beweist, dass die Eingaben die Punkte ergeben, nicht dass ein Mensch gespielt hat.
 
 ## Mögliche nächste Schritte
 
-Tagesrangliste über die vorhandenen Konten (wie Papierpilot), tägliche Aufgaben („besiege 20 Skelette“), Magier-Zauber als sichtbares Geschoss, weitere Gegner (Skelett-Magier, -Schurke aus dem Paket).
+Tägliche Aufgaben („besiege 20 Skelette“), Magier-Zauber als sichtbares Geschoss, weitere Gegner (Skelett-Magier, -Schurke aus dem Paket).

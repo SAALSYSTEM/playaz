@@ -442,6 +442,47 @@ test('PAPIERPILOT-Rangliste: nur die Prüf-Funktion trägt ein; Distanz vor Zeit
   assert.equal((await db.query(`select count(*)::int n from private.papierpilot_fluege where user_id = '${A}'`)).rows[0].n, 0);
 });
 
+test('KERKERLAUF-Rangliste: nur die Prüf-Funktion trägt ein; Punkte vor Zeit, Tage, Rate, Aufräumen, Löschung', async () => {
+  const A = 'a9a9a9a9-aaaa-4aaa-8aaa-aaaaaaaaaaaa', B = 'b9b9b9b9-bbbb-4bbb-8bbb-bbbbbbbbbbbb', C = 'c9c9c9c9-cccc-4ccc-8ccc-cccccccccccc', K = 'd9d9d9d9-dddd-4ddd-8ddd-dddddddddddd';
+  await db.exec(`insert into auth.users (id, email) values ('${A}', 'ka@example.org'), ('${B}', 'kb@example.org'), ('${C}', 'kc@example.org'), ('${K}', 'kk@example.org')`);
+  await rpc('authenticated', A, 'profil_speichern', 'Kai', 'a3');
+  await rpc('authenticated', B, 'profil_speichern', 'Kim', 'a4');
+  await rpc('authenticated', C, 'profil_speichern', 'Kora', 'a5');
+  const heute = Number((await db.query(`select to_char(private.berlin_heute(), 'YYYYMMDD') d`)).rows[0].d);
+  const gestern = Number((await db.query(`select to_char(private.berlin_heute() - 1, 'YYYYMMDD') d`)).rows[0].d);
+  const eintragen = (uid, seed, punkte, takte) => rpc('service_role', null, 'kerkerlauf_eintragen', uid, seed, punkte, Math.floor(punkte / 3), takte, 1, '4:8');
+  const rang = (rolle, uid, zr) => als(rolle, uid, 'select * from public.kerkerlauf_rangliste($1, 50)', [zr]);
+  for (const rolle of ['anon', 'authenticated']) {
+    const e = await fehler(rolle, A, `select public.kerkerlauf_eintragen('${A}', ${heute}, 3000, 900, 2000, 1, '4:8')`);
+    assert.match(String(e && e.message), /permission denied/, 'eintragen als ' + rolle);
+    assert.match(String((await fehler(rolle, A, 'select * from private.kerkerlauf_laeufe')).message), /permission denied/);
+    assert.match(String((await fehler(rolle, A, `select * from private.kerkerlauf_wertung('heute')`)).message), /permission denied/);
+  }
+  assert.equal((await eintragen(A, heute, 0, 100)).grund, 'ungueltig');
+  assert.equal((await eintragen(A, heute, 3000, 0)).grund, 'ungueltig');
+  assert.equal((await eintragen(A, 20200101, 3000, 2000)).grund, 'tag');
+  assert.equal((await eintragen(A, heute + 1000, 3000, 2000)).grund, 'tag');
+  assert.equal((await eintragen(K, heute, 3000, 2000)).grund, 'kein_profil');
+  assert.equal((await eintragen(A, heute, 3000, 2400)).ok, true);
+  assert.equal((await eintragen(B, heute, 3000, 2100)).ok, true);   // gleiche Punkte, schneller → vorn
+  const c = await eintragen(C, heute, 2470, 1900); assert.equal(c.platz_heute, 3); assert.equal(c.spieler_heute, 3);
+  assert.equal((await eintragen(A, heute, 2900, 1000)).ok, true);   // schlechter, zählt nicht
+  assert.equal((await eintragen(C, gestern, 9000, 5000)).ok, true);  // Lauf über Mitternacht zählt für seinen Tag
+  const h = await rang('anon', null, 'heute');
+  assert.deepEqual(h.map((x) => [x.platz, x.name, x.punkte, x.takte, x.ich]).map(String), ['1,Kim,3000,2100,false', '2,Kai,3000,2400,false', '3,Kora,2470,1900,false']);
+  assert.deepEqual(Object.keys(h[0]).sort(), ['avatar', 'ich', 'meter', 'name', 'platz', 'punkte', 'takte']);
+  assert.equal((await rang('authenticated', A, 'heute')).find((x) => x.ich).name, 'Kai');
+  assert.equal((await rang('anon', null, 'gesamt'))[0].name, 'Kora');
+  assert.match(String((await fehler('anon', null, `select * from public.kerkerlauf_rangliste('x', 5)`)).message), /unbekannt/);
+  await db.exec('select private.aufraeumen()');
+  assert.equal((await db.query(`select count(*)::int n from private.kerkerlauf_laeufe where user_id = '${A}'`)).rows[0].n, 1);
+  assert.equal((await db.query(`select punkte from private.kerkerlauf_laeufe where user_id = '${A}'`)).rows[0].punkte, 3000);
+  let zuOft = null; for (let i = 0; i < 12 && !zuOft; i++) { const x = await eintragen(B, heute, 1000 + i, 500); if (!x.ok) zuOft = x.grund; }
+  assert.equal(zuOft, 'zu_oft');
+  await rpc('authenticated', A, 'konto_loeschen', 'LÖSCHEN');
+  assert.equal((await db.query(`select count(*)::int n from private.kerkerlauf_laeufe where user_id = '${A}'`)).rows[0].n, 0);
+});
+
 test('DARTFIEBER: Challenge pro Tag fest, Run-ID einmalig, nur Prüf-Funktion schließt ab; Rangliste, Gleichstand, Archiv, Löschung', async () => {
   const { VERSION } = await import(pathToFileURL(join(ROOT, 'public/spiele/dartfieber/sim.js')).href);
   assert.equal((await db.query('select private.dartfieber_version() v')).rows[0].v, VERSION, 'Version in SQL und sim.js gleich');

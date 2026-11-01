@@ -3,6 +3,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import * as L from '../public/spiele/kerkerlauf/logik.js';
+import { bot, botLauf } from '../tools/kerkerlauf-bot.mjs';
 
 const BLOCK = new Set(['kiste', 'fass', 'stapel']);
 const lauf = (f, sek, ein = () => ({})) => { const ev = []; for (let i = 0; i < sek * 60 && !f.tot; i++) ev.push(...L.schritt(f, 1 / 60, ein(i))); return ev; };
@@ -82,26 +83,6 @@ test('Spielstand: prüfen, verbuchen, Rekord, freischalten', () => {
   assert.equal(L.freischalten(st, 'barbar'), false, 'schon frei');
 });
 
-// Bot: sieht die nächste Reihe, wählt eine machbare Spur, springt über Stacheln, greift Skelette an
-export function bot(f) {
-  const vor = f.strecke.items.filter((it) => !it.weg && !it.besiegt && it.typ !== 'muenze' && it.typ !== 'truhe' && it.d > f.d - 0.2 && it.d < f.d + 40).sort((a, b) => a.d - b.d);
-  if (!vor.length) return {};
-  const dRow = vor[0].d, reihe = vor.filter((it) => it.d === dRow);
-  const art = (l) => { const it = reihe.find((i) => i.spur === l); return it ? (BLOCK.has(it.typ) ? 9 : it.typ === 'stachel' ? 1 : 2) : 0; };
-  let ziel = f.spur, best = 99;
-  for (const l of [f.spur, f.spur - 1, f.spur + 1, f.spur - 2, f.spur + 2]) {
-    if (l < 0 || l > 2) continue;
-    const kosten = art(l) * 3 + Math.abs(l - f.spur);
-    if (kosten < best) { best = kosten; ziel = l; }
-  }
-  const ein = {};
-  if (ziel < f.spur) ein.links = true; else if (ziel > f.spur) ein.rechts = true;
-  const hier = reihe.find((i) => i.spur === f.spur), abst = dRow - f.d, v = L.tempo(f.d);
-  if (hier && hier.typ === 'stachel' && !f.luft && abst < v * 0.33 + 0.9) ein.sprung = true;
-  if (hier && hier.typ === 'skelett' && abst < 5) ein.angriff = true;
-  return ein;
-}
-
 test('Bot läuft 30 Strecken à 4000 m ohne Sturz (jede Strecke ist machbar)', () => {
   for (let seed = 1; seed <= 30; seed++) {
     const f = L.neuerLauf(seed * 7919);
@@ -109,4 +90,33 @@ test('Bot läuft 30 Strecken à 4000 m ohne Sturz (jede Strecke ist machbar)', (
     assert.ok(!f.tot, `Seed ${seed}: Sturz bei ${Math.floor(f.d)} m (${f.getroffen})`);
     assert.ok(f.muenzen > 100 && f.kills > 8, `Seed ${seed}: ${f.muenzen} Münzen, ${f.kills} Skelette`);
   }
+});
+
+// ---------- Geprüfte Rangliste: Aufzeichnen und Nachspielen ----------
+test('Eingaben: kodieren/dekodieren, kaputte Texte werden abgelehnt', () => {
+  const e = [[0, 8], [5, 1], [6, 4], [300, 15]];
+  assert.deepEqual(L.dekodiere(L.kodiere(e)), e);
+  assert.deepEqual(L.dekodiere(''), []);
+  for (const x of ['a:1', '3:0', '3:16', '3:1,0:2', '3;1', null]) assert.equal(L.dekodiere(x), null, String(x));
+});
+
+test('Nachspielen: echter Lauf wird bestätigt, jede Manipulation abgelehnt', () => {
+  const l = botLauf(20261101, 900);
+  assert.ok(l.punkte > 900 && l.kills > 3, JSON.stringify({ ...l, inputs: l.inputs.length }));
+  const r = L.pruefeLauf(l);
+  assert.equal(r.ok, true, JSON.stringify(r)); assert.equal(r.punkte, l.punkte);
+  const falsch = [
+    [{ ...l, punkte: l.punkte + 50 }, 'abweichung'], [{ ...l, gold: l.gold + 1 }, 'abweichung'], [{ ...l, kills: l.kills + 1 }, 'abweichung'],
+    [{ ...l, takte: l.takte - 1 }, 'kein_ende'], [{ ...l, takte: l.takte + 30 }, 'zu_lang'], [{ ...l, seed: l.seed + 1 }, null],
+    [{ ...l, inputs: 'x' }, 'eingaben'], [{ ...l, v: 99 }, 'ungueltig'], [{ ...l, takte: L.MAX_TAKTE + 1 }, 'ungueltig'],
+  ];
+  for (const [x, grund] of falsch) { const q = L.pruefeLauf(x); assert.equal(q.ok, false, grund); if (grund) assert.equal(q.grund, grund); }
+});
+
+test('Tagesbestwert: nur ein besserer Lauf am selben Tag zählt als neuer Tagesbestwert', () => {
+  const st = L.leerStand();
+  const a = L.neuerLauf(1); a.d = 500; L.verbuche(st, a, 20261101); assert.equal(a.tagesBest, true); assert.equal(st.tagBest, 500);
+  const b = L.neuerLauf(1); b.d = 300; L.verbuche(st, b, 20261101); assert.ok(!b.tagesBest); assert.equal(st.tagBest, 500);
+  const c = L.neuerLauf(1); c.d = 100; L.verbuche(st, c, 20261102); assert.equal(c.tagesBest, true); assert.equal(st.tag, 20261102);
+  assert.equal(L.berlinTag(new Date('2026-10-31T23:30:00Z')), 20261101);
 });
