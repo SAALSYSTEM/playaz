@@ -2,7 +2,7 @@
 
 3D-Endlos-Runner durch einen Kerker, Hochformat, `/spiele/kerkerlauf`. Der Held rennt von selbst; der Spieler wischt zum Ausweichen (◀ ▶), springt über Stachelfallen (▲) und besiegt Skelette mit einem Tipp. Gold sammeln, Kombos aufbauen, neue Helden freischalten. Kein Konto nötig, keine Werbung, keine Käufe.
 
-Stand 31.10.2026: Branch `kerkerlauf`, noch nicht auf `main`. Katalog-Eintrag: `supabase/migrations/20261031230000_kerkerlauf.sql` (noch nicht ausgeführt).
+Stand 01.11.2026: veröffentlicht auf `main`. Katalog-Eintrag: `supabase/migrations/20261031230000_kerkerlauf.sql` (noch nicht ausgeführt).
 
 ## Regeln
 
