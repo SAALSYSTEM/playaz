@@ -41,6 +41,7 @@ Helden: Ritter Rudi (frei), Barbarin Bruni (500), Schurke Schatten (1.500), Wald
 | `public/spiele/kerkerlauf/modelle/*.glb` | 5 Helden, 2 Skelette, 7 Animationsdateien, Welt (zusammen ~3,7 MB; beim Start ~2,1 MB, weitere Helden erst beim Blättern) |
 | `design/kerkerlauf/kaykit/` | genutzte Original-Dateien aus den KayKit-Paketen + Lizenztexte |
 | `tools/kerkerlauf-assets.mjs` | erzeugt die GLBs (gltf-transform): Waffen an `handslot.r/l`, nur benötigte Clips, Welt-Teile in einer Datei |
+| `tools/kerkerlauf-sound.py` | Sounds aufbereiten (ffmpeg) |
 | `tools/kerkerlauf-bilder.mjs` | Kachel `public/bilder/kerkerlauf.webp` und Teilen-Vorschau `public/bilder/kerkerlauf-og.jpg` aus dem Spiel rendern |
 
 ## Modelle und Lizenz
@@ -48,6 +49,12 @@ Helden: Ritter Rudi (frei), Barbarin Bruni (500), Schurke Schatten (1.500), Wald
 KayKit Adventurers 2.0, Skeletons 1.1, Character Animations 1.1 und Dungeon Pack 1.1 (jeweils FREE) von Kay Lousberg, www.kaylousberg.com – Lizenz CC0 (Namensnennung freiwillig). Alle Figuren nutzen das Skelett `Rig_Medium`, deshalb passen die Clips aus `anim-*.glb` auf Helden und Skelette.
 
 Im Spiel: Hautteile jeder Figur werden beim Laden zu einem `SkinnedMesh` verschmolzen; Skelette sind ein Pool aus je 7 Klonen (`SkeletonUtils.clone`); Kerker-Teile werden gebacken und als `InstancedMesh` gezeichnet. Rund 25–40 Zeichenaufrufe pro Bild. Licht: Halbkugel + Richtungslicht + ein mitwanderndes Fackel-Punktlicht; Fackelschein als Punkt-Sprites.
+
+## Ton
+
+Musik „Wizard Rider – Enchanted Fantasy Orchestral Loop“ (sonican), Fackel-Knistern (soundsforyou) und Effekte von Pixabay (Lieferung Auftraggeber, Originale in `design/kerkerlauf/sound/`, Fackel nur als 40-s-Ausschnitt): Schwert-Whoosh (dragon-studio), Münze und Power-up (vadim_makes_sound), Truhe (floraphonic), Sprung (dragon-studio), Landung (freesound_community), Sturz (cookiecheese), Rekord-Fanfare und Freischalten (universfield).
+`python3 tools/kerkerlauf-sound.py` macht daraus `public/spiele/kerkerlauf/sound/*.mp3` (mono; Effekte ohne Stille, auf −1 dBFS, 64 kbit/s; Musik −16 LUFS, 96 kbit/s; Fackel als nahtlose 24-s-Schleife), zusammen ~1,1 MB.
+Im Spiel per WebAudio: Musik und Knistern laufen durchgehend (auch beim Neustart), Lautstärke je Zustand (Menü/Lauf/Pause/Ende), Stille am Dateianfang/-ende wird beim Loopen übersprungen. Startet mit der ersten Berührung, „Ton: aus“ schaltet alles stumm, im Hintergrund pausiert der Ton. Knochen-Knacken, Spurwechsel und Klick bleiben erzeugte Töne.
 
 ## Spielstand
 

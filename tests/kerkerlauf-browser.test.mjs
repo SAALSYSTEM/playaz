@@ -19,7 +19,7 @@ function ladePlaywright() {
   return req('/opt/npm-tools/node_modules/playwright');
 }
 const { chromium } = ladePlaywright();
-const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.glb': 'model/gltf-binary', '.webp': 'image/webp', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.svg': 'image/svg+xml', '.png': 'image/png' };
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.glb': 'model/gltf-binary', '.webp': 'image/webp', '.woff2': 'font/woff2', '.ico': 'image/x-icon', '.svg': 'image/svg+xml', '.png': 'image/png', '.mp3': 'audio/mpeg' };
 let server, browser, base;
 const offen = [];
 
@@ -71,6 +71,11 @@ test('Laden: Welt, zwei Skelette, Animationen und Startheld ohne Fehler; Menü o
   await warte(page, () => window.__kerker.instanzen.boden > 30);
   assert.ok(await T(page, () => document.documentElement.scrollWidth <= innerWidth));
   assert.match(await page.textContent('#mName'), /Ritter/);
+  // Ton: startet mit der ersten Berührung, alle Dateien werden dekodiert, Musik und Knistern laufen in Schleife
+  await page.mouse.click(195, 400);
+  await warte(page, () => window.__kerker.ton.geladen.length === 11 && window.__kerker.ton.schleifen, null, 30000);
+  assert.deepEqual((await T(page, () => window.__kerker.ton)).geladen, ['fackel', 'freischalten', 'kombo', 'landung', 'muenze', 'musik', 'rekord', 'schwert', 'sprung', 'sturz', 'truhe']);
+  await page.click('#mTon'); assert.equal((await T(page, () => window.__kerker.stand)).ton, false);
   assert.deepEqual(errors, []);
 });
 

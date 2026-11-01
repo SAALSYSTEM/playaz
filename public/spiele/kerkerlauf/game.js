@@ -214,38 +214,95 @@ const fleck = (() => {
   m.rotation.x = -Math.PI / 2; m.renderOrder = 1; scene.add(m); return m;
 })();
 
-// ---------- Ton ----------
-let audio = null;
+// ---------- Ton: Musik, Fackel-Knistern und Effekte (WebAudio) ----------
+// Dateien aus tools/kerkerlauf-sound.py (Pixabay). Fehlt eine Datei, spielt ein kurzer Ersatz-Ton.
+const SOUNDS = ['musik', 'fackel', 'schwert', 'muenze', 'truhe', 'sprung', 'landung', 'sturz', 'kombo', 'rekord', 'freischalten'];
+const LAUT = { schwert: 0.5, muenze: 0.42, truhe: 0.75, sprung: 0.45, landung: 0.4, sturz: 0.75, kombo: 0.65, rekord: 0.75, freischalten: 0.75 };
+const MUSIK = { menu: 0.3, lauf: 0.38, pause: 0.12, ende: 0.22, rang: 0.22 };   // Musik-Lautstärke je Zustand
+let audio = null, master = null, musikBus = null, fxBus = null;
+const puffer = {};
+let schleifenLaufen = false;
+function audioStart() {
+  try {
+    if (!audio) {
+      audio = new (window.AudioContext || window.webkitAudioContext)();
+      master = audio.createGain(); master.connect(audio.destination);
+      musikBus = audio.createGain(); musikBus.gain.value = 0; musikBus.connect(master);
+      fxBus = audio.createGain(); fxBus.connect(master);
+      for (const n of SOUNDS) {
+        fetch(new URL(`./sound/${n}.mp3?v=1`, import.meta.url)).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
+          .then((b) => new Promise((ok, err) => audio.decodeAudioData(b, ok, err)))
+          .then((buf) => { puffer[n] = buf; if (n === 'musik' || n === 'fackel') starteSchleifen(); })
+          .catch(() => {});
+      }
+    }
+    if (audio.state === 'suspended' && !document.hidden) audio.resume();
+    master.gain.value = stand.ton ? 1 : 0;
+    musikLautstaerke();
+  } catch (e) {}
+}
+// Stille am Anfang/Ende (MP3-Polster) beim Loopen überspringen → keine Lücke
+function schleifenGrenzen(buf) {
+  const d = buf.getChannelData(0); let a = 0, e = d.length - 1;
+  while (a < d.length && Math.abs(d[a]) < 0.0015) a++;
+  while (e > a && Math.abs(d[e]) < 0.0015) e--;
+  return [a / buf.sampleRate, (e + 1) / buf.sampleRate];
+}
+function schleife(buf, ziel, laut) {
+  const s = audio.createBufferSource(), g = audio.createGain();
+  s.buffer = buf; s.loop = true; [s.loopStart, s.loopEnd] = schleifenGrenzen(buf);
+  g.gain.value = laut; s.connect(g).connect(ziel); s.start(0, s.loopStart);
+}
+function starteSchleifen() {
+  if (schleifenLaufen || !puffer.musik || !puffer.fackel) return;
+  schleifenLaufen = true;
+  schleife(puffer.musik, musikBus, 1);
+  schleife(puffer.fackel, master, 0.35);       // Knistern leise, unabhängig von der Musik
+  musikLautstaerke();
+}
+function musikLautstaerke() {
+  if (!musikBus) return;
+  musikBus.gain.setTargetAtTime(MUSIK[zustand] ?? 0.3, audio.currentTime, 0.35);
+}
+addEventListener('pointerdown', audioStart, { capture: true });
+addEventListener('keydown', audioStart, { capture: true });
+document.addEventListener('visibilitychange', () => { if (!audio) return; if (document.hidden) audio.suspend(); else if (stand.ton) audio.resume(); });
+
 function ton(art) {
   if (!stand.ton) return;
   try {
-    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
-    if (audio.state === 'suspended') audio.resume();
+    audioStart();
+    const datei = art === 'kauf' ? 'freischalten' : art;
+    if (puffer[datei]) {
+      const s = audio.createBufferSource(), g = audio.createGain();
+      s.buffer = puffer[datei]; g.gain.value = LAUT[datei] ?? 0.6;
+      if (datei === 'muenze') s.playbackRate.value = 0.96 + Math.random() * 0.12;   // nicht jedes Mal gleich
+      s.connect(g).connect(fxBus); s.start();
+      return;
+    }
     const t = audio.currentTime;
     const note = (f, start, dauer, typ = 'sine', laut = 0.12, f2) => {
       const o = audio.createOscillator(), g = audio.createGain();
       o.type = typ; o.frequency.setValueAtTime(f, t + start); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + start + dauer);
       g.gain.setValueAtTime(0.0001, t + start); g.gain.exponentialRampToValueAtTime(laut, t + start + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + start + dauer);
-      o.connect(g).connect(audio.destination); o.start(t + start); o.stop(t + start + dauer + 0.02);
+      o.connect(g).connect(fxBus); o.start(t + start); o.stop(t + start + dauer + 0.02);
     };
     const rauschen = (dauer, laut, von, bis) => {
       const n = Math.floor(audio.sampleRate * dauer), b = audio.createBuffer(1, n, audio.sampleRate), d = b.getChannelData(0);
       for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
       const s = audio.createBufferSource(), f = audio.createBiquadFilter(), g = audio.createGain();
       s.buffer = b; f.type = 'bandpass'; f.frequency.setValueAtTime(von, t); f.frequency.exponentialRampToValueAtTime(bis, t + dauer); g.gain.value = laut;
-      s.connect(f).connect(g).connect(audio.destination); s.start(t);
+      s.connect(f).connect(g).connect(fxBus); s.start(t);
     };
-    if (art === 'muenze') { note(988, 0, 0.07, 'square', 0.04); note(1319, 0.05, 0.14, 'square', 0.04); }
+    // Ersatz-Töne (Knochen-Knacken, Spurwechsel und Klick haben keine eigene Datei)
+    if (art === 'kill') { note(180, 0, 0.12, 'square', 0.06, 90); rauschen(0.12, 0.35, 900, 300); }
+    else if (art === 'wechsel') rauschen(0.08, 0.12, 1200, 700);
+    else if (art === 'klick') note(620, 0, 0.06, 'sine', 0.06);
+    else if (art === 'muenze') { note(988, 0, 0.07, 'square', 0.04); note(1319, 0.05, 0.14, 'square', 0.04); }
     else if (art === 'sprung') note(260, 0, 0.25, 'triangle', 0.1, 560);
     else if (art === 'schwert') rauschen(0.18, 0.5, 2400, 600);
-    else if (art === 'kill') { note(180, 0, 0.12, 'square', 0.06, 90); rauschen(0.12, 0.35, 900, 300); }
-    else if (art === 'kombo') { note(660, 0, 0.1, 'triangle'); note(880, 0.08, 0.1, 'triangle'); note(1175, 0.16, 0.2, 'triangle'); }
-    else if (art === 'truhe') { note(523, 0, 0.1); note(659, 0.08, 0.1); note(784, 0.16, 0.1); note(1047, 0.24, 0.3); }
-    else if (art === 'wechsel') rauschen(0.08, 0.15, 1200, 700);
     else if (art === 'landung') note(140, 0, 0.1, 'sine', 0.1, 80);
     else if (art === 'sturz') { note(330, 0, 0.4, 'sawtooth', 0.07, 90); rauschen(0.3, 0.4, 500, 120); }
-    else if (art === 'klick') note(620, 0, 0.06, 'sine', 0.06);
-    else if (art === 'kauf') { note(659, 0, 0.12); note(880, 0.1, 0.12); note(1319, 0.2, 0.3); }
   } catch (e) {}
 }
 
@@ -303,6 +360,7 @@ function zeige(id) {
   document.body.classList.toggle('im-lauf', id === null);
   document.body.classList.toggle('im-menu', id === 'menu');
   if (!laufend) $('kombo').hidden = true;
+  setTimeout(musikLautstaerke, 0);
 }
 function tonKnoepfe() { for (const id of ['mTon', 'pTon']) { $(id).textContent = 'Ton: ' + (stand.ton ? 'an' : 'aus'); $(id).setAttribute('aria-pressed', String(stand.ton)); } }
 async function zeigeMenu() {
@@ -341,7 +399,7 @@ $('mKaufen').addEventListener('click', () => {
   if (L.freischalten(stand, auswahl)) { speichere(); ton('kauf'); zeigePose('Cheering', 0.2); aktualisiereMenu(); popup('Freigeschaltet!', 'gold'); }
 });
 $('mStart').addEventListener('click', starte);
-for (const id of ['mTon', 'pTon']) $(id).addEventListener('click', () => { stand.ton = !stand.ton; speichere(); tonKnoepfe(); ton('klick'); });
+for (const id of ['mTon', 'pTon']) $(id).addEventListener('click', () => { stand.ton = !stand.ton; speichere(); tonKnoepfe(); audioStart(); ton('klick'); });
 $('bPause').addEventListener('click', pausiere);
 $('pWeiter').addEventListener('click', weiter);
 $('pNeu').addEventListener('click', starte);
@@ -386,6 +444,7 @@ function zeigeEnde() {
   $('eExtra').textContent = lauf.kills ? `${lauf.kills} ${lauf.kills === 1 ? 'Skelett' : 'Skelette'} besiegt${lauf.besteSerie >= 3 ? ` · beste Kombo ×${L.kombo(lauf.besteSerie - 1)}` : ''}` : '';
   const r = $('eRekord'); r.classList.toggle('neu', neuerRekord);
   r.textContent = neuerRekord ? '★ Neuer Rekord! ★' : `Rekord: ${stand.rekord.toLocaleString('de-DE')} Punkte`;
+  if (neuerRekord) ton('rekord');
   setTimeout(() => { if (zustand === 'ende') $('eNochmal').focus({ preventScroll: true }); }, 50);
 }
 
@@ -418,7 +477,7 @@ const avatar = (p, a) => ((p && p.avatare) || [])[(parseInt(String(a || 'a1').sl
 let rangZeit = 'heute', rangVon = 'menu';
 async function rangliste(zeit) {
   rangZeit = zeit;
-  if (zustand !== 'rang') { rangVon = zustand; zustand = 'rang'; }
+  if (zustand !== 'rang') { rangVon = zustand; zustand = 'rang'; musikLautstaerke(); }
   for (const s of ['menu', 'ende']) $(s).hidden = true;
   $('rang').hidden = false;
   for (const b of document.querySelectorAll('#rTabs button')) b.setAttribute('aria-pressed', String(b.dataset.z === zeit));
@@ -440,7 +499,7 @@ async function rangliste(zeit) {
     li.append(a, b, c, d, e); liste.appendChild(li);
   }
 }
-function rangZu() { $('rang').hidden = true; zustand = rangVon; $(rangVon === 'ende' ? 'ende' : 'menu').hidden = false; }
+function rangZu() { $('rang').hidden = true; zustand = rangVon; $(rangVon === 'ende' ? 'ende' : 'menu').hidden = false; musikLautstaerke(); }
 for (const id of ['mRang', 'eRang']) $(id).addEventListener('click', () => { ton('klick'); rangliste('heute'); });
 for (const b of document.querySelectorAll('#rTabs button')) b.addEventListener('click', () => rangliste(b.dataset.z));
 $('rZu').addEventListener('click', rangZu);
@@ -684,6 +743,7 @@ window.__kerker = {
   get held() { return held && { name: held.name, pose: held.pose, sichtbar: held.root.visible, clips: Object.keys(held.a).length }; },
   get skelette() { return Object.values(pool).flat().filter((s) => s.item).map((s) => ({ id: s.item.id, pose: s.pose, sichtbar: s.root.visible })); },
   get zeichnungen() { return renderer.info.render.calls; }, get clips() { return Object.keys(CLIPS); },
+  get ton() { return { geladen: Object.keys(puffer).sort(), schleifen: schleifenLaufen, status: audio ? audio.state : 'aus', musik: musikBus ? musikBus.gain.value : 0 }; },
   get instanzen() { const o = {}; for (const k in inst) o[k] = inst[k].count; return o; },
   get aufnahme() { return { seed: tagSeed, takte: takt, inputs: L.kodiere(aufnahme) }; },
   ...(TEST ? { foto: fotoModus, strecke(items) { geprueft = false; lauf.strecke.items = items.map((it, i) => ({ id: 9000 + i, ...it })); lauf.strecke.next = 1e9; } } : {}),
