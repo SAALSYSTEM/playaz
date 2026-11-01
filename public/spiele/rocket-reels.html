@@ -1,0 +1,144 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Rocket Reels · Mission Jackpot – Weltraum-Walzenspiel mit Spielgeld | PlaySaal</title><meta name="description" content="Fünf Walzen, zehn Gewinnlinien, Stargate-Freispiele und der Hyperjump: ein kostenloses Weltraum-Arcade-Spiel mit virtuellen Space Coins ohne Geldwert. Ohne Anmeldung, direkt im Browser. Nicht für Kinder."><link rel="canonical" href="https://playsaal.com/spiele/rocket-reels"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Rocket Reels · Mission Jackpot"><meta property="og:description" content="Walzen drehen, Stargate öffnen, Rakete starten: Weltraum-Arcade mit virtuellen Space Coins."><meta property="og:url" content="https://playsaal.com/spiele/rocket-reels"><meta property="og:image" content="https://playsaal.com/bilder/rocket-reels-og.jpg?v=1"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Rocket Reels · Mission Jackpot"><meta name="twitter:description" content="Weltraum-Arcade mit Stargate-Freispielen und Hyperjump – nur Spielgeld."><meta name="twitter:image" content="https://playsaal.com/bilder/rocket-reels-og.jpg?v=1"><meta name="theme-color" content="#05060f"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/spiele/rocket-reels/style.css?v=1"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'rocket-reels',t:Date.now()}))}catch(e){}</script></head>
+<body>
+<canvas id="himmel" aria-hidden="true"></canvas>
+<a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
+
+<div id="app">
+  <header class="kopf">
+    <h1 class="logo"><span>Rocket</span><span>Reels</span></h1>
+    <button id="bCoins" class="coins" type="button" aria-label="Space Coins"><i class="coin" aria-hidden="true"></i><b id="hCoins">1.000</b></button>
+    <button id="bProfil" class="rund" type="button" aria-label="Profil und Statistik" title="Profil"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="4" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M4.5 20.5c1.2-4 4.2-6 7.5-6s6.3 2 7.5 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><i id="profilPunkt" hidden></i></button>
+    <button id="bTon" class="rund" type="button" aria-label="Ton und Musik" title="Ton"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path id="tonWellen" d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </header>
+
+  <main class="buehne">
+    <div class="oben">
+      <canvas id="raketeKlein" aria-hidden="true"></canvas>
+      <div id="bonusHud" class="bonus-hud" hidden>
+        <div><small>Freispiele</small><b id="bRest">10</b></div>
+        <div class="spezial"><small>Spezial</small><canvas id="bSym" width="88" height="88" aria-hidden="true"></canvas><span id="bSymName" class="sr"></span></div>
+        <div><small>Bonusgewinn</small><b id="bSumme">0</b></div>
+      </div>
+      <button id="bTages" class="tages" type="button" hidden>Tagesbonus <b>+100</b> abholen</button>
+    </div>
+    <div id="walzen" class="walzen">
+      <canvas id="rollen" aria-label="Fünf Walzen mit je drei Symbolen"></canvas>
+      <div id="rahmen" class="rahmen" aria-hidden="true"></div>
+    </div>
+    <div id="anzeige" class="anzeige" aria-live="polite"><span id="aText">Viel Glück, Pilot!</span></div>
+  </main>
+
+  <footer class="unten">
+    <div id="wahl" class="wahl" hidden>
+      <button id="bSichern" class="knopf sichern" type="button">Gewinn sichern</button>
+      <button id="bRisiko" class="knopf risiko" type="button">Risiko – Hyperjump</button>
+    </div>
+    <div class="steuer">
+      <div class="einsatz" role="radiogroup" aria-label="Einsatz">
+        <button type="button" role="radio" data-e="10">10</button><button type="button" role="radio" data-e="20">20</button>
+        <button type="button" role="radio" data-e="50">50</button><button type="button" role="radio" data-e="100">100</button>
+        <small>Einsatz</small>
+      </div>
+      <button id="bStart" class="start" type="button"><span id="startText">Start</span><small id="startUnter">10 Coins</small></button>
+      <div class="rechts">
+        <button id="bInfo" class="rund gross" type="button" aria-label="Gewinnübersicht und Regeln" title="Gewinnübersicht"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 10.5v6.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="7.3" r="1.5" fill="currentColor"/></svg></button>
+        <button id="bTurbo" class="rund gross" type="button" aria-pressed="false" aria-label="Schnelle Walzen" title="Schnelle Walzen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 5 13.5h6L10 22l8.5-12.5h-6z" fill="currentColor"/></svg></button>
+      </div>
+    </div>
+    <p class="fuss"><a href="/">← Zurück zu PlaySaal</a><span>Space Coins sind Spielgeld ohne Geldwert</span></p>
+  </footer>
+</div>
+
+<!-- Rocket Launch / Rückflug -->
+<section id="szene" class="schicht szene" hidden aria-live="polite">
+  <canvas id="szeneCanvas" aria-hidden="true"></canvas>
+  <div class="szene-text"><h2 id="szTitel"></h2><p id="szUnter"></p></div>
+  <button id="szWeiter" class="knopf haupt" type="button" hidden>Los geht's</button>
+  <small class="tippen">Tippen zum Überspringen</small>
+</section>
+
+<!-- Hyperjump -->
+<section id="risiko" class="schicht risiko-schicht" hidden aria-labelledby="rTitel">
+  <canvas id="risikoCanvas" aria-hidden="true"></canvas>
+  <div class="r-kopf"><h2 id="rTitel">Hyperjump</h2><p id="rInfo">Wähle eine Hyperraum-Route. Jede Route: 50 % Chance.</p></div>
+  <div class="r-unten">
+    <div class="routen">
+      <button id="rLinks" class="knopf route" type="button">◀ Route Alpha</button>
+      <button id="rRechts" class="knopf route" type="button">Route Beta ▶</button>
+    </div>
+    <button id="rSichern" class="knopf sichern" type="button">Gewinn sichern</button>
+  </div>
+</section>
+
+<!-- Gewinnübersicht -->
+<section id="info" class="schicht dialog" hidden aria-labelledby="iTitel">
+  <div class="karte lang">
+    <button class="zu" type="button" data-zu aria-label="Schließen">×</button>
+    <h2 id="iTitel">Gewinnübersicht</h2>
+    <p class="unter">Werte für deinen Einsatz von <b id="iEinsatz">10</b> Coins (je Linie <b id="iLinie">1</b>).</p>
+    <div id="iTabelle" class="tabelle"></div>
+    <h3>Stargate</h3>
+    <div id="iStargate" class="stargate-regel"></div>
+    <h3>10 Gewinnlinien</h3>
+    <div id="iLinien" class="linien"></div>
+    <h3>So wird gewertet</h3>
+    <ul id="iRegeln" class="regeln"></ul>
+    <h3>Freispiele „Rocket Launch“</h3>
+    <ul id="iBonus" class="regeln"></ul>
+    <h3>Risiko „Hyperjump“</h3>
+    <ul id="iRisiko" class="regeln"></ul>
+    <h3>Space Coins &amp; Speichern</h3>
+    <ul id="iCoins" class="regeln"></ul>
+    <p class="hinweis-box" id="iFair"></p>
+  </div>
+</section>
+
+<!-- Profil / Statistik -->
+<section id="profil" class="schicht dialog" hidden aria-labelledby="pTitel">
+  <div class="karte">
+    <button class="zu" type="button" data-zu aria-label="Schließen">×</button>
+    <h2 id="pTitel">Pilotenprofil</h2>
+    <p class="unter" id="pModus"></p>
+    <dl id="pStats" class="stats"></dl>
+    <button id="pKonto" class="knopf haupt" type="button" hidden>Coins sichern</button>
+    <p class="klein" id="pHinweis"></p>
+  </div>
+</section>
+
+<!-- Ton -->
+<section id="einst" class="schicht dialog" hidden aria-labelledby="eTitel">
+  <div class="karte">
+    <button class="zu" type="button" data-zu aria-label="Schließen">×</button>
+    <h2 id="eTitel">Ton</h2>
+    <label class="schalter"><input type="checkbox" id="eEffekte"><span>Soundeffekte</span></label>
+    <label class="schalter"><input type="checkbox" id="eMusik"><span>Musik</span></label>
+    <label class="regler"><span>Lautstärke</span><input type="range" id="eLaut" min="0" max="100" step="5"></label>
+  </div>
+</section>
+
+<!-- Konto-Hinweis (dezent, unten) -->
+<section id="werbung" class="schicht blatt" hidden aria-labelledby="wTitel">
+  <div class="karte">
+    <h2 id="wTitel">Mission erfolgreich!</h2>
+    <p>Sichere deine Space Coins kostenlos mit deinem PlaySaal-Konto und spiele auf anderen Geräten weiter.</p>
+    <button id="wJa" class="knopf haupt" type="button">Coins sichern</button>
+    <button id="wNein" class="knopf" type="button">Als Gast weiterspielen</button>
+  </div>
+</section>
+
+<!-- Gast-Spielstand übernehmen -->
+<section id="gast" class="schicht dialog" hidden aria-labelledby="gTitel">
+  <div class="karte">
+    <h2 id="gTitel">Gast-Spielstand übernehmen?</h2>
+    <p id="gText"></p>
+    <button id="gJa" class="knopf haupt" type="button">Übernehmen</button>
+    <button id="gNein" class="knopf" type="button">Nicht übernehmen</button>
+  </div>
+</section>
+
+<div id="toast" role="status" hidden></div>
+<div id="laden" class="schicht"><div class="karte"><h2>Rocket Reels</h2><p id="ladeText">Countdown läuft …</p></div></div>
+<noscript><p class="fehler">Rocket Reels braucht JavaScript.</p></noscript>
+
+<script type="module" src="/spiele/rocket-reels/game.js?v=1"></script>
+<script src="/assets/playsaal-config.js" defer></script><script src="/assets/playsaal.js" defer></script></body></html>
