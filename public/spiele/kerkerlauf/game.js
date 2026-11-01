@@ -230,7 +230,7 @@ function audioStart() {
       musikBus = audio.createGain(); musikBus.gain.value = 0; musikBus.connect(master);
       fxBus = audio.createGain(); fxBus.connect(master);
       for (const n of SOUNDS) {
-        fetch(new URL(`./sound/${n}.mp3?v=1`, import.meta.url)).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
+        fetch(new URL(`./sound/${n}.mp3?v=2`, import.meta.url)).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
           .then((b) => new Promise((ok, err) => audio.decodeAudioData(b, ok, err)))
           .then((buf) => { puffer[n] = buf; if (n === 'musik' || n === 'fackel') starteSchleifen(); })
           .catch(() => {});

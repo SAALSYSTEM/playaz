@@ -52,7 +52,7 @@ Im Spiel: Hautteile jeder Figur werden beim Laden zu einem `SkinnedMesh` verschm
 
 ## Ton
 
-Musik „Wizard Rider – Enchanted Fantasy Orchestral Loop“ (sonican), Fackel-Knistern (soundsforyou) und Effekte von Pixabay (Lieferung Auftraggeber, Originale in `design/kerkerlauf/sound/`, Fackel nur als 40-s-Ausschnitt): Schwert-Whoosh (dragon-studio), Münze und Power-up (vadim_makes_sound), Truhe (floraphonic), Sprung (dragon-studio), Landung (freesound_community), Sturz (cookiecheese), Rekord-Fanfare und Freischalten (universfield).
+Musik „Wizard Rider – Enchanted Fantasy Orchestral Loop“ (sonican), Fackel-Knistern (soundsforyou) und Effekte von Pixabay (Lieferung Auftraggeber, Originale in `design/kerkerlauf/sound/`, Fackel nur als 40-s-Ausschnitt): Schwert-Whoosh (dragon-studio), Münze (freesound_gamestudio, „Drop Coin“), Power-up (vadim_makes_sound), Truhe (floraphonic), Sprung (dragon-studio), Landung (freesound_community), Sturz (cookiecheese), Rekord-Fanfare und Freischalten (universfield).
 `python3 tools/kerkerlauf-sound.py` macht daraus `public/spiele/kerkerlauf/sound/*.mp3` (mono; Effekte ohne Stille, auf −1 dBFS, 64 kbit/s; Musik −16 LUFS, 96 kbit/s; Fackel als nahtlose 24-s-Schleife), zusammen ~1,1 MB.
 Im Spiel per WebAudio: Musik und Knistern laufen durchgehend (auch beim Neustart), Lautstärke je Zustand (Menü/Lauf/Pause/Ende), Stille am Dateianfang/-ende wird beim Loopen übersprungen. Startet mit der ersten Berührung, „Ton: aus“ schaltet alles stumm, im Hintergrund pausiert der Ton. Knochen-Knacken, Spurwechsel und Klick bleiben erzeugte Töne.
 
