@@ -406,6 +406,15 @@ $('pNeu').addEventListener('click', starte);
 $('pMenu').addEventListener('click', zeigeMenu);
 $('eNochmal').addEventListener('click', starte);
 $('eHelden').addEventListener('click', zeigeMenu);
+// ---------- Teilen (Handy: Teilen-Menü, sonst Link in die Zwischenablage) ----------
+function meldung(text) { const t = $('toast'); t.textContent = text; t.hidden = false; clearTimeout(meldung.h); meldung.h = setTimeout(() => { t.hidden = true; }, 3000); }
+async function teilen() {
+  const url = location.origin + location.pathname, text = `Ich bin im Kerkerlauf ${Math.floor(lauf.d).toLocaleString('de-DE')} m weit gekommen und habe ${L.punkte(lauf).toLocaleString('de-DE')} Punkte geholt. Schaffst du mehr?`;
+  if (navigator.share) { try { await navigator.share({ title: 'Kerkerlauf', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(text + ' ' + url); meldung('Link kopiert – schick ihn deinen Freunden!'); } catch (e) { meldung(url); }
+}
+$('eTeilen').addEventListener('click', () => { ton('klick'); teilen(); });
+
 
 async function starte() {
   if (!stand.helden.includes(auswahl)) auswahl = stand.held;

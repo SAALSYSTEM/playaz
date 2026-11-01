@@ -1,4 +1,4 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Kerkerlauf · 3D-Runner durch den Kerker | PlaySaal</title><meta name="description" content="Renn durch den endlosen Kerker: Wische zum Ausweichen, spring über Stachelfallen, besiege Skelette und sammle Gold für neue Helden. Kostenlos, ohne Anmeldung, direkt im Browser."><link rel="canonical" href="https://playsaal.com/spiele/kerkerlauf"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Kerkerlauf · Wie weit kommst du?"><meta property="og:description" content="Ausweichen, springen, Skelette besiegen, Gold sammeln – ein Endlos-Lauf durch den Kerker."><meta property="og:url" content="https://playsaal.com/spiele/kerkerlauf"><meta property="og:image" content="https://playsaal.com/bilder/kerkerlauf-og.jpg?v=1"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Kerkerlauf · Wie weit kommst du?"><meta name="twitter:description" content="Ausweichen, springen, Skelette besiegen – wie weit kommst du?"><meta name="twitter:image" content="https://playsaal.com/bilder/kerkerlauf-og.jpg?v=1"><meta name="theme-color" content="#11121A"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/spiele/kerkerlauf/style.css?v=2"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'kerkerlauf',t:Date.now()}))}catch(e){}</script></head>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Kerkerlauf · 3D-Runner durch den Kerker | PlaySaal</title><meta name="description" content="Renn durch den endlosen Kerker: Wische zum Ausweichen, spring über Stachelfallen, besiege Skelette und sammle Gold für neue Helden. Kostenlos, ohne Anmeldung, direkt im Browser."><link rel="canonical" href="https://playsaal.com/spiele/kerkerlauf"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Kerkerlauf · Wie weit kommst du?"><meta property="og:description" content="Ausweichen, springen, Skelette besiegen, Gold sammeln – ein Endlos-Lauf durch den Kerker."><meta property="og:url" content="https://playsaal.com/spiele/kerkerlauf"><meta property="og:image" content="https://playsaal.com/bilder/kerkerlauf-og.jpg?v=1"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Kerkerlauf · Wie weit kommst du?"><meta name="twitter:description" content="Ausweichen, springen, Skelette besiegen – wie weit kommst du?"><meta name="twitter:image" content="https://playsaal.com/bilder/kerkerlauf-og.jpg?v=1"><meta name="theme-color" content="#11121A"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/spiele/kerkerlauf/style.css?v=3"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'kerkerlauf',t:Date.now()}))}catch(e){}</script></head>
 <body class="im-menu">
 <canvas id="c" aria-label="Kerker"></canvas>
 <a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
@@ -57,7 +57,7 @@
     <p class="rekord" id="eRekord"></p>
     <p class="status" id="eStatus" aria-live="polite"></p>
     <button id="eNochmal" class="knopf haupt" type="button">Nochmal laufen</button>
-    <div class="zwei"><button id="eHelden" class="knopf" type="button">Held wählen</button><button id="eRang" class="knopf" type="button">🏆 Rangliste</button></div>
+    <div class="zwei mit-teilen"><button id="eHelden" class="knopf" type="button">Held wählen</button><button id="eRang" class="knopf" type="button">🏆 Rangliste</button><button id="eTeilen" class="knopf teilen" type="button" aria-label="Ergebnis teilen" title="Teilen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3" fill="currentColor"/><circle cx="6" cy="12" r="3" fill="currentColor"/><circle cx="18" cy="19" r="3" fill="currentColor"/><path d="M8.6 10.7l6.8-4M8.6 13.3l6.8 4" stroke="currentColor" stroke-width="2.2" fill="none"/></svg></button></div>
   </div>
 </section>
 
@@ -71,6 +71,7 @@
   </div>
 </section>
 
+<div id="toast" role="status" hidden></div>
 <div id="laden" class="schicht"><div class="karte"><h2>Kerkerlauf</h2><p id="ladeText">Die Fackeln werden angezündet …</p><div class="balken"><i id="ladeBalken"></i></div></div></div>
 <noscript><p class="fehler">Kerkerlauf braucht JavaScript.</p></noscript>
 
@@ -78,5 +79,5 @@
 <script src="/spiele/kerkerlauf/GLTFLoader.js?v=r128"></script>
 <script src="/spiele/kerkerlauf/SkeletonUtils.js?v=r128"></script>
 <script src="/spiele/kerkerlauf/BufferGeometryUtils.js?v=r128"></script>
-<script type="module" src="/spiele/kerkerlauf/game.js?v=6"></script>
+<script type="module" src="/spiele/kerkerlauf/game.js?v=7"></script>
 <script src="/assets/playsaal-config.js" defer></script><script src="/assets/playsaal.js" defer></script></body></html>

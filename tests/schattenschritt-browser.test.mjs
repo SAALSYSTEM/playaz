@@ -75,7 +75,7 @@ test('Laden: Raum, Schurke, vier Skelett-Arten, Animationen; Levelauswahl mit 24
   assert.equal(await page.textContent('#mMax'), '72');
   assert.ok(await T(page, () => document.documentElement.scrollWidth <= innerWidth));
   await page.mouse.click(195, 300);
-  await warte(page, () => window.__schatten.ton.geladen.length === 13 && window.__schatten.ton.schleifen, null, 30000);
+  await warte(page, () => window.__schatten.ton.geladen.length === 15 && window.__schatten.ton.schleifen, null, 30000);
   await page.click('#mTon'); assert.equal((await T(page, () => window.__schatten.stand)).ton, false);
   assert.deepEqual(errors, []);
 });
@@ -100,6 +100,9 @@ test('Level 1: Wischen und Tippen aufs Nachbarfeld bewegen, Mauer blockiert ohne
   await warte(page, () => !document.getElementById('ende').hidden);
   assert.equal(await page.locator('#eSterne .stern.an').count(), 2, 'Ausgang + alle Münzen, aber nicht der kürzeste Weg');
   assert.equal((await T(page, () => window.__schatten.stand)).sterne[0], 2);
+  // Teilen: im Testbrowser ohne Teilen-Menü → Hinweis (Link kopiert oder Link selbst)
+  await page.click('#eTeilen'); await warte(page, () => !document.getElementById('toast').hidden);
+  assert.match(await page.textContent('#toast'), /kopiert|schattenschritt/);
   await page.click('#eWeiter'); await warte(page, () => window.__schatten.zustand === 'spiel' && window.__schatten.nr === 1);
   await page.reload(); await warte(page, () => window.__schatten && window.__schatten.zustand === 'menu', null, 60000);
   assert.equal(await page.locator('#mLevel .raster button:not([disabled])').count(), 2);

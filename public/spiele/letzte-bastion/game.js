@@ -420,6 +420,15 @@ $('pNeu').addEventListener('click', starte);
 $('pMenu').addEventListener('click', zeigeMenu);
 $('eNochmal').addEventListener('click', starte);
 $('eHelden').addEventListener('click', zeigeMenu);
+// ---------- Teilen (Handy: Teilen-Menü, sonst Link in die Zwischenablage) ----------
+function meldung(text) { const t = $('toast'); t.textContent = text; t.hidden = false; clearTimeout(meldung.h); meldung.h = setTimeout(() => { t.hidden = true; }, 3000); }
+async function teilen() {
+  const url = location.origin + location.pathname, text = `Ich habe die Letzte Bastion ${lauf.welle} ${lauf.welle === 1 ? 'Welle' : 'Wellen'} lang gehalten – ${lauf.punkte.toLocaleString('de-DE')} Punkte! Wie lange hältst du durch?`;
+  if (navigator.share) { try { await navigator.share({ title: 'Letzte Bastion', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(text + ' ' + url); meldung('Link kopiert – schick ihn deinen Freunden!'); } catch (e) { meldung(url); }
+}
+$('eTeilen').addEventListener('click', () => { ton('klick'); teilen(); });
+
 
 function raeumeAuf() {
   for (const p of Object.values(pool)) for (const s of p) { s.e = null; s.root.visible = false; }

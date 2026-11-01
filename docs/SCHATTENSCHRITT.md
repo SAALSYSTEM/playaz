@@ -41,9 +41,12 @@ Entwürfe aus `tools/schattenschritt-generator.mjs` (würfelt Karten und Wachen,
 | `public/spiele/schattenschritt/game.js` | three.js-Darstellung, Eingabe, Oberfläche, Ton |
 | `public/spiele/schattenschritt/modelle/` | Raum-Teile (2 × 2 m je Feld) und Schleich-Animationen (`tools/schattenschritt-assets.mjs`) |
 | `/spiele/kerkerlauf/…`, `/spiele/letzte-bastion/…` | gemeinsam genutzt: Schurke, Skelette, Grund-Animationen, Sounds |
-| `tools/schattenschritt-bilder.mjs` | Kachel und Teilen-Bild aus dem Spiel gerendert (Platzhalter, bis Bilder von ChatGPT kommen) |
+| `public/spiele/schattenschritt/sound/musik.mp3` | Spielmusik „Action Battle“ (kulakovka, Pixabay) als nahtlose 78,5-s-Schleife (`python3 tools/schattenschritt-sound.py`) |
+| `public/bilder/schattenschritt.webp`, `schattenschritt-og.jpg` | Kachel und Teilen-Bild (von ChatGPT, Originale in `design/schattenschritt/bilder/`) |
 
-Modelle: KayKit (CC0, Kay Lousberg), wie im Kerkerlauf. Ton: Kerkerlauf-Musik und -Effekte, „au“ und „zauber“ aus Letzte Bastion.
+Modelle: KayKit (CC0, Kay Lousberg), wie im Kerkerlauf. Ton: im Level die eigene Spielmusik, in Menü und Ergebnis die Kerkerlauf-Musik (überblendet). Effekte aus den anderen Spielen: Kerkerlauf (Schritt, Schwert + Knochen beim Ausschalten, Münze, Truhe fürs Tor, Rekord/Kombo am Ziel, Fackel), Letzte Bastion (Horn als Alarm beim Erwischtwerden, Schmerzlaut, Zauber des Magiers), Sternenpups (Funkeln beim Schlüssel).
+
+Teilen: Knopf im Ergebnis (Handy: Teilen-Menü, sonst Link in die Zwischenablage). Gleich auch in Kerkerlauf und Letzte Bastion.
 
 ## Spielstand
 

@@ -110,9 +110,16 @@ const leuchte = (farbe, groesse) => new THREE.Points(new THREE.BufferGeometry().
   new THREE.PointsMaterial({ map: GLUT, size: groesse, color: col(farbe), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
 
 // ---------- Ton (Dateien aus /spiele/kerkerlauf/sound/ und /spiele/letzte-bastion/sound/) ----------
-const SOUNDS = { musik: 'kl', fackel: 'kl', kill: 'kl', schwert: 'kl', muenze: 'kl', truhe: 'kl', sturz: 'kl', kombo: 'kl', rekord: 'kl', freischalten: 'kl', landung: 'kl', au: 'lb', zauber: 'lb' };
-const LAUT = { kill: 0.6, schwert: 0.4, muenze: 0.55, truhe: 0.7, sturz: 0.6, kombo: 0.6, rekord: 0.7, freischalten: 0.7, landung: 0.16, au: 0.8, zauber: 0.4 };
-const MUSIK = { menu: 0.26, spiel: 0.3, pause: 0.12, ende: 0.2, erwischt: 0.14 };
+// Eigene Spielmusik (./sound/musik.mp3, tools/schattenschritt-sound.py); Effekte aus den anderen Spielen:
+// Kerkerlauf (Menümusik, Fackel, Schwert, Knochen, Münze, Truhe, Rekord …), Letzte Bastion (Schmerz, Zauber, Horn), Sternenpups (Funkeln)
+const SOUNDS = { menumusik: '../kerkerlauf/sound/musik.mp3?v=3', spielmusik: './sound/musik.mp3?v=1', fackel: '../kerkerlauf/sound/fackel.mp3?v=3',
+  kill: '../kerkerlauf/sound/kill.mp3?v=3', schwert: '../kerkerlauf/sound/schwert.mp3?v=3', muenze: '../kerkerlauf/sound/muenze.mp3?v=3', truhe: '../kerkerlauf/sound/truhe.mp3?v=3',
+  rekord: '../kerkerlauf/sound/rekord.mp3?v=3', freischalten: '../kerkerlauf/sound/freischalten.mp3?v=3', landung: '../kerkerlauf/sound/landung.mp3?v=3', kombo: '../kerkerlauf/sound/kombo.mp3?v=3',
+  au: '../letzte-bastion/sound/au.mp3?v=1', zauber: '../letzte-bastion/sound/zauber.mp3?v=1', horn: '../letzte-bastion/sound/horn.mp3?v=1', funkel: '../sternenpups/funkel.mp3' };
+const LAUT = { kill: 0.6, schwert: 0.4, muenze: 0.55, truhe: 0.7, kombo: 0.6, rekord: 0.7, freischalten: 0.7, landung: 0.16, au: 0.8, zauber: 0.4, horn: 0.3, funkel: 0.6 };
+// Menü/Ergebnis: ruhige Kerker-Musik; im Level die eigene Spielmusik (beide laufen durch und werden überblendet)
+const MUSIK = { menu: ['menumusik', 0.26], spiel: ['spielmusik', 0.24], pause: ['spielmusik', 0.1], erwischt: ['spielmusik', 0.1], ende: ['menumusik', 0.22] };
+const musikGain = {};
 let audio = null, master = null, musikBus = null, fxBus = null, schleifenLaufen = false;
 const puffer = {};
 function audioStart() {
@@ -123,9 +130,9 @@ function audioStart() {
       musikBus = audio.createGain(); musikBus.gain.value = 0; musikBus.connect(master);
       fxBus = audio.createGain(); fxBus.connect(master);
       for (const [n, wo] of Object.entries(SOUNDS)) {
-        fetch(new URL(wo === 'kl' ? `../kerkerlauf/sound/${n}.mp3?v=3` : `../letzte-bastion/sound/${n}.mp3?v=1`, import.meta.url)).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
+        fetch(new URL(wo, import.meta.url)).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
           .then((b) => new Promise((ok, err) => audio.decodeAudioData(b, ok, err)))
-          .then((buf) => { puffer[n] = buf; if (n === 'musik' || n === 'fackel') starteSchleifen(); }).catch(() => {});
+          .then((buf) => { puffer[n] = buf; if (n.endsWith('musik') || n === 'fackel') starteSchleifen(); }).catch(() => {});
       }
     }
     if (audio.state === 'suspended' && !document.hidden) audio.resume();
@@ -143,12 +150,20 @@ function schleife(buf, ziel, laut) {
   const s = audio.createBufferSource(), g = audio.createGain();
   s.buffer = buf; s.loop = true; [s.loopStart, s.loopEnd] = schleifenGrenzen(buf);
   g.gain.value = laut; s.connect(g).connect(ziel); s.start(0, s.loopStart);
+  return g;
 }
 function starteSchleifen() {
-  if (schleifenLaufen || !puffer.musik || !puffer.fackel) return;
-  schleifenLaufen = true; schleife(puffer.musik, musikBus, 1); schleife(puffer.fackel, master, 0.3); musikLautstaerke();
+  if (!schleifenLaufen && puffer.fackel) { schleifenLaufen = true; schleife(puffer.fackel, master, 0.3); }
+  for (const n of ['menumusik', 'spielmusik']) if (puffer[n] && !musikGain[n]) musikGain[n] = schleife(puffer[n], musikBus, 0);
+  musikLautstaerke();
 }
-function musikLautstaerke() { if (musikBus) musikBus.gain.setTargetAtTime(MUSIK[zustand] ?? 0.25, audio.currentTime, 0.35); }
+function musikLautstaerke() {
+  if (!musikBus) return;
+  let [stueck, laut] = MUSIK[zustand] || MUSIK.menu;
+  if (!musikGain[stueck]) stueck = Object.keys(musikGain)[0];
+  musikBus.gain.value = 1;
+  for (const [n, g] of Object.entries(musikGain)) g.gain.setTargetAtTime(n === stueck ? laut : 0, audio.currentTime, 0.4);
+}
 addEventListener('pointerdown', audioStart, { capture: true });
 addEventListener('keydown', audioStart, { capture: true });
 document.addEventListener('visibilitychange', () => { if (!audio) return; if (document.hidden) audio.suspend(); else if (stand.ton) audio.resume(); });
@@ -391,7 +406,7 @@ function versuche(r) {
       w.root.rotation.y = Math.atan2(held.root.position.x - w.root.position.x, held.root.position.z - w.root.position.z);
     }
     if (e.typ === 'muenze') { ton('muenze'); popup('+1 Münze', 'gold'); weg(muenzen[e.i]); }
-    if (e.typ === 'schluessel') { ton('kombo'); popup('Schlüssel! Das Tor ist offen', 'gold'); setTimeout(() => ton('truhe'), 250); weg(schluessel); }
+    if (e.typ === 'schluessel') { ton('funkel'); popup('Schlüssel! Das Tor ist offen', 'gold'); setTimeout(() => ton('truhe'), 250); weg(schluessel); }
   }
   zeigeSicht(); hud();
 }
@@ -418,7 +433,7 @@ function erwischt(i) {
   w.root.rotation.y = Math.atan2(zu.x, zu.z);
   wPose(w, g.art === 'magier' ? 'Ranged_Magic_Shoot' : 'Melee_1H_Attack_Chop', 0.05, 1.2);
   held.root.rotation.y = Math.atan2(-zu.x, -zu.z);
-  ton(g.art === 'magier' ? 'zauber' : 'schwert');
+  ton('horn', 1.1); ton(g.art === 'magier' ? 'zauber' : 'schwert');
   setTimeout(() => { ton('au'); heldPose('Death_A', 0.08, 1.2); }, 320);
   $('xGrund').textContent = `${L.ARTEN[g.art].name} hat dich gesehen.`;
   setTimeout(() => { if (zustand === 'erwischt') { zeige('erwischt'); musikLautstaerke(); } }, 1000);
@@ -505,6 +520,15 @@ $('xNeu').addEventListener('click', neustart);
 $('eWeiter').addEventListener('click', () => { ton('klick'); starte(nr + 1); });
 $('eNochmal').addEventListener('click', () => { ton('klick'); starte(nr); });
 $('eMenu').addEventListener('click', zeigeMenu);
+// ---------- Teilen (Handy: Teilen-Menü, sonst Link in die Zwischenablage) ----------
+function meldung(text) { const t = $('toast'); t.textContent = text; t.hidden = false; clearTimeout(meldung.h); meldung.h = setTimeout(() => { t.hidden = true; }, 3000); }
+async function teilen() {
+  const url = location.origin + location.pathname, text = `Schattenschritt, Level ${nr + 1} „${lv.name}“: ungesehen durchgekommen mit ${L.sterne(lauf)} von 3 Sternen (${L.sterneGesamt(stand)} Sterne insgesamt). Kommst du auch durch?`;
+  if (navigator.share) { try { await navigator.share({ title: 'Schattenschritt', text, url }); return; } catch (e) { if (e && e.name === 'AbortError') return; } }
+  try { await navigator.clipboard.writeText(text + ' ' + url); meldung('Link kopiert – schick ihn deinen Freunden!'); } catch (e) { meldung(url); }
+}
+$('eTeilen').addEventListener('click', () => { ton('klick'); teilen(); });
+
 
 // ---------- Eingabe: Wischen, Tippen aufs Nachbarfeld, Tasten ----------
 const fang = $('fang');
