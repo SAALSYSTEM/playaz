@@ -5,6 +5,7 @@
 //         durch manipulierte Anfragen verändern.
 // Alle Schlüssel beginnen absichtlich mit "rocketreels-" (Bindestrich): Der allgemeine PlaySaal-Sync (Präfix "rocketreels.") nimmt sie nicht mit.
 // Gäste-Coins sollen nicht über den frei beschreibbaren Sync ins Konto wandern, dafür gibt es die einmalige, gedeckelte Übernahme.
+// Roulette (public/spiele/roulette/) nutzt denselben Stand und dieselben Coins (eigene Daten unter zustand.roulette).
 import * as E from './engine.js';
 
 export const GAST_KEY = 'rocketreels-gast.v1';
@@ -28,9 +29,10 @@ export function lokal(testZufall = null) {
   return {
     art: 'gast',
     zustand: () => zustand,
-    async laden() { return zustand; },
+    async laden() { zustand = gastLaden() || zustand; return zustand; },
     // Ergebnis wird sofort gespeichert – noch vor jeder Animation. Neuladen mitten in der Animation zeigt den fertigen Stand.
     async ausfuehren(a) {
+      zustand = gastLaden() || zustand; // Roulette (anderer Tab) nutzt dieselben Coins: immer vom frischen Stand ausgehen
       const r = E.aktion(zustand, a, zufall, { tag: berlinTag() });
       if (r.fehler) return { fehler: r.fehler };
       zustand = r.zustand; speichern();

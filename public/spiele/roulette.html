@@ -1,0 +1,121 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Roulette – Europäisches Roulette mit Spielgeld | PlaySaal</title><meta name="description" content="Europäisches Roulette mit einer Null: Plein, Cheval, Carré, Dutzend, Rot oder Schwarz – direkt im Browser, nur mit virtuellen Coins ohne Geldwert. Ohne Anmeldung. Nicht für Kinder."><link rel="canonical" href="https://playsaal.com/spiele/roulette"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Roulette · PlaySaal"><meta property="og:description" content="Faites vos jeux! Europäisches Roulette mit Spielgeld – Kessel, Kugel, alle Wetten."><meta property="og:url" content="https://playsaal.com/spiele/roulette"><meta property="og:image" content="https://playsaal.com/bilder/roulette-og.jpg?v=1"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Roulette · PlaySaal"><meta name="twitter:description" content="Europäisches Roulette mit Spielgeld – nur virtuelle Coins."><meta name="twitter:image" content="https://playsaal.com/bilder/roulette-og.jpg?v=1"><meta name="theme-color" content="#06261a"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/spiele/roulette/style.css?v=1"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'roulette',t:Date.now()}))}catch(e){}</script></head>
+<body>
+<a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
+
+<div id="app">
+  <header class="kopf">
+    <h1 class="logo">Roulette</h1>
+    <button id="bCoins" class="coins" type="button" aria-label="Coins und Statistik"><i class="coin" aria-hidden="true"></i><b id="hCoins">1.000</b></button>
+    <button id="bInfo" class="rund" type="button" aria-label="Regeln und Auszahlungen" title="Regeln"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 10.5v6.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="7.3" r="1.5" fill="currentColor"/></svg></button>
+    <button id="bTon" class="rund" type="button" aria-label="Ton an oder aus" title="Ton"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path id="tonWellen" d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </header>
+
+  <section class="leiste" aria-label="Kessel und letzte Zahlen">
+    <div id="kesselPlatz" class="kessel-platz" aria-hidden="true"></div>
+    <div class="perm-box">
+      <ol id="perm" class="perm" aria-label="Letzte Zahlen"></ol>
+      <p id="ansage" class="ansage" aria-live="polite">Faites vos jeux!</p>
+    </div>
+    <button id="bTages" class="tages" type="button" hidden>Tagesbonus <b>+100</b></button>
+  </section>
+  <div id="rrHinweis" class="rr-hinweis" hidden></div>
+
+  <main class="tisch-box">
+    <canvas id="tisch" aria-label="Roulette-Tisch: Tippe auf ein Feld, um einen Jeton zu setzen"></canvas>
+  </main>
+
+  <footer class="unten">
+    <div class="reihe">
+      <div class="jetons" role="radiogroup" aria-label="Jeton-Wert">
+        <button type="button" role="radio" data-j="1">1</button><button type="button" role="radio" data-j="5">5</button><button type="button" role="radio" data-j="25">25</button><button type="button" role="radio" data-j="100">100</button><button type="button" role="radio" data-j="500">500</button>
+      </div>
+      <button id="bDreh" class="dreh" type="button"><span id="drehText">Drehen</span><small id="drehUnter">Setze Jetons</small></button>
+    </div>
+    <div class="reihe aktionen">
+      <button id="bZurueck" class="mini" type="button" title="Letzten Jeton zurücknehmen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 7 4 12l5 5M4.5 12H14a6 6 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 -3)"/></svg><span>Zurück</span></button>
+      <button id="bLeeren" class="mini" type="button" title="Alle Jetons vom Tisch nehmen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg><span>Leeren</span></button>
+      <button id="bNochmal" class="mini" type="button" title="Einsätze der letzten Runde wieder setzen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12a7 7 0 1 1-2.05-4.95M19 4v4h-4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Nochmal</span></button>
+      <button id="bDoppelt" class="mini" type="button" title="Alle Einsätze verdoppeln"><b>×2</b><span>Doppelt</span></button>
+      <button id="bKessel" class="mini" type="button" title="Kesselwetten: Voisins, Tiers, Orphelins, Nachbarn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="5.2" r="1.6" fill="currentColor"/></svg><span>Kessel</span></button>
+    </div>
+  </footer>
+</div>
+
+<div id="dunkel" class="dunkel" hidden></div>
+<div id="kesselBox" class="kessel-box"><canvas id="kessel" aria-hidden="true"></canvas></div>
+<div id="ergebnis" class="ergebnis" hidden aria-live="assertive"><b id="eZahl">0</b><span id="eText"></span><strong id="eGewinn"></strong></div>
+
+<!-- Kesselwetten -->
+<section id="annoncen" class="schicht dialog" hidden aria-labelledby="aTitel">
+  <div class="karte">
+    <button class="zu" type="button" data-zu aria-label="Schließen">×</button>
+    <h2 id="aTitel">Kesselwetten</h2>
+    <p class="unter">Je Stück ein Jeton zu <b class="aJeton">1</b> Coins.</p>
+    <div class="ann-liste">
+      <button type="button" class="ann" data-a="voisins"><b>Voisins du Zéro</b><small>17 Zahlen um die Null · 9 Stück</small></button>
+      <button type="button" class="ann" data-a="tiers"><b>Tiers du Cylindre</b><small>12 Zahlen gegenüber · 6 Stück</small></button>
+      <button type="button" class="ann" data-a="orphelins"><b>Orphelins</b><small>8 „Waisen“ · 5 Stück</small></button>
+      <button type="button" class="ann" data-a="zero"><b>Jeu Zéro</b><small>7 Zahlen an der Null · 4 Stück</small></button>
+    </div>
+    <h3>Nachbarn</h3>
+    <p class="unter">Zahl antippen: sie und je zwei Nachbarn im Kessel (5 Stück).</p>
+    <div id="nachbarn" class="nachbarn"></div>
+  </div>
+</section>
+
+<!-- Regeln -->
+<section id="info" class="schicht dialog" hidden aria-labelledby="iTitel">
+  <div class="karte lang">
+    <button class="zu" type="button" data-zu aria-label="Schließen">×</button>
+    <h2 id="iTitel">Roulette – Regeln</h2>
+    <p class="unter">Europäisches Roulette mit einer Null (37 Zahlen).</p>
+    <h3>Auszahlungen</h3>
+    <table class="quoten"><tbody id="iQuoten"></tbody></table>
+    <h3>So setzt du</h3>
+    <ul class="regeln" id="iSetzen"></ul>
+    <h3>Coins &amp; Speichern</h3>
+    <ul class="regeln" id="iCoins"></ul>
+    <p class="hinweis-box" id="iFair"></p>
+  </div>
+</section>
+
+<!-- Profil / Statistik -->
+<section id="profil" class="schicht dialog" hidden aria-labelledby="pTitel">
+  <div class="karte">
+    <button class="zu" type="button" data-zu aria-label="Schließen">×</button>
+    <h2 id="pTitel">Deine Bilanz</h2>
+    <p class="unter" id="pModus"></p>
+    <dl id="pStats" class="stats"></dl>
+    <h3>Letzte <span id="pAnzahl">0</span> Zahlen</h3>
+    <div id="pPerm" class="perm-stats"></div>
+    <button id="pKonto" class="knopf haupt" type="button" hidden>Coins sichern</button>
+    <p class="klein" id="pHinweis"></p>
+  </div>
+</section>
+
+<!-- Konto-Hinweis -->
+<section id="werbung" class="schicht blatt" hidden aria-labelledby="wTitel">
+  <div class="karte">
+    <h2 id="wTitel">Glück gehabt?</h2>
+    <p>Sichere deine Coins kostenlos mit deinem PlaySaal-Konto – sie gelten in Roulette und Rocket Reels, auf jedem Gerät.</p>
+    <button id="wJa" class="knopf haupt" type="button">Coins sichern</button>
+    <button id="wNein" class="knopf" type="button">Als Gast weiterspielen</button>
+  </div>
+</section>
+
+<!-- Gast-Spielstand übernehmen -->
+<section id="gast" class="schicht dialog" hidden aria-labelledby="gTitel">
+  <div class="karte">
+    <h2 id="gTitel">Gast-Spielstand übernehmen?</h2>
+    <p id="gText"></p>
+    <button id="gJa" class="knopf haupt" type="button">Übernehmen</button>
+    <button id="gNein" class="knopf" type="button">Nicht übernehmen</button>
+  </div>
+</section>
+
+<div id="toast" role="status" hidden></div>
+<div id="laden" class="schicht"><div class="karte"><h2>Roulette</h2><p>Der Croupier poliert die Kugel …</p></div></div>
+<noscript><p class="fehler">Roulette braucht JavaScript.</p></noscript>
+
+<script type="module" src="/spiele/roulette/game.js?v=1"></script>
+<script src="/assets/playsaal-config.js" defer></script><script src="/assets/playsaal.js" defer></script></body></html>

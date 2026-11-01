@@ -823,6 +823,13 @@ $('#bTurbo').addEventListener('click', () => { turbo = !turbo; ls.set('rocketree
 addEventListener('pointerdown', () => T.entsperren(), { capture: true, passive: true });
 addEventListener('resize', () => { if (!$('#risiko').hidden) risikoGroesse(); });
 
+// Coins teilen sich Rocket Reels und Roulette: beim Zurückkehren zum Tab den aktuellen Stand holen
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden || !backend || beschaeftigt) return;
+  const neu = await backend.laden();
+  if (neu && !beschaeftigt) { z = neu; aktualisieren(); }
+});
+
 // ------------------------------------------------------------------ Start
 async function start() {
   $('#bTurbo').setAttribute('aria-pressed', String(turbo)); tonSymbol();

@@ -1,4 +1,4 @@
-// Kopiert die Spiellogik (SCHRÄGLAGE, SEITENWECHSEL, PUNKTLANDUNG, PAPIERPILOT, DARTFIEBER, LEITUNGSCHAOS, AUSFAHRT FREI, KERKERLAUF, LETZTE BASTION, ROCKET REELS) in die Edge Functions (sie brauchen dieselben Dateien wie der Browser).
+// Kopiert die Spiellogik (SCHRÄGLAGE, SEITENWECHSEL, PUNKTLANDUNG, PAPIERPILOT, DARTFIEBER, LEITUNGSCHAOS, AUSFAHRT FREI, KERKERLAUF, LETZTE BASTION, ROCKET REELS, ROULETTE) in die Edge Functions (sie brauchen dieselben Dateien wie der Browser).
 // node tools/edge-sync.mjs         kopiert
 // node tools/edge-sync.mjs --check prüft nur, ob die Kopien aktuell sind (Exit-Code 1, wenn nicht)
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -15,7 +15,8 @@ const FUNKTIONEN = [
   { quelle: 'public/spiele/ausfahrt-frei', ziel: 'supabase/functions/ausfahrt-lauf', dateien: ['sim.js', 'raetsel.js'] },
   { quelle: 'public/spiele/kerkerlauf', ziel: 'supabase/functions/kerkerlauf-lauf', dateien: ['logik.js'] },
   { quelle: 'public/spiele/letzte-bastion', ziel: 'supabase/functions/bastion-lauf', dateien: ['logik.js'] },
-  { quelle: 'public/spiele/rocket-reels', ziel: 'supabase/functions/rocket-reels', dateien: ['engine.js'] }
+  { quelle: 'public/spiele/rocket-reels', ziel: 'supabase/functions/rocket-reels', dateien: ['engine.js'] },
+  { quelle: 'public/spiele/roulette', ziel: 'supabase/functions/rocket-reels', dateien: ['roulette.js'] }
 ];
 let veraltet = 0;
 for (const fn of FUNKTIONEN) for (const f of fn.dateien) {

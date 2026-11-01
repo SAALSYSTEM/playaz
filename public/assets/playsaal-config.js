@@ -29,6 +29,7 @@ window.PLAYSAAL_CFG = {
   // ROCKET REELS: Space Coins im Konto (Edge Function "rocket-reels"). Erst auf true, wenn Migration
   // 20261101200000_rocket_reels.sql ausgeführt und die Function deployt ist. Bis dahin spielen alle als Gast (Stand auf dem Gerät).
   // Rocket Reels nutzt bewusst NICHT den allgemeinen Spielstand-Sync: seine Speicherschlüssel beginnen mit "rocketreels-", nicht "rocketreels.".
+  // Derselbe Schalter gilt für ROULETTE: Roulette spielt mit denselben Coins (gleicher Stand, gleiche Function, Aktion "roulette").
   rocketReels: false,
 
   // Spiel-Kennungen: Seiten-Name -> Speicher-Kennung (identisch zu public.games.save_id)
@@ -38,7 +39,7 @@ window.PLAYSAAL_CFG = {
     'turmschicht': 'turmschicht', 'dino-leiterhelden': 'dinoleiter', 'geisterschloss': 'geisterschloss',
     'kristallrausch': 'kristallrausch', 'mysupermarkt': 'mysupermarkt', 'sprungsebi': 'sprungsebi',
     'jungle-runner': 'jungle-runner', 'zahlensturm': 'zahlensturm', 'stammvoelker': 'stammvoelker',
-    'sondengaenger': 'sondengaenger', 'anbiss': 'anbiss', 'hau-die-kakerlake': 'kakerlake', 'blocksaal': 'blocksaal', 'seitenwechsel': 'seitenwechsel', 'punktlandung': 'punktlandung', 'papierpilot': 'papierpilot', 'dartfieber': 'dartfieber', 'leitungschaos': 'leitungschaos', 'ausfahrt-frei': 'ausfahrt', 'kruemel': 'kruemel', 'muehle': 'muehle', 'dame': 'dame', 'backgammon': 'backgammon', 'halma': 'halma', 'schach': 'schach', 'ab-in-den-stall': 'stall', 'sternenpups': 'sternenpups', 'hexis-zaubersuppe': 'zaubersuppe', 'sternenfahrt': 'sternenfahrt', 'tiertrumpf': 'tiertrumpf', 'tier-ski': 'tierski', 'kerkerlauf': 'kerkerlauf', 'letzte-bastion': 'bastion', 'schattenschritt': 'schattenschritt', 'rocket-reels': 'rocketreels'
+    'sondengaenger': 'sondengaenger', 'anbiss': 'anbiss', 'hau-die-kakerlake': 'kakerlake', 'blocksaal': 'blocksaal', 'seitenwechsel': 'seitenwechsel', 'punktlandung': 'punktlandung', 'papierpilot': 'papierpilot', 'dartfieber': 'dartfieber', 'leitungschaos': 'leitungschaos', 'ausfahrt-frei': 'ausfahrt', 'kruemel': 'kruemel', 'muehle': 'muehle', 'dame': 'dame', 'backgammon': 'backgammon', 'halma': 'halma', 'schach': 'schach', 'ab-in-den-stall': 'stall', 'sternenpups': 'sternenpups', 'hexis-zaubersuppe': 'zaubersuppe', 'sternenfahrt': 'sternenfahrt', 'tiertrumpf': 'tiertrumpf', 'tier-ski': 'tierski', 'kerkerlauf': 'kerkerlauf', 'letzte-bastion': 'bastion', 'schattenschritt': 'schattenschritt', 'rocket-reels': 'rocketreels', 'roulette': 'roulette'
   },
 
   // Anzeigenamen (nur für Konto-Seite und Admin; Portal nutzt seine eigenen Kacheln)
@@ -47,7 +48,7 @@ window.PLAYSAAL_CFG = {
     'eiszeit': 'Eiszeit', 'stellwerk': 'Stellwerk', 'wasser-marsch': 'Wasser Marsch!', 'turmschicht': 'Turmschicht', 'dino-leiterhelden': 'Dino-Leiterhelden',
     'geisterschloss': 'Geisterschloss', 'kristallrausch': 'Kristallrausch', 'mysupermarkt': 'MySupermarkt', 'sprungsebi': 'SprungSebi',
     'jungle-runner': 'Jungle Runner', 'zahlensturm': 'Zahlensturm', 'stammvoelker': 'Stammvölker', 'sondengaenger': 'Sondengänger',
-    'anbiss': 'Anbiss', 'hau-die-kakerlake': 'Hau die Kakerlake!', 'blocksaal': 'BlockSaal', 'seitenwechsel': 'Seitenwechsel', 'punktlandung': 'Punktlandung', 'papierpilot': 'Papierpilot', 'dartfieber': 'Dartfieber', 'leitungschaos': 'Leitungschaos', 'ausfahrt-frei': 'Ausfahrt frei', 'kruemel': 'Krümel', 'muehle': 'Mühle', 'dame': 'Dame', 'backgammon': 'Backgammon', 'halma': 'Halma', 'schach': 'Schach', 'ab-in-den-stall': 'Ab in den Stall!', 'sternenpups': 'Sternenpups', 'hexis-zaubersuppe': 'Hexis Zaubersuppe', 'sternenfahrt': 'Neon Coast – Sternenfahrt', 'tiertrumpf': 'Tiertrumpf', 'tier-ski': 'Tier-Ski', 'kerkerlauf': 'Kerkerlauf', 'letzte-bastion': 'Letzte Bastion', 'schattenschritt': 'Schattenschritt', 'rocket-reels': 'Rocket Reels'
+    'anbiss': 'Anbiss', 'hau-die-kakerlake': 'Hau die Kakerlake!', 'blocksaal': 'BlockSaal', 'seitenwechsel': 'Seitenwechsel', 'punktlandung': 'Punktlandung', 'papierpilot': 'Papierpilot', 'dartfieber': 'Dartfieber', 'leitungschaos': 'Leitungschaos', 'ausfahrt-frei': 'Ausfahrt frei', 'kruemel': 'Krümel', 'muehle': 'Mühle', 'dame': 'Dame', 'backgammon': 'Backgammon', 'halma': 'Halma', 'schach': 'Schach', 'ab-in-den-stall': 'Ab in den Stall!', 'sternenpups': 'Sternenpups', 'hexis-zaubersuppe': 'Hexis Zaubersuppe', 'sternenfahrt': 'Neon Coast – Sternenfahrt', 'tiertrumpf': 'Tiertrumpf', 'tier-ski': 'Tier-Ski', 'kerkerlauf': 'Kerkerlauf', 'letzte-bastion': 'Letzte Bastion', 'schattenschritt': 'Schattenschritt', 'rocket-reels': 'Rocket Reels', 'roulette': 'Roulette'
   },
 
   // Schlüssel-Präfixe im localStorage je Spiel (identisch zu public.games.save_prefix)
@@ -56,12 +57,12 @@ window.PLAYSAAL_CFG = {
     eiszeit: 'eiszeit.', stellwerk: 'stellwerk.', wassermarsch: 'wassermarsch.', turmschicht: 'turmschicht.', dinoleiter: 'dinoleiter.',
     geisterschloss: 'geisterschloss.', kristallrausch: 'kristallrausch.', mysupermarkt: 'mysupermarkt.', sprungsebi: 'sprungssebi.',
     'jungle-runner': 'jungle.', zahlensturm: 'zahlensturm.', stammvoelker: 'stammvoelker.', sondengaenger: 'sondengaenger.',
-    anbiss: 'anbiss.', kakerlake: 'kakerlake.', blocksaal: 'blocksaal.', seitenwechsel: 'seitenwechsel.', punktlandung: 'punktlandung.', papierpilot: 'papierpilot.', dartfieber: 'dartfieber.', leitungschaos: 'leitungschaos.', ausfahrt: 'ausfahrt.', kruemel: 'kruemel.', muehle: 'muehle.', dame: 'dame.', backgammon: 'backgammon.', halma: 'halma.', schach: 'schach.', stall: 'stall.', sternenpups: 'sternenpups.', zaubersuppe: 'zaubersuppe.', sternenfahrt: 'sternenfahrt.', tiertrumpf: 'tiertrumpf.', tierski: 'tierski.', kerkerlauf: 'kerkerlauf.', bastion: 'bastion.', schattenschritt: 'schattenschritt.', rocketreels: 'rocketreels.'
+    anbiss: 'anbiss.', kakerlake: 'kakerlake.', blocksaal: 'blocksaal.', seitenwechsel: 'seitenwechsel.', punktlandung: 'punktlandung.', papierpilot: 'papierpilot.', dartfieber: 'dartfieber.', leitungschaos: 'leitungschaos.', ausfahrt: 'ausfahrt.', kruemel: 'kruemel.', muehle: 'muehle.', dame: 'dame.', backgammon: 'backgammon.', halma: 'halma.', schach: 'schach.', stall: 'stall.', sternenpups: 'sternenpups.', zaubersuppe: 'zaubersuppe.', sternenfahrt: 'sternenfahrt.', tiertrumpf: 'tiertrumpf.', tierski: 'tierski.', kerkerlauf: 'kerkerlauf.', bastion: 'bastion.', schattenschritt: 'schattenschritt.', rocketreels: 'rocketreels.', roulette: 'roulette.'
   },
 
   // Kategorien (Grundstand, identisch zur Datenbank; die Datenbank überschreibt, solange sie erreichbar ist)
   kategorien: [
     ['geschick', 'Geschicklichkeit'], ['raetsel', 'Rätsel'], ['brettspiele', 'Brettspiele'], ['aufbau', 'Aufbau'], ['rennen', 'Rennen'],
-    ['action', 'Action'], ['abenteuer', 'Abenteuer'], ['arcade', 'Arcade'], ['kinder', 'Für Kinder']
+    ['action', 'Action'], ['abenteuer', 'Abenteuer'], ['casino', 'Casino'], ['kinder', 'Für Kinder']
   ]
 };

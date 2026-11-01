@@ -1,0 +1,139 @@
+/* Roulette – klassisch edel: grüner Filz, Holz, Gold; PlaySaal-Orange/Gelb als Akzent. Tisch und Kessel zeichnet game.js (Canvas). */
+:root{color-scheme:dark;--nacht:#06150f;--filz:#0b5a39;--gold:#e3bf5f;--gold2:#fff0b8;--creme:#f4e8c4;--orange:#FF9200;--gelb:#FFD21C;--text:#f3efe2;--blass:#b8c4b8;
+  font-family:"Barlow Semi Condensed","Barlow",system-ui,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body{color:var(--text);background:radial-gradient(120% 80% at 50% 30%,#1a2a22 0%,#0c1712 55%,#050a07 100%) fixed;background-color:var(--nacht)}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;border:0;background:none}
+button:disabled{cursor:default;opacity:.45}
+button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid var(--gelb);outline-offset:3px}
+.pz-home{position:fixed;z-index:40;top:calc(env(safe-area-inset-top,0px) + 6px);left:calc(env(safe-area-inset-left,0px) + 10px);width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(10,20,14,.75);color:#f6f7f9;border:1px solid rgba(246,247,249,.22);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}
+
+#app{position:fixed;inset:0;z-index:1;margin:0 auto;max-width:560px;display:flex;flex-direction:column;gap:6px;
+  padding:calc(env(safe-area-inset-top,0px) + 6px) calc(env(safe-area-inset-right,0px) + 10px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 10px)}
+
+/* Kopf */
+.kopf{height:42px;flex:none;display:flex;align-items:center;gap:8px;padding-left:50px}
+.logo{margin:0;flex:1;min-width:0;font:italic 700 25px/1 Georgia,"Times New Roman",serif;letter-spacing:.01em;
+  background:linear-gradient(180deg,var(--gold2) 0%,var(--gold) 55%,#a87a1e 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
+.coins{display:flex;align-items:center;gap:7px;height:38px;padding:0 12px 0 8px;border-radius:19px;background:rgba(6,14,10,.8);border:1px solid rgba(227,191,95,.55)}
+.coins b{font:700 19px/1 "Barlow Condensed",sans-serif;color:var(--gold2);min-width:3ch;text-align:right;font-variant-numeric:tabular-nums}
+.coin{width:20px;height:20px;border-radius:50%;flex:none;background:radial-gradient(circle at 35% 30%,#fff7c2 0 18%,#ffd34d 35%,#e69a12 75%,#a8640a 100%);position:relative}
+.coin::after{content:"";position:absolute;inset:5px;border-radius:50%;border:2px solid rgba(120,70,0,.45)}
+.coins.puls{animation:puls .5s ease-out}
+@keyframes puls{40%{transform:scale(1.1);box-shadow:0 0 16px rgba(255,210,28,.6)}}
+.rund{width:38px;height:38px;flex:none;border-radius:50%;display:grid;place-items:center;background:rgba(6,14,10,.8);border:1px solid rgba(227,191,95,.4);color:var(--creme)}
+.rund svg{width:20px;height:20px}
+body.stumm #tonWellen{opacity:.15}
+
+/* Leiste: kleiner Kessel + Permanenz */
+.leiste{flex:none;height:64px;display:flex;align-items:center;gap:10px;position:relative}
+.kessel-platz{width:64px;height:64px;flex:none;border-radius:50%}
+.perm-box{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.perm{list-style:none;margin:0;padding:0;display:flex;gap:4px;overflow:hidden;height:30px;align-items:center}
+.perm li{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 14px/1 "Barlow Condensed",sans-serif;color:#fff;border:1px solid rgba(255,255,255,.25)}
+.perm li:first-child{width:30px;height:30px;font-size:17px;border:2px solid var(--gold)}
+.perm .rot{background:#b3141c}.perm .schwarz{background:#16161b}.perm .gruen{background:#0f7a43}
+.perm:empty::before{content:"Noch keine Zahl gefallen";font-size:13px;color:var(--blass)}
+.ansage{margin:0;font:italic 600 15px/1.1 Georgia,serif;color:var(--creme);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ansage b{font-style:normal;color:var(--gelb)}
+.tages{flex:none;padding:6px 10px;border-radius:14px;font-weight:700;font-size:13px;line-height:1.1;color:#1a1200;background:linear-gradient(#ffe68a,var(--gelb));box-shadow:0 0 12px rgba(255,210,28,.45)}
+.rr-hinweis{flex:none;display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:12px;background:rgba(255,146,0,.14);border:1px solid rgba(255,146,0,.5);font-size:13.5px;line-height:1.25}
+.rr-hinweis span{flex:1}
+.rr-hinweis button,.rr-hinweis a{flex:none;padding:6px 10px;border-radius:10px;background:var(--orange);color:#1b0d00;font-weight:700;text-decoration:none;font-size:13px}
+
+/* Tisch */
+.tisch-box{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+#tisch{display:block;touch-action:none;border-radius:10px;box-shadow:0 0 0 3px #3a1d09,0 0 0 5px rgba(227,191,95,.65),0 10px 30px rgba(0,0,0,.55)}
+
+/* Steuerung */
+.unten{flex:none;display:flex;flex-direction:column;gap:6px}
+.reihe{display:flex;align-items:center;gap:8px}
+.jetons{flex:1;display:flex;justify-content:flex-start;gap:6px;min-width:0}
+.jetons button{--c:#f2f2f2;--s:#2f5fb3;--t:#1d2b4a;flex:1 1 0;min-width:0;max-width:46px;aspect-ratio:1;padding:0;border-radius:50%;font:700 15px/1 "Barlow Condensed",sans-serif;color:var(--t);
+  background:radial-gradient(circle,var(--c) 0 52%,transparent 53%),repeating-conic-gradient(var(--s) 0 15deg,var(--c) 15deg 45deg);border:2px solid rgba(0,0,0,.35);box-shadow:0 3px 6px rgba(0,0,0,.45);transition:transform .15s}
+.jetons button[data-j="5"]{--c:#c3172a;--s:#fff;--t:#fff}
+.jetons button[data-j="25"]{--c:#178a4a;--s:#fff;--t:#fff}
+.jetons button[data-j="100"]{--c:#1b1b1f;--s:#e8c35a;--t:#ffe9a6}
+.jetons button[data-j="500"]{--c:#6b2fb3;--s:#fff;--t:#fff}
+.jetons button[aria-checked="true"]{transform:translateY(-5px) scale(1.08);box-shadow:0 0 0 2px var(--gelb),0 0 14px rgba(255,210,28,.7)}
+.dreh{flex:none;width:118px;height:54px;border-radius:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  background:linear-gradient(180deg,#ffe36a 0%,var(--gelb) 45%,#e0a800 100%);color:#1a1200;box-shadow:0 4px 0 #8a6400,0 6px 16px rgba(0,0,0,.45)}
+.dreh span{font:800 21px/1 "Barlow Condensed",sans-serif;text-transform:uppercase;letter-spacing:.03em}
+.dreh small{font:600 12.5px/1 "Barlow Semi Condensed",sans-serif;opacity:.8}
+.dreh:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #8a6400,0 3px 10px rgba(0,0,0,.45)}
+.dreh.tanken{background:linear-gradient(180deg,#ffd29a,var(--orange));box-shadow:0 4px 0 #8a4e00,0 6px 16px rgba(0,0,0,.45)}
+.dreh.laeuft{background:linear-gradient(180deg,#e9e3cf,#b8ae8c);box-shadow:0 4px 0 #6a634c}
+.aktionen{justify-content:space-between}
+.mini{flex:1;min-width:0;height:40px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;background:rgba(6,14,10,.75);border:1px solid rgba(227,191,95,.3);color:var(--creme);font-size:12px}
+.mini svg{width:18px;height:18px}
+.mini b{font:800 16px/18px "Barlow Condensed",sans-serif;color:var(--gold2)}
+
+/* Kessel (wandert zwischen Leiste und Mitte) */
+.kessel-box{position:fixed;left:0;top:0;z-index:20;transform-origin:0 0;pointer-events:none;border-radius:50%;
+  box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.kessel-box canvas{display:block;width:100%;height:100%}
+body.bereit .kessel-box{transition:transform .5s cubic-bezier(.3,.8,.3,1)}
+body.ruhe .kessel-box{transition:none}
+.dunkel{position:fixed;inset:0;z-index:19;background:rgba(2,6,4,.62);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px)}
+.ergebnis{position:fixed;z-index:21;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:2px;pointer-events:none;text-align:center;
+  padding:8px 22px 10px;border-radius:18px;background:rgba(6,14,10,.88);border:1px solid rgba(227,191,95,.6);box-shadow:0 8px 30px rgba(0,0,0,.6);animation:auf .3s ease-out}
+.ergebnis b{font:800 44px/1 "Barlow Condensed",sans-serif;min-width:66px;padding:2px 10px;border-radius:12px;color:#fff}
+.ergebnis.rot b{background:#b3141c}.ergebnis.schwarz b{background:#16161b;border:1px solid rgba(255,255,255,.3)}.ergebnis.gruen b{background:#0f7a43}
+.ergebnis span{white-space:nowrap;font:600 15px/1.2 "Barlow Semi Condensed",sans-serif;color:var(--creme)}
+.ergebnis strong{font:800 22px/1.1 "Barlow Condensed",sans-serif;color:var(--gelb)}
+.ergebnis strong.nichts{color:var(--blass);font-size:17px;font-weight:600}
+@keyframes auf{from{opacity:0;transform:translate(-50%,8px) scale(.94)}}
+
+/* Schichten */
+.schicht{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:16px}
+.dialog{background:rgba(2,6,4,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+.karte{position:relative;width:100%;max-width:440px;max-height:calc(100% - 8px);overflow:auto;padding:20px 18px 18px;border-radius:20px;background:linear-gradient(180deg,#123526,#0a1f16);
+  border:1px solid rgba(227,191,95,.45);box-shadow:0 0 32px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:10px;-webkit-user-select:text;user-select:text}
+.karte.lang{max-width:520px}
+.karte h2{margin:0;font:italic 700 24px/1.1 Georgia,serif;color:var(--gold2);padding-right:34px}
+.karte h3{margin:10px 0 0;font:700 15px/1.2 "Barlow Semi Condensed",sans-serif;text-transform:uppercase;letter-spacing:.06em;color:var(--gold)}
+.karte p{margin:0;line-height:1.4}
+.unter{color:#d3dccf}
+.klein{font-size:13px;color:var(--blass)}
+.zu{position:absolute;right:8px;top:6px;width:40px;height:40px;font-size:28px;line-height:1;color:var(--creme)}
+.knopf{min-height:48px;padding:10px 16px;border-radius:14px;font-weight:700;font-size:16px;background:rgba(255,255,255,.06);border:1px solid rgba(227,191,95,.45);color:var(--creme)}
+.knopf.haupt{background:linear-gradient(180deg,#ffe36a,var(--gelb));color:#1a1200;border:0}
+#laden{background:var(--nacht);z-index:50}
+#laden .karte{align-items:center;text-align:center;max-width:300px}
+.blatt{align-items:flex-end;pointer-events:none}
+.blatt .karte{pointer-events:auto;margin-bottom:calc(env(safe-area-inset-bottom,0px) + 8px);border-color:rgba(255,210,28,.6)}
+
+.quoten{width:100%;border-collapse:collapse;font-size:15px}
+.quoten td{padding:5px 4px;border-bottom:1px solid rgba(255,255,255,.08)}
+.quoten td:last-child{text-align:right;font-weight:700;color:var(--gold2);white-space:nowrap}
+.quoten small{display:block;color:var(--blass);font-size:12.5px}
+.regeln{margin:0;padding-left:18px;line-height:1.45;font-size:15px}
+.regeln li{margin:3px 0}
+.hinweis-box{padding:10px 12px;border-radius:12px;background:rgba(255,146,0,.12);border:1px solid rgba(255,146,0,.4);font-size:14px}
+.stats{display:grid;grid-template-columns:1fr auto;gap:6px 12px;margin:0;font-size:15px}
+.stats dt{color:#d3dccf}
+.stats dd{margin:0;text-align:right;font-weight:700;color:var(--gold2);font-variant-numeric:tabular-nums}
+.perm-stats{display:grid;gap:6px;font-size:14.5px}
+.perm-stats .balken{display:flex;height:22px;border-radius:8px;overflow:hidden;font:700 12.5px/22px "Barlow Condensed",sans-serif;text-align:center}
+.balken i{font-style:normal;min-width:0}
+.balken .rot{background:#b3141c}.balken .schwarz{background:#26262c}.balken .gruen{background:#0f7a43}
+.zahlen{display:flex;flex-wrap:wrap;gap:4px;align-items:center}
+.zahlen em{font-style:normal;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font:700 13px/1 "Barlow Condensed",sans-serif;color:#fff}
+.zahlen em.rot{background:#b3141c}.zahlen em.schwarz{background:#16161b;border:1px solid rgba(255,255,255,.25)}.zahlen em.gruen{background:#0f7a43}
+
+.ann-liste{display:grid;gap:8px}
+.ann{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(227,191,95,.4);text-align:left}
+.ann b{font-size:17px;color:var(--gold2)}
+.ann small{font-size:13px;color:var(--blass)}
+.nachbarn{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:5px}
+.nachbarn button{height:38px;border-radius:50%;font:700 15px/1 "Barlow Condensed",sans-serif;color:#fff}
+.nachbarn .rot{background:#b3141c}.nachbarn .schwarz{background:#16161b;border:1px solid rgba(255,255,255,.25)}.nachbarn .gruen{background:#0f7a43}
+
+#toast{position:fixed;z-index:60;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 118px);transform:translateX(-50%);max-width:calc(100% - 32px);padding:10px 16px;border-radius:14px;background:rgba(8,18,13,.96);border:1px solid rgba(227,191,95,.6);font-weight:600;text-align:center;box-shadow:0 6px 24px rgba(0,0,0,.5)}
+.fehler{position:fixed;inset:0;display:grid;place-items:center;margin:0;color:#fff}
+
+@media (max-width:380px){.logo{font-size:21px}.jetons button{font-size:13.5px}.dreh{width:104px}}
+@media (max-height:620px){.leiste{height:52px}.kessel-platz{width:52px;height:52px}.ansage{display:none}.mini{height:34px}.mini span{display:none}.dreh{height:48px}}
+@media (prefers-reduced-motion:reduce){.coins.puls,.ergebnis{animation:none}.kessel-box{transition:none}}

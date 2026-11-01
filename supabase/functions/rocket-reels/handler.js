@@ -1,12 +1,14 @@
 // Supabase Edge Function "rocket-reels": Space Coins für angemeldete Spieler (getestet unter Node, tests/rocket-reels-konto.test.mjs).
-// Der Browser schickt nur eine Aktion: { aktion: 'stand'|'dreh'|'sichern'|'risiko'|'sprung'|'nachfuellen'|'tagesbonus'|'gast', einsatz?, route?, gast? }.
+// Der Browser schickt nur eine Aktion: { aktion: 'stand'|'dreh'|'sichern'|'risiko'|'sprung'|'nachfuellen'|'tagesbonus'|'gast'|'roulette', einsatz?, route?, gast?, wetten? }.
+// Roulette nutzt dieselben Coins (gemeinsamer Stand, dieselbe Revision): 'roulette' wertet mit roulette.js (Kopie aus public/spiele/roulette/) aus.
 // Hier wird gelesen, mit engine.js (Kopie aus public/spiele/rocket-reels/, node tools/edge-sync.mjs) und Krypto-Zufall ausgewertet
 // und nur bei unveränderter Revision gespeichert. Coin-Beträge aus dem Browser werden nie übernommen (außer gedeckelt bei der
 // einmaligen Gast-Übernahme, siehe engine.js gastUebernehmen).
 import * as E from './engine.js';
+import * as R from './roulette.js';
 
 export const ERLAUBTE_URSPRUENGE = ['https://playsaal.com', 'https://www.playsaal.com'];
-const AKTIONEN = ['stand', 'dreh', 'sichern', 'risiko', 'sprung', 'nachfuellen', 'tagesbonus', 'gast'];
+const AKTIONEN = ['stand', 'dreh', 'sichern', 'risiko', 'sprung', 'nachfuellen', 'tagesbonus', 'gast', 'roulette'];
 const MAX_BYTES = 10000;
 
 export function cors(origin) {
@@ -57,6 +59,12 @@ export async function behandle(req, env, f = fetch, jetzt = new Date(), zufall =
     r = { zustand, ergebnis: { typ: 'neu' } };
   } else if (b.aktion === 'gast') {
     r = E.gastUebernehmen(zustand, b.gast);
+    if (!r.fehler && b.gast && typeof b.gast === 'object' && b.gast.roulette !== undefined) {
+      const zus = R.gastZusammen(r.zustand.roulette, b.gast.roulette);
+      if (zus !== undefined) r.zustand.roulette = zus;
+    }
+  } else if (b.aktion === 'roulette') {
+    r = R.drehen(zustand, b.wetten, zufall);
   } else {
     const a = { typ: b.aktion };
     if (b.einsatz !== undefined) a.einsatz = b.einsatz;
