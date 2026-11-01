@@ -67,7 +67,7 @@ Alle Effekte entstehen live mit der **Web Audio API** – keine Dateien, keine L
 
 ## Bilder
 
-Prompts und priorisierte Liste: `design/rocket-reels/PROMPTS.md`. Alle Bilder von ChatGPT sind geliefert (Originale in `design/rocket-reels/`, WebP per `python3 tools/rocket-reels-assets.py`). Fehlt ein Bild, zeichnet das Spiel einen Vektor-Platzhalter. Die Teilen-Vorschau ist aus der Kachel plus Schriftzug zusammengesetzt (`social.png` würde sie ersetzen). Die Hyperjump-Stationen liegen genau auf den Ringen von `risiko-hintergrund` (Bildkoordinaten `RINGE` in `game.js`) – bei einem neuen Bild dort anpassen. Der Walzenrahmen wird per `mix-blend-mode: screen` über die Walzen gelegt – Schwarz im Bild wird dadurch durchsichtig.
+Prompts und priorisierte Liste: `design/rocket-reels/PROMPTS.md`. Alle Bilder von ChatGPT sind geliefert (Originale in `design/rocket-reels/`, WebP per `python3 tools/rocket-reels-assets.py`). Fehlt ein Bild, zeichnet das Spiel einen Vektor-Platzhalter. Teilen-Vorschau aus `social.png` (mittig auf 1200 × 630 zugeschnitten). Die Hyperjump-Stationen liegen genau auf den Ringen von `risiko-hintergrund` (Bildkoordinaten `RINGE` in `game.js`) – bei einem neuen Bild dort anpassen. Der Walzenrahmen wird per `mix-blend-mode: screen` über die Walzen gelegt – Schwarz im Bild wird dadurch durchsichtig.
 
 ## Tests (nur dieses Spiel)
 
