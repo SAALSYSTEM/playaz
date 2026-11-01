@@ -14,7 +14,7 @@ Veröffentlicht am 01.11.2026. Europäisches Roulette (eine Null, 37 Zahlen) im 
 | Gast-Speicher / Konto-Server | `public/spiele/roulette/speicher.js` |
 | Server (Konten) | Edge Function `rocket-reels` (Aktion `roulette`, Kopie von `roulette.js` per `node tools/edge-sync.mjs`) |
 | Katalog | `supabase/migrations/20261101210000_roulette.sql` |
-| Kachel / Teilen-Vorschau | Prompts `design/roulette/PROMPTS.md`, Umwandlung `python3 tools/roulette-assets.py` |
+| Kachel / Teilen-Vorschau | ChatGPT-Bilder in `design/roulette/` (Prompts `PROMPTS.md`), Umwandlung `python3 tools/roulette-assets.py` |
 
 ## Regeln
 

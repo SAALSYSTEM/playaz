@@ -3,7 +3,7 @@
 
 Aufruf: python3 tools/roulette-assets.py   (braucht Pillow)
   design/roulette/kachel.png  -> public/bilder/roulette.webp     (quadratisch, 720 px, mittig zugeschnitten)
-  design/roulette/social.png  -> public/bilder/roulette-og.jpg   (1200 x 630, mittig zugeschnitten)
+  design/roulette/social.png  -> public/bilder/roulette-og.jpg   (1200 x 630, oben betont, damit der Schriftzug bleibt)
 Kessel und Tisch im Spiel werden gezeichnet und brauchen keine Bilder. Prompts: design/roulette/PROMPTS.md.
 Nach neuen Bildern in public/index.html bzw. public/spiele/roulette.html die ?v=-Nummer erhöhen.
 """
@@ -23,10 +23,11 @@ def finde(name):
     return None
 
 
-def zuschneiden(img, w, h):
+def zuschneiden(img, w, h, oben=0.5):
+    """oben: Anteil des überstehenden Rands, der oben wegfällt (0.5 = mittig, kleiner = Schriftzug oben bleibt)."""
     s = max(w / img.width, h / img.height)
     img = img.resize((round(img.width * s), round(img.height * s)), Image.LANCZOS)
-    l, t = (img.width - w) // 2, (img.height - h) // 2
+    l, t = (img.width - w) // 2, round((img.height - h) * oben)
     return img.crop((l, t, l + w, t + h))
 
 
@@ -36,5 +37,5 @@ if k:
     print('Kachel:', BILDER / 'roulette.webp')
 s = finde('social')
 if s:
-    zuschneiden(Image.open(s).convert('RGB'), 1200, 630).save(BILDER / 'roulette-og.jpg', 'JPEG', quality=84, optimize=True, progressive=True)
+    zuschneiden(Image.open(s).convert('RGB'), 1200, 630, oben=0.18).save(BILDER / 'roulette-og.jpg', 'JPEG', quality=84, optimize=True, progressive=True)
     print('Teilen-Vorschau:', BILDER / 'roulette-og.jpg')

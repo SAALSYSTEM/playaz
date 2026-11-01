@@ -1,6 +1,6 @@
 # Roulette – Bildprompts (ChatGPT)
 
-Nur zwei Bilder nötig – Kessel und Tisch zeichnet das Spiel selbst. Die aktuellen `kachel.png` und `social.png` hier sind gezeichnete Platzhalter; einfach mit gleichem Namen überschreiben und `python3 tools/roulette-assets.py` ausführen.
+Nur zwei Bilder nötig – Kessel und Tisch zeichnet das Spiel selbst. Beide sind von ChatGPT geliefert (01.11.2026). Neue Version: mit gleichem Namen überschreiben, `python3 tools/roulette-assets.py` ausführen, `?v=` in `public/index.html` bzw. `public/spiele/roulette.html` erhöhen.
 
 ## kachel.png (quadratisch, 1024 × 1024)
 
