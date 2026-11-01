@@ -30,7 +30,7 @@ window.PLAYSAAL_CFG = {
   // 20261101200000_rocket_reels.sql ausgeführt und die Function deployt ist. Bis dahin spielen alle als Gast (Stand auf dem Gerät).
   // Rocket Reels nutzt bewusst NICHT den allgemeinen Spielstand-Sync: seine Speicherschlüssel beginnen mit "rocketreels-", nicht "rocketreels.".
   // Derselbe Schalter gilt für ROULETTE: Roulette spielt mit denselben Coins (gleicher Stand, gleiche Function, Aktion "roulette").
-  rocketReels: false,
+  rocketReels: true,
 
   // Spiel-Kennungen: Seiten-Name -> Speicher-Kennung (identisch zu public.games.save_id)
   spiele: {
