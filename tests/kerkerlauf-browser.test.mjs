@@ -142,8 +142,8 @@ test('Gold: Münzen und Truhe zählen, werden nach dem Sturz gespeichert und nac
   assert.deepEqual(errors, []);
 });
 
-test('Held freischalten (Barbarin für 100 Gold), auswählen und damit laufen; zu teure bleiben gesperrt', async () => {
-  const { page, errors, glb } = await open({ save: { v: 1, gold: 130, rekord: 0, meter: 0, kills: 0, helden: ['ritter'], held: 'ritter', ton: false } });
+test('Held freischalten (Barbarin für 500 Gold), auswählen und damit laufen; zu teure bleiben gesperrt', async () => {
+  const { page, errors, glb } = await open({ save: { v: 1, gold: 530, rekord: 0, meter: 0, kills: 0, helden: ['ritter'], held: 'ritter', ton: false } });
   await page.click('#mRechts'); await warte(page, () => window.__kerker.held && window.__kerker.held.name === 'barbar');
   assert.ok(glb.includes('200 held-barbar.glb'), 'Held wird erst beim Blättern geladen');
   assert.ok(await page.isVisible('#mKaufen')); assert.ok(!(await page.isVisible('#mStart')));

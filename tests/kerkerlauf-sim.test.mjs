@@ -75,8 +75,8 @@ test('Spielstand: prüfen, verbuchen, Rekord, freischalten', () => {
   assert.deepEqual(L.pruefeStand(null), L.leerStand());
   const st = L.pruefeStand({ gold: -5, rekord: 'x', helden: ['magier', 'quatsch'], held: 'magier', ton: false });
   assert.deepEqual(st.helden, ['ritter', 'magier']); assert.equal(st.held, 'magier'); assert.equal(st.gold, 0); assert.equal(st.ton, false);
-  const f = L.neuerLauf(1); f.d = 321; f.muenzen = 120; f.kills = 3; f.bonus = 150;
-  assert.equal(L.verbuche(st, f), true); assert.equal(st.gold, 120); assert.equal(st.rekord, 321 + 1200 + 150);
+  const f = L.neuerLauf(1); f.d = 321; f.muenzen = 520; f.kills = 3; f.bonus = 150;
+  assert.equal(L.verbuche(st, f), true); assert.equal(st.gold, 520); assert.equal(st.rekord, 321 + 5200 + 150);
   assert.equal(L.verbuche(st, L.neuerLauf(2)), false);
   assert.equal(L.freischalten(st, 'schurke'), false, 'zu teuer');
   assert.equal(L.freischalten(st, 'barbar'), true); assert.equal(st.gold, 20); assert.equal(st.held, 'barbar');

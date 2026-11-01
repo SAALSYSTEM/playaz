@@ -2,7 +2,7 @@
 // Modelle: KayKit Adventurers / Skeletons / Character Animations / Dungeon Pack (CC0, Kay Lousberg),
 // aufbereitet mit tools/kerkerlauf-assets.mjs. Alle Figuren nutzen dasselbe Skelett (Rig_Medium),
 // deshalb passen die Animations-Clips aus den anim-*.glb auf Helden und Skelette.
-import * as L from './logik.js';
+import * as L from './logik.js?v=3';
 
 const THREE = window.THREE;
 const $ = (id) => document.getElementById(id);

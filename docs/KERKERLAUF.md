@@ -19,7 +19,7 @@ Kombo: jedes dritte besiegte Skelett in Folge erhöht den Faktor (×2 … ×5). 
 
 Tempo: 9 m/s am Start, gleichmäßig bis 22 m/s nach ~2,5 km. Reihenabstand ≥ 13 m bzw. ≈ 1,1–1,35 s.
 
-Helden: Ritter Rudi (frei), Barbarin Bruni (100), Schurke Schatten (250), Waldläuferin Wilma (500), Magier Merlin (800 Gold). Unterschied nur im Aussehen und Angriff (Magier zaubert).
+Helden: Ritter Rudi (frei), Barbarin Bruni (500), Schurke Schatten (1.500), Waldläuferin Wilma (3.500), Magier Merlin (7.500 Gold) – ein guter Lauf (~600 m) bringt etwa 150 Gold. Bereits freigeschaltete Helden bleiben frei. Unterschied nur im Aussehen und Angriff (Magier zaubert).
 
 ## Faire Strecke
 

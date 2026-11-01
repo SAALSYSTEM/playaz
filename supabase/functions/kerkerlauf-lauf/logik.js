@@ -4,7 +4,7 @@
 export const SPUREN = [-3, 0, 3];           // x der drei Spuren (Meter)
 export const SCHLUESSEL = 'kerkerlauf.v1';
 export const HELDEN = ['ritter', 'barbar', 'schurke', 'waldlaeufer', 'magier'];
-export const PREISE = { ritter: 0, barbar: 100, schurke: 250, waldlaeufer: 500, magier: 800 };
+export const PREISE = { ritter: 0, barbar: 500, schurke: 1500, waldlaeufer: 3500, magier: 7500 }; // ≈ 4 / 10 / 25 / 50 gute Läufe
 export const NAMEN = { ritter: 'Ritter Rudi', barbar: 'Barbarin Bruni', schurke: 'Schurke Schatten', waldlaeufer: 'Waldläuferin Wilma', magier: 'Magier Merlin' };
 export const PUNKTE = { muenze: 10, kill: 50, truhe: 100 };
 export const SPRUNG = { v: 9.5, g: 27 };    // Sprunghöhe ≈ 1,7 m, Flugzeit ≈ 0,7 s
