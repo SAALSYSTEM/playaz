@@ -16,7 +16,7 @@ OUT = os.path.join(ROOT, 'public/spiele/kerkerlauf/sound')
 os.makedirs(OUT, exist_ok=True)
 
 # name: maximale Länge in Sekunden
-EFFEKTE = {'schwert': 0.6, 'muenze': 0.6, 'truhe': 0.7, 'sprung': 0.9, 'landung': 0.5, 'sturz': 0.9, 'kombo': 0.9, 'rekord': 3.0, 'freischalten': 2.5}
+EFFEKTE = {'kill': 0.7, 'schwert': 0.6, 'muenze': 0.6, 'truhe': 0.7, 'sprung': 0.9, 'landung': 0.5, 'sturz': 0.9, 'kombo': 0.9, 'rekord': 3.0, 'freischalten': 2.5}
 
 
 def quelle(name):

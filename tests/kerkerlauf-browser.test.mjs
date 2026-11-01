@@ -73,8 +73,8 @@ test('Laden: Welt, zwei Skelette, Animationen und Startheld ohne Fehler; Menü o
   assert.match(await page.textContent('#mName'), /Ritter/);
   // Ton: startet mit der ersten Berührung, alle Dateien werden dekodiert, Musik und Knistern laufen in Schleife
   await page.mouse.click(195, 400);
-  await warte(page, () => window.__kerker.ton.geladen.length === 11 && window.__kerker.ton.schleifen, null, 30000);
-  assert.deepEqual((await T(page, () => window.__kerker.ton)).geladen, ['fackel', 'freischalten', 'kombo', 'landung', 'muenze', 'musik', 'rekord', 'schwert', 'sprung', 'sturz', 'truhe']);
+  await warte(page, () => window.__kerker.ton.geladen.length === 12 && window.__kerker.ton.schleifen, null, 30000);
+  assert.deepEqual((await T(page, () => window.__kerker.ton)).geladen, ['fackel', 'freischalten', 'kill', 'kombo', 'landung', 'muenze', 'musik', 'rekord', 'schwert', 'sprung', 'sturz', 'truhe']);
   await page.click('#mTon'); assert.equal((await T(page, () => window.__kerker.stand)).ton, false);
   assert.deepEqual(errors, []);
 });

@@ -216,8 +216,8 @@ const fleck = (() => {
 
 // ---------- Ton: Musik, Fackel-Knistern und Effekte (WebAudio) ----------
 // Dateien aus tools/kerkerlauf-sound.py (Pixabay). Fehlt eine Datei, spielt ein kurzer Ersatz-Ton.
-const SOUNDS = ['musik', 'fackel', 'schwert', 'muenze', 'truhe', 'sprung', 'landung', 'sturz', 'kombo', 'rekord', 'freischalten'];
-const LAUT = { schwert: 0.5, muenze: 0.42, truhe: 0.75, sprung: 0.45, landung: 0.4, sturz: 0.75, kombo: 0.65, rekord: 0.75, freischalten: 0.75 };
+const SOUNDS = ['musik', 'fackel', 'kill', 'schwert', 'muenze', 'truhe', 'sprung', 'landung', 'sturz', 'kombo', 'rekord', 'freischalten'];
+const LAUT = { kill: 0.6, schwert: 0.5, muenze: 0.42, truhe: 0.75, sprung: 0.45, landung: 0.4, sturz: 0.75, kombo: 0.65, rekord: 0.75, freischalten: 0.75 };
 const MUSIK = { menu: 0.3, lauf: 0.38, pause: 0.12, ende: 0.22, rang: 0.22 };   // Musik-Lautstärke je Zustand
 let audio = null, master = null, musikBus = null, fxBus = null;
 const puffer = {};
@@ -230,7 +230,7 @@ function audioStart() {
       musikBus = audio.createGain(); musikBus.gain.value = 0; musikBus.connect(master);
       fxBus = audio.createGain(); fxBus.connect(master);
       for (const n of SOUNDS) {
-        fetch(new URL(`./sound/${n}.mp3?v=2`, import.meta.url)).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
+        fetch(new URL(`./sound/${n}.mp3?v=3`, import.meta.url)).then((r) => (r.ok ? r.arrayBuffer() : Promise.reject(r.status)))
           .then((b) => new Promise((ok, err) => audio.decodeAudioData(b, ok, err)))
           .then((buf) => { puffer[n] = buf; if (n === 'musik' || n === 'fackel') starteSchleifen(); })
           .catch(() => {});
@@ -294,7 +294,7 @@ function ton(art) {
       s.buffer = b; f.type = 'bandpass'; f.frequency.setValueAtTime(von, t); f.frequency.exponentialRampToValueAtTime(bis, t + dauer); g.gain.value = laut;
       s.connect(f).connect(g).connect(fxBus); s.start(t);
     };
-    // Ersatz-Töne (Knochen-Knacken, Spurwechsel und Klick haben keine eigene Datei)
+    // Ersatz-Töne (Spurwechsel und Klick haben keine eigene Datei; die anderen nur, falls eine Datei fehlt)
     if (art === 'kill') { note(180, 0, 0.12, 'square', 0.06, 90); rauschen(0.12, 0.35, 900, 300); }
     else if (art === 'wechsel') rauschen(0.08, 0.12, 1200, 700);
     else if (art === 'klick') note(620, 0, 0.06, 'sine', 0.06);
