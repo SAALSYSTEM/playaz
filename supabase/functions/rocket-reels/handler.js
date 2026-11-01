@@ -1,14 +1,16 @@
 // Supabase Edge Function "rocket-reels": Space Coins für angemeldete Spieler (getestet unter Node, tests/rocket-reels-konto.test.mjs).
 // Der Browser schickt nur eine Aktion: { aktion: 'stand'|'dreh'|'sichern'|'risiko'|'sprung'|'nachfuellen'|'tagesbonus'|'gast'|'roulette', einsatz?, route?, gast?, wetten? }.
-// Roulette nutzt dieselben Coins (gemeinsamer Stand, dieselbe Revision): 'roulette' wertet mit roulette.js (Kopie aus public/spiele/roulette/) aus.
+// Roulette und Texas Hold'em nutzen dieselben Coins (gemeinsamer Stand, dieselbe Revision): 'roulette' → roulette.js, 'poker' → poker.js
+// (Kopien aus public/spiele/…). Jede Antwort geht durch P.ansicht(): Kartenstapel und verdeckte Karten der Computergegner verlassen den Server nie.
 // Hier wird gelesen, mit engine.js (Kopie aus public/spiele/rocket-reels/, node tools/edge-sync.mjs) und Krypto-Zufall ausgewertet
 // und nur bei unveränderter Revision gespeichert. Coin-Beträge aus dem Browser werden nie übernommen (außer gedeckelt bei der
 // einmaligen Gast-Übernahme, siehe engine.js gastUebernehmen).
 import * as E from './engine.js';
 import * as R from './roulette.js';
+import * as P from './poker.js';
 
 export const ERLAUBTE_URSPRUENGE = ['https://playsaal.com', 'https://www.playsaal.com'];
-const AKTIONEN = ['stand', 'dreh', 'sichern', 'risiko', 'sprung', 'nachfuellen', 'tagesbonus', 'gast', 'roulette'];
+const AKTIONEN = ['stand', 'dreh', 'sichern', 'risiko', 'sprung', 'nachfuellen', 'tagesbonus', 'gast', 'roulette', 'poker'];
 const MAX_BYTES = 10000;
 
 export function cors(origin) {
@@ -16,7 +18,7 @@ export function cors(origin) {
   if (ERLAUBTE_URSPRUENGE.includes(origin)) h['access-control-allow-origin'] = origin;
   return h;
 }
-const antwort = (status, body, origin) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store', ...cors(origin) } });
+const antwort = (status, body, origin) => new Response(JSON.stringify(body.zustand ? { ...body, zustand: P.ansicht(body.zustand) } : body), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store', ...cors(origin) } });
 export function berlinTag(d) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
 }
@@ -65,6 +67,8 @@ export async function behandle(req, env, f = fetch, jetzt = new Date(), zufall =
     }
   } else if (b.aktion === 'roulette') {
     r = R.drehen(zustand, b.wetten, zufall);
+  } else if (b.aktion === 'poker') {
+    r = P.aktion(zustand, { p: b.p, art: b.art, stufe: b.stufe, buyin: b.buyin, zug: b.zug, betrag: b.betrag }, zufall);
   } else {
     const a = { typ: b.aktion };
     if (b.einsatz !== undefined) a.einsatz = b.einsatz;

@@ -190,7 +190,8 @@ export function pruefeZustand(z) {
 const kopie = (z) => JSON.parse(JSON.stringify(z));
 export const risikoMoeglich = (z) => (z.phase === 'gewinn' && z.offen * 2 <= RISIKO_GRENZE)
   || (z.phase === 'risiko' && z.risiko.stufe < RISIKO_SPRUENGE && z.offen * 2 <= RISIKO_GRENZE);
-export const darfNachfuellen = (z) => z.phase === 'bereit' && z.coins < EINSAETZE[0];
+// Nicht, solange in Texas Hold'em ein Tisch offen ist (dort liegen Coins als Chips) – sonst gäbe es Gratis-Coins ohne Ende.
+export const darfNachfuellen = (z) => z.phase === 'bereit' && z.coins < EINSAETZE[0] && !(z.poker && z.poker.t);
 // Die Stationen der Risiko-Leiter (Start + bis zu 4 Stufen, solange unter der Grenze)
 export function leiter(start) {
   const s = [start];

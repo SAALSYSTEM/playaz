@@ -1,0 +1,145 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Texas Hold'em – Poker gegen 5 Computergegner mit Spielgeld | PlaySaal</title><meta name="description" content="Texas Hold'em No Limit am 6er-Tisch gegen fünf Computergegner mit eigenem Spielstil: Cash-Game oder Sit &amp; Go. Kostenlos im Browser, nur virtuelle Coins ohne Geldwert. Nicht für Kinder."><link rel="canonical" href="https://playsaal.com/spiele/texas-holdem"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Texas Hold'em · PlaySaal"><meta property="og:description" content="Poker am 6er-Tisch gegen Kalle, Vera, Bruno, Oma Hilde und Prof. Lindqvist – nur Spielgeld."><meta property="og:url" content="https://playsaal.com/spiele/texas-holdem"><meta property="og:image" content="https://playsaal.com/bilder/texas-holdem-og.jpg?v=1"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Texas Hold'em · PlaySaal"><meta name="twitter:description" content="Poker gegen fünf Computergegner – nur Spielgeld."><meta name="twitter:image" content="https://playsaal.com/bilder/texas-holdem-og.jpg?v=1"><meta name="theme-color" content="#06150f"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/spiele/texas-holdem/style.css?v=1"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'texas-holdem',t:Date.now()}))}catch(e){}</script></head>
+<body>
+<a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
+
+<div id="app">
+  <header class="kopf">
+    <div class="titel"><h1 class="logo">Hold'em</h1><small id="tischInfo"></small></div>
+    <button id="bCoins" class="coins" type="button" aria-label="Coins und Bilanz"><i class="coin" aria-hidden="true"></i><b id="hCoins">1.000</b></button>
+    <button id="bInfo" class="rund" type="button" aria-label="Regeln" title="Regeln"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 10.5v6.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><circle cx="12" cy="7.3" r="1.5" fill="currentColor"/></svg></button>
+    <button id="bTon" class="rund" type="button" aria-label="Ton an oder aus" title="Ton"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" fill="currentColor"/><path id="tonWellen" d="M15.5 9a4.5 4.5 0 0 1 0 6M18 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </header>
+
+  <!-- Lobby -->
+  <main id="lobby" class="lobby" hidden>
+    <div class="gegner-reihe" id="gegnerReihe" aria-label="Deine Gegner"></div>
+    <button id="bTages" class="tages" type="button" hidden>Tagesbonus abholen <b>+100</b></button>
+    <button id="bTanken" class="tages tanken" type="button" hidden>Gratis auffüllen</button>
+    <section class="bereich">
+      <h2>Cash-Game</h2>
+      <p class="unter">Mit Coins hinsetzen, Hand für Hand spielen, jederzeit aufstehen – deine Chips gehen zurück aufs Guthaben.</p>
+      <div class="liste" id="cashListe"></div>
+    </section>
+    <section class="bereich">
+      <h2>Sit &amp; Go</h2>
+      <p class="unter">Sechs Spieler, alle 1.500 Chips, die Blinds steigen alle 6 Hände. Platz 1 bekommt 4×, Platz 2 bekommt 2× das Buy-in.</p>
+      <div class="liste" id="sngListe"></div>
+    </section>
+    <p class="fuss">Nur Spielgeld ohne Geldwert · Coins gemeinsam mit Roulette und Rocket Reels</p>
+  </main>
+
+  <!-- Tisch -->
+  <main id="tisch" class="tisch" hidden>
+    <div class="oval" aria-hidden="true"></div>
+    <div id="sitze"></div>
+    <div class="mitte">
+      <div id="pot" class="pot" aria-live="polite"></div>
+      <div id="board" class="board" aria-label="Gemeinschaftskarten"></div>
+      <div id="ansage" class="ansage" aria-live="polite"></div>
+    </div>
+    <div id="ich" class="ich">
+      <div id="meineKarten" class="meine-karten" aria-label="Deine Karten"></div>
+      <div id="meineHand" class="meine-hand"></div>
+    </div>
+  </main>
+
+  <footer id="steuer" class="steuer" hidden>
+    <div id="zugKnoepfe" class="zug-knoepfe" hidden>
+      <button id="bFold" class="knopf fold" type="button">Passen</button>
+      <button id="bCall" class="knopf call" type="button">Check</button>
+      <button id="bRaise" class="knopf raise" type="button">Erhöhen</button>
+    </div>
+    <div id="raisePanel" class="raise-panel" hidden>
+      <div class="raise-kopf"><span>Erhöhen auf</span><b id="raiseBetrag">0</b></div>
+      <input id="raiseRegler" type="range" min="0" max="100" step="1" aria-label="Betrag zum Erhöhen">
+      <div class="raise-preset" id="raisePreset">
+        <button type="button" data-r="min">Min</button><button type="button" data-r="0.5">½ Pot</button><button type="button" data-r="0.75">¾ Pot</button><button type="button" data-r="1">Pot</button><button type="button" data-r="allin">All-in</button>
+      </div>
+      <div class="raise-ok"><button id="bRaiseAb" class="knopf" type="button">Zurück</button><button id="bRaiseOk" class="knopf raise" type="button">Erhöhen</button></div>
+    </div>
+    <div id="warten" class="warten"><span id="wartenText"></span></div>
+    <div id="nachHand" class="nach-hand" hidden>
+      <button id="bAufstehen" class="knopf" type="button">Aufstehen</button>
+      <button id="bWeiter" class="knopf weiter" type="button">Nächste Hand</button>
+    </div>
+  </footer>
+</div>
+
+<!-- Buy-in -->
+<section id="buyin" class="schicht dialog" hidden aria-labelledby="bTitel">
+  <div class="karte">
+    <button class="zu" type="button" data-zu aria-label="Schließen">×</button>
+    <h2 id="bTitel">Hinsetzen</h2>
+    <p class="unter" id="bText"></p>
+    <div class="raise-kopf"><span>Buy-in</span><b id="bBetrag">0</b></div>
+    <input id="bRegler" type="range" min="0" max="100" step="1" aria-label="Buy-in">
+    <button id="bOk" class="knopf haupt" type="button">Hinsetzen</button>
+  </div>
+</section>
+
+<!-- Regeln -->
+<section id="info" class="schicht dialog" hidden aria-labelledby="iTitel">
+  <div class="karte lang">
+    <button class="zu" type="button" data-zu aria-label="Schließen">×</button>
+    <h2 id="iTitel">Texas Hold'em</h2>
+    <p class="unter">No Limit, 6 Plätze. Jeder bekommt zwei verdeckte Karten, dazu kommen fünf offene Karten in der Mitte. Die beste Hand aus fünf der sieben Karten gewinnt – oder wer als Letzter übrig bleibt.</p>
+    <h3>Ablauf</h3>
+    <ul class="regeln" id="iAblauf"></ul>
+    <h3>Rangfolge der Hände</h3>
+    <div id="iHaende" class="haende"></div>
+    <h3>Deine Gegner</h3>
+    <div id="iGegner" class="gegner-liste"></div>
+    <h3>Coins</h3>
+    <ul class="regeln" id="iCoins"></ul>
+    <p class="hinweis-box" id="iFair"></p>
+    <button id="iAufstehen" class="knopf" type="button" hidden>Tisch verlassen</button>
+  </div>
+</section>
+
+<!-- Bilanz -->
+<section id="profil" class="schicht dialog" hidden aria-labelledby="pTitel">
+  <div class="karte">
+    <button class="zu" type="button" data-zu aria-label="Schließen">×</button>
+    <h2 id="pTitel">Deine Bilanz</h2>
+    <p class="unter" id="pModus"></p>
+    <dl id="pStats" class="stats"></dl>
+    <button id="pKonto" class="knopf haupt" type="button" hidden>Coins sichern</button>
+    <p class="klein" id="pHinweis"></p>
+  </div>
+</section>
+
+<!-- Ergebnis Sit & Go / keine Chips -->
+<section id="meldung" class="schicht dialog" hidden aria-labelledby="mTitel">
+  <div class="karte mitte-karte">
+    <h2 id="mTitel"></h2>
+    <p id="mText" class="unter"></p>
+    <div id="mKnoepfe" class="m-knoepfe"></div>
+  </div>
+</section>
+
+<!-- Konto-Hinweis -->
+<section id="werbung" class="schicht blatt" hidden aria-labelledby="wTitel">
+  <div class="karte">
+    <h2 id="wTitel">Starke Hand!</h2>
+    <p>Sichere deine Coins kostenlos mit deinem PlaySaal-Konto – sie gelten in allen Casino-Spielen, auf jedem Gerät.</p>
+    <button id="wJa" class="knopf haupt" type="button">Coins sichern</button>
+    <button id="wNein" class="knopf" type="button">Als Gast weiterspielen</button>
+  </div>
+</section>
+
+<!-- Gast-Spielstand übernehmen -->
+<section id="gast" class="schicht dialog" hidden aria-labelledby="gTitel">
+  <div class="karte">
+    <h2 id="gTitel">Gast-Spielstand übernehmen?</h2>
+    <p id="gText"></p>
+    <button id="gJa" class="knopf haupt" type="button">Übernehmen</button>
+    <button id="gNein" class="knopf" type="button">Nicht übernehmen</button>
+  </div>
+</section>
+
+<div id="toast" role="status" hidden></div>
+<div id="laden" class="schicht"><div class="karte mitte-karte"><h2>Texas Hold'em</h2><p>Die Karten werden gemischt …</p></div></div>
+<noscript><p class="fehler">Texas Hold'em braucht JavaScript.</p></noscript>
+
+<script type="module" src="/spiele/texas-holdem/game.js?v=1"></script>
+<script src="/assets/playsaal-config.js" defer></script><script src="/assets/playsaal.js" defer></script></body></html>
