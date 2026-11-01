@@ -3,7 +3,8 @@
 //  Konto: Regeln laufen auf dem Server (Edge Function "rocket-reels", gleiche engine.js). Der Browser schickt nur Wünsche
 //         ("drehen mit 20", "sichern", "Route links") und bekommt Ergebnis + neuen Stand zurück. Coins lassen sich so nicht
 //         durch manipulierte Anfragen verändern.
-// Der Gast-Schlüssel enthält absichtlich einen Bindestrich: Der allgemeine PlaySaal-Sync (Präfix "rocketreels.") nimmt ihn nicht mit.
+// Alle Schlüssel beginnen absichtlich mit "rocketreels-" (Bindestrich): Der allgemeine PlaySaal-Sync (Präfix "rocketreels.") nimmt sie nicht mit.
+// Gäste-Coins sollen nicht über den frei beschreibbaren Sync ins Konto wandern, dafür gibt es die einmalige, gedeckelte Übernahme.
 import * as E from './engine.js';
 
 export const GAST_KEY = 'rocketreels-gast.v1';

@@ -1,7 +1,7 @@
 // Rocket Reels – Ton. Alle Effekte entstehen live mit der Web Audio API (keine Dateien, keine Lizenzfragen).
 // Optional: liegt ton/musik.mp3 bzw. ton/freispiele.mp3 im Spielordner (in img/manifest.json als "ton:…" gelistet), wird sie statt der
 // erzeugten Musik gespielt. Nichts klingt vor der ersten Berührung (der AudioContext entsteht erst dann).
-const KEY = 'rocketreels.ton';
+const KEY = 'rocketreels-ton';
 let ctx = null, master = null, sfxBus = null, musikBus = null, rausch = null;
 export const einst = (() => {
   let e = null; try { e = JSON.parse(localStorage.getItem(KEY)); } catch (x) {}

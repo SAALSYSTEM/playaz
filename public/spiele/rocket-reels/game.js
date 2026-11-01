@@ -21,7 +21,7 @@ let z = E.neuerZustand();   // letzter bestätigter Spielstand
 let einsatz = 10;           // gewählter Einsatz (geht mit dem nächsten Dreh mit)
 let beschaeftigt = false;   // Sperre gegen doppelte Auslösung
 let ueberspringen = false;  // Tipp während einer Präsentation: Rest im Zeitraffer
-let turbo = ls.get('rocketreels.turbo') === '1' || /[?&]schnell\b/.test(Q);
+let turbo = ls.get('rocketreels-turbo') === '1' || /[?&]schnell\b/.test(Q);
 let angezeigteCoins = 0;
 let sitzungsRunden = 0;
 const tempo = () => (TT ? 0.05 : turbo ? 0.5 : 1);
@@ -216,6 +216,7 @@ function zeigeCoins(ziel, puls = false) {
 function text(html, gross = false) { const a = $('#anzeige'); $('#aText').innerHTML = html; a.classList.toggle('gross', gross); }
 function aktualisieren() {
   const frei = z.phase === 'bonus';
+  if (!beschaeftigt && z.phase === 'bereit') passEinsatz();
   document.body.classList.toggle('frei', frei);
   $('#bonusHud').hidden = !frei;
   if (frei) { $('#bRest').textContent = z.bonus.rest; $('#bSumme').textContent = fmt(z.bonus.summe); zeichneSpezialHud(z.bonus.sym); }
@@ -260,6 +261,8 @@ async function ausfuehren(a) {
   if (r.fehler && backend.zustand()) z = backend.zustand();
   return r;
 }
+// gewählter Einsatz höchstens so hoch wie der Kontostand (größter passender Wert)
+function passEinsatz() { if (einsatz > z.coins) einsatz = [...E.EINSAETZE].reverse().find((e) => e <= z.coins) || E.EINSAETZE[0]; }
 function grundMusik() { if (G.TOENE.includes('musik') && z.phase !== 'bonus') T.musikStart('musik'); }
 async function startTipp() {
   T.entsperren(); grundMusik();
@@ -364,7 +367,7 @@ async function tanken() {
   const r = await ausfuehren({ typ: 'nachfuellen' });
   beschaeftigt = false;
   if (r.fehler) { toast(fehlerText(r.fehler)); aktualisieren(); return; }
-  z = r.zustand; T.sfx.tanken(); einsatz = Math.min(einsatz, z.coins);
+  z = r.zustand; T.sfx.tanken(); passEinsatz();
   text('Treibstoff nachgefüllt: <b>' + fmt(z.coins) + '</b>');
   zeigeCoins(z.coins, true); aktualisieren();
 }
@@ -719,7 +722,6 @@ async function backendWaehlen() {
     const geladen = await k.laden();
     if (geladen) {
       backend = k; z = geladen; einsatz = z.einsatz;
-      await gastAngebot(P);
       return;
     }
     toast('Konto-Spielstand gerade nicht erreichbar – du spielst vorerst als Gast.', 4000);
@@ -762,6 +764,7 @@ async function kontoWechsel() {
   await backendWaehlen();
   W.forEach((w, i) => { w.pos = z.letzte[i]; });
   angezeigteCoins = z.coins; aktualisieren(); zeichneWalzen(jetzt());
+  if (backend.art === 'konto') { await gastAngebot(window.PlaySaal); aktualisieren(); }
   if (backend.art !== vorher) toast(backend.art === 'konto' ? 'Spielstand aus deinem PlaySaal-Konto geladen.' : 'Abgemeldet – du spielst als Gast auf diesem Gerät.');
   if (z.phase === 'risiko') risikoOeffnen();
 }
@@ -777,7 +780,7 @@ $('#rSichern').addEventListener('click', risikoSichern);
 $('#bTages').addEventListener('click', tagesbonus);
 $('#walzen').addEventListener('pointerdown', () => { if (beschaeftigt) { ueberspringen = true; if (dreht()) eilen(); } });
 document.querySelectorAll('.einsatz button').forEach((b) => b.addEventListener('click', () => {
-  if (beschaeftigt) return; T.entsperren(); T.sfx.klick(); einsatz = Number(b.dataset.e); ls.set('rocketreels.einsatz', String(einsatz)); aktualisieren();
+  if (beschaeftigt) return; T.entsperren(); T.sfx.klick(); einsatz = Number(b.dataset.e); ls.set('rocketreels-einsatz', String(einsatz)); aktualisieren();
 }));
 $('#bInfo').addEventListener('click', () => { T.entsperren(); infoBauen(); oeffne('#info'); });
 $('#bProfil').addEventListener('click', () => { T.entsperren(); profilZeigen(); });
@@ -788,7 +791,7 @@ $('#eMusik').addEventListener('change', (e) => { T.einst.musik = e.target.checke
 $('#eLaut').addEventListener('input', (e) => { T.einst.laut = Number(e.target.value); T.speichern(); });
 $('#eLaut').addEventListener('change', () => T.sfx.klick());
 const tonSymbol = () => document.body.classList.toggle('stumm', !T.einst.effekte && !T.einst.musik);
-$('#bTurbo').addEventListener('click', () => { turbo = !turbo; ls.set('rocketreels.turbo', turbo ? '1' : '0'); $('#bTurbo').setAttribute('aria-pressed', String(turbo)); toast(turbo ? 'Schnelle Walzen an' : 'Schnelle Walzen aus', 1400); });
+$('#bTurbo').addEventListener('click', () => { turbo = !turbo; ls.set('rocketreels-turbo', turbo ? '1' : '0'); $('#bTurbo').setAttribute('aria-pressed', String(turbo)); toast(turbo ? 'Schnelle Walzen an' : 'Schnelle Walzen aus', 1400); });
 addEventListener('pointerdown', () => T.entsperren(), { capture: true, passive: true });
 addEventListener('resize', () => { if (!$('#risiko').hidden) risikoGroesse(); });
 
@@ -804,12 +807,13 @@ async function start() {
     await new Promise((r) => setTimeout(r, 50));
   }
   await backendWaehlen();
-  const gew = Number(ls.get('rocketreels.einsatz'));
+  const gew = Number(ls.get('rocketreels-einsatz'));
   if (z.phase === 'bereit' && E.EINSAETZE.includes(gew) && gew <= Math.max(10, z.coins)) einsatz = gew;
   W.forEach((w, i) => { w.pos = z.letzte[i]; });
   angezeigteCoins = z.coins; $('#hCoins').textContent = fmt(z.coins);
   layout(); aktualisieren();
   $('#laden').hidden = true;
+  if (backend.art === 'konto') { await gastAngebot(window.PlaySaal); passEinsatz(); aktualisieren(); }
   if (z.phase === 'gewinn') text('Offener Gewinn <b>' + fmt(z.offen) + '</b>');
   if (z.phase === 'risiko') risikoOeffnen();
   if (z.phase === 'bonus') text('Freispiele laufen noch – <b>' + z.bonus.rest + '</b> übrig. Tippe auf Frei.');
