@@ -3,7 +3,7 @@
 -- Einträge schreibt nur die Prüf-Funktion (Edge Function "kerkerlauf-lauf" mit service_role), die jeden Lauf nachspielt.
 -- Gleicher Aufbau wie 20261022130000_papierpilot.sql; private.aufraeumen = Fassung aus 20261023220000_ausfahrt_frei.sql + Kerkerlauf.
 
-create table private.kerkerlauf_laeufe (
+create table if not exists private.kerkerlauf_laeufe (
   id bigint generated always as identity primary key,
   user_id uuid not null references auth.users (id) on delete cascade,
   tag date not null,
@@ -14,8 +14,8 @@ create table private.kerkerlauf_laeufe (
   inputs text not null check (char_length(inputs) < 150000),
   created_at timestamptz not null default now()
 );
-create index kerkerlauf_laeufe_tag on private.kerkerlauf_laeufe (tag, punkte desc, takte asc);
-create index kerkerlauf_laeufe_spieler on private.kerkerlauf_laeufe (user_id, tag, punkte desc);
+create index if not exists kerkerlauf_laeufe_tag on private.kerkerlauf_laeufe (tag, punkte desc, takte asc);
+create index if not exists kerkerlauf_laeufe_spieler on private.kerkerlauf_laeufe (user_id, tag, punkte desc);
 alter table private.kerkerlauf_laeufe enable row level security;
 
 -- Bester Lauf je Spieler im Zeitraum ('heute' | 'monat' | 'gesamt', Zeitzone Europe/Berlin)
