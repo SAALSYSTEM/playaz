@@ -1,6 +1,6 @@
 # Texas Hold'em
 
-No Limit Texas Hold'em am 6er-Tisch gegen fünf Computergegner, Hochformat, klassisch wie Roulette (grüner Filz, Holz, Gold). Cash-Game und Sit & Go. Gespielt wird mit den **Casino-Coins** – denselben wie in Roulette und Rocket Reels. Seite: `/spiele/texas-holdem`, Kategorie „Casino“. Nicht für Kinder; PlaySaal-Empfehlung ab 18 (keine offizielle Altersfreigabe).
+Veröffentlicht am 02.11.2026. No Limit Texas Hold'em am 6er-Tisch gegen fünf Computergegner, Hochformat, klassisch wie Roulette (grüner Filz, Holz, Gold). Cash-Game und Sit & Go. Gespielt wird mit den **Casino-Coins** – denselben wie in Roulette und Rocket Reels. Seite: `/spiele/texas-holdem`, Kategorie „Casino“. Nicht für Kinder; PlaySaal-Empfehlung ab 18 (keine offizielle Altersfreigabe).
 
 ## Dateien
 
@@ -12,7 +12,7 @@ No Limit Texas Hold'em am 6er-Tisch gegen fünf Computergegner, Hochformat, klas
 | Ton (Web Audio, keine Dateien) | `public/spiele/texas-holdem/ton.js` |
 | Server (Konten) | Edge Function `rocket-reels` (Aktion `poker`, Kopie von `poker.js` per `node tools/edge-sync.mjs`) |
 | Katalog | `supabase/migrations/20261101230000_texas_holdem.sql` |
-| Bilder | Prompts `design/texas-holdem/PROMPTS.md`, Umwandlung `python3 tools/texas-holdem-assets.py` |
+| Bilder | ChatGPT-Porträts, Kachel und Teilen-Bild in `design/texas-holdem/` (Prompts `PROMPTS.md`), Umwandlung `python3 tools/texas-holdem-assets.py` (Avatare aufs Gesicht gezoomt) |
 
 ## Regeln
 

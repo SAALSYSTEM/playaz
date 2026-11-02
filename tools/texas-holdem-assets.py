@@ -41,8 +41,11 @@ for g in GEGNER:
     f = finde(g)
     if not f:
         continue
-    # Gesicht sitzt meist im oberen Drittel: leicht nach oben betont zuschneiden
-    zuschneiden(Image.open(f).convert('RGB'), 256, 256, oben=0.3).save(IMG / (g + '.webp'), 'WEBP', quality=84, method=6)
+    # Für den runden Avatar aufs Gesicht zoomen: Quadrat mit 68 % Kantenlänge um (Mitte, 38 % Höhe)
+    im = Image.open(f).convert('RGB'); seite = round(min(im.size) * 0.68)
+    cx, cy = im.width * 0.5, im.height * 0.38
+    l = max(0, min(im.width - seite, round(cx - seite / 2))); t = max(0, min(im.height - seite, round(cy - seite / 2)))
+    im.crop((l, t, l + seite, t + seite)).resize((256, 256), Image.LANCZOS).save(IMG / (g + '.webp'), 'WEBP', quality=84, method=6)
     da.append(g)
     print('Avatar:', g)
 (IMG / 'manifest.json').write_text(json.dumps(da))

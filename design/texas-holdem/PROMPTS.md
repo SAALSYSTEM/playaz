@@ -1,6 +1,6 @@
 # Texas Hold'em – Bildprompts (ChatGPT)
 
-Karten, Tisch und Chips zeichnet das Spiel selbst. `kachel.png` und `social.png` hier sind gezeichnete Platzhalter, bis die ChatGPT-Bilder da sind. Neue Bilder mit gleichem Namen ablegen und `python3 tools/texas-holdem-assets.py` ausführen.
+Karten, Tisch und Chips zeichnet das Spiel selbst. Alle sieben Bilder sind von ChatGPT geliefert (02.11.2026). Neue Bilder mit gleichem Namen ablegen und `python3 tools/texas-holdem-assets.py` ausführen.
 
 Gegner (quadratisch, einheitlicher Stil): `kalle.png`, `vera.png`, `bruno.png`, `hilde.png`, `lindqvist.png`. Gemeinsamer Rahmen jedes Prompts: „Quadratisches Porträt-Avatarbild für ein Pokerspiel, halbrealistischer Illustrationsstil wie ein hochwertiges Spiel-Charakterporträt … Brustbild, Blick leicht seitlich zum Betrachter, warmes Casino-Licht von oben, dunkelgrüner unscharfer Hintergrund mit goldenem Schimmer. Einheitlicher Stil für eine Serie von fünf Gegnern. Kein Text, keine Schrift, keine Spielkarten im Bild, kein Rahmen.“
 
