@@ -53,3 +53,13 @@ Zielgrößen skaliert). Ein zweiter, flacherer Brückenentwurf wurde nicht verwe
 - `blatt.png`: 128 × 128.
 
 Zugeschnitten und bereinigt aus den ChatGPT-Originalen (Rauschpixel entfernt, Randsaum eingefärbt, skaliert).
+
+## Level 91–150
+
+- `baumhoehle.png`: 3 × 1, 384 × 384 je Feld: Ring blau, rot, gelb. Boden 16 px über dem Zellrand.
+- `felsbrocken.png`: 256 × 256, wird im Spiel beim Rollen gedreht.
+- `druckplatte.png`: 2 × 1, 192 × 96: oben, gedrückt (Blatt leuchtet).
+- `rankentor.png`: 2 × 1, 256 × 384: zu, offen. Das offene Feld ist aus den beiden einzelnen Pfosten des ChatGPT-Bilds
+  zusammengesetzt, an die Stelle der Pfosten im geschlossenen Tor.
+- `laterne.png`: 2 × 1, 192 × 256: dunkel, leuchtet. Pfahl 16 px über dem Zellrand.
+- `hintergrund-4.jpg`: Nacht-Version der Szene, 1080 × 1920 (aus 941 × 1672 hochskaliert).

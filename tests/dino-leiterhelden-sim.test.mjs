@@ -2,14 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { LEVELS, LEVEL_COUNT } from '../public/spiele/dino-leiterhelden/levels.js';
-import { C, HZ, layout, newState, step, validate, solve, playPath, nutDanger, bridgeDock, bridgeLo, wakerAwake, slideExit, balloonTimes, neckOpen, freshSave, sanitizeSave, recordRun, parseChallenge, beats, centis, fmt } from '../public/spiele/dino-leiterhelden/engine.js';
+import { C, HZ, layout, newState, step, validate, solve, playPath, nutDanger, bridgeDock, bridgeLo, wakerAwake, slideExit, balloonTimes, neckOpen, gateOpen, deadEnds, freshSave, sanitizeSave, recordRun, parseChallenge, beats, centis, fmt } from '../public/spiele/dino-leiterhelden/engine.js';
 import worker from '../src/worker.js';
 
 const run = (s, ix, iy, ticks) => { for (let i = 0; i < ticks; i++) step(s, ix, iy); return s; };
 const lv = (o) => ({ tip: { icon: '·', text: 'Test' }, ladders: [], door: { x: 820 }, start: { f: 0, x: 100 }, friends: [{ f: 0, x: 300 }, { f: 0, x: 500 }, { f: 0, x: 700 }], ...o });
 
-test('90 gültige Level: Freunde erreichbar, Tür lösbar, jede Mechanik wird gebraucht, Bot schafft jedes ohne Rücksetzer', () => {
-  assert.equal(LEVEL_COUNT, 90);
+test('150 gültige Level: Freunde erreichbar, Tür lösbar, jede Mechanik wird gebraucht, Bot schafft jedes ohne Rücksetzer', () => {
+  assert.equal(LEVEL_COUNT, 150);
   LEVELS.forEach((level, i) => {
     const n = i + 1;
     assert.deepEqual(validate(level), [], `Level ${n}`);
@@ -127,6 +127,64 @@ test('Langhals: will ein Blatt, legt danach den Hals über die Lücke; immer nur
   assert.ok(validate(lv({ ...level, necks: [{ ...nk, b: 700 }] })).length > 0, 'Lücke muss passen');
 });
 
+test('Level 91–150: Höhlen, Felsbrocken und Nacht werden eingeführt, gebraucht und gemischt; kein Stein führt in eine Sackgasse', () => {
+  const kinds = (l) => ['slides', 'bridges', 'wakers', 'balloons', 'necks', 'holes', 'rocks'].filter((k) => (l[k] || []).length).concat(l.night ? ['night'] : []);
+  for (let n = 91; n <= 94; n++) assert.ok(!kinds(LEVELS[n - 1]).some((k) => ['holes', 'rocks', 'night'].includes(k)), `Level ${n}: nur bekannte Elemente`);
+  assert.deepEqual(kinds(LEVELS[94]), ['holes'], 'Level 95 zeigt nur die Höhle');
+  assert.deepEqual(kinds(LEVELS[102]), ['rocks'], 'Level 103 zeigt nur den Felsbrocken');
+  assert.deepEqual(kinds(LEVELS[110]), ['night'], 'Level 111 zeigt nur die Nacht');
+  for (let n = 95; n <= 102; n++) assert.ok((LEVELS[n - 1].holes || []).length, `Level ${n}: Höhle`);
+  for (let n = 103; n <= 110; n++) assert.ok((LEVELS[n - 1].rocks || []).length, `Level ${n}: Felsbrocken`);
+  for (let n = 111; n <= 116; n++) assert.ok(LEVELS[n - 1].night && LEVELS[n - 1].lamps.length, `Level ${n}: Nacht mit Laternen`);
+  for (let n = 117; n <= 122; n++) assert.ok(LEVELS[n - 1].holes.length && LEVELS[n - 1].rocks.length, `Level ${n}: Höhle und Stein`);
+  for (let n = 123; n <= 130; n++) assert.ok(LEVELS[n - 1].night && kinds(LEVELS[n - 1]).some((k) => k === 'holes' || k === 'rocks'), `Level ${n}: Nacht mit Höhle oder Stein`);
+  const all = (l) => ['monsters', 'levers', 'nuts', 'slides', 'bridges', 'wakers', 'balloons', 'necks', 'holes', 'rocks'].filter((k) => (l[k] || []).length).concat(l.night ? ['night'] : []);
+  for (let n = 131; n <= 144; n++) assert.ok(all(LEVELS[n - 1]).length >= 2, `Level ${n}: Mischung`);
+  for (let n = 145; n <= 150; n++) assert.ok(LEVELS[n - 1].night && kinds(LEVELS[n - 1]).length >= 3, `Level ${n}: Nacht-Finale`);
+  LEVELS.slice(90).forEach((l, i) => {
+    const n = i + 91, path = solve(l).path, end = path.at(-1);
+    assert.ok(end.rk.every((r) => r.st !== 0), `Level ${n}: jeder Stein wird gebraucht`);
+    const used = new Set(path.filter((p) => p.via && p.via[0] === 'h').map((p) => l.holes[+p.via.slice(1)].c));
+    assert.equal(used.size, new Set((l.holes || []).map((h) => h.c)).size, `Level ${n}: jede Höhlenfarbe wird gebraucht`);
+    if ((l.rocks || []).length) assert.equal(deadEnds(l, true).dead, 0, `Level ${n}: kein Stein führt in eine Sackgasse`);
+    assert.ok(l.tip.text.length <= 45 && solve(l).seconds < 40, `Level ${n}: kurz`);
+  });
+});
+
+test('Zauber-Baumhöhle: nach oben ziehen, kommt bei gleicher Farbe heraus, in beide Richtungen', () => {
+  const level = lv({ floors: [[[40, 860]], [[40, 860]]], holes: [{ f: 0, x: 700, c: 0 }, { f: 1, x: 200, c: 0 }], door: { x: 705 }, start: { f: 0, x: 680 },
+    friends: [{ f: 0, x: 300 }, { f: 0, x: 500 }, { f: 1, x: 450 }] });
+  assert.deepEqual(validate(level), []);
+  const s = newState(level);
+  run(s, 0, 1, 1); assert.equal(s.hole, 0); assert.equal(s.x, 700);
+  run(s, 1, 0, C.hole); assert.equal(s.hole, -1); assert.equal(s.f, 1); assert.equal(s.x, 200, 'Steuerung wirkt in der Höhle nicht'); assert.deepEqual(s.cp, { f: 1, x: 200 });
+  run(s, 0, 1, C.hole + 1); assert.equal(s.f, 0); assert.equal(s.x, 700, 'und zurück');
+  assert.ok(validate(lv({ ...level, holes: [{ f: 0, x: 700, c: 0 }] })).some((e) => e.includes('genau zwei')), 'jede Farbe braucht zwei Höhlen');
+});
+
+test('Felsbrocken: schieben, Grube füllen, Druckplatte öffnet Tor, über die Kante zurück zum Start', () => {
+  const base = lv({ floors: [[[40, 400], [500, 860]]], rocks: [{ f: 0, x: 250 }], pits: [{ f: 0, a: 400, b: 500 }], door: { x: 800 }, start: { f: 0, x: 100 },
+    friends: [{ f: 0, x: 600 }, { f: 0, x: 700 }, { f: 0, x: 760 }] });
+  assert.deepEqual(validate(base), []);
+  const s = newState(base);
+  run(s, 1, 0, 200); assert.deepEqual(s.rk[0], { x: 450, st: 2, p: -1, q: 0 }, 'Stein liegt in der Grube'); assert.equal(s.done, true, 'über den Stein zur Tür');
+  const gl = lv({ floors: [[[40, 860]]], rocks: [{ f: 0, x: 300 }], plates: [{ f: 0, x: 480, gate: 0 }], gates: [{ f: 0, x: 620 }], door: { x: 780 }, start: { f: 0, x: 100 },
+    friends: [{ f: 0, x: 180 }, { f: 0, x: 700 }, { f: 0, x: 830 }] });
+  assert.deepEqual(validate(gl), []);
+  const t = newState(gl); t.x = 500; t.rk[0].x = 700; run(t, 1, 0, 60); assert.ok(t.x <= 620 - C.push + 0.01, 'zu: das Tor versperrt den Weg');
+  const u = newState(gl); run(u, 1, 0, 90); assert.equal(u.rk[0].st, 1, 'Stein rastet auf der Platte ein'); assert.equal(gateOpen(gl, u.rk, 0), true);
+  run(u, 1, 0, 150); assert.ok(u.x > 700, 'am Stein und durch das Tor vorbei');
+  const back = newState({ ...gl, start: { f: 0, x: 400 } }); run(back, -1, 0, 120);
+  assert.deepEqual(back.rk[0], { x: 300, st: 0, p: -1, q: -1 }, 'über die Kante gekullert: wieder am Start'); assert.ok(back.events.some((e) => e.t === 'rockback')); assert.equal(back.resets, 0);
+});
+
+test('Nacht: Laterne geht beim Berühren an', () => {
+  const level = lv({ night: true, floors: [[[40, 860]]], lamps: [{ f: 0, x: 300 }] });
+  assert.deepEqual(validate(level), []);
+  const s = newState(level); run(s, 1, 0, 40); assert.equal(s.lit[0], true); assert.ok(s.events.some((e) => e.t === 'lamp'));
+  assert.ok(validate({ ...level, night: false }).some((e) => e.includes('Laterne')), 'Laternen nur nachts');
+});
+
 test('Rutsche: am Einstieg nach unten ziehen, rutscht von allein, Rücksetzpunkt am Ausstieg, nie nach oben', () => {
   const level = lv({ floors: [[[40, 860]], [[40, 860]]], slides: [{ f: 0, x: 300, dir: 1 }], start: { f: 1, x: 250 }, friends: [{ f: 0, x: 780 }, { f: 1, x: 100 }, { f: 1, x: 500 }] });
   const s = newState(level);
@@ -207,4 +265,6 @@ test('Einbindung: Seite, Startseite, Umzug, Sitemap und Herausforderungs-Vorscha
   assert.ok((await plain.text()).includes('content="Dino-Leiterhelden · Kletterspiel für Kinder"'));
   const late = await worker.fetch(new Request('https://playsaal.com/spiele/dino-leiterhelden?l=85&t=2345&r=0'), env);
   assert.ok((await late.text()).includes('content="Dino-Leiterhelden Level 85: 23,45 s – schaffst du es schneller?"'), 'Herausforderungen gelten bis Level 90');
+  const last = await worker.fetch(new Request('https://playsaal.com/spiele/dino-leiterhelden?l=150&t=2345&r=0'), env);
+  assert.ok((await last.text()).includes('Level 150: 23,45 s'), 'und bis Level 150');
 });
