@@ -1,0 +1,92 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Putt-Profi · 3D-Minigolf im Browser | PlaySaal</title><meta name="description" content="3D-Minigolf auf dem Handy: zurückziehen, zielen, loslassen. 18 Bahnen mit Burg, Tunnel und Windmühle, täglich eine neue Tagesrunde mit Rangliste. Kostenlos, ohne Anmeldung, direkt im Browser."><link rel="canonical" href="https://playsaal.com/spiele/putt-profi"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Putt-Profi · Einlochen. Rangliste. Nochmal."><meta property="og:description" content="3D-Minigolf mit Burg, Tunnel und Windmühle – schaffst du die Tagesrunde unter Par?"><meta property="og:url" content="https://playsaal.com/spiele/putt-profi"><meta property="og:image" content="https://playsaal.com/bilder/putt-profi-og.jpg?v=1"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Putt-Profi · Einlochen. Rangliste. Nochmal."><meta name="twitter:description" content="3D-Minigolf im Browser – schaffst du die Tagesrunde unter Par?"><meta name="twitter:image" content="https://playsaal.com/bilder/putt-profi-og.jpg?v=1"><meta name="theme-color" content="#11121A"><link rel="icon" href="/favicon.ico"><link rel="stylesheet" href="/assets/fonts.css"><link rel="stylesheet" href="/spiele/putt-profi/style.css?v=1"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'putt-profi',t:Date.now()}))}catch(e){}</script></head>
+<body class="im-menu">
+<canvas id="c" aria-label="Minigolfbahn"></canvas>
+<a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
+
+<div id="hud" hidden>
+  <div class="hud-box breit"><b id="hBahn">Bahn 1</b><small id="hName">Erster Putt</small></div>
+  <div class="hud-box"><b id="hPar">2</b><small>Par</small></div>
+  <div class="hud-box"><b id="hSchlag">0</b><small>Schlag</small></div>
+  <div class="hud-box" id="hGesamtBox" hidden><b id="hGesamt">±0</b><small>Runde</small></div>
+  <button id="bPause" class="rund" type="button" aria-label="Pause" title="Pause (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/></svg></button>
+</div>
+<button id="bKarte" class="rund gross" type="button" aria-label="Ganze Bahn zeigen" title="Ganze Bahn (Leertaste)" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 4v13M15 7v13" stroke="currentColor" stroke-width="2"/></svg></button>
+<div id="staerke" hidden><i id="staerkeBalken"></i><b id="staerkeText">0 %</b></div>
+<div id="pop" aria-live="polite"></div>
+<div id="hinweis" hidden></div>
+
+<section id="menu" class="schicht" hidden>
+  <header class="kopf">
+    <h1 class="logo">Putt-<span>Profi</span></h1>
+    <div class="konto"><span aria-hidden="true">★</span> <b id="mSterne">0</b><span class="sr"> Sterne</span> <small>/ 54</small></div>
+  </header>
+  <div id="mHerausforderung" class="herausforderung" hidden><p id="mHText"></p><button id="mHLos" class="knopf" type="button">Annehmen</button></div>
+  <div class="unten">
+    <button id="mRunde" class="knopf haupt" type="button">Tagesrunde<small>5 Bahnen · für alle gleich</small></button>
+    <p class="rekord" id="mRekord"></p>
+    <div class="zwei"><button id="mBahnen" class="knopf" type="button">⛳ Bahnen</button><button id="mRang" class="knopf" type="button">🏆 Rangliste</button></div>
+    <div class="baelle" id="mBaelle" role="group" aria-label="Ballfarbe"></div>
+    <button id="mTon" class="klein" type="button" aria-pressed="true">Ton: an</button>
+  </div>
+</section>
+
+<section id="bahnen" class="schicht dialog" hidden>
+  <div class="karte bahnkarte">
+    <h2>Bahnen</h2>
+    <div class="welten" id="bListe"></div>
+    <button id="bZu" class="knopf" type="button">Zurück</button>
+  </div>
+</section>
+
+<section id="pause" class="schicht dialog" hidden>
+  <div class="karte">
+    <h2>Pause</h2>
+    <button id="pWeiter" class="knopf haupt" type="button">Weiterspielen</button>
+    <button id="pNeu" class="knopf" type="button">Bahn neu starten</button>
+    <button id="pMenu" class="knopf" type="button">Zum Menü</button>
+    <button id="pTon" class="klein" type="button" aria-pressed="true">Ton: an</button>
+  </div>
+</section>
+
+<section id="loch" class="schicht dialog unten-dialog" hidden>
+  <div class="karte">
+    <h2 id="lTitel">Eingelocht!</h2>
+    <p class="unter" id="lText"></p>
+    <div class="sterne" id="lSterne" aria-hidden="true"></div>
+    <p class="extra" id="lExtra"></p>
+    <button id="lWeiter" class="knopf haupt" type="button">Nächste Bahn</button>
+    <div class="zwei mit-teilen" id="lZwei"><button id="lNochmal" class="knopf" type="button">Nochmal</button><button id="lBahnen" class="knopf" type="button">Bahnen</button><button id="lTeilen" class="knopf teilen" type="button" aria-label="Herausforderung teilen" title="Teilen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3" fill="currentColor"/><circle cx="6" cy="12" r="3" fill="currentColor"/><circle cx="18" cy="19" r="3" fill="currentColor"/><path d="M8.6 10.7l6.8-4M8.6 13.3l6.8 4" stroke="currentColor" stroke-width="2.2" fill="none"/></svg></button></div>
+  </div>
+</section>
+
+<section id="ende" class="schicht dialog" hidden>
+  <div class="karte">
+    <h2 id="eTitel">Runde geschafft!</h2>
+    <p class="unter" id="eUnter"></p>
+    <div class="karten-zeile" id="eBahnen"></div>
+    <div class="werte"><div><b id="eSchlaege">0</b><small>Schläge</small></div><div><b id="ePar">0</b><small>Par</small></div><div><b id="eDiff">±0</b><small>Ergebnis</small></div></div>
+    <p class="rekord" id="eRekord"></p>
+    <p class="status" id="eStatus" aria-live="polite"></p>
+    <button id="eNochmal" class="knopf haupt" type="button">Nochmal spielen</button>
+    <div class="zwei mit-teilen"><button id="eMenu" class="knopf" type="button">Menü</button><button id="eRang" class="knopf" type="button">🏆 Rangliste</button><button id="eTeilen" class="knopf teilen" type="button" aria-label="Ergebnis teilen" title="Teilen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3" fill="currentColor"/><circle cx="6" cy="12" r="3" fill="currentColor"/><circle cx="18" cy="19" r="3" fill="currentColor"/><path d="M8.6 10.7l6.8-4M8.6 13.3l6.8 4" stroke="currentColor" stroke-width="2.2" fill="none"/></svg></button></div>
+  </div>
+</section>
+
+<section id="rang" class="schicht dialog" hidden>
+  <div class="karte rangkarte">
+    <h2>Tagesrangliste</h2>
+    <p class="unter">Heute spielen alle dieselben 5 Bahnen. Gewertet wird deine beste Runde – vom Server nachgespielt.</p>
+    <div class="tabs" id="rTabs" role="group" aria-label="Zeitraum"><button type="button" data-z="heute" aria-pressed="true">Heute</button><button type="button" data-z="monat" aria-pressed="false">Monat</button><button type="button" data-z="gesamt" aria-pressed="false">Gesamt</button></div>
+    <ol class="rangliste" id="rListe"></ol>
+    <button id="rZu" class="knopf" type="button">Zurück</button>
+  </div>
+</section>
+
+<div id="toast" role="status" hidden></div>
+<div id="laden" class="schicht"><div class="karte"><h2>Putt-Profi</h2><p id="ladeText">Die Bahnen werden aufgebaut …</p><div class="balken"><i id="ladeBalken"></i></div></div></div>
+<noscript><p class="fehler">Putt-Profi braucht JavaScript.</p></noscript>
+
+<script src="/assets/three.min.js"></script>
+<script src="/spiele/kerkerlauf/GLTFLoader.js?v=r128"></script>
+<script type="module" src="/spiele/putt-profi/game.js?v=1"></script>
+<script src="/assets/playsaal-config.js" defer></script><script src="/assets/playsaal.js" defer></script></body></html>
