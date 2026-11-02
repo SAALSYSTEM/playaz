@@ -76,6 +76,8 @@
       info: (g) => { const d = J(g['sternenfahrt.v1']) || {}; const b = d.best || {}; const lv = Object.keys(b).length; const st = Object.values(b).reduce((a, x) => a + (Number(x) || 0), 0); return { text: lv + ' von 20 Level · ' + st + ' ★', wert: lv * 100 + st }; } },
     { id: 'zaubersuppe', name: 'Hexis Zaubersuppe', prefix: 'zaubersuppe.', haupt: ['zaubersuppe.v1'],
       info: (g) => { const d = J(g['zaubersuppe.v1']) || {}; const b = d.best || {}; const lv = Object.keys(b).length; const st = Object.values(b).reduce((a, x) => a + (Number(x) || 0), 0); return { text: lv + ' von 15 Level · ' + st + ' ★', wert: lv * 100 + st }; } },
+    { id: 'tufftuff', name: 'Tuff-Tuff-Land', prefix: 'tufftuff.', haupt: ['tufftuff.v1'],
+      info: (g) => { const d = J(g['tufftuff.v1']) || {}; const f = Number(d.fahrgaeste) || 0, o = Number(d.offen) || 1; return { text: f + ' Fahrgäste · ' + o + (o === 1 ? ' Gebiet' : ' Gebiete'), wert: o * 10000 + f }; } },
     { id: 'tierski', name: 'Tier-Ski', prefix: 'tierski.', haupt: ['tierski.v1'],
       info: (g) => { const d = J(g['tierski.v1']) || {}; const r = Number(d.rekord) || 0, m = Number(d.muenzen) || 0; return { text: 'Rekord ' + r + ' · ' + m + ' Münzen', wert: r + m }; } },
     { id: 'puttprofi', name: 'Putt-Profi', prefix: 'puttprofi.', haupt: ['puttprofi.v1'],
