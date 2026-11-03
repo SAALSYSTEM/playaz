@@ -2,11 +2,11 @@
 // Bahn aus Kenney-Kacheln (teile.js), Kugel in festen Takten von 1/240 s. Nur + − × ÷ und Wurzel,
 // keine Winkelfunktionen: so rechnen alle Browser und der Server Bit für Bit gleich.
 import { TEILE } from './teile.js';
-import { BAHNEN, WELTEN } from './bahnen.js';
-export { BAHNEN, WELTEN };
+import { BAHNEN, WELTEN, PLAETZE } from './bahnen.js';
+export { BAHNEN, WELTEN, PLAETZE };
 
 export const SCHLUESSEL = 'puttprofi.v1';
-export const SIM_VERSION = 1;          // erhöhen, sobald sich Regeln oder Bahnen ändern (alte Runden zählen dann nicht mehr)
+export const SIM_VERSION = 2;          // erhöhen, sobald sich Regeln oder Bahnen ändern (alte Runden zählen dann nicht mehr)
 export const HZ = 240, DT = 1 / HZ;
 export const R = 0.04;                 // Kugelradius (1 = ein Feld)
 export const G = 6.5;                  // Schwerkraft (Felder/s²)
@@ -38,8 +38,8 @@ export function berlinTag(jetzt = new Date(), tage = 0) {
 // ---------- Bahn bauen ----------
 // Richtungen: 0 = Norden (−z), 1 = Osten (+x), 2 = Süden (+z), 3 = Westen (−x). Maske: Bit d = Nachbar in Richtung d.
 export const DX = [0, 1, 0, -1], DZ = [-1, 0, 1, 0];
-const GRUND = { straight: 5, end: 1, corner: 9, 'round-corner-c': 9, side: 13, open: 15, 'hole-round': 1, 'hole-open': 15 };
-const GERADE = { k: 'obstacle-block', n: 'narrow-block', m: 'narrow-round', v: 'narrow-square', C: 'castle', W: 'windmill', U: 'tunnel-narrow', V: 'tunnel-wide', D: 'tunnel-double', g: 'gap', s: 'split', b: 'bump-walls', h: 'hill-round', q: 'hill-square' };
+const GRUND = { straight: 5, end: 1, corner: 9, 'round-corner-c': 9, 'skew-corner': 9, side: 13, open: 15, 'hole-round': 1, 'hole-open': 15 };
+const GERADE = { k: 'obstacle-block', n: 'narrow-block', m: 'narrow-round', v: 'narrow-square', C: 'castle', W: 'windmill', U: 'tunnel-narrow', V: 'tunnel-wide', D: 'tunnel-double', g: 'gap', s: 'split', b: 'bump-walls', h: 'hill-round', q: 'hill-square', z: 'bump-down-walls', j: 'crest' };
 const FREI = { x: 'obstacle-diamond', y: 'obstacle-triangle', o: 'bump', u: 'bump-down' };
 function dreheMaske(m, r) { let o = 0; for (let d = 0; d < 4; d++) if (m & (1 << d)) o |= 1 << ((d - r + 4) % 4); return o; }
 // Kachel um r × 90° drehen (wie three.js rotation.y = r·π/2): (x, z) → (z, −x) je Schritt
@@ -70,6 +70,7 @@ export function baueBahn(nr, spiegel = false) {
     else if (GERADE[c]) { teil = GERADE[c]; grund = 5; }
     else if (FREI[c]) { teil = FREI[c]; grund = 15; }
     else if (c === 'r') teil = 'round-corner-c';
+    else if (c === 'e') teil = 'skew-corner';
     else teil = n === 1 ? 'end' : n === 2 ? ((maske === 5 || maske === 10) ? 'straight' : 'corner') : n === 3 ? 'side' : 'open';
     if (!n) throw new Error(`${def.name}: Feld ${x},${z} ohne Nachbarn`);
     grund = grund ?? GRUND[teil];
@@ -310,14 +311,13 @@ export function dekodiere(text) {
   return out;
 }
 
-// ---------- Tagesrunde: 5 Bahnen, für alle gleich (Datum in Berlin), manche gespiegelt ----------
+// ---------- Tagesrunde: 5 Bahnen aus 5 verschiedenen Welten, für alle gleich (Datum in Berlin), manche gespiegelt ----------
 export function tagesRunde(seed) {
   const r = zufall(seed * 7 + 3);
   const nimm = (liste) => liste.splice(Math.floor(r() * liste.length), 1)[0];
-  const welten = [0, 1, 2].map((w) => BAHNEN.map((_, i) => i).filter((i) => BAHNEN[i].welt === w));
-  const wahl = welten.map((l) => nimm(l));
-  const rest = welten.flat();
-  while (wahl.length < RUNDE) wahl.push(nimm(rest));
+  const welten = WELTEN.map((_, w) => w);
+  const wahl = [];
+  while (wahl.length < RUNDE) { const w = nimm(welten); wahl.push(nimm(BAHNEN.map((_, i) => i).filter((i) => BAHNEN[i].welt === w))); }
   return wahl.sort((a, b) => a - b).map((nr) => ({ nr, spiegel: r() < 0.5 }));
 }
 
@@ -356,7 +356,14 @@ export function pruefeStand(s) {
   return l;
 }
 export function gesamtSterne(st) { let n = 0; for (const [k, v] of Object.entries(st.bahnen)) n += sterne(Number(k), v); return n; }
-export function frei(st, nr) { return nr === 0 || st.bahnen[nr - 1] !== undefined; }
+export const platzVon = (nr) => WELTEN[BAHNEN[nr].welt].platz;
+export const platzFrei = (st, p) => gesamtSterne(st) >= PLAETZE[p].sterne;
+// Innerhalb eines Platzes der Reihe nach; der erste Bahn eines Platzes öffnet sich mit genug Sternen
+export function frei(st, nr) {
+  const p = platzVon(nr), erste = BAHNEN.findIndex((_, i) => platzVon(i) === p);
+  return nr === erste ? platzFrei(st, p) : st.bahnen[nr - 1] !== undefined;
+}
+export const MAX_STERNE = BAHNEN.length * 3;
 export function ballFrei(st, id) { const b = BAELLE.find((x) => x.id === id); return !!b && gesamtSterne(st) >= b.sterne; }
 // Bahn fertig gespielt (Übungsmodus): bestes Ergebnis merken. Rückgabe: neue Bestleistung?
 export function verbucheBahn(st, nr, ball) {

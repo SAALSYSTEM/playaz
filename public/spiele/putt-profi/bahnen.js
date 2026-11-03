@@ -1,13 +1,21 @@
-// PUTT-PROFI: die 18 Bahnen in 3 Welten. Jede Bahn ist ein Raster aus Feldern (oben = Norden = vom Spieler weg).
+// PUTT-PROFI: 36 Bahnen auf 2 Plätzen mit je 3 Welten. Jede Bahn ist ein Raster aus Feldern (oben = Norden = vom Spieler weg).
 // Die Banden setzt logik.js automatisch: Wo kein Nachbarfeld ist, steht eine Bande.
-//   #  Bahn         T  Abschlag      H  Loch (Sackgasse oder freie Fläche)     r  runde Kurve (nur in Ecken)
+//   #  Bahn         T  Abschlag      H  Loch (Sackgasse oder freie Fläche)     r  runde Kurve · e schräge Kurve (nur in Ecken)
 //   Nur in geraden Stücken:  k Block · n/m/v Engstelle (eckig/rund/schräg) · C Burg · W Windmühle · U/V/D Tunnel (eng/breit/doppelt)
-//                            g Graben · s Trennwand · b Buckel · h Hügel · q Plateau
+//                            g Graben · s Trennwand · b Buckel · h Hügel · q Plateau · z Senke · j Rinne
 //   Nur auf freien Flächen:  x Raute · y Dreiecke · o Kuppe · u Mulde
+export const PLAETZE = [
+  { id: 'klassik', name: 'Platz 1 · Klassik', sterne: 0 },
+  { id: 'profi', name: 'Platz 2 · Profi', sterne: 24 },      // frei ab 24 Sternen
+];
+
 export const WELTEN = [
-  { id: 'wiese', name: 'Sommerwiese', textur: 'colormap', himmel: ['#8fd3ff', '#e8f7ff'], boden: '#5d9e4c', licht: 0xfff4e0 },
-  { id: 'burg', name: 'Burgberg', textur: 'colormap', himmel: ['#ffc58a', '#fff0d6'], boden: '#8aa04a', licht: 0xffe2bd },
-  { id: 'muehle', name: 'Mühlental', textur: 'colormap', himmel: ['#5b4a9e', '#ffb07a'], boden: '#4f7a45', licht: 0xffc9a8 },
+  { id: 'wiese', platz: 0, name: 'Sommerwiese', textur: 'colormap', himmel: ['#8fd3ff', '#e8f7ff'], boden: '#5d9e4c', licht: 0xfff4e0 },
+  { id: 'burg', platz: 0, name: 'Burgberg', textur: 'colormap', himmel: ['#ffc58a', '#fff0d6'], boden: '#8aa04a', licht: 0xffe2bd },
+  { id: 'muehle', platz: 0, name: 'Mühlental', textur: 'colormap', himmel: ['#5b4a9e', '#ffb07a'], boden: '#4f7a45', licht: 0xffc9a8 },
+  { id: 'see', platz: 1, name: 'Seeufer', textur: 'colormap', himmel: ['#5fb8e8', '#dff4ff'], boden: '#3f8f7a', licht: 0xfff8ee },
+  { id: 'herbst', platz: 1, name: 'Herbstwald', textur: 'colormap', himmel: ['#e8935a', '#ffe6c4'], boden: '#8a6a3a', licht: 0xffd9a8 },
+  { id: 'nacht', platz: 1, name: 'Nachtpark', textur: 'variation-a', himmel: ['#1d1c4a', '#6a4a9e'], boden: '#3b4a6e', licht: 0xe4d8ff },
 ];
 
 export const BAHNEN = [
@@ -148,4 +156,155 @@ export const BAHNEN = [
     '..C',
     '..#',
     '..T'] },
+  // ---------- Seeufer ----------
+  { name: 'Seeblick', welt: 3, par: 3, karte: [
+    'H#e',
+    '..#',
+    '..#',
+    'e#e',
+    '#..',
+    '#..',
+    'T..'] },
+  { name: 'Doppelsenke', welt: 3, par: 2, karte: [
+    'H',
+    '#',
+    'z',
+    '#',
+    'z',
+    '#',
+    'T'] },
+  { name: 'Rinnenlauf', welt: 3, par: 2, karte: [
+    '.H.',
+    '###',
+    '#o#',
+    '###',
+    '.j.',
+    '.#.',
+    '.j.',
+    '.T.'] },
+  { name: 'Zwei Wege', welt: 3, par: 3, karte: [
+    '..H..',
+    '..#..',
+    'r###r',
+    '#...#',
+    'g...n',
+    '#...#',
+    'r#T#r'] },
+  { name: 'Kuppenfeld', welt: 3, par: 2, karte: [
+    '..H..',
+    '#####',
+    '#o#u#',
+    '#####',
+    '#u#o#',
+    '#####',
+    '..T..'] },
+  { name: 'Langer Weg', welt: 3, par: 2, karte: [
+    'H',
+    '#',
+    'h',
+    '#',
+    'm',
+    '#',
+    'q',
+    '#',
+    'T'] },
+  // ---------- Herbstwald ----------
+  { name: 'Burgmauer', welt: 4, par: 3, karte: [
+    'H#r..',
+    '..C..',
+    '..#..',
+    '..r#r',
+    '....U',
+    '....#',
+    '....T'] },
+  { name: 'Grabenkreuz', welt: 4, par: 3, karte: [
+    'H#r',
+    '..g',
+    '..#',
+    'r#r',
+    'g..',
+    '#..',
+    'T..'] },
+  { name: 'Tunnelkette', welt: 4, par: 2, karte: [
+    'H',
+    'U',
+    '#',
+    'V',
+    '#',
+    'D',
+    'T'] },
+  { name: 'Spaltweg', welt: 4, par: 2, karte: [
+    'r#H',
+    's..',
+    's..',
+    '#..',
+    'T..'] },
+  { name: 'Hindernisfeld', welt: 4, par: 2, karte: [
+    '..H..',
+    '#####',
+    '#x#y#',
+    '#####',
+    '#y#x#',
+    '#####',
+    '..T..'] },
+  { name: 'Burgenring', welt: 4, par: 2, karte: [
+    'r#C#r',
+    '#...#',
+    '#.H.#',
+    '#.#.#',
+    'T###r'] },
+  // ---------- Nachtpark ----------
+  { name: 'Mühlengasse', welt: 5, par: 2, karte: [
+    'H',
+    '#',
+    'W',
+    '#',
+    'C',
+    '#',
+    'T'] },
+  { name: 'Mondsichel', welt: 5, par: 3, karte: [
+    'e#H..',
+    '#....',
+    'z....',
+    '#....',
+    'e#e..',
+    '..#..',
+    '..T..'] },
+  { name: 'Doppelmühle', welt: 5, par: 3, karte: [
+    'H#W#r',
+    '....#',
+    '....W',
+    '....#',
+    '....T'] },
+  { name: 'Sternenfeld', welt: 5, par: 2, karte: [
+    '..H..',
+    '#####',
+    '##u##',
+    '#y#y#',
+    '##o##',
+    '#####',
+    '..T..'] },
+  { name: 'Graben und Tor', welt: 5, par: 3, karte: [
+    'H#r',
+    '..g',
+    '..C',
+    '..#',
+    '..#',
+    'r#r',
+    '#..',
+    'U..',
+    'T..'] },
+  { name: 'Meisterbahn', welt: 5, par: 4, karte: [
+    'H#e..',
+    '..#..',
+    '..W..',
+    '..#..',
+    'e#e..',
+    '#....',
+    'g....',
+    '#....',
+    'e###r',
+    '....D',
+    '....#',
+    '....T'] },
 ];

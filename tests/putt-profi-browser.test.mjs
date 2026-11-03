@@ -65,7 +65,7 @@ async function spieleLoesung(page, text) {
 
 test('Laden: alle Modelle ohne Fehler, Menü ohne Querscrollen, Bälle und Ton', async () => {
   const { page, errors, glb } = await open();
-  assert.equal(glb.length, 33); assert.ok(glb.every((s) => s === 200));
+  assert.equal(glb.length, 36); assert.ok(glb.every((s) => s === 200));
   assert.equal(await T(page, () => document.documentElement.scrollWidth <= innerWidth), true);
   assert.equal(await page.locator('#mBaelle button').count(), 4);
   assert.equal(await page.locator('#mBaelle button:disabled').count(), 3);
@@ -103,6 +103,10 @@ test('Bahn einlochen: Karte mit Sternen, Bestleistung bleibt nach Neuladen, näc
   assert.equal(await page.textContent('#mSterne'), '3');
   await page.click('#mBahnen');
   assert.equal(await page.locator('#bListe button').count(), 18);
+  assert.equal(await page.locator('#bPlaetze button').count(), 2);
+  await page.locator('#bPlaetze button').nth(1).click();
+  assert.equal(await page.locator('#bListe button:not([disabled])').count(), 0, 'Platz 2 noch gesperrt');
+  await page.locator('#bPlaetze button').nth(0).click();
   assert.equal(await page.locator('#bListe button:not([disabled])').count(), 2);
   await page.locator('#bListe button').nth(1).click();
   await zielen(page);

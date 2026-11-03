@@ -1,7 +1,7 @@
 // Putt-Profi – Darstellung (three.js r128), Steuerung (zurückziehen, zielen, loslassen), Kamera, Menüs, Ton.
 // Regeln und Physik stehen in logik.js, die Bahnen in bahnen.js, die Kollisionsdaten in teile.js.
 // Modelle: Kenney Minigolf Kit (CC0, www.kenney.nl), aufbereitet mit tools/putt-profi-assets.py.
-import * as L from './logik.js?v=1';
+import * as L from './logik.js?v=2';
 
 const THREE = window.THREE;
 const $ = (id) => document.getElementById(id);
@@ -39,7 +39,8 @@ function himmelTextur(oben, unten) {
 
 // ---------- Laden ----------
 const TEILE = ['straight', 'end', 'corner', 'round-corner-c', 'side', 'open', 'hole-round', 'hole-open', 'obstacle-block', 'obstacle-diamond', 'obstacle-triangle',
-  'narrow-block', 'narrow-round', 'narrow-square', 'castle', 'windmill', 'tunnel-narrow', 'tunnel-wide', 'tunnel-double', 'gap', 'split', 'bump', 'bump-down', 'bump-walls', 'hill-round', 'hill-square'];
+  'narrow-block', 'narrow-round', 'narrow-square', 'castle', 'windmill', 'tunnel-narrow', 'tunnel-wide', 'tunnel-double', 'gap', 'split', 'bump', 'bump-down', 'bump-walls', 'hill-round', 'hill-square',
+  'skew-corner', 'bump-down-walls', 'crest'];
 const DEKO = ['ball-red', 'ball-blue', 'ball-green', 'club-red', 'club-blue', 'club-green', 'flag-red'];
 const loader = new THREE.GLTFLoader();
 const url = (n) => new URL(`./modelle/${n}.glb?v=1`, import.meta.url).href;
@@ -295,7 +296,7 @@ function golfName(schlaege, par, drin) {
 function tonKnoepfe() { for (const id of ['mTon', 'pTon']) { $(id).textContent = 'Ton: ' + (stand.ton ? 'an' : 'aus'); $(id).setAttribute('aria-pressed', String(stand.ton)); } }
 const BALLFARBE = { rot: '#e8453c', blau: '#3d7be0', gruen: '#3fb65f', gold: '#ffd21c' };
 function aktualisiereMenu() {
-  $('mSterne').textContent = L.gesamtSterne(stand);
+  $('mSterne').textContent = L.gesamtSterne(stand); $('mMax').textContent = '/ ' + L.MAX_STERNE;
   const tag = L.berlinTag();
   $('mRekord').textContent = stand.tag === tag && stand.tagBest ? `Deine beste Runde heute: ${stand.tagBest} Schläge` : 'Heute noch keine Runde gespielt.';
   const box = $('mBaelle'); box.textContent = '';
@@ -321,10 +322,25 @@ function zeigeMenu() {
   ladeBahn(plan[0].nr, plan[0].spiegel);
   kugel.visible = false; ring.visible = false; schlaeger.visible = false;
 }
-function zeigeBahnen() {
+let platzWahl = 0;
+function zeigeBahnen(platz) {
   zustand = 'bahnen'; zeige('bahnen');
+  if (platz !== undefined) platzWahl = platz;
+  const tabs = $('bPlaetze'); tabs.textContent = '';
+  L.PLAETZE.forEach((pl, pi) => {
+    const k = document.createElement('button'); k.type = 'button'; k.setAttribute('aria-pressed', String(pi === platzWahl));
+    k.textContent = pl.name + (L.platzFrei(stand, pi) ? '' : ` 🔒 ★${pl.sterne}`);
+    k.addEventListener('click', () => { ton('klick'); zeigeBahnen(pi); });
+    tabs.appendChild(k);
+  });
   const liste = $('bListe'); liste.textContent = '';
+  if (!L.platzFrei(stand, platzWahl)) {
+    const p = document.createElement('p'); p.className = 'gesperrt';
+    p.textContent = `${L.PLAETZE[platzWahl].name} öffnet sich ab ${L.PLAETZE[platzWahl].sterne} Sternen. Du hast ${L.gesamtSterne(stand)}.`;
+    liste.appendChild(p);
+  }
   L.WELTEN.forEach((w, wi) => {
+    if (w.platz !== platzWahl) return;
     const sek = document.createElement('section'), h = document.createElement('h3'); h.textContent = w.name;
     const gitter = document.createElement('div'); gitter.className = 'welt-gitter';
     L.BAHNEN.forEach((bd, nr) => {
@@ -430,8 +446,10 @@ function bahnFertig() {
     const nachher = L.gesamtSterne(stand);
     const freiBall = L.BAELLE.find((b) => b.sterne > vorher && b.sterne <= nachher);
     $('lExtra').textContent = freiBall ? `Neuer Ball freigeschaltet: ${freiBall.name}!` : neu && stand.bahnen[bahnNr] !== undefined && drin ? 'Neue Bestleistung!' : '';
-    const naechste = bahnNr + 1 < L.BAHNEN.length ? bahnNr + 1 : null;
-    $('lWeiter').textContent = naechste === null ? 'Alle Bahnen' : 'Nächste Bahn';
+    const naechste = bahnNr + 1 < L.BAHNEN.length && L.frei(stand, bahnNr + 1) ? bahnNr + 1 : null;
+    const neuerPlatz = bahnNr + 1 < L.BAHNEN.length && L.platzVon(bahnNr + 1) !== L.platzVon(bahnNr);
+    $('lWeiter').textContent = naechste === null ? 'Alle Bahnen' : neuerPlatz ? 'Weiter auf Platz 2' : 'Nächste Bahn';
+    if (neuerPlatz && naechste === null) $('lExtra').textContent = `Platz 2 öffnet sich ab ${L.PLAETZE[1].sterne} Sternen (du hast ${L.gesamtSterne(stand)}).`;
     $('lZwei').hidden = false;
     if (drin && ball.schlaege <= bahn.par) ton('geschafft');
   }
@@ -444,7 +462,8 @@ function weiterNachLoch() {
     else rundeEnde();
     return;
   }
-  if (bahnNr + 1 < L.BAHNEN.length) spieleBahn(bahnNr + 1, false); else zeigeBahnen();
+  const n = bahnNr + 1;
+  if (n < L.BAHNEN.length && L.frei(stand, n)) spieleBahn(n, false); else zeigeBahnen(L.platzVon(Math.min(n, L.BAHNEN.length - 1)));
 }
 function rundeEnde() {
   zustand = 'ende'; zeige('ende');
@@ -729,7 +748,7 @@ $('pNeu').addEventListener('click', () => {
 $('pMenu').addEventListener('click', () => { ton('klick'); zeigeMenu(); });
 $('lWeiter').addEventListener('click', () => { ton('klick'); weiterNachLoch(); });
 $('lNochmal').addEventListener('click', () => { ton('klick'); spieleBahn(bahnNr, false); });
-$('lBahnen').addEventListener('click', () => { ton('klick'); zeigeBahnen(); });
+$('lBahnen').addEventListener('click', () => { ton('klick'); zeigeBahnen(L.platzVon(bahnNr)); });
 $('lTeilen').addEventListener('click', () => { ton('klick'); teileBahn(); });
 $('eNochmal').addEventListener('click', () => { ton('klick'); starteRunde(); });
 $('eMenu').addEventListener('click', () => { ton('klick'); zeigeMenu(); });

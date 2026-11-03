@@ -25,7 +25,8 @@ TEILE_JS = os.path.join(ROOT, 'public/spiele/putt-profi/teile.js')
 BAHN = ['straight', 'end', 'corner', 'round-corner-c', 'side', 'open', 'hole-round', 'hole-open',
         'obstacle-block', 'obstacle-diamond', 'obstacle-triangle', 'narrow-block', 'narrow-round', 'narrow-square',
         'castle', 'windmill', 'tunnel-narrow', 'tunnel-wide', 'tunnel-double', 'gap', 'split',
-        'bump', 'bump-down', 'bump-walls', 'hill-round', 'hill-square']
+        'bump', 'bump-down', 'bump-walls', 'hill-round', 'hill-square',
+        'skew-corner', 'bump-down-walls', 'crest']
 DEKO = ['ball-red', 'ball-blue', 'ball-green', 'club-red', 'club-blue', 'club-green', 'flag-red', 'flag-blue', 'flag-green']
 
 TEX = Image.open(os.path.join(QUELLE, 'Textures/colormap.png')).convert('RGB')

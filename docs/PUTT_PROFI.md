@@ -1,8 +1,8 @@
 # Putt-Profi
 
-3D-Minigolf im Hochformat, `/spiele/putt-profi`. Finger aufs Grün, zurückziehen (Richtung und Stärke), loslassen – die Kugel rollt in die Gegenrichtung. 18 Bahnen in 3 Welten und eine Tagesrunde mit geprüfter Rangliste. Kein Konto nötig, keine Werbung, keine Käufe.
+3D-Minigolf im Hochformat, `/spiele/putt-profi`. Finger aufs Grün, zurückziehen (Richtung und Stärke), loslassen – die Kugel rollt in die Gegenrichtung. 36 Bahnen auf 2 Plätzen (je 3 Welten) und eine Tagesrunde mit geprüfter Rangliste. Kein Konto nötig, keine Werbung, keine Käufe.
 
-Stand 02.11.2026: veröffentlicht auf `main`. Katalog und Rangliste: `supabase/migrations/20261102220000_putt_profi.sql` (noch nicht ausgeführt).
+Stand 03.11.2026: veröffentlicht auf `main`; Platz 2 (18 weitere Bahnen) am 03.11.2026, SIM_VERSION 2. Katalog und Rangliste: `supabase/migrations/20261102220000_putt_profi.sql` (noch nicht ausgeführt).
 
 ## Regeln
 
@@ -15,13 +15,15 @@ Stand 02.11.2026: veröffentlicht auf `main`. Katalog und Rangliste: `supabase/m
 | Höchstens 6 Schläge | danach zählt die Bahn 7 (Bahnengolf-Regel) |
 | Sterne (Bahnen) | ★ eingelocht · ★★ Par oder besser · ★★★ unter Par |
 
-Bälle: Rot (frei), Blau ab 10, Grün ab 22, Gold ab 40 Sternen (höchstens 54).
+Bälle: Rot (frei), Blau ab 10, Grün ab 22, Gold ab 40 Sternen (höchstens 108).
+
+Plätze: Platz 1 · Klassik (Bahn 1–18) ist von Anfang an offen, Platz 2 · Profi (Bahn 19–36) öffnet sich ab 24 Sternen. Innerhalb eines Platzes schaltet jede gespielte Bahn die nächste frei.
 
 ## Bahnen
 
-`public/spiele/putt-profi/bahnen.js`: Jede Bahn ist ein kleines Zeichenraster (oben = vom Spieler weg). Die passenden Kenney-Kacheln und Banden sucht `logik.js` selbst aus: Wo kein Nachbarfeld ist, steht eine Bande. Zeichen: `#` Bahn, `T` Abschlag, `H` Loch, `r` runde Kurve; in geraden Stücken `k` Block, `n/m/v` Engstellen, `C` Burg, `W` Windmühle, `U/V/D` Tunnel, `g` Graben, `s` Trennwand, `b/h/q` Buckel/Hügel/Plateau; auf freien Flächen `x` Raute, `y` Dreiecke, `o` Kuppe, `u` Mulde.
+`public/spiele/putt-profi/bahnen.js`: Jede Bahn ist ein kleines Zeichenraster (oben = vom Spieler weg). Die passenden Kenney-Kacheln und Banden sucht `logik.js` selbst aus: Wo kein Nachbarfeld ist, steht eine Bande. Zeichen: `#` Bahn, `T` Abschlag, `H` Loch, `r` runde Kurve, `e` schräge Kurve; in geraden Stücken `k` Block, `n/m/v` Engstellen, `C` Burg, `W` Windmühle, `U/V/D` Tunnel, `g` Graben, `s` Trennwand, `b/h/q` Buckel/Hügel/Plateau, `z` Senke, `j` Rinne; auf freien Flächen `x` Raute, `y` Dreiecke, `o` Kuppe, `u` Mulde.
 
-Welten: Sommerwiese (1–6), Burgberg (7–12), Mühlental (13–18, Abendlicht). Par 2–4.
+Welten: Platz 1 – Sommerwiese (1–6), Burgberg (7–12), Mühlental (13–18, Abendlicht); Platz 2 – Seeufer (19–24), Herbstwald (25–30), Nachtpark (31–36, lila Farbvariante des Kits). Par 2–4.
 
 ## Physik (deterministisch)
 
@@ -33,7 +35,7 @@ Welten: Sommerwiese (1–6), Burgberg (7–12), Mühlental (13–18, Abendlicht)
 
 ## Tagesrunde und geprüfte Rangliste
 
-- **Tagesrunde:** 5 Bahnen (aus jeder Welt mindestens eine, manche gespiegelt), Startwert = Datum in Europe/Berlin (JJJJMMTT).
+- **Tagesrunde:** 5 Bahnen aus 5 verschiedenen Welten beider Plätze (manche gespiegelt), Startwert = Datum in Europe/Berlin (JJJJMMTT).
 - **Aufzeichnung:** je Schlag `dx,dz,Stärke,Mühlentakt`, Schläge mit `;`, Bahnen mit `|` getrennt.
 - **Rangliste:** Nur mit Konto. Gemeldet wird nur ein neuer Tagesbestwert. Die Edge Function `putt-profi-runde` spielt alle 5 Bahnen mit `logik.js` nach (`pruefeRunde`) und trägt nur bestätigte Runden ein. Wertung: weniger Schläge, bei Gleichstand wer zuerst da war. Monat/Gesamt: beste Runde im Verhältnis zu Par.
 - **Einrichtung (einmalig, nur du):** 1. SQL aus `supabase/migrations/20261102220000_putt_profi.sql` im SQL Editor ausführen. 2. `npx supabase functions deploy putt-profi-runde --project-ref cphwxikfrxgejiqghlwn --no-verify-jwt`. Ohne diese Schritte läuft das Spiel normal, Runden bleiben dann nur auf dem Gerät.
@@ -45,7 +47,7 @@ Welten: Sommerwiese (1–6), Burgberg (7–12), Mühlental (13–18, Abendlicht)
 |---|---|
 | `public/spiele/putt-profi.html` | Seite, Menü, HUD, Dialoge |
 | `public/spiele/putt-profi/logik.js` | Bahn bauen, Physik, Regeln, Tagesrunde, Nachspielen, Spielstand (ohne Darstellung) |
-| `public/spiele/putt-profi/bahnen.js` | 18 Bahnen, 3 Welten |
+| `public/spiele/putt-profi/bahnen.js` | 36 Bahnen, 2 Plätze, 6 Welten |
 | `public/spiele/putt-profi/teile.js` | Kollisionsdreiecke der Kacheln (erzeugt) |
 | `public/spiele/putt-profi/game.js` | three.js-Darstellung, Zielen, Kamera, Menüs, Ton |
 | `public/spiele/putt-profi/modelle/` | Kenney-Modelle (GLB) + Farbtextur |
