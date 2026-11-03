@@ -483,7 +483,7 @@ function ton(art, hoehe = 0) {
 
 // ---------- Oberfläche ----------
 let werkzeug = 'gleis', zustand = 'laden';
-function toast(text, ms = 3000) { const t = $('toast'); t.textContent = text; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => (t.hidden = true), ms); }
+function toast(text, ms = 3000) { sage(text); const t = $('toast'); t.textContent = text; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => (t.hidden = true), ms); }
 function zeigeGaeste(hupf) {
   $('gast').textContent = welt.fahrgaeste;
   const g = L.GEBIETE[welt.offen];
@@ -511,13 +511,13 @@ function losKnopf() {
     : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg>';
 }
 $('btnLos').addEventListener('click', () => { tonStart(); if (!zug) return; zug.laeuft = !zug.laeuft; ton('klick'); if (zug.laeuft) tuten(); losKnopf(); });
-function tuten() { spiele('pfeife', 0.8); tutenPuls = 1; }
+function tuten() { spiele('pfeife', 0.8); tutenPuls = 1; anleitungEreignis('tuten'); }
 $('btnTuten').addEventListener('click', () => { tonStart(); tuten(); });
 $('btnFolge').addEventListener('click', () => { tonStart(); ton('klick'); kam.folge = !kam.folge; $('btnFolge').classList.toggle('an', kam.folge); });
 $('btnPause').addEventListener('click', () => { tonStart(); ton('klick'); oeffnePause(); });
-function oeffnePause() { zustand = 'pause'; $('pause').hidden = false; tonTexte(); kontoHinweis('kontoBox'); neuBestaetigen = false; $('pNeu').lastElementChild.textContent = 'Neue Welt'; }
-$('pWeiter').addEventListener('click', () => { ton('klick'); $('pause').hidden = true; zustand = 'spiel'; });
-function tonTexte() { $('pTon').lastElementChild.textContent = 'Geräusche: ' + (welt.ton ? 'an' : 'aus'); $('pMusik').lastElementChild.textContent = 'Musik: ' + (welt.musik ? 'an' : 'aus'); }
+function oeffnePause() { zustand = 'pause'; $('tipp').hidden = true; if (synth) synth.cancel(); $('pause').hidden = false; tonTexte(); kontoHinweis('kontoBox'); neuBestaetigen = false; $('pNeu').lastElementChild.textContent = 'Neue Welt'; }
+$('pWeiter').addEventListener('click', () => { ton('klick'); $('pause').hidden = true; zustand = 'spiel'; zeigeTipp(); });
+function tonTexte() { $('pVorlesen').lastElementChild.textContent = 'Vorlesen: ' + (welt.vorlesen ? 'an' : 'aus'); $('pTon').lastElementChild.textContent = 'Geräusche: ' + (welt.ton ? 'an' : 'aus'); $('pMusik').lastElementChild.textContent = 'Musik: ' + (welt.musik ? 'an' : 'aus'); }
 $('pTon').addEventListener('click', () => { welt.ton = !welt.ton; tonSchalter(); tonTexte(); ton('klick'); speichere(); });
 $('pMusik').addEventListener('click', () => { welt.musik = !welt.musik; tonSchalter(); tonTexte(); ton('klick'); speichere(); });
 let neuBestaetigen = false;
@@ -527,7 +527,7 @@ $('pNeu').addEventListener('click', () => {
   welt = L.neueWelt(); welt.ton = ton0; welt.musik = musik0;
   zug = L.neuerZug(welt, welt.zug);
   allesNeu(); kam.x = L.BREITE * 2; kam.z = 18 * 4; speichere(true);
-  $('pause').hidden = true; zustand = 'spiel'; ton('jubel');
+  welt.vorlesen = true; $('pause').hidden = true; zustand = 'spiel'; ton('jubel'); zeigeTipp();
 });
 
 // Zugauswahl mit kleinen Bildern
@@ -551,7 +551,7 @@ function zugBilder() {
   r2.dispose(); try { r2.forceContextLoss(); } catch (e) {}
 }
 function oeffneZuege() {
-  zustand = 'pause';
+  zustand = 'pause'; $('tipp').hidden = true;
   const liste = $('zugListe'); liste.innerHTML = '';
   for (const [k, z] of Object.entries(L.ZUEGE)) {
     const frei = welt.zuege.includes(k);
@@ -560,14 +560,14 @@ function oeffneZuege() {
     b.setAttribute('aria-label', z.name + (frei ? '' : ' (noch gesperrt)'));
     b.addEventListener('click', () => {
       welt.zug = k; L.wechsleZug(welt, zug, k); baueZug(); speichere(); tuten();
-      $('zuege').hidden = true; zustand = 'spiel';
+      $('zuege').hidden = true; zustand = 'spiel'; zeigeTipp();
     });
     liste.appendChild(b);
   }
   $('zuege').hidden = false;
 }
 $('btnZug').addEventListener('click', () => { tonStart(); ton('klick'); oeffneZuege(); });
-$('zZu').addEventListener('click', () => { ton('klick'); $('zuege').hidden = true; zustand = 'spiel'; });
+$('zZu').addEventListener('click', () => { ton('klick'); $('zuege').hidden = true; zustand = 'spiel'; zeigeTipp(); });
 
 // Konto-Hinweis: nur ohne Anmeldung und erst, wenn es etwas zu verlieren gibt
 function kontoHinweis(id) {
@@ -581,6 +581,8 @@ $('kontoBtn').addEventListener('click', kontoAnlegen);
 $('kontoBtnMenu').addEventListener('click', kontoAnlegen);
 
 $('btnSpielen').addEventListener('click', () => { tonStart(); ton('jubel'); $('start').hidden = true; zustand = 'spiel'; tuten(); zeigeTipp(); });
+$('pAnleitung').addEventListener('click', () => { ton('klick'); $('pause').hidden = true; zustand = 'spiel'; welt.anleitung = 0; speichere(); zeigeTipp(); });
+$('pVorlesen').addEventListener('click', () => { welt.vorlesen = !welt.vorlesen; tonTexte(); ton('klick'); speichere(); if (welt.vorlesen) sage('Vorlesen ist an.'); else if (synth) synth.cancel(); });
 
 // ---------- Tipp für den Anfang ----------
 function verbunden(a, b) {
@@ -597,21 +599,77 @@ function verbunden(a, b) {
   }
   return false;
 }
-function zeigeTipp() {
-  if (!welt.tipp || zustand !== 'spiel') { $('tipp').hidden = true; $('finger').hidden = true; return; }
-  $('tippText').textContent = 'Male mit dem Finger ein Gleis zum anderen Bahnhof!';
-  $('tipp').hidden = false;
+// ---------- Vorlesen (Browser-Sprachausgabe wie in Tiertrumpf, Stimme je Gerät) ----------
+const synth = 'speechSynthesis' in window ? window.speechSynthesis : null;
+let stimme = null;
+function waehleStimme() {
+  if (!synth) return;
+  const vs = synth.getVoices() || [];
+  stimme = vs.find((v) => /^de(-|_|$)/i.test(v.lang) && v.localService) || vs.find((v) => /^de(-|_|$)/i.test(v.lang)) || null;
 }
+if (synth) { waehleStimme(); synth.addEventListener && synth.addEventListener('voiceschanged', waehleStimme); }
+let gesagt = '';
+function sage(text, immer = false) {
+  if (!synth || !text || (!welt.vorlesen && !immer)) return;
+  gesagt = text;
+  try {
+    synth.cancel();
+    const u = new SpeechSynthesisUtterance(text.replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu, '').trim());
+    u.lang = 'de-DE'; if (stimme) u.voice = stimme; u.rate = 0.92; u.pitch = 1.08;
+    if (musikGain && ac) { musikGain.gain.setTargetAtTime(welt.musik ? 0.12 : 0, ac.currentTime, 0.2); u.onend = () => musikGain.gain.setTargetAtTime(welt.musik ? 0.32 : 0, ac.currentTime, 0.4); }
+    synth.speak(u);
+  } catch (e) { /* ohne Stimme weiter */ }
+}
+
+// ---------- Kleine Anleitung (Schritt für Schritt, wird vorgelesen) ----------
+// warte: 'weiter' = Knopf, sonst Ereignis aus dem Spiel. ziel = Knopf, der leuchtet.
+const ANLEITUNG = [
+  { text: 'Hallo! Willkommen im Tuff-Tuff-Land. Das hier ist dein Zug.', em: '🚂', warte: 'weiter', zug: true },
+  { text: 'Male mit dem Finger ein Gleis bis zum anderen Bahnhof. Folge den gelben Punkten!', em: '👆', warte: 'verbunden', finger: true },
+  { text: 'Super gemacht! Jetzt fährt dein Zug los. Am Bahnhof steigen die Leute ein und aus.', em: '🎉', warte: 'aus', folge: true, weiterAuch: true },
+  { text: 'Drück auf die gelbe Hupe!', em: '📣', warte: 'tuten', ziel: '#btnTuten' },
+  { text: 'Hier unten kannst du bauen. Tippe auf den Baum und dann auf die Wiese.', em: '🌳', warte: 'deko', ziel: '[data-wz="baum"]' },
+  { text: 'Bring sechs Fahrgäste ans Ziel. Dann verschwinden die Wolken und du kommst in den Wald!', em: '☁️', warte: 'weiter', wolken: true },
+];
+function anleitungAktiv() { return welt.anleitung >= 0 && welt.anleitung < ANLEITUNG.length; }
+function zeigeTipp() {
+  document.querySelectorAll('.zeig').forEach((e) => e.classList.remove('zeig'));
+  if (!anleitungAktiv() || zustand !== 'spiel') { $('tipp').hidden = true; $('finger').hidden = true; return; }
+  const s = ANLEITUNG[welt.anleitung];
+  if (s.warte === 'verbunden' && verbunden(0, 1)) return anleitungWeiter();
+  $('tippEm').textContent = s.em; $('tippText').textContent = s.text;
+  $('tippWeiter').hidden = !(s.warte === 'weiter' || s.weiterAuch);
+  $('tippWeiter').lastChild.textContent = welt.anleitung === ANLEITUNG.length - 1 ? 'Los geht\'s' : 'Weiter';
+  $('tipp').hidden = false;
+  if (s.ziel) document.querySelector(s.ziel).classList.add('zeig');
+  if (s.zug && zug && zug.weg.length) { const [x, z] = L.wagenPos(zug, 0); kam.flug = [x, z - 4]; }
+  if (s.finger) { const [x, z] = L.mitte(7, 18); kam.flug = [x - 2, z]; kam.folge = false; $('btnFolge').classList.remove('an'); }
+  if (s.folge) { kam.folge = true; $('btnFolge').classList.add('an'); }
+  if (s.wolken) { const zg = (L.HOEHE - welt.offen * L.GEBIET_H) * 4; kam.flug = [L.BREITE * 2, zg + 8]; kam.folge = false; $('btnFolge').classList.remove('an'); }
+  sage(s.text);
+}
+function anleitungWeiter() {
+  if (!anleitungAktiv()) return;
+  welt.anleitung++;
+  if (welt.anleitung >= ANLEITUNG.length) { welt.anleitung = -1; setzeWerkzeug('gleis'); }
+  speichere(); ton('plopp', 9);
+  zeigeTipp();
+}
+function anleitungEreignis(art) { if (anleitungAktiv() && ANLEITUNG[welt.anleitung].warte === art) setTimeout(anleitungWeiter, art === 'deko' ? 900 : 400); }
+$('tippWeiter').addEventListener('click', () => { tonStart(); anleitungWeiter(); });
+$('tippSag').addEventListener('click', () => { tonStart(); if (anleitungAktiv()) sage(ANLEITUNG[welt.anleitung].text, true); else if (gesagt) sage(gesagt, true); });
 function pruefeTipp() {
-  if (!welt.tipp) return;
-  if (verbunden(0, 1)) {
-    welt.tipp = false; baueHilfe(); $('tipp').hidden = true; $('finger').hidden = true;
-    ton('jubel'); toast('Super! Jetzt fährt der Zug von Bahnhof zu Bahnhof 🚂'); speichere();
+  if (welt.tipp && verbunden(0, 1)) {
+    welt.tipp = false; baueHilfe(); $('finger').hidden = true;
+    ton('jubel'); speichere();
+    if (!anleitungAktiv()) toast('Super! Jetzt fährt der Zug von Bahnhof zu Bahnhof 🚂');
   }
+  if (anleitungAktiv() && ANLEITUNG[welt.anleitung].warte === 'verbunden' && verbunden(0, 1)) anleitungWeiter();
 }
 function setzeFinger(t) {
   const f = $('finger');
-  if (!welt.tipp || zustand !== 'spiel' || zeichnen) { f.hidden = true; return; }
+  const zeigen = welt.tipp && (anleitungAktiv() ? ANLEITUNG[welt.anleitung].finger : true);
+  if (!zeigen || zustand !== 'spiel' || zeichnen) { f.hidden = true; return; }
   const n = HILFE.length - 1, u = (t * 0.35) % 1.3, s = Math.min(1, u) * n, i = Math.min(n - 1, Math.floor(s)), a = s - i;
   const [x0, z0] = L.mitte(...HILFE[i]), [x1, z1] = L.mitte(...HILFE[i + 1]);
   const [sx, sy] = bildschirm(x0 + (x1 - x0) * a, z0 + (z1 - z0) * a), r = $('app').getBoundingClientRect();
@@ -655,7 +713,7 @@ function feldAktion(c, r, erstes) {
   if (werkzeug === 'baum' || werkzeug === 'haus') {
     const f = welt.z[k];
     if (f && f.d && !erstes) return;
-    if (L.setzeDeko(welt, c, r, werkzeug, Math.floor(Math.random() * 8))) { ton('plopp', Math.random() * 6); wolkeAuf(c, r, 4); baueDeko(); speichere(); }
+    if (L.setzeDeko(welt, c, r, werkzeug, Math.floor(Math.random() * 8))) { ton('plopp', Math.random() * 6); wolkeAuf(c, r, 4); baueDeko(); speichere(); anleitungEreignis('deko'); }
   } else if (werkzeug === 'radierer') {
     if (zug && L.zugFelder(zug).has(k) && welt.z[k] && welt.z[k].l) { if (erstes) { ton('nein'); toast('Da steht gerade der Zug 🚂'); } return; }
     const was = L.radiere(welt, c, r);
@@ -760,6 +818,7 @@ function zugEreignis(art, z, f, n) {
   if (art === 'halt') { spiele('glocke', 0.55); }
   else if (art === 'ab') { spiele('pfeife', 0.5); tutenPuls = 0.6; }
   else if (art === 'aus') {
+    anleitungEreignis('aus');
     const k = Object.keys(welt.z).find((kk) => welt.z[kk] === f), c = k % L.BREITE, r = Math.floor(k / L.BREITE), [x, zz] = L.mitte(c, r);
     plus(x, zz, '+' + n + ' 🧍'); ton('jubel'); zeigeGaeste(true);
     const g = L.pruefeFreischalten(welt);
@@ -839,6 +898,7 @@ if (TEST) {
     L, bildschirm: (c, r) => { const [x, z] = L.mitte(c, r); return bildschirm(x, z); },
     vorspulen(sek) { for (let t = 0; t < sek; t += 1 / 30) { L.schritt(welt, zug, 1 / 30, zugEreignis); L.bahnsteigeFuellen(welt, 1 / 30); } },
     werkzeug: setzeWerkzeug, schaueAuf(c, r) { const [x, z] = L.mitte(c, r); kam.x = x; kam.z = z; kameraGrenzen(); setzeKamera(); },
+    weiterAnleitung: () => anleitungWeiter(),
     instanzen: () => Object.fromEntries(Object.entries(IM).map(([k, m]) => [k, m.count])),
   };
 }

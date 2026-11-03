@@ -15,6 +15,8 @@ Stand 03.11.2026: veröffentlicht auf `main` (zwei Gebiete).
 | Fahrgäste | kommen nach und nach an die Bahnsteige (max. 3), fahren zum nächsten *anderen* Bahnhof und zählen dort als angekommen |
 | Gebiete | Gebiet 1 „Wiesenhausen“ ist offen. Bei 6 angekommenen Fahrgästen verschwinden die Wolken über Gebiet 2 „Tannenwald“, dazu gibt es den Schnellzug |
 
+Anleitung: beim ersten Spielen 6 kurze Schritte in einer Sprechblase (Willkommen, Gleis malen mit gelben Punkten und Finger, Zug fährt, Hupe, Baum pflanzen, Ziel Wald). Wird mit der Browser-Sprachausgabe vorgelesen (deutsche Stimme des Geräts, wie Tiertrumpf), 🔊 liest nochmal vor; Hinweise (Toasts) werden ebenfalls vorgelesen. Im Menü: „Anleitung“ startet sie neu, „Vorlesen: an/aus“. Fortschritt in `anleitung` (-1 = fertig), Schalter in `vorlesen`.
+
 Werkzeuge unten: Gleis, Bahnhof, Baum (Antippen desselben Feldes wechselt Baum → Blume → Busch …), Haus, Wegräumen, Hand (Welt verschieben). Zwei Finger verschieben und zoomen immer. Beim Malen am Bildschirmrand schiebt die Welt mit. Oben: Fahrgäste-Zähler, Zug wählen, Mitfahren (Kamera folgt dem Zug), Menü. Links unten Halt/Los, rechts unten Tuten.
 
 Züge: Blaue Dampflok (rot/gelber Wagen), Rote Dampflok (Personenwagen), Grüne Dampflok (bunte Güterwagen), Straßenbahn, Schnellzug (ab Gebiet 2).

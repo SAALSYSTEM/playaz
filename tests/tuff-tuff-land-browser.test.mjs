@@ -82,7 +82,6 @@ test('Gleis malen verbindet die Bahnhöfe, Tipp verschwindet, Weiche lässt sich
   assert.deepEqual((await feld(page, 7, 21)).l, [[0, 3]]);
   assert.deepEqual((await feld(page, 7, 14)).l, [[2, 3]]);
   assert.equal(await page.evaluate(() => window.__tufftuff.welt.tipp), false);
-  assert.equal(await page.isVisible('#tipp'), false);
   // Abzweig → Weiche, antippen stellt um
   await ziehe(page, [[7, 18], [8, 18], [8, 17]]);
   assert.equal((await feld(page, 7, 18)).l.length, 2);
@@ -151,6 +150,43 @@ test('Zug wechseln, Fahrgäste bringen, Wald und Schnellzug freischalten, nach N
   const s2 = await p2.evaluate(() => ({ g: window.__tufftuff.welt.fahrgaeste, o: window.__tufftuff.welt.offen, zug: window.__tufftuff.zug.art, l: !!window.__tufftuff.welt.z[window.__tufftuff.L.idx(7, 17)].l }));
   assert.deepEqual({ ...s2, g: s2.g >= 6 }, { g: true, o: 2, zug: 'ice', l: true });
   assert.deepEqual([...errors, ...e2], []);
+});
+
+test('Anleitung: Schritte mit Weiter, Malen, Hupe, Baum; Vorlesen schaltbar, Anleitung im Menü neu startbar', async () => {
+  const { page, errors } = await open();
+  await page.click('#btnSpielen');
+  const schritt = () => page.evaluate(() => window.__tufftuff.welt.anleitung);
+  assert.equal(await schritt(), 0);
+  assert.match(await page.textContent('#tippText'), /Willkommen/);
+  await page.click('#tippWeiter');
+  assert.equal(await schritt(), 1);
+  assert.equal(await page.isVisible('#tippWeiter'), false, 'Malen: kein Weiter-Knopf');
+  await page.waitForTimeout(1500);
+  await page.evaluate(() => { const t = window.__tufftuff; t.kam.flug = null; t.kam.zoom = 1.6; t.schaueAuf(5, 18); });
+  const weg = [[6, 21], [7, 21]]; for (let r = 20; r >= 14; r--) weg.push([7, r]); weg.push([6, 14], [5, 14]);
+  await ziehe(page, weg);
+  await page.waitForTimeout(200);
+  assert.equal(await schritt(), 2);
+  await page.click('#tippWeiter');
+  assert.equal(await schritt(), 3);
+  assert.ok(await page.$eval('#btnTuten', (e) => e.classList.contains('zeig')), 'Hupe leuchtet');
+  await page.click('#btnTuten', { force: true }); await page.waitForTimeout(700);
+  assert.equal(await schritt(), 4);
+  await page.click('[data-wz="baum"]', { force: true });
+  await page.evaluate(() => { const t = window.__tufftuff; t.kam.flug = null; t.kam.folge = false; t.kam.zoom = 1.4; t.schaueAuf(3, 18); });
+  await tippe(page, 2, 17); await page.waitForTimeout(1200);
+  assert.equal(await schritt(), 5);
+  await page.click('#tippWeiter');
+  assert.equal(await schritt(), -1);
+  assert.equal(await page.isVisible('#tipp'), false);
+  await page.click('#btnPause');
+  assert.match(await page.textContent('#pVorlesen'), /an/);
+  await page.click('#pVorlesen');
+  assert.match(await page.textContent('#pVorlesen'), /aus/);
+  await page.click('#pAnleitung');
+  assert.equal(await schritt(), 0);
+  assert.equal(await page.isVisible('#tipp'), true);
+  assert.deepEqual(errors, []);
 });
 
 test('Handy-Layout: Werkzeugleiste und Knöpfe sichtbar und groß genug, Rechner-Ansicht ohne Fehler', async () => {

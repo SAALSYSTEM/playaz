@@ -39,7 +39,15 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
 .wz.an::after{content:"";position:absolute;left:50%;top:-9px;transform:translateX(-50%);border:6px solid transparent;border-bottom-color:var(--act)}
 /* Tipp */
 #tipp{position:absolute;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 66px);z-index:3;margin:0 auto;width:fit-content;max-width:calc(100% - 24px);display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:18px;background:rgba(255,255,255,.96);box-shadow:0 4px 14px rgba(17,18,26,.22);font-weight:600;font-size:17px;line-height:1.2;pointer-events:none}
+#tipp{pointer-events:auto;flex-wrap:wrap;justify-content:center;text-align:left}
+#tipp #tippText{flex:1 1 170px}
 #tipp .em{font-size:30px}
+#tipp .tk{display:flex;gap:6px;margin-left:auto}
+#tipp .tb{height:42px;min-width:42px;padding:0 10px;border-radius:13px;background:#eef3f8;font-size:20px;font-weight:700}
+#tipp .weiter{background:var(--act);padding:0 16px;box-shadow:0 3px 0 #c99c00}
+.zeig{animation:zeig 1s ease-in-out infinite;outline:4px solid #FF9200;outline-offset:3px}
+@keyframes zeig{50%{transform:scale(1.12)}}
+@media (prefers-reduced-motion:reduce){.zeig{animation:none}}
 #finger{position:absolute;z-index:4;font-size:44px;pointer-events:none;transform:translate(-30%,-10%);filter:drop-shadow(0 3px 4px rgba(0,0,0,.3))}
 #toast{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 66px);transform:translateX(-50%);z-index:9;padding:10px 16px;border-radius:16px;background:var(--ink);color:#fff;font-weight:600;font-size:17px;max-width:calc(100% - 24px);text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.25)}
 .plus{position:absolute;z-index:4;pointer-events:none;font-weight:700;font-size:26px;color:#fff;text-shadow:0 2px 0 #c86a00,0 3px 8px rgba(0,0,0,.35);animation:steig 1.6s ease-out forwards;white-space:nowrap}
@@ -86,7 +94,7 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
     <button class="rund" id="btnPause" type="button" aria-label="Menü" title="Menü"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4" width="5" height="16" rx="1.5" fill="currentColor"/><rect x="14" y="4" width="5" height="16" rx="1.5" fill="currentColor"/></svg></button>
   </div>
 </div>
-<div id="tipp" hidden><span class="em" aria-hidden="true">👆</span><span id="tippText"></span></div>
+<div id="tipp" hidden><span class="em" id="tippEm" aria-hidden="true">👆</span><span id="tippText"></span><span class="tk"><button type="button" id="tippSag" class="tb" aria-label="Nochmal vorlesen">🔊</button><button type="button" id="tippWeiter" class="tb weiter" hidden><span>Weiter</span></button></span></div>
 <div id="finger" hidden aria-hidden="true">👆</div>
 <div id="toast" role="status" hidden></div>
 
@@ -115,6 +123,8 @@ button:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
   <div class="panel">
     <h2>Pause</h2>
     <button class="big" id="pWeiter" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12-7.5a1 1 0 0 0 0-1.72l-12-7.5A1 1 0 0 0 7 4.5z" fill="currentColor"/></svg>Weiter</button>
+    <button class="sec" id="pAnleitung" type="button"><span class="em" aria-hidden="true">❓</span><span>Anleitung</span></button>
+    <button class="sec" id="pVorlesen" type="button"><span class="em" aria-hidden="true">💬</span><span>Vorlesen: an</span></button>
     <button class="sec" id="pTon" type="button"><span class="em" aria-hidden="true">🔊</span><span>Geräusche: an</span></button>
     <button class="sec" id="pMusik" type="button"><span class="em" aria-hidden="true">🎵</span><span>Musik: an</span></button>
     <button class="sec warn" id="pNeu" type="button"><span class="em" aria-hidden="true">🗑️</span><span>Neue Welt</span></button>

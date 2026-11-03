@@ -103,7 +103,7 @@ export function neueWelt() {
   }
   return {
     v: 1, z, offen: 1, fahrgaeste: 0, zug: 'blau', zuege: [...ZUG_START], ton: true, musik: true,
-    stationen: 5, naechste: 5, tipp: true,
+    stationen: 5, naechste: 5, tipp: true, anleitung: 0, vorlesen: true,
   };
 }
 
@@ -125,6 +125,7 @@ export function pruefeStand(s) {
     v: 1, z, offen: Math.max(1, Math.min(GEBIETE.length, s.offen | 0)), fahrgaeste: Math.max(0, s.fahrgaeste | 0),
     zug: ZUEGE[s.zug] ? s.zug : 'blau', zuege: Array.isArray(s.zuege) ? [...new Set([...ZUG_START, ...s.zuege.filter((k) => ZUEGE[k])])] : [...ZUG_START],
     ton: s.ton !== false, musik: s.musik !== false, naechste: Math.max(w.naechste, s.naechste | 0), tipp: s.tipp !== false,
+    anleitung: Number.isInteger(s.anleitung) ? Math.max(-1, Math.min(20, s.anleitung)) : (s.tipp === false ? -1 : 0), vorlesen: s.vorlesen !== false,
   };
 }
 
