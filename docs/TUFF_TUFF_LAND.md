@@ -2,7 +2,7 @@
 
 3D-Eisenbahnwelt für Kinder ab 4, Hochformat, `/spiele/tuff-tuff-land`. Das Kind malt mit dem Finger Gleise über ein Raster, setzt Bahnhöfe, Bäume und Häuser, und ein Zug fährt von selbst von Bahnhof zu Bahnhof. Kein Game-over, keine Level, kein Konto nötig, keine Werbung, keine Käufe.
 
-Stand 02.11.2026: Testversion auf Branch `tuff-tuff-land` (nicht auf `main`). Zwei Gebiete.
+Stand 03.11.2026: veröffentlicht auf `main` (zwei Gebiete).
 
 ## Spielprinzip
 
@@ -47,7 +47,7 @@ python3 tools/tuff-tuff-land-assets.py "<Train Kit>/Models/GLB format" "<Nature 
 
 ## Spielstand
 
-`localStorage` `tufftuff.v1`: `{ v, z: { feldIndex: { l: [[a,b]…], w, st, fest, w8, d: [modell, drehung] } }, offen, fahrgaeste, zug, zuege[], ton, musik, naechste, tipp }`. Eingetragen in `umzug.js` (Präfix `tufftuff.`), `playsaal-config.js` und „Weiter spielen“ auf der Startseite. Katalog-Eintrag für Cloud-Spielstände: `supabase/migrations/20261102220000_tuff_tuff_land.sql` (noch nicht ausgeführt).
+`localStorage` `tufftuff.v1`: `{ v, z: { feldIndex: { l: [[a,b]…], w, st, fest, w8, d: [modell, drehung] } }, offen, fahrgaeste, zug, zuege[], ton, musik, naechste, tipp }`. Eingetragen in `umzug.js` (Präfix `tufftuff.`), `playsaal-config.js` und „Weiter spielen“ auf der Startseite. Katalog-Eintrag für Cloud-Spielstände: `supabase/migrations/20261102220000_tuff_tuff_land.sql` (führt Matthias selbst aus).
 
 ## Tests
 
