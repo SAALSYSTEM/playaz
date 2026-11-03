@@ -97,7 +97,7 @@ test('Level 61–90: Ballon und Langhals werden eingeführt, gebraucht und gemis
   assert.ok(LEVELS.slice(60).every((l) => l.tip.text.length <= 45 && solve(l).seconds < 40), 'neue Level bleiben kurz');
 });
 
-test('Heißluftballon: nach oben ziehen, fliegt von allein, landet am Ziel, schwebt leer zurück, nie nach unten', () => {
+test('Heißluftballon: hoch und wieder runter, vom anderen Ende aus ruft man ihn', () => {
   const bl = { f: 0, x: 450, up: 1, to: 600 };
   const level = lv({ floors: [[[40, 860]], [[40, 340], [560, 860]]], balloons: [bl], door: { x: 705 }, friends: [{ f: 0, x: 250 }, { f: 0, x: 700 }, { f: 1, x: 800 }] });
   assert.deepEqual(validate(level), []);
@@ -106,8 +106,13 @@ test('Heißluftballon: nach oben ziehen, fliegt von allein, landet am Ziel, schw
   run(s, -1, 0, 10); assert.equal(s.x, 450, 'im Flug wirkt keine Steuerung');
   run(s, 0, 0, balloonTimes(level, bl).T); assert.equal(s.fly, -1); assert.equal(s.f, 1); assert.equal(s.x, 600);
   assert.deepEqual(s.cp, { f: 1, x: 600 }, 'Rücksetzpunkt am Landeplatz'); assert.ok(s.events.some((e) => e.t === 'balloon'));
-  const down = newState({ ...level, start: { f: 1, x: 600 } }); run(down, 0, -1, 20); assert.equal(down.fly, -1); assert.equal(down.f, 1, 'nach unten fliegt er nicht');
-  const again = newState({ ...level, start: { f: 0, x: 450 } }); again.bt[0] = 0; again.clock = 10; run(again, 0, 1, 5); assert.equal(again.fly, -1, 'unterwegs: erst warten, bis er zurück ist');
+  const T = balloonTimes(level, bl).T;
+  run(s, 0, -1, 1); assert.equal(s.fly, 0, 'oben nach unten ziehen: wieder runter');
+  run(s, 0, 0, T); assert.equal(s.f, 0); assert.equal(s.x, 450); assert.deepEqual(s.cp, { f: 0, x: 450 });
+  const top = newState({ ...level, start: { f: 1, x: 600 } });
+  run(top, 0, -1, 1); assert.equal(top.fly, -1, 'Ballon steht unten: erst rufen'); assert.ok(top.events.some((e) => e.t === 'call'));
+  run(top, 0, -1, T); assert.equal(top.fly, 0, 'kommt leer hoch, dann steigt man ein');
+  run(top, 0, 0, T); assert.equal(top.f, 0, 'und fährt runter');
   assert.ok(validate(lv({ ...level, floors: [[[40, 860]], [[40, 860]]] })).some((e) => e.includes('keine Lücke')), 'über dem Ballon muss eine Lücke sein');
   assert.ok(validate(lv({ ...level, balloons: [{ ...bl, to: 470 }] })).some((e) => e.includes('Ballon')), 'Ziel muss auf einer Plattform liegen');
 });
@@ -146,9 +151,13 @@ test('Level 91–150: Höhlen, Felsbrocken und Nacht werden eingeführt, gebrauc
     assert.ok(end.rk.every((r) => r.st !== 0), `Level ${n}: jeder Stein wird gebraucht`);
     const used = new Set(path.filter((p) => p.via && p.via[0] === 'h').map((p) => l.holes[+p.via.slice(1)].c));
     assert.equal(used.size, new Set((l.holes || []).map((h) => h.c)).size, `Level ${n}: jede Höhlenfarbe wird gebraucht`);
-    if ((l.rocks || []).length) assert.equal(deadEnds(l, true).dead, 0, `Level ${n}: kein Stein führt in eine Sackgasse`);
+    if ((l.rocks || []).length) assert.equal(deadEnds(l).dead, 0, `Level ${n}: kein Stein führt in eine Sackgasse`);
     assert.ok(l.tip.text.length <= 45 && solve(l).seconds < 40, `Level ${n}: kurz`);
   });
+});
+
+test('Keine Sackgassen: In keinem Level kann man sich so verlaufen, dass nur noch Neustart hilft', () => {
+  LEVELS.forEach((l, i) => assert.equal(deadEnds(l).dead, 0, `Level ${i + 1}`));
 });
 
 test('Zauber-Baumhöhle: nach oben ziehen, kommt bei gleicher Farbe heraus, in beide Richtungen', () => {

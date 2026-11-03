@@ -67,18 +67,20 @@ export function bridgeDock(br, clock) {
   return p < D ? -1 : p >= D + m && p < 2 * D + m ? 1 : 0;
 }
 
-// Heißluftballon: wartet auf Etage f bei x, steigt up Etagen durch eine Lücke und treibt dann zu to. Danach schwebt er leer zurück.
+// Heißluftballon: unten auf Etage f bei x, steigt up Etagen durch eine Lücke und treibt dann zu to. Er fährt in beide Richtungen
+// und bleibt an dem Ende stehen, an dem er angekommen ist; vom anderen Ende aus ruft man ihn (er kommt leer herüber).
 export function balloonTimes(lv, bl) {
   const { gap } = layout(lv), rise = Math.round(bl.up * gap / C.rise * HZ), drift = Math.round(Math.abs(bl.to - bl.x) / C.drift * HZ);
   return { rise, drift, T: rise + drift };
 }
-// Korb k Schritte nach dem Abflug (Rückweg spiegelt den Hinweg); außerhalb davon steht er zu Hause
-export function balloonAt(lv, bl, k) {
+// Korb k Schritte nach dem Start einer Fahrt zum Ende end (0 unten, 1 oben); danach steht er an diesem Ende
+export function balloonAt(lv, bl, k, end = 0) {
   const { ys } = layout(lv), { rise, T } = balloonTimes(lv, bl), e = (v) => v * v * (3 - 2 * v);
-  if (!(k >= 0 && k < 2 * T)) return { x: bl.x, y: ys[bl.f], fire: false, home: true };
-  const q = k < T ? k : 2 * T - k;
-  return { x: q <= rise ? bl.x : bl.x + (bl.to - bl.x) * e((q - rise) / (T - rise)), y: q <= rise ? ys[bl.f] + (ys[bl.f + bl.up] - ys[bl.f]) * e(q / rise) : ys[bl.f + bl.up], fire: k < T, home: false };
+  const moving = k >= 0 && k < T, q = !moving ? (end ? T : 0) : end ? k : T - k;
+  return { x: q <= rise ? bl.x : bl.x + (bl.to - bl.x) * e((q - rise) / (T - rise)), y: q <= rise ? ys[bl.f] + (ys[bl.f + bl.up] - ys[bl.f]) * e(q / rise) : ys[bl.f + bl.up],
+    fire: moving && end === 1, moving, end };
 }
+const balloonMoving = (s, i) => s.clock - s.bs[i].t0 < balloonTimes(s.lv, s.lv.balloons[i]).T;
 
 // Langhals über der Lücke [a, b]: side 1 = Körper rechts (schaut nach links), -1 = Körper links. Gefüttert wird am Körper.
 export const neckBody = (nk, x) => ((nk.side || 1) > 0 ? x >= nk.b - 0.5 && x <= nk.b + C.nbody : x <= nk.a + 0.5 && x >= nk.a - C.nbody);
@@ -156,7 +158,7 @@ export function newState(lv) {
     vis: lv.ladders.map((l) => !l.hidden), cp: { f: lv.start.f, x: lv.start.x },
     stun: 0, nudge: 0, nudgeV: 0, events: [], lastSnore: -999, lastLocked: -999, lastGrumble: -999,
     ride: -1, off: 0, slide: -1, sp: 0,
-    fly: -1, bt: arr(lv, 'balloons').map(() => -1e9), leaf: -1, ltaken: arr(lv, 'leaves').map(() => false), nfed: arr(lv, 'necks').map(() => -1),
+    fly: -1, bs: arr(lv, 'balloons').map(() => ({ end: 0, t0: -1e9 })), leaf: -1, ltaken: arr(lv, 'leaves').map(() => false), nfed: arr(lv, 'necks').map(() => -1),
     hole: -1, hp: 0, rk: freshRocks(lv), lit: arr(lv, 'lamps').map(() => false)
   };
 }
@@ -214,10 +216,18 @@ export function step(s, ix = 0, iy = 0) {
         const d = Math.abs(l.x - s.x); if (d <= C.grab && d < bd) { bd = d; best = i; }
       });
       if (best >= 0) { s.ladder = best; s.p = up ? 0 : 1; ev(s, 'grab'); return s; }
-      if (up) { // Heißluftballon: davor stehen und nach oben ziehen (nur wenn er zu Hause ist)
-        let bb = -1, bd2 = Infinity;
-        arr(lv, 'balloons').forEach((bl, i) => { const d = Math.abs(bl.x - s.x); if (bl.f === s.f && d <= C.grab && d < bd2 && s.clock - s.bt[i] >= 2 * balloonTimes(lv, bl).T) { bd2 = d; bb = i; } });
-        if (bb >= 0) { s.fly = bb; s.bt[bb] = s.clock; s.x = lv.balloons[bb].x; ev(s, 'balloon', { i: bb }); return s; }
+      // Heißluftballon: unten nach oben ziehen, oben nach unten ziehen. Steht er am anderen Ende, kommt er erst leer herüber.
+      let bb = -1, bd2 = Infinity;
+      arr(lv, 'balloons').forEach((bl, i) => {
+        const fe = up ? bl.f : bl.f + bl.up, xe = up ? bl.x : bl.to, d = Math.abs(xe - s.x);
+        if (fe === s.f && d <= C.grab && d < bd2 && !balloonMoving(s, i)) { bd2 = d; bb = i; }
+      });
+      if (bb >= 0) {
+        const bl = lv.balloons[bb], here = up ? 0 : 1;
+        if (s.bs[bb].end === here) { s.fly = bb; s.bs[bb] = { end: 1 - here, t0: s.clock }; s.x = up ? bl.x : bl.to; ev(s, 'balloon', { i: bb, up }); return s; }
+        s.bs[bb] = { end: here, t0: s.clock }; ev(s, 'call', { i: bb });
+      }
+      if (up) {
         let hb = -1, hd = Infinity; // Baumhöhle: davor stehen und nach oben ziehen
         arr(lv, 'holes').forEach((h, i) => { const d = Math.abs(h.x - s.x); if (h.f === s.f && d <= C.grab && d < hd) { hd = d; hb = i; } });
         if (hb >= 0) { s.hole = hb; s.hp = 0; s.x = lv.holes[hb].x; ev(s, 'hole', { i: hb }); return s; }
@@ -288,8 +298,8 @@ function holeTick(s) {
 }
 
 function flyTick(s) {
-  const bl = s.lv.balloons[s.fly];
-  if (s.clock - s.bt[s.fly] >= balloonTimes(s.lv, bl).T) { s.f = bl.f + bl.up; s.x = bl.to; s.fly = -1; s.cp = { f: s.f, x: s.x }; ev(s, 'arrive', { balloon: true }); touch(s); }
+  const bl = s.lv.balloons[s.fly], top = s.bs[s.fly].end === 1;
+  if (!balloonMoving(s, s.fly)) { s.f = top ? bl.f + bl.up : bl.f; s.x = top ? bl.to : bl.x; s.fly = -1; s.cp = { f: s.f, x: s.x }; ev(s, 'arrive', { balloon: true }); touch(s); }
   return s;
 }
 
@@ -407,7 +417,8 @@ export function validate(lv) {
     if (!inSeg(t, bl.to)) err.push(`Ballon ${i}: Ziel ${bl.to} liegt nicht auf einer Plattform`);
     if (bl.x % 10 || bl.to % 10 || Math.abs(bl.to - bl.x) < 80 || Math.abs(bl.to - bl.x) > 220) err.push(`Ballon ${i}: Ziel 80 bis 220 seitlich, 10er-Raster`);
     for (let g = bl.f + 1; g <= t; g++) if ((lv.floors[g] || []).some(([a, b]) => a < bl.x + 95 && b > bl.x - 95)) err.push(`Ballon ${i}: über dem Start ist auf Etage ${g} keine Lücke`);
-    lv.ladders.forEach((l, j) => { if (l.f === bl.f && Math.abs(l.x - bl.x) < 130) err.push(`Ballon ${i}: Leiter ${j} zu nah`); });
+    lv.ladders.forEach((l, j) => { if ((l.f === bl.f && Math.abs(l.x - bl.x) < 130) || (l.f + 1 === t && Math.abs(l.x - bl.to) < 130)) err.push(`Ballon ${i}: Leiter ${j} zu nah`); });
+    arr(lv, 'slides').forEach((sl, j) => { if (sl.f + 1 === t && Math.abs(sl.x - bl.to) < 130) err.push(`Ballon ${i}: Rutsche ${j} zu nah`); });
   });
   arr(lv, 'necks').forEach((nk, i) => {
     const segs = lv.floors[nk.f] || [], side = nk.side || 1;
@@ -501,8 +512,9 @@ function graph(lv, twoWay = false) {
     });
     // Heißluftballon: nur nach oben
     arr(lv, 'balloons').forEach((bl, i) => {
-      if (bl.f === st.f && Math.abs(bl.x - st.x) <= C.grab) out.push([balloonTimes(lv, bl).T / HZ + 0.3, apply({ ...st, f: bl.f + bl.up, x: bl.to, via: 'a' + i })]);
-      if (twoWay && bl.f + bl.up === st.f && Math.abs(bl.to - st.x) <= C.grab) out.push([1, apply({ ...st, f: bl.f, x: bl.x, via: null })]);
+      const T = balloonTimes(lv, bl).T / HZ + 0.3; // (muss man ihn erst rufen, wartet der Bot zusätzlich)
+      if (bl.f === st.f && Math.abs(bl.x - st.x) <= C.grab) out.push([T, apply({ ...st, f: bl.f + bl.up, x: bl.to, via: 'a' + i })]);
+      if (bl.f + bl.up === st.f && Math.abs(bl.to - st.x) <= C.grab) out.push([T, apply({ ...st, f: bl.f, x: bl.x, via: 'a' + i })]);
     });
     // Baumhöhle: hinein und bei der Höhle gleicher Farbe heraus
     arr(lv, 'holes').forEach((h, i) => {
@@ -569,7 +581,7 @@ export function playPath(lv, path, maxSeconds = 300) {
   for (let i = 1; i < path.length; i++) {
     const a = path[i - 1], b = path[i];
     if (b.via && b.via[0] === 'h') plan.push({ hole: Number(b.via.slice(1)), f: b.f, x: b.x });
-    else if (b.via && b.via[0] === 'a') plan.push({ balloon: Number(b.via.slice(1)), f: b.f, x: b.x });
+    else if (b.via && b.via[0] === 'a') plan.push({ balloon: Number(b.via.slice(1)), f: b.f, x: b.x, dir: b.f > a.f ? 1 : -1 });
     else if (b.via && b.via[0] === 's') plan.push({ slide: Number(b.via.slice(1)), f: b.f, x: b.x });
     else if (b.via && b.via[0] === 'b') plan.push({ bridge: Number(b.via.slice(1)), dir: Math.sign(b.x - a.x), f: b.f, x: b.x });
     else if (b.f !== a.f) plan.push({ climb: b.f > a.f ? 1 : -1, f: b.f, x: b.x });
@@ -619,8 +631,8 @@ export function playPath(lv, path, maxSeconds = 300) {
       if (Math.abs(dx) > 5) ix = Math.sign(dx) * Math.max(0.5, Math.min(1, Math.abs(dx) / 30)); else iy = 1;
     } else if (a.balloon !== undefined) {
       if (s.f === a.f) { k++; continue; }
-      const dx = lv.balloons[a.balloon].x - s.x;
-      if (Math.abs(dx) > 5) ix = Math.sign(dx) * Math.max(0.5, Math.min(1, Math.abs(dx) / 30)); else iy = 1; // wartet von allein, bis der Ballon zurück ist
+      const bl = lv.balloons[a.balloon], dx = (a.dir > 0 ? bl.x : bl.to) - s.x;
+      if (Math.abs(dx) > 5) ix = Math.sign(dx) * Math.max(0.5, Math.min(1, Math.abs(dx) / 30)); else iy = a.dir; // ruft ihn und wartet, bis er da ist
     } else if (a.slide !== undefined) {
       if (s.f === a.f) { k++; continue; }
       const dx = lv.slides[a.slide].x - s.x;

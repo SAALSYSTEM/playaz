@@ -239,7 +239,7 @@ function playerPos() {
     const half = C.hole / 2, h = st.hp < half ? lv.holes[st.hole] : lv.holes[holePartner(lv, st.hole)], q = st.hp < half ? 1 - st.hp / half : (st.hp - half) / half;
     return { x: h.x, y: L.ys[h.f] - 30 * (1 - q), climb: false, scale: Math.max(0.05, q) };
   }
-  if (st.fly >= 0) { const bl = lv.balloons[st.fly], b = balloonAt(lv, bl, st.clock - st.bt[st.fly]); return { x: b.x, y: b.y - 62 * balloonScale(), climb: false, flying: true }; }
+  if (st.fly >= 0) { const bl = lv.balloons[st.fly], b = balloonAt(lv, bl, st.clock - st.bs[st.fly].t0, st.bs[st.fly].end); return { x: b.x, y: b.y - 62 * balloonScale(), climb: false, flying: true }; }
   if (st.ladder >= 0) { const l = lv.ladders[st.ladder]; return { x: st.x, y: L.ys[l.f] - st.p * L.gap, climb: true }; }
   return { x: st.x, y: L.ys[st.f] - liftAt(st.f, st.x), climb: false };
 }
@@ -258,7 +258,7 @@ function handle() {
     else if (e.t === 'grumble') { if (lv.wakers[e.m].f === st.f) SFX.snore(); wbump[e.m] = now; }
     else if (e.t === 'wake') { if (lv.wakers[e.m].f === st.f) SFX.wake(); }
     else if (e.t === 'slide') SFX.slide();
-    else if (e.t === 'balloon') SFX.balloon();
+    else if (e.t === 'balloon' || e.t === 'call') SFX.balloon();
     else if (e.t === 'hole') SFX.hole();
     else if (e.t === 'arrive' && e.hole) { trail = []; track(); burst(st.x, L.ys[st.f] - 70, ['#4aa8ff', '#ff5a4a', '#ffd23f'][lv.holes[0] ? lv.holes.find((h) => h.f === st.f && h.x === st.x)?.c ?? 2 : 2], 14, 'star'); }
     else if (e.t === 'plate') { SFX.plate(); const pl = lv.plates[e.p]; gateAt[pl.gate] = now; burst(pl.x, L.ys[pl.f] - 40, '#ffe36a', 14, 'star'); const g = lv.gates[pl.gate]; burst(g.x, L.ys[g.f] - 100, '#8fd66a', 12); }
@@ -529,8 +529,8 @@ function drawWaker(w, i, t) {
 const BL = { cell: 320, h: 448, foot: 432, rim: 336 }; // Bildmaße in Pixeln
 const balloonScale = () => Math.min(0.68, (L.gap - 20) / 424); // Einheiten pro Pixel; bei 5 Etagen etwas kleiner
 function drawBalloon(bl, i, t, front) {
-  const k = st.clock - st.bt[i], b = balloonAt(lv, bl, k), img = pic('heissluftballon'), s = balloonScale();
-  const bob = b.home ? Math.sin(t * 2 + i) * 3 : Math.sin(t * 3) * 2, x = b.x - BL.cell * s / 2, y = b.y - BL.foot * s + bob;
+  const b = balloonAt(lv, bl, st.clock - st.bs[i].t0, st.bs[i].end), img = pic('heissluftballon'), s = balloonScale();
+  const bob = !b.moving ? Math.sin(t * 2 + i) * 3 : Math.sin(t * 3) * 2, x = b.x - BL.cell * s / 2, y = b.y - BL.foot * s + bob;
   if (img) {
     if (front) { ctx.drawImage(img, b.fire ? BL.cell : 0, BL.rim, BL.cell, BL.h - BL.rim, x, y + BL.rim * s, BL.cell * s, (BL.h - BL.rim) * s); return; }
     if (b.fire) { const g = ctx.createRadialGradient(b.x, y + 300 * s, 2, b.x, y + 300 * s, 34 + Math.sin(t * 25) * 4); g.addColorStop(0, 'rgba(255,230,120,.95)'); g.addColorStop(1, 'rgba(255,140,40,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, y + 300 * s, 40, 0, Math.PI * 2); ctx.fill(); }
@@ -541,7 +541,16 @@ function drawBalloon(bl, i, t, front) {
     ctx.strokeStyle = '#7a4a24'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(b.x - 40, b.y - 100 + bob); ctx.lineTo(b.x - 50, b.y - 48 + bob); ctx.moveTo(b.x + 40, b.y - 100 + bob); ctx.lineTo(b.x + 50, b.y - 48 + bob); ctx.stroke();
     ctx.fillStyle = '#b8793a'; rr(ctx, b.x - 58, b.y - 48 + bob, 116, 48, 10); ctx.fill();
   }
-  if (b.home && !front && st.f === bl.f && st.fly < 0 && Math.abs(st.x - bl.x) < 260) { ctx.globalAlpha = 0.6 + Math.sin(t * 5) * 0.3; ctx.fillStyle = '#fff2a8'; star(b.x, y - 16 + Math.sin(t * 3) * 4, 12, t); ctx.globalAlpha = 1; }
+  if (front || st.fly >= 0 || b.moving) return;
+  // Hinweis-Stern: am Ballon zum Einsteigen, am leeren Ende zum Rufen (mit Pfeil, in welche Richtung man zieht)
+  for (const end of [0, 1]) {
+    const fe = end ? bl.f + bl.up : bl.f, xe = end ? bl.to : bl.x;
+    if (st.f !== fe || Math.abs(st.x - xe) > 260) continue;
+    const ye = L.ys[fe], here = b.end === end, sy = here ? y - 16 : ye - 215;
+    ctx.globalAlpha = (here ? 0.6 : 0.4) + Math.sin(t * 5) * 0.3; ctx.fillStyle = '#fff2a8'; star(xe, sy + Math.sin(t * 3) * 4, 12, t);
+    if (!here) { ctx.font = '700 30px Fredoka, sans-serif'; ctx.textAlign = 'center'; ctx.fillText(end ? '⬇' : '⬆', xe + 32, sy + 12); }
+    ctx.globalAlpha = 1;
+  }
 }
 // Langhals: Maße im Brückenbild (Pixel). Die Posen im Sheet stehen 1000 px weiter links, gleiche Größe.
 const NB = { feet: 323, top: 100, pivot: 1090, chest: 1110, neckL: 230, neckR: 1080, headC: 110, headBot: 165, pose: 1000, cell: 512, cfoot: 496 };

@@ -232,7 +232,7 @@ export const LEVELS = [
   { name: 'Rutsche nach links', tip: { icon: '↙️', text: 'Rutschen gehen auch nach links' },
     floors: [F, F, F, gap(420, 520)], start: { f: 3, x: 800 }, door: { x: 195 },
     ladders: [{ f: 0, x: 700 }, { f: 1, x: 200 }, { f: 2, x: 120 }], slides: [slide(2, 800, -1)],
-    friends: [{ f: 3, x: 640 }, { f: 1, x: 600 }, { f: 0, x: 300 }] },
+    friends: [{ f: 2, x: 700 }, { f: 1, x: 600 }, { f: 0, x: 300 }] },
 
   { name: 'Rutsche am Monster vorbei', tip: { icon: '🛝', text: 'Rutsche runter, Frucht für später' },
     floors: fl(4), start: { f: 3, x: 100 }, door: { x: 705 },
@@ -387,7 +387,7 @@ export const LEVELS = [
     friends: [{ f: 0, x: 700 }, { f: 1, x: 650 }, { f: 3, x: 450 }] },
 
   // ---------- Level 65–71: der Heißluftballon ----------
-  { name: 'Der Heißluftballon', tip: { icon: '🎈', text: 'Am Ballon nach oben ziehen' },
+  { name: 'Der Heißluftballon', tip: { icon: '🎈', text: 'Am Ballon hoch – und auch wieder runter' },
     floors: [F, gap(340, 560)], start: { f: 0, x: 100 }, door: { x: 705 }, ladders: [], balloons: [balloon(0, 450, 1, 600)],
     friends: [{ f: 0, x: 250 }, { f: 0, x: 700 }, { f: 1, x: 800 }] },
 
@@ -414,7 +414,7 @@ export const LEVELS = [
 
   { name: 'Ballon und Hebel', tip: { icon: '🎚️', text: 'Fliegen, Hebel ziehen, rutschen' },
     floors: [F, gap(340, 560), F], start: { f: 0, x: 200 }, door: { x: 705 },
-    ladders: [{ f: 0, x: 100 }, { f: 1, x: 280, hidden: true }], balloons: [balloon(0, 450, 1, 600)], slides: [slide(0, 700, -1)],
+    ladders: [{ f: 0, x: 100 }, { f: 1, x: 280, hidden: true }], balloons: [balloon(0, 450, 1, 600)], slides: [slide(0, 760, -1)],
     levers: [{ f: 1, x: 820, ladder: 1 }],
     friends: [{ f: 0, x: 700 }, { f: 1, x: 640 }, { f: 2, x: 300 }] },
 
