@@ -168,5 +168,5 @@ body.im-spiel .pz-home{display:none}
 #hud .hud-box b{font-size:20px}
 #hud .hud-box.breit{flex:1 1 auto;min-width:0;max-width:150px}
 #hud .hud-box.breit b{font-size:16px;white-space:nowrap}
-.zwei-tabs{grid-template-columns:1fr 1fr}.zwei-tabs button{font-size:14px;padding:8px 4px}
+.zwei-tabs{grid-template-columns:repeat(3,1fr);gap:6px}.zwei-tabs button{font-size:12.5px;line-height:1.2;padding:7px 3px;white-space:normal}
 .gesperrt{margin:0;padding:10px;border-radius:12px;background:#262838;color:var(--grau);font-weight:600;text-align:center}

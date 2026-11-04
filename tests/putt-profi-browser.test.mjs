@@ -103,7 +103,7 @@ test('Bahn einlochen: Karte mit Sternen, Bestleistung bleibt nach Neuladen, näc
   assert.equal(await page.textContent('#mSterne'), '3');
   await page.click('#mBahnen');
   assert.equal(await page.locator('#bListe button').count(), 18);
-  assert.equal(await page.locator('#bPlaetze button').count(), 4);
+  assert.equal(await page.locator('#bPlaetze button').count(), 6);
   await page.locator('#bPlaetze button').nth(1).click();
   assert.equal(await page.locator('#bListe button:not([disabled])').count(), 0, 'Platz 2 noch gesperrt');
   await page.locator('#bPlaetze button').nth(0).click();

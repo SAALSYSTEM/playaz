@@ -8,9 +8,9 @@ import * as L from '../public/spiele/putt-profi/logik.js';
 const LOES = JSON.parse(readFileSync(new URL('./putt-profi-loesungen.json', import.meta.url))).loesungen;
 const schlaege = (text) => L.dekodiere(text)[0];
 
-test('alle 72 Bahnen lassen sich bauen (normal und gespiegelt), Abschlag und Loch liegen auf dem Boden', () => {
-  assert.equal(L.BAHNEN.length, 72);
-  for (let nr = 0; nr < 72; nr++) for (const sp of [false, true]) {
+test('alle 108 Bahnen lassen sich bauen (normal und gespiegelt), Abschlag und Loch liegen auf dem Boden', () => {
+  assert.equal(L.BAHNEN.length, 108);
+  for (let nr = 0; nr < 108; nr++) for (const sp of [false, true]) {
     const b = L.baueBahn(nr, sp);
     assert.ok(Number.isFinite(b.tee.y) && Math.abs(b.tee.y - (0.0633 + L.R)) < 1e-3, `${b.name}: Abschlag`);
     assert.ok(b.loch.y < 0.04, `${b.name}: Loch`);
@@ -21,7 +21,7 @@ test('alle 72 Bahnen lassen sich bauen (normal und gespiegelt), Abschlag und Loc
 
 test('Prüf-Bot: jede Bahn ist lösbar und das Par ist erreichbar (normal und gespiegelt)', () => {
   assert.equal(JSON.parse(readFileSync(new URL('./putt-profi-loesungen.json', import.meta.url))).sim, L.SIM_VERSION, 'Lösungen neu erzeugen: node tools/putt-profi-bot.mjs');
-  for (let nr = 0; nr < 72; nr++) for (const sp of [false, true]) {
+  for (let nr = 0; nr < 108; nr++) for (const sp of [false, true]) {
     const text = LOES[nr + (sp ? 's' : '')];
     assert.ok(text, `Bahn ${nr + 1}${sp ? ' gespiegelt' : ''} ohne Lösung`);
     const b = L.baueBahn(nr, sp), ball = L.neuerBall(b);
@@ -33,7 +33,7 @@ test('Prüf-Bot: jede Bahn ist lösbar und das Par ist erreichbar (normal und ge
 
 test('Banden halten: 150 zufällige Schläge je Bahn enden auf der Bahn (Aus nur am Graben)', () => {
   const r = L.zufall(42);
-  for (let nr = 0; nr < 72; nr++) {
+  for (let nr = 0; nr < 108; nr++) {
     const b = L.baueBahn(nr, nr % 2 === 1), graben = b.felder.some((f) => f.teil === 'gap');
     const felder = new Set(b.felder.map((f) => f.x + ',' + f.z));
     for (let i = 0; i < 150; i++) {
@@ -110,14 +110,14 @@ test('Runde nachspielen: echte Runde zählt, Manipulationen nicht', () => {
 });
 
 test('Spielstand: aufräumen, Sterne, Bälle, Bestwerte', () => {
-  const st = L.pruefeStand({ ton: false, ball: 'gold', bahnen: { 0: 1, 3: 9, 80: 2, x: 1, 4: 2 }, hio: 2, tag: 'x' });
+  const st = L.pruefeStand({ ton: false, ball: 'gold', bahnen: { 0: 1, 3: 9, 120: 2, x: 1, 4: 2 }, hio: 2, tag: 'x' });
   assert.equal(st.ton, false); assert.deepEqual(st.bahnen, { 0: 1, 4: 2 }); assert.equal(st.hio, 2); assert.equal(st.tag, 0);
   assert.equal(L.gesamtSterne(st), 3 + 3);
   assert.ok(!L.ballFrei(st, 'blau')); assert.ok(L.ballFrei(st, 'rot'));
   assert.ok(L.frei(st, 0) && L.frei(st, 1) && !L.frei(st, 2) && L.frei(st, 5));
   assert.ok(!L.frei(st, 18) && !L.platzFrei(st, 1), 'Platz 2 erst ab 24 Sternen');
   const viel = L.pruefeStand({ bahnen: Object.fromEntries([...Array(12)].map((_, i) => [i, 1])) });
-  assert.ok(L.platzFrei(viel, 1) && L.frei(viel, 18) && !L.frei(viel, 19)); assert.equal(L.MAX_STERNE, 216); assert.ok(!L.platzFrei(viel, 2) && L.PLAETZE.length === 4);
+  assert.ok(L.platzFrei(viel, 1) && L.frei(viel, 18) && !L.frei(viel, 19)); assert.equal(L.MAX_STERNE, 324); assert.ok(!L.platzFrei(viel, 2) && L.PLAETZE.length === 6);
   const b = L.baueBahn(1), ball = L.neuerBall(b); ball.eingelocht = true; ball.schlaege = 2; ball.fertig = true;
   assert.equal(L.verbucheBahn(st, 1, ball), true); assert.equal(L.verbucheBahn(st, 1, ball), false);
   assert.equal(L.verbucheRunde(st, 20261102, 14), true); assert.equal(L.verbucheRunde(st, 20261102, 15), false); assert.equal(L.verbucheRunde(st, 20261102, 12), true);
