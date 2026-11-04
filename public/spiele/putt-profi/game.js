@@ -1,7 +1,7 @@
 // Putt-Profi – Darstellung (three.js r128), Steuerung (zurückziehen, zielen, loslassen), Kamera, Menüs, Ton.
 // Regeln und Physik stehen in logik.js, die Bahnen in bahnen.js, die Kollisionsdaten in teile.js.
 // Modelle: Kenney Minigolf Kit (CC0, www.kenney.nl), aufbereitet mit tools/putt-profi-assets.py.
-import * as L from './logik.js?v=2';
+import * as L from './logik.js?v=3';
 
 const THREE = window.THREE;
 const $ = (id) => document.getElementById(id);
@@ -50,14 +50,17 @@ const MAT = {};       // je Textur ein Material für die Bahn
 async function ladeAlles() {
   const namen = [...TEILE, ...DEKO];
   let fertig = 0;
-  const tex = new Promise((ok) => new THREE.TextureLoader().load(new URL('./modelle/Textures/variation-a.png?v=1', import.meta.url).href, ok, undefined, () => ok(null)));
+  const ladeTex = (n) => new Promise((ok) => new THREE.TextureLoader().load(new URL(`./modelle/Textures/${n}.png?v=1`, import.meta.url).href, ok, undefined, () => ok(null)));
+  const varianten = ['variation-a', 'variation-b'], texe = varianten.map(ladeTex);
   await Promise.all(namen.map((n) => ladeGlb(n).then((g) => { vorlage[n] = g.scene; fertig++; $('ladeBalken').style.width = Math.round(fertig / namen.length * 100) + '%'; })));
   let std = null;
   vorlage.straight.traverse((o) => { if (o.isMesh && !std) std = o.material.map; });
   MAT.colormap = new THREE.MeshLambertMaterial({ map: std });
-  const lila = await tex;
-  if (lila) { lila.flipY = false; lila.encoding = THREE.sRGBEncoding; lila.magFilter = std.magFilter; lila.minFilter = std.minFilter; }
-  MAT['variation-a'] = new THREE.MeshLambertMaterial({ map: lila || std });
+  for (let i = 0; i < varianten.length; i++) {
+    const t = await texe[i];
+    if (t) { t.flipY = false; t.encoding = THREE.sRGBEncoding; t.magFilter = std.magFilter; t.minFilter = std.minFilter; }
+    MAT[varianten[i]] = new THREE.MeshLambertMaterial({ map: t || std });
+  }
   MAT.deko = new THREE.MeshLambertMaterial({ map: std });
 }
 
@@ -448,8 +451,9 @@ function bahnFertig() {
     $('lExtra').textContent = freiBall ? `Neuer Ball freigeschaltet: ${freiBall.name}!` : neu && stand.bahnen[bahnNr] !== undefined && drin ? 'Neue Bestleistung!' : '';
     const naechste = bahnNr + 1 < L.BAHNEN.length && L.frei(stand, bahnNr + 1) ? bahnNr + 1 : null;
     const neuerPlatz = bahnNr + 1 < L.BAHNEN.length && L.platzVon(bahnNr + 1) !== L.platzVon(bahnNr);
-    $('lWeiter').textContent = naechste === null ? 'Alle Bahnen' : neuerPlatz ? 'Weiter auf Platz 2' : 'Nächste Bahn';
-    if (neuerPlatz && naechste === null) $('lExtra').textContent = `Platz 2 öffnet sich ab ${L.PLAETZE[1].sterne} Sternen (du hast ${L.gesamtSterne(stand)}).`;
+    const np = bahnNr + 1 < L.BAHNEN.length ? L.PLAETZE[L.platzVon(bahnNr + 1)] : null;
+    $('lWeiter').textContent = naechste === null ? 'Alle Bahnen' : neuerPlatz ? `Weiter: ${np.name}` : 'Nächste Bahn';
+    if (neuerPlatz && naechste === null) $('lExtra').textContent = `${np.name} öffnet sich ab ${np.sterne} Sternen (du hast ${L.gesamtSterne(stand)}).`;
     $('lZwei').hidden = false;
     if (drin && ball.schlaege <= bahn.par) ton('geschafft');
   }

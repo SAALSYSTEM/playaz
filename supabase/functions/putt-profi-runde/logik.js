@@ -6,7 +6,7 @@ import { BAHNEN, WELTEN, PLAETZE } from './bahnen.js';
 export { BAHNEN, WELTEN, PLAETZE };
 
 export const SCHLUESSEL = 'puttprofi.v1';
-export const SIM_VERSION = 2;          // erhöhen, sobald sich Regeln oder Bahnen ändern (alte Runden zählen dann nicht mehr)
+export const SIM_VERSION = 3;          // erhöhen, sobald sich Regeln oder Bahnen ändern (alte Runden zählen dann nicht mehr)
 export const HZ = 240, DT = 1 / HZ;
 export const R = 0.04;                 // Kugelradius (1 = ein Feld)
 export const G = 6.5;                  // Schwerkraft (Felder/s²)

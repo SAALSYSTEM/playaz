@@ -81,7 +81,7 @@
     { id: 'tierski', name: 'Tier-Ski', prefix: 'tierski.', haupt: ['tierski.v1'],
       info: (g) => { const d = J(g['tierski.v1']) || {}; const r = Number(d.rekord) || 0, m = Number(d.muenzen) || 0; return { text: 'Rekord ' + r + ' · ' + m + ' Münzen', wert: r + m }; } },
     { id: 'puttprofi', name: 'Putt-Profi', prefix: 'puttprofi.', haupt: ['puttprofi.v1'],
-      info: (g) => { const d = J(g['puttprofi.v1']) || {}; const n = Object.keys(d.bahnen || {}).length; return { text: n + ' von 36 Bahnen gespielt', wert: n }; } },
+      info: (g) => { const d = J(g['puttprofi.v1']) || {}; const n = Object.keys(d.bahnen || {}).length; return { text: n + ' von 72 Bahnen gespielt', wert: n }; } },
     { id: 'kerkerlauf', name: 'Kerkerlauf', prefix: 'kerkerlauf.', haupt: ['kerkerlauf.v1'],
       info: (g) => { const d = J(g['kerkerlauf.v1']) || {}; const r = Number(d.rekord) || 0, m = Number(d.gold) || 0; return { text: 'Rekord ' + r + ' · ' + m + ' Gold', wert: r + m }; } },
     { id: 'schattenschritt', name: 'Schattenschritt', prefix: 'schattenschritt.', haupt: ['schattenschritt.v1'],

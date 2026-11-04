@@ -106,7 +106,7 @@ def main():
     os.makedirs(os.path.join(ZIEL, 'Textures'), exist_ok=True)
     for n in BAHN + DEKO:
         shutil.copyfile(os.path.join(QUELLE, n + '.glb'), os.path.join(ZIEL, n + '.glb'))
-    for t in ['colormap.png', 'variation-a.png']:
+    for t in ['colormap.png', 'variation-a.png', 'variation-b.png']:
         shutil.copyfile(os.path.join(QUELLE, 'Textures', t), os.path.join(ZIEL, 'Textures', t))
     daten = {n: teil(n) for n in BAHN}
     with open(TEILE_JS, 'w') as f:
