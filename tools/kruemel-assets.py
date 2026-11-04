@@ -59,7 +59,8 @@ BACKGROUNDS = [('kammer-hintergrund.png', 'kammer-hintergrund', 640), ('kueche-h
                ('backstube-hintergrund.png', 'backstube-hintergrund', 640), ('dachboden-hintergrund.png', 'dachboden-hintergrund', 640),
                ('gartenfest-hintergrund.png', 'gartenfest-hintergrund', 640),
                ('bad-hintergrund.png', 'bad-hintergrund', 640), ('kinderzimmer-hintergrund.png', 'kinderzimmer-hintergrund', 640),
-               ('gemuese-hintergrund.png', 'gemuese-hintergrund', 640), ('winter-hintergrund.png', 'winter-hintergrund', 640)]
+               ('gemuese-hintergrund.png', 'gemuese-hintergrund', 640), ('winter-hintergrund.png', 'winter-hintergrund', 640),
+               ('weihnacht-hintergrund.png', 'weihnacht-hintergrund', 640)]
 
 
 def split_cols(img, n):

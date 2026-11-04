@@ -30,7 +30,7 @@ for (const n of ['schlafkater-0', 'schlafkater-1', 'schlafkater-2', 'schale-a', 
   'maulwurfhuegel', 'maulwurf', 'ranke', 'kuerbis', 'sonnenblume', 'giesskanne', 'eis', 'eiszapfen', 'schneeball', 'kakao', 'schneehaufen', 'faeustling',
   'lebkuchenplatte', 'zuckerstange', 'ausstecher', 'blech', 'lebkuchenhaus', 'puderzucker',
   'bad-hintergrund', 'kinderzimmer-hintergrund', 'gemuese-hintergrund', 'winter-hintergrund', 'weihnacht-hintergrund']) {
-  const im = new Image(); im.decoding = 'async'; im.src = `kruemel/img/${n}.webp?v=8`; IMG[n] = im;
+  const im = new Image(); im.decoding = 'async'; im.src = `kruemel/img/${n}.webp?v=9`; IMG[n] = im;
 }
 const ok = (n) => { const im = IMG[n]; return im && im.complete && im.naturalWidth > 0 ? im : null; };
 // Bild mit Fußpunkt (x = Mitte, y = Unterkante) und Zielhöhe zeichnen; flip spiegelt waagerecht
