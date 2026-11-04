@@ -289,8 +289,43 @@ test('Kaffeetropfen im festen Takt: erst zittern, dann fallen; Fürst Fauch holt
   assert.ok(!ev3.includes('caught') && s3.done, 'wer läuft, entkommt');
 });
 
+
+test('Ab Level 61: Eis rutscht, Zug nimmt mit, Ranke wächst, Igel sticht, Spinne und Lebkuchen lassen sich verscheuchen, Finale', () => {
+  // Eis: nach dem Loslassen rutscht Krümel deutlich weiter
+  const slide = (ice) => { const L = mini((B) => { if (ice) B.ice(0, 29, 10); }); const s = newWorld(L); settle(s); run(s, { right: 1 }, 40); const x0 = s.p.x; run(s, {}, 60); return s.p.x - x0; };
+  assert.ok(slide(true) > slide(false) + 40, 'rutscht auf Eis weiter');
+  // Zug: über eine Grube mitfahren
+  let L = build({ w: 30, h: 12, build(B) { B.solid(0, 10, 4, 11); B.solid(14, 10, 29, 11); B.mover(5, 11, 10, 3, { wait: 30 }); B.start(2, 9); B.goal(28, 9); } });
+  let s = newWorld(L); settle(s); s.p.x = 6 * T; run(s, {}, 5);
+  assert.ok(s.p.ground && s.p.lift === 0, 'steht im Waggon');
+  run(s, {}, 160); run(s, { right: 1 }, 40);
+  assert.ok(s.p.x > 14 * T && s.p.ground && s.resets === 0, 'drüben ausgestiegen');
+  // Ranke
+  L = mini((B) => { B.solid(8, 4, 12, 9); B.vine(7, 4, 9, 4, 9); });
+  s = newWorld(L); settle(s);
+  assert.equal(tileAt(s.L, 7, 5), 0);
+  const ev = run(s, { right: 1 }, 40);
+  assert.ok(ev.includes('vine') && tileAt(s.L, 7, 5) === LADDER, 'Ranke gewachsen');
+  // Igel: von oben draufspringen tut weh
+  L = mini((B) => { B.critter('hedgehog', 8, 9, 7, 9); });
+  s = newWorld(L); settle(s); s.p.x = s.cats[0].x + 3; s.p.y = 5 * T; s.p.ground = false;
+  assert.ok(runUntil(s, {}, 80, 'hit').includes('hit'), 'Igel sticht');
+  // Spinne von oben, Lebkuchen von oben: verscheucht
+  for (const make of [(B) => B.spider(8, 4, 9, 0), (B) => B.critter('ginger', 8, 9, 7, 9)]) {
+    L = mini(make); s = newWorld(L); settle(s);
+    const c = s.cats[0]; s.p.x = c.x + c.w / 2 - 10; s.p.y = c.y - 60; s.p.ground = false;
+    assert.ok(runUntil(s, {}, 60, 'stomp').includes('stomp'), c.kind + ' verscheucht');
+  }
+  // Finale: drei Wollknäuel, dann gibt Fürst Fauch auf
+  L = mini((B) => { B.chase({ delay: 400, boss: true }); B.yarn(6, 9); B.yarn(12, 9); B.yarn(18, 9); }, 40);
+  s = newWorld(L);
+  const ev2 = run(s, { right: 1 }, 400);
+  assert.ok(ev2.includes('bossDone') && s.chaser.gone && s.chaser.hits === 3);
+});
+
 for (const [i, def] of LEVELS.entries()) {
   const n = i + 1;
+  if (process.env.KL && n < +process.env.KL) continue;   // KL=61: nur die neuen Level prüfen
   const L = build(def);
 
   test(`Level ${n}: Aufbau (Start, Ziel, 3 Goldkäse, Fähnchen, Fallwege höchstens 4 Kacheln)`, () => {
@@ -312,7 +347,8 @@ for (const [i, def] of LEVELS.entries()) {
         if (y + d >= L.h) continue; // Schacht ins Leere (Spüle) → Fähnchen
         // Unter Schubladen, Cookies und Waagschalen ist ein tieferer Fall erlaubt (dort steht man auf der Plattform)
         const plats = [...L.lifts, ...L.cookies, ...L.scales.flatMap((sc) => [{ x: sc.a.x, w: sc.w }, { x: sc.b.x, w: sc.w }]),
-          ...L.balloons.map((b) => ({ x: Math.min(b.ax, b.bx) - T, w: Math.abs(b.bx - b.ax) + 2 * T }))];
+          ...L.balloons.map((b) => ({ x: Math.min(b.ax, b.bx) - T, w: Math.abs(b.bx - b.ax) + 2 * T })),
+          ...L.movers.map((m) => ({ x: Math.min(m.x0, m.x1), w: Math.abs(m.x1 - m.x0) + m.w }))];
         if (plats.some((lf) => nx * T >= lf.x && nx * T < lf.x + lf.w)) continue;
         assert.ok(d <= 4, `Level ${n}: Fallweg bei x=${nx}, y=${y} ist ${d} Kacheln tief`);
       }
@@ -329,7 +365,7 @@ for (const [i, def] of LEVELS.entries()) {
       assert.ok(r.ok, `Abschnitt ${k + 1} (${a ? 'Fähnchen x=' + (a.x / T - 0.5) : 'Start'} → ${b ? 'Fähnchen x=' + (b.x / T - 0.5) : 'Ziel'})`);
       frames += r.path.length * r.hold;
     }
-    const replayStart = solve(L, { target: L.flags[0] ? { x: L.flags[0].x, y: L.flags[0].y - 10, r: 18 } : undefined });
+    const replayStart = solve(L, { target: L.flags[0] ? { x: L.flags[0].x, y: L.flags[0].y - 10, r: 18 } : undefined, maxNodes: 1500000 });
     assert.ok(playPath(L, replayStart.path, replayStart.hold, { noEnemies: true }).flagHit[0], 'Weg lässt sich nachspielen');
     assert.ok(frames / 60 < 60, `Bestweg unter einer Minute (${fmt(frames)})`);
     // Damit ist auch jedes Fähnchen → Ziel geprüft (Kette über die folgenden Fähnchen).

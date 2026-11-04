@@ -372,7 +372,7 @@ const H = 24, GMIN = 11, GMAX = 21;
 const B = {
   flat(L, x, g, o) { fill(L, x, x + 3, g); L.crumbs(x + 1, x + 2, g - 1); return [x + 4, g]; },
   up(L, x, g, o) { if (g - 2 < GMIN) return B.down(L, x, g, { d: 2 }); fill(L, x, x + 2, g); fill(L, x + 3, x + 5, g - 2); L.crumb(x + 4, g - 3); o.spots.push([x + 4, g - 5]); return [x + 6, g - 2]; },
-  down(L, x, g, o = {}) { const d = Math.min(o.d || 3, GMAX - g); if (d < 2) return B.up(L, x, g); fill(L, x, x + 2, g); fill(L, x + 3, x + 5, g + d); L.crumbs(x + 3, x + 4, g + d - 1); return [x + 6, g + d]; },
+  down(L, x, g, o = {}) { const d = Math.min(o.d || 3, GMAX - g); if (d < 2) return B.up(L, x, g, { spots: [] }); fill(L, x, x + 2, g); fill(L, x + 3, x + 5, g + d); L.crumbs(x + 3, x + 4, g + d - 1); return [x + 6, g + d]; },
   gap(L, x, g, o) {
     fill(L, x, x + 2, g); fill(L, x + 5, x + 7, g);
     L.crumb(x + 3, g - 2); L.crumb(x + 4, g - 2);
@@ -496,6 +496,79 @@ const B = {
     o.cage = [x + 6, g - 4];
     return [x + 10, g];
   },
+  // ---- ab Level 61
+  bubbleUp(L, x, g, o) {
+    if (g - 6 < GMIN) return B.down(L, x, g, { d: 4 });
+    fill(L, x, x + 7, g); L.bubble(x + 4, g - 1, x + 8, g - 8); fill(L, x + 8, x + 11, g - 6);
+    L.crumbs(x + 2, x + 3, g - 1); o.spots.push([x + 6, g - 6]);
+    return [x + 12, g - 6];
+  },
+  wet(L, x, g, o) {   // nasse Fliesen bzw. Eis: rutschig, danach eine kleine Lücke
+    fill(L, x, x + 7, g); L.ice(x + 1, x + 7, g); fill(L, x + 10, x + 12, g); L.crumbs(x + 2, x + 6, g - 1); L.choc(x + 8, g - 3); o.spots.push([x + 9, g - 4]);
+    return [x + 13, g];
+  },
+  spider(L, x, g, o) {
+    if (g - 7 < 2) return B.flat(L, x, g, o);
+    fill(L, x, x + 8, g); L.spider(x + 4, g - 6, g - 1, (x * 53) % 240); L.crumbs(x + 2, x + 3, g - 1); L.crumbs(x + 5, x + 6, g - 1); o.spots.push([x + 4, g - 4]);
+    return [x + 9, g];
+  },
+  duck(L, x, g, o) {   // Quietscheente schwimmt über das Badewasser
+    if (g + 1 > H - 1) return B.gap(L, x, g, o);
+    fill(L, x, x + 2, g); L.water(x + 3, x + 11, g + 1); L.mover(x + 3, x + 10, g, 2, { look: 'duck', speed: 1.4, wait: 40, offset: (x * 29) % 200 });
+    fill(L, x + 12, x + 14, g); L.chocs(x + 6, x + 8, g - 3); o.spots.push([x + 7, g - 3]);
+    return [x + 15, g];
+  },
+  windup(L, x, g, o) {
+    fill(L, x, x + 9, g); L.critter('windup', x + 6, g - 1, x + 2, x + 8); L.chocs(x + 4, x + 5, g - 4); o.spots.push([x + 6, g - 4]);
+    return [x + 10, g];
+  },
+  train(L, x, g, o) {   // Spielzeugzug über das Murmelbad – Krümel fährt im Waggon mit
+    if (g + 1 > H - 1) return B.gap(L, x, g, o);
+    fill(L, x, x + 2, g); L.water(x + 3, x + 15, g + 1, 'marbles'); L.mover(x + 3, x + 13, g, 3, { look: 'train', speed: 1.6, wait: 40, offset: (x * 31) % 200 });
+    fill(L, x + 16, x + 18, g); L.chocs(x + 7, x + 11, g - 3); o.spots.push([x + 9, g - 4]);
+    return [x + 19, g];
+  },
+  snail(L, x, g, o) {
+    fill(L, x, x + 8, g); L.critter('snail', x + 5, g - 1, x + 2, x + 7); L.chocs(x + 4, x + 6, g - 3);
+    return [x + 9, g];
+  },
+  frog(L, x, g, o) {
+    fill(L, x, x + 9, g); L.critter('frog', x + 5, g - 1, x + 2, x + 8, (x * 17) % 90); L.crumbs(x + 2, x + 3, g - 1); o.spots.push([x + 5, g - 4]);
+    return [x + 10, g];
+  },
+  beetle(L, x, g, o) {   // Käfer krabbeln auf einem Brett, unten kann man durchlaufen
+    if (g - 4 < 3) return B.flat(L, x, g, o);
+    fill(L, x, x + 10, g); L.solid(x + 1, g - 1, x + 2, g - 1); L.shelf(x + 3, x + 8, g - 3); L.critter('beetle', x + 6, g - 4, x + 4, x + 8); L.chocs(x + 4, x + 7, g - 5); L.crumbs(x + 4, x + 7, g - 1); o.spots.push([x + 6, g - 7]);   // Stufe, damit man aufs Brett kommt
+    return [x + 11, g];
+  },
+  mole(L, x, g, o) {
+    fill(L, x, x + 8, g); L.mole(x + 4, g - 1, (x * 41) % 160); L.crumbs(x + 2, x + 3, g - 1); L.crumbs(x + 5, x + 6, g - 1); L.choc(x + 4, g - 4);
+    return [x + 9, g];
+  },
+  vine(L, x, g, o) {   // Gießkanne antippen → Kürbisranke wächst als Leiter
+    if (g - 4 < GMIN) return B.down(L, x, g, { d: 4 });
+    fill(L, x, x + 3, g); L.vine(x + 3, g - 4, g - 1, x + 1, g - 1); fill(L, x + 4, x + 8, g - 4);
+    L.crumb(x + 2, g - 1); L.crumbs(x + 5, x + 7, g - 5); o.spots.push([x + 6, g - 8]);
+    return [x + 9, g - 4];
+  },
+  hedgehog(L, x, g, o) {
+    fill(L, x, x + 9, g); L.critter('hedgehog', x + 5, g - 1, x + 2, x + 8); L.chocs(x + 4, x + 6, g - 4); o.spots.push([x + 5, g - 4]);
+    return [x + 10, g];
+  },
+  icicle(L, x, g, o) {   // Eiszapfen unter einem Schneebrett
+    if (g - 8 < 2) return B.flat(L, x, g, o);
+    fill(L, x, x + 9, g); L.solid(x + 2, 0, x + 7, g - 7);   // Fensterbrett-Überhang bis oben, darunter die Zapfen L.icicle(x + 3, g - 6, 130, (x * 23) % 130); L.icicle(x + 6, g - 6, 130, (x * 23 + 65) % 130);
+    L.crumbs(x + 2, x + 7, g - 1);
+    return [x + 10, g];
+  },
+  ginger(L, x, g, o) {
+    fill(L, x, x + 9, g); L.critter('ginger', x + 6, g - 1, x + 2, x + 8); L.chocs(x + 3, x + 4, g - 4); o.spots.push([x + 6, g - 4]);
+    return [x + 10, g];
+  },
+  bossYarn(L, x, g, o) {   // Finale: Wollknäuel auf Fürst Fauch werfen
+    fill(L, x, x + 5, g); L.yarn(x + 3, g - 1);
+    return [x + 6, g];
+  },
 };
 // Hinweise beim ersten Auftauchen eines neuen Bausteins (ab Level 31)
 const INTRO = {
@@ -510,6 +583,20 @@ const INTRO = {
   hose: ['Wasserhahn antreten – der Schlauch verjagt die Katze', '💦'],
   cage: ['Hebel antippen und den Mäusefreund befreien', '🐭'],
   cake: ['Riesenkuchen! Mit allen Freunden einen Tunnel futtern', '🎂'],
+  bubbleUp: ['Seifenblase: hineinspringen und nach oben schweben', '🫧'],
+  wet: ['Rutschig! Früh bremsen', '💧'],
+  spider: ['Spinne am Faden: warten, bis sie oben ist – oder von oben draufspringen', '🕷️'],
+  duck: ['Auf die Quietscheente springen und mitschwimmen', '🦆'],
+  windup: ['Die Aufziehmaus ist flott – draufspringen!', '🔑'],
+  train: ['Einsteigen bitte! Im Waggon fährt Krümel mit', '🚂'],
+  snail: ['Eine Schnecke – einfach draufhüpfen', '🐌'],
+  frog: ['Der Frosch hüpft – erwisch ihn, wenn er sitzt', '🐸'],
+  beetle: ['Käfer auf dem Brett: drauf oder unten durch', '🪲'],
+  mole: ['Der Maulwurf schaut raus – abwarten oder draufspringen', '🕳️'],
+  vine: ['Gießkanne antippen – die Ranke wächst!', '🌱'],
+  hedgehog: ['Igel sind stachelig: drüberspringen, nicht drauf!', '🦔'],
+  icicle: ['Eiszapfen wackeln, bevor sie fallen', '🧊'],
+  ginger: ['Lebkuchenmännchen zerbröseln zu Krümeln', '🍪'],
 };
 function fill(L, x0, x1, g) { L.solid(x0, g, x1, H - 1); }
 
@@ -570,6 +657,61 @@ const PLAN = [
   ['gartenfest', 'Tortenbuffet', ['flat', 'cage', 'wild', 'cage', 'powder', 'hose', 'cage', 'cake', 'flat']],
   ['gartenfest', 'Großes Gartenfest', ['flat', 'wild', 'balloonUp', 'hose', 'balloonDown', 'sleeper', 'kitten', 'sponge', 'cookieGap', 'down', 'flat']],
   ['gartenfest', 'Fürst Fauchs Jagd', ['flat', 'gap', 'up', 'cookieGap', 'down', 'gap', 'up', 'shelves', 'down', 'cookieGap', 'gap', 'flat'], { chase: true }],
+  // Badezimmer – Seifenblasen, nasse Fliesen, Quietscheente, Zahnpasta, Spinnen
+  ['bad', 'Ab ins Bad', ['flat', 'bubbleUp', 'down', 'kitten', 'gap', 'bubbleUp', 'down', 'flat']],
+  ['bad', 'Nasse Fliesen', ['flat', 'wet', 'kitten', 'wet', 'up', 'shelves', 'down', 'wet', 'flat']],
+  ['bad', 'Achtung, Spinne!', ['flat', 'spider', 'up', 'gap', 'spider', 'down', 'kitten', 'spider', 'flat']],
+  ['bad', 'Quietscheente', ['flat', 'duck', 'kitten', 'up', 'duck', 'down', 'sugar', 'flat']],
+  ['bad', 'Zahnpasta-Sprung', ['flat', 'sponge', 'gap', 'down', 'sponge', 'spider', 'down', 'scale', 'flat']],
+  ['bad', 'Schaumparty', ['flat', 'bubbleUp', 'wet', 'down', 'duck', 'kitten', 'bubbleUp', 'down', 'flat']],
+  ['bad', 'Groß in der Wanne', ['flat', 'sugar', 'wet', 'sugarCage', 'duck', 'scale', 'kitten', 'down', 'flat']],
+  ['bad', 'Leise im Bad', ['flat', 'sleeper', 'spider', 'up', 'wet', 'sleeper', 'down', 'duck', 'flat']],
+  ['bad', 'Der Spinnenvorhang', ['flat', 'spider', 'spider', 'up', 'sponge', 'kitten', 'down', 'spider', 'bubbleUp', 'down', 'flat']],
+  ['bad', 'Badfinale', ['flat', 'duck', 'bubbleUp', 'wet', 'down', 'spider', 'sugar', 'sponge', 'kitten', 'down', 'flat']],
+  // Kinderzimmer – Spielzeugzug, Bauklötze, Trampolin, Aufziehmäuse
+  ['kinderzimmer', 'Spielzeugland', ['flat', 'windup', 'up', 'cookieGap', 'kitten', 'down', 'windup', 'flat']],
+  ['kinderzimmer', 'Einsteigen, bitte!', ['flat', 'train', 'kitten', 'up', 'train', 'down', 'flat']],
+  ['kinderzimmer', 'Bauklotz-Brücke', ['flat', 'cookieGap', 'windup', 'cookieGap', 'up', 'shelves', 'cookieGap', 'down', 'flat']],
+  ['kinderzimmer', 'Trampolin', ['flat', 'sponge', 'gap', 'down', 'sponge', 'windup', 'down', 'train', 'flat']],
+  ['kinderzimmer', 'Großer Bauklotzturm', ['flat', 'sugar', 'sugarCage', 'kitten', 'scale', 'cookieGap', 'down', 'windup', 'flat']],
+  ['kinderzimmer', 'Rasselbande', ['flat', 'windup', 'kitten', 'windup', 'up', 'gap', 'kitten', 'down', 'windup', 'flat']],
+  ['kinderzimmer', 'Unterm Bett', ['flat', 'hole', 'tunnel', 'windup', 'hole', 'up', 'train', 'down', 'flat']],
+  ['kinderzimmer', 'Gute Nacht, Kater', ['flat', 'sleeper', 'train', 'sleeper', 'sponge', 'down', 'cookieGap', 'flat']],
+  ['kinderzimmer', 'Die große Rundfahrt', ['flat', 'train', 'up', 'windup', 'train', 'down', 'kitten', 'train', 'flat']],
+  ['kinderzimmer', 'Kinderzimmerfinale', ['flat', 'windup', 'train', 'sugar', 'cookieGap', 'sponge', 'kitten', 'down', 'scale', 'windup', 'flat']],
+  // Gemüsegarten – Schnecken, Frösche, Käfer, Maulwurf, Kürbisranke
+  ['gemuese', 'Im Gemüsebeet', ['flat', 'snail', 'up', 'gap', 'snail', 'down', 'kitten', 'flat']],
+  ['gemuese', 'Froschkonzert', ['flat', 'frog', 'gap', 'frog', 'up', 'kitten', 'frog', 'down', 'flat']],
+  ['gemuese', 'Käferbretter', ['flat', 'beetle', 'up', 'beetle', 'cookieGap', 'down', 'beetle', 'flat']],
+  ['gemuese', 'Maulwurfshügel', ['flat', 'mole', 'kitten', 'mole', 'up', 'gap', 'mole', 'down', 'flat']],
+  ['gemuese', 'Die Wunderranke', ['flat', 'vine', 'shelves', 'down', 'snail', 'down', 'vine', 'frog', 'down', 'flat']],
+  ['gemuese', 'Riesenkürbis', ['flat', 'sugar', 'snail', 'sugarCage', 'scale', 'frog', 'down', 'kitten', 'flat']],
+  ['gemuese', 'Schneckentempo', ['flat', 'snail', 'snail', 'hole', 'tunnel', 'beetle', 'up', 'snail', 'down', 'flat']],
+  ['gemuese', 'Wilde Gärtner', ['flat', 'wild', 'frog', 'hose', 'mole', 'up', 'beetle', 'down', 'flat']],
+  ['gemuese', 'Sonnenblumenfeld', ['flat', 'vine', 'beetle', 'down', 'frog', 'kitten', 'mole', 'sponge', 'down', 'flat']],
+  ['gemuese', 'Gemüsefinale', ['flat', 'snail', 'frog', 'vine', 'beetle', 'down', 'mole', 'sugar', 'kitten', 'down', 'flat']],
+  // Winter-Fensterbank – Eis, Eiszapfen, Igel
+  ['winter', 'Erster Schnee', ['flat', 'wet', 'kitten', 'up', 'wet', 'down', 'flat']],
+  ['winter', 'Igel mit Mütze', ['flat', 'hedgehog', 'up', 'gap', 'hedgehog', 'down', 'kitten', 'flat']],
+  ['winter', 'Eiszapfen', ['flat', 'icicle', 'wet', 'up', 'icicle', 'down', 'hedgehog', 'flat']],
+  ['winter', 'Schlitterbahn', ['flat', 'wet', 'wet', 'up', 'cookieGap', 'wet', 'down', 'kitten', 'flat']],
+  ['winter', 'Warme Pfoten', ['flat', 'sugar', 'hedgehog', 'sugarCage', 'icicle', 'scale', 'down', 'wet', 'flat']],
+  ['winter', 'Winterschlaf', ['flat', 'sleeper', 'wet', 'sleeper', 'hedgehog', 'up', 'icicle', 'down', 'flat']],
+  ['winter', 'Schneeballschlacht', ['flat', 'kitten', 'hedgehog', 'kitten', 'up', 'wet', 'hedgehog', 'down', 'flat']],
+  ['winter', 'Frostige Freunde', ['flat', 'cage', 'icicle', 'cage', 'wet', 'cage', 'cake', 'hedgehog', 'flat']],
+  ['winter', 'Glatteis', ['flat', 'wet', 'icicle', 'wet', 'bubbleUp', 'down', 'hedgehog', 'wet', 'flat']],
+  ['winter', 'Winterfinale', ['flat', 'hedgehog', 'icicle', 'sugar', 'wet', 'kitten', 'up', 'hedgehog', 'scale', 'down', 'flat']],
+  // Weihnachtsbäckerei – Lebkuchen, Zuckerstangen, Backbleche, Finale gegen Fürst Fauch
+  ['weihnacht', 'Weihnachtsduft', ['flat', 'ginger', 'up', 'ladder', 'ginger', 'down', 'kitten', 'flat']],
+  ['weihnacht', 'Zuckerstangen', ['flat', 'ladder', 'gap', 'ginger', 'down', 'ladder', 'shelves', 'down', 'flat']],
+  ['weihnacht', 'Am Plätzchenblech', ['flat', 'belt', 'ginger', 'belt', 'up', 'drip', 'down', 'kitten', 'flat']],
+  ['weihnacht', 'Ausstecher', ['flat', 'sugar', 'tunnel', 'ginger', 'hole', 'sugarCage', 'down', 'flat']],
+  ['weihnacht', 'Lebkuchenbande', ['flat', 'ginger', 'kitten', 'ginger', 'up', 'ginger', 'cookieGap', 'down', 'flat']],
+  ['weihnacht', 'Fauchs Späher', ['flat', 'gap', 'up', 'cookieGap', 'down', 'gap', 'shelves', 'flat'], { chase: true }],
+  ['weihnacht', 'Puderzucker', ['flat', 'powder', 'ginger', 'scale', 'belt', 'sponge', 'down', 'kitten', 'flat']],
+  ['weihnacht', 'Bescherung', ['flat', 'cage', 'ginger', 'cage', 'balloonUp', 'cage', 'cake', 'down', 'flat']],
+  ['weihnacht', 'Lebkuchenhaus', ['flat', 'ginger', 'train', 'sugar', 'kitten', 'icicle', 'up', 'ginger', 'scale', 'down', 'flat']],
+  ['weihnacht', 'Das große Finale', ['flat', 'bossYarn', 'gap', 'up', 'cookieGap', 'bossYarn', 'down', 'gap', 'shelves', 'bossYarn', 'down', 'flat'], { chase: true, boss: true }],
 ];
 
 const SEEN = new Set(['flat', 'up', 'down', 'gap', 'cookieGap', 'shelves', 'ladder', 'lift', 'kitten', 'sleeper', 'sugar', 'tunnel', 'hole', 'scale', 'sugarCage']);
@@ -588,7 +730,13 @@ function planned(theme, name, parts, intro, opt = {}) {
       if (intro === 'backstube') L.tip(0, 'Hmm, hier duftet es nach Kuchen – die Backstube!', '🥐');
       if (intro === 'dachboden') L.tip(0, 'Ganz nach oben – auf den Dachboden!', '🎈');
       if (intro === 'gartenfest') L.tip(0, 'Gartenfest! Aber Vorsicht vor den wilden Katzen', '🏮');
-      if (opt.chase) { L.chase({ delay: 150 }); L.tip(0, 'Fürst Fauch ist hinter dir her – lauf!', '👑'); }
+      if (intro === 'bad') L.tip(0, 'Plitsch, platsch – ab ins Badezimmer!', '🛁');
+      if (intro === 'kinderzimmer') L.tip(0, 'Das Kinderzimmer – überall Spielzeug!', '🧸');
+      if (intro === 'gemuese') L.tip(0, 'Raus in den Gemüsegarten!', '🥕');
+      if (intro === 'winter') L.tip(0, 'Brrr, Winter auf der Fensterbank!', '❄️');
+      if (intro === 'weihnacht') L.tip(0, 'Die Weihnachtsbäckerei – es duftet nach Lebkuchen!', '🎄');
+      if (opt.boss) { L.chase({ delay: 150, boss: true }); L.tip(0, 'Finale! Wirf Fürst Fauch dreimal ein Wollknäuel zu', '🧶'); }
+      else if (opt.chase) { L.chase({ delay: 150 }); L.tip(0, 'Fürst Fauch ist hinter dir her – lauf!', '👑'); }
       const shown = new Set();
       parts.forEach((kind, i) => {
         if (i > 0 && i % 2 === 0) { fill(L, x, x + 1, g); L.flag(x, g - 1); x += 2; }
@@ -613,6 +761,6 @@ function planned(theme, name, parts, intro, opt = {}) {
   return def;
 }
 
-const WELT_START = { 0: 'keller', 10: 'garten', 20: 'backstube', 30: 'dachboden', 40: 'gartenfest' };
+const WELT_START = { 0: 'keller', 10: 'garten', 20: 'backstube', 30: 'dachboden', 40: 'gartenfest', 50: 'bad', 60: 'kinderzimmer', 70: 'gemuese', 80: 'winter', 90: 'weihnacht' };
 PLAN.forEach(([theme, name, parts, opt], i) => LEVELS.push(planned(theme, name, parts, WELT_START[i] || null, opt)));
 export const LEVEL_COUNT = LEVELS.length;

@@ -63,7 +63,7 @@
     { id: 'muehle', name: 'Mühle', prefix: 'muehle.', haupt: ['muehle.v1'],
       info: (g) => { const d = J(g['muehle.v1']) || {}; const st = d.stats || {}; const s = ['gemuetlich', 'geuebt', 'meister'].reduce((a, k) => a + ((st[k] && Number(st[k].s)) || 0), 0); const m = (st.meister && Number(st.meister.s)) || 0; return { text: s + (s === 1 ? ' Sieg' : ' Siege') + (m ? ' · ' + m + '× Meister besiegt' : ''), wert: s * 10 + m * 100 + (Number(d.zwei) || 0) }; } },
     { id: 'kruemel', name: 'Krümel', prefix: 'kruemel.', haupt: ['kruemel.v1'],
-      info: (g) => { const d = J(g['kruemel.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 60 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
+      info: (g) => { const d = J(g['kruemel.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 110 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
     { id: 'ausfahrt', name: 'Ausfahrt frei', prefix: 'ausfahrt.', haupt: ['ausfahrt.v1'],
       info: (g) => { const d = J(g['ausfahrt.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level · ' + Object.keys(d.tage || {}).length + ' Tagesrätsel', wert: lv * 100 + Object.keys(d.tage || {}).length }; } },
     { id: 'leitungschaos', name: 'Leitungschaos', prefix: 'leitungschaos.', haupt: ['leitungschaos.v1'],

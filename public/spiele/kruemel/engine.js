@@ -32,11 +32,13 @@ export const C = {
   dripSpeed: 6,
   balloonSpeed: 1.6, balloonBack: 2.2, balloonWait: 50,
   chaseSpeed: 1.9,   // Fürst Fauch läuft etwas langsamer als Krümel
+  iceAcc: 0.09, iceDec: 0.035,   // Eis und nasse Fliesen: langsam anfahren, lange rutschen
+  bossPush: 7 * 32,  // Finale: ein Wollknäuel wirft Fürst Fauch so weit zurück
 };
 
 // Kacheln
-export const EMPTY = 0, SOLID = 1, SHELF = 2, LADDER = 3, SUGAR = 4, BELT_L = 5, BELT_R = 6, SPONGE = 7, CAKE = 8;
-const isSolid = (k) => k === SOLID || k === SUGAR || k === BELT_L || k === BELT_R || k === SPONGE || k === CAKE;
+export const EMPTY = 0, SOLID = 1, SHELF = 2, LADDER = 3, SUGAR = 4, BELT_L = 5, BELT_R = 6, SPONGE = 7, CAKE = 8, ICE = 9;
+const isSolid = (k) => k === SOLID || k === SUGAR || k === BELT_L || k === BELT_R || k === SPONGE || k === CAKE || k === ICE;
 
 // ---------------------------------------------------------------- Level-Baukasten
 // Level werden mit kleinen Befehlen beschrieben statt als Zeichenraster: leichter zu lesen und zu ändern.
@@ -46,7 +48,7 @@ export function build(def) {
   const grid = new Uint8Array(w * h);
   const L = {
     w, h, grid, crumbs: [], chocs: [], golds: [], flags: [], cats: [], sleepers: [], lifts: [], cookies: [], scales: [], cheeses: [], mints: [], holes: [], tips: [],
-    balloons: [], drips: [], powders: [], wilds: [], yarns: [], taps: [], cages: [], cakes: [], chase: null,
+    balloons: [], drips: [], powders: [], wilds: [], yarns: [], taps: [], cages: [], cakes: [], chase: null, movers: [], vines: [], waters: [],
     start: null, goal: null, name: def.name || '', floor: def.floor ?? h, theme: def.theme || 'kueche', hasSugar: false,
   };
   const set = (x, y, v) => { if (x >= 0 && x < w && y >= 0 && y < h) grid[y * w + x] = v; };
@@ -64,7 +66,13 @@ export function build(def) {
     chocs(x0, x1, y) { for (let x = x0; x <= x1; x++) api.choc(x, y); },
     gold(x, y) { L.golds.push(cell(x, y)); },
     flag(x, y) { L.flags.push({ x: (x + 0.5) * T, y: (y + 1) * T }); },
-    cat(x, y, x0, x1) { L.cats.push({ x: (x + 0.5) * T, y: (y + 1) * T, x0: x0 * T, x1: (x1 + 1) * T }); },
+    cat(x, y, x0, x1) { L.cats.push({ kind: 'cat', x: (x + 0.5) * T, y: (y + 1) * T, x0: x0 * T, x1: (x1 + 1) * T }); },
+    // Weitere Tiere zum Draufspringen (verschwinden mit einem Puff); der Igel ist stachelig: drüber, nicht drauf!
+    critter(kind, x, y, x0, x1, off = 0) { L.cats.push({ kind, x: (x + 0.5) * T, y: (y + 1) * T, x0: x0 * T, x1: (x1 + 1) * T, off }); },
+    // Spinne am Faden: fährt zwischen Reihe yTop und yBot auf und ab (Unterkante), Faden hängt an der Decke darüber
+    spider(x, yTop, yBot, off = 0) { L.cats.push({ kind: 'spider', x: (x + 0.5) * T, y: (yBot + 1) * T, top: (yTop + 1) * T, x0: x * T, x1: (x + 1) * T, off }); },
+    // Maulwurf: schaut im festen Takt aus dem Hügel (dann gefährlich bzw. zum Draufspringen), sonst kann man drüberlaufen
+    mole(x, y, off = 0) { L.cats.push({ kind: 'mole', x: (x + 0.5) * T, y: (y + 1) * T, x0: x * T, x1: (x + 1) * T, off }); },
     sleeper(x, y) { L.sleepers.push({ x: (x + 0.5) * T, y: (y + 1) * T }); },
     // Käse macht groß, Minze macht klein. Beides sind feste Stationen: sie verschwinden nie, damit man nie festsitzt.
     cheese(x, y) { L.cheeses.push({ x: (x + 0.5) * T, y: (y + 1) * T }); },
@@ -80,11 +88,20 @@ export function build(def) {
     // Förderband (Oberkante Reihe y), dir = -1 schiebt nach links, +1 nach rechts
     belt(x0, x1, y, dir) { for (let x = x0; x <= x1; x++) set(x, y, dir < 0 ? BELT_L : BELT_R); },
     sponge(x, y) { set(x, y, SPONGE); },
+    ice(x0, x1, y) { for (let x = x0; x <= x1; x++) set(x, y, ICE); },
+    // Waagerecht fahrende Plattform (Zug, Quietscheente): Oberkante Reihe y, fährt zwischen Spalte x0 und x1 hin und her
+    mover(x0, x1, y, w = 2, o = {}) { L.movers.push({ x0: x0 * T, x1: x1 * T, y: y * T, w: w * T, speed: o.speed || 1.4, wait: o.wait || 70, offset: o.offset || 0, look: o.look || 'train' }); },
+    // Wasser bzw. Murmeln in einer Grube (nur Bild, hineinfallen = zurück zum Fähnchen)
+    water(x0, x1, y, look = 'water') { L.waters.push({ x0: x0 * T, x1: (x1 + 1) * T, y: y * T, look }); },
+    // Kürbisranke: wächst als Leiter (Spalte x, Reihen yTop–yBot), sobald Krümel die Gießkanne bei (cx, cy) antippt
+    vine(x, yTop, yBot, cx, cy) { L.hasSugar = true; L.vines.push({ x, yTop, yBot, cx: (cx + 0.5) * T, cy: (cy + 1) * T }); },
     // Ballon: Krümel greift die Schnur bei Zelle (xa, ya) (dort steht sie bzw. springt hoch) und wird nach (xb, yb) getragen.
     // Voller Ballon fährt nach oben, schlaffer (limp) schwebt nach unten. Danach kehrt er leer zurück.
-    balloon(xa, ya, xb, yb, limp = false) { L.balloons.push({ ax: (xa + 0.5) * T, ay: (ya + 1) * T - 24, bx: (xb + 0.5) * T, by: (yb + 1) * T - 24, limp }); },   // y = Schnurende (Kopfhöhe)
+    balloon(xa, ya, xb, yb, limp = false, bubble = false) { L.balloons.push({ ax: (xa + 0.5) * T, ay: (ya + 1) * T - 24, bx: (xb + 0.5) * T, by: (yb + 1) * T - 24, limp, bubble }); },
+    bubble(xa, ya, xb, yb) { api.balloon(xa, ya, xb, yb, false, true); },   // Seifenblase: trägt nach oben und platzt am Ziel   // y = Schnurende (Kopfhöhe)
     // Kaffeemaschine: Düse in Reihe y, tropft im festen Takt (period Schritte, offset verschiebt den Takt)
-    drip(x, y, period = 110, offset = 0) { L.drips.push({ x: (x + 0.5) * T, y: (y + 1) * T, period, offset }); },
+    drip(x, y, period = 110, offset = 0, look = 'coffee') { L.drips.push({ x: (x + 0.5) * T, y: (y + 1) * T, period, offset, look }); },
+    icicle(x, y, period = 130, offset = 0) { api.drip(x, y, period, offset, 'icicle'); },   // Eiszapfen: wackelt, fällt, wächst nach
     powder(x0, x1, y) { L.powders.push({ x0: x0 * T, x1: (x1 + 1) * T, y: (y + 1) * T }); },
     wild(x, y) { L.wilds.push({ x: (x + 0.5) * T, y: (y + 1) * T }); },
     yarn(x, y) { L.yarns.push({ x: (x + 0.5) * T, y: (y + 1) * T }); },
@@ -93,7 +110,7 @@ export function build(def) {
     cage(x, y, lx, ly) { L.cages.push({ x: (x + 0.5) * T, y: (y + 1) * T, lx: (lx + 0.5) * T, ly: (ly + 1) * T }); },
     // Riesenkuchen: feste Kacheln; mit `need` Freunden knabbern alle einen Tunnel durch die Reihen ty0–ty1
     cake(x0, y0, x1, y1, need, ty0, ty1) { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, CAKE); L.cakes.push({ x0, y0, x1, y1, need, ty0, ty1 }); },
-    chase(o = {}) { L.chase = { delay: o.delay ?? 150, speed: o.speed || C.chaseSpeed }; },
+    chase(o = {}) { L.chase = { delay: o.delay ?? 150, speed: o.speed || C.chaseSpeed, boss: !!o.boss }; },
     tip(x, text, icon) { L.tips.push({ x: x * T, text, icon: icon || '💡' }); },
     start(x, y) { L.start = { x: (x + 0.5) * T, y: (y + 1) * T }; },
     goal(x, y) { L.goal = { x: (x + 0.5) * T, y: (y + 1) * T }; },
@@ -115,7 +132,9 @@ export const tileAt = (L, tx, ty) => {
 const ladderTop = (L, tx, ty) => tileAt(L, tx, ty) === LADDER && tileAt(L, tx, ty - 1) !== LADDER;
 
 // ---------------------------------------------------------------- Aufzug
-export function liftCycle(lf) { const move = Math.ceil((lf.low - lf.high) / lf.speed); return { move, total: 2 * lf.wait + 2 * move }; }
+export function liftCycle(lf) { const move = Math.ceil(Math.abs(lf.low - lf.high) / lf.speed); return { move, total: 2 * lf.wait + 2 * move }; }
+// Waagerechte Plattform: gleicher fester Ablauf wie die Schublade (warten → hin → warten → zurück)
+export const moverX = (m, t) => liftY({ low: m.x0, high: m.x1, speed: m.speed, wait: m.wait, offset: m.offset }, t);
 export function liftY(lf, t) {
   const { move, total } = liftCycle(lf);
   let p = (t + lf.offset) % total;
@@ -137,6 +156,7 @@ export function newWorld(L, opt = {}) {
   // Plattformen in einer Liste: Schubladen, Crispy-Cookies, Waagschalen
   const plats = [];
   for (const lf of L.lifts) plats.push({ kind: 'lift', ...lf, y: liftY(lf, 0), dy: 0 });
+  for (const m of L.movers) plats.push({ kind: 'mover', ...m, x: moverX(m, 0), dx: 0, dy: 0 });
   for (const ck of L.cookies) plats.push({ kind: 'cookie', x: ck.x, w: ck.w, y: ck.y, y0: ck.y, dy: 0, state: 0, t: 0 });
   L.scales.forEach((sc, i) => {
     plats.push({ kind: 'scale', role: 'a', scale: i, x: sc.a.x, w: sc.w, y: sc.a.y, y0: sc.a.y, y1: sc.a.y + sc.d, dy: 0 });
@@ -155,20 +175,29 @@ export function newWorld(L, opt = {}) {
     crumbs: L.crumbs.map(() => false),
     chocs: L.chocs.map(() => false),
     golds: L.golds.map(() => false),
-    cats: L.cats.map((c) => ({ x: c.x - 13, y: c.y - 20, w: 26, h: 20, vx: -C.catSpeed, x0: c.x0, x1: c.x1, state: 'walk', t: 0 })),
+    cats: L.cats.map(newCritter),
     sleepers: L.sleepers.map((c) => ({ x: c.x - 24, y: c.y - 26, w: 48, h: 26, state: 'sleep', t: 0 })),
     plats,
     scaleT: L.scales.map(() => -1),
     balloons: L.balloons.map((b) => ({ ...b, x: b.ax, y: b.ay, state: 0, t: 0 })),
     wilds: L.wilds.map((w) => ({ x: w.x - 16, y: w.y - 26, w: 32, h: 26, state: 'block', t: 0 })),
     cages: L.cages.map(() => false), cakesOpen: L.cakes.map(() => false), freed: 0,
-    chaser: L.chase ? { x: L.start.x - 9 * T, t: 0 } : null,
+    chaser: L.chase ? { x: L.start.x - 9 * T, t: 0, hits: 0, gone: false } : null, yarnUsed: L.yarns.map(() => false), vines: L.vines.map(() => false),
     nCrumbs: 0, nChocs: 0, nGolds: 0, resets: 0, stomps: 0, breaks: 0, brokenKey: 0,
     events: [],
   };
   return s;
 }
 
+// Tiere: Größe und Tempo je Art. spiky = Draufspringen tut weh (Igel)
+export const CRIT = {
+  cat: { w: 26, h: 20, v: C.catSpeed }, windup: { w: 30, h: 20, v: 1.5 }, snail: { w: 30, h: 20, v: 0.4 }, beetle: { w: 28, h: 18, v: 0.9 },
+  ginger: { w: 22, h: 30, v: 1 }, hedgehog: { w: 28, h: 22, v: 0.55, spiky: true }, frog: { w: 24, h: 20, v: 1.6 }, spider: { w: 22, h: 22, v: 0 }, mole: { w: 28, h: 22, v: 0 },
+};
+function newCritter(c) {
+  const k = CRIT[c.kind] || CRIT.cat;
+  return { kind: c.kind || 'cat', x: c.x - k.w / 2, y: c.y - k.h, base: c.y - k.h, top: c.top !== undefined ? c.top - k.h : 0, w: k.w, h: k.h, vx: -k.v, x0: c.x0, x1: c.x1, off: c.off || 0, state: 'walk', t: 0, up: true };
+}
 const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 function solidAt(L, px, py) { return isSolid(tileAt(L, Math.floor(px / T), Math.floor(py / T))); }
 function boxFree(L, x, y, w, h) {
@@ -302,6 +331,7 @@ function updatePlats(s) {
   for (const pl of s.plats) {
     let ny = pl.y;
     if (pl.kind === 'lift') ny = liftY(pl, s.t);
+    else if (pl.kind === 'mover') { const nx = moverX(pl, s.t); pl.dx = nx - pl.x; pl.x = nx; }
     else if (pl.kind === 'scale') {
       const tt = s.scaleT[pl.scale];
       const k = tt < 0 ? 0 : Math.min(1, (s.t - tt) / C.scaleMove);
@@ -332,7 +362,13 @@ export function step(s, inp) {
     c.t++;
     if (c.state === 'flee') { c.x += c.vx; c.y -= 1.2; if (c.t > 50) c.state = 'gone'; continue; }
     if (c.state === 'gone') continue;
-    c.x += c.vx;
+    if (c.kind === 'spider') { c.y = c.top + (c.base - c.top) * (0.5 - 0.5 * Math.cos(2 * Math.PI * (c.t + c.off) / 240)); continue; }
+    if (c.kind === 'mole') { const ph = (c.t + c.off) % 160; c.up = ph < 80; c.y = c.base + (c.up ? 0 : 14); continue; }
+    if (c.kind === 'frog') {
+      // Frosch hüpft: kurzer Satz, dann sitzt er eine Weile
+      const ph = (c.t + c.off) % 90;
+      if (ph < 30) { c.x += c.vx; c.y = c.base - Math.sin(Math.PI * ph / 30) * 40; } else c.y = c.base;
+    } else c.x += c.vx;
     if (c.x < c.x0) { c.x = c.x0; c.vx = Math.abs(c.vx); }
     if (c.x + c.w > c.x1) { c.x = c.x1 - c.w; c.vx = -Math.abs(c.vx); }
   }
@@ -341,7 +377,7 @@ export function step(s, inp) {
   for (const w of s.wilds) { w.t++; if (w.state === 'flee') { w.x += w.dir * 3.2; w.y -= w.t < 12 ? 3 : -1.5; if (w.t > 45) w.state = 'gone'; } }
   if (s.chaser) {
     const ch = s.chaser; ch.t++;
-    if (ch.t > L.chase.delay && p.freeze === 0) ch.x += L.chase.speed;
+    if (ch.gone) ch.x -= 3; else if (ch.t > L.chase.delay && p.freeze === 0) ch.x += L.chase.speed;
   }
 
   // Autsch / heruntergefallen: kurz anhalten, dann am Fähnchen weiter
@@ -380,6 +416,7 @@ export function step(s, inp) {
     if (!platSolid(lf)) { p.ground = false; p.lift = -1; }
     else {
       p.y = lf.y - p.h;
+      if (lf.dx) moveX(s, lf.dx);   // Zug/Ente nimmt Krümel mit
       if (lf.dy < 0 && (solidAt(L, p.x + 1, p.y) || solidAt(L, p.x + p.w - 1, p.y))) { p.y = Math.floor(p.y / T + 1) * T; p.ground = false; p.lift = -1; }
     }
   }
@@ -413,7 +450,8 @@ export function step(s, inp) {
   }
 
   // ---- Laufen
-  const acc = p.ground ? (dir ? C.accG : C.decG) : (dir ? C.accA : C.decA);
+  const onIce = p.ground && p.lift < 0 && tileAt(L, Math.floor((p.x + p.w / 2) / T), Math.round((p.y + p.h) / T)) === ICE;
+  const acc = onIce ? (dir ? C.iceAcc : C.iceDec) : p.ground ? (dir ? C.accG : C.decG) : (dir ? C.accA : C.decA);
   if (p.slowD > 0) p.slowD = Math.max(0, p.slowD - Math.abs(p.vx));
   const target = dir * (p.slowD > 0 ? C.slowRun : C.run);
   if (p.push > 0) { /* Rückstoß läuft aus */ }
@@ -557,7 +595,21 @@ function interact(s) {
   // Backpulver: weiße Füße, eine Weile langsamer
   if (p.ground) for (const z of L.powders) if (cx > z.x0 && cx < z.x1 && Math.abs(p.y + p.h - z.y) < 2) { if (p.slowD === 0) s.events.push('powder'); p.slowD = C.slowDist; }
   // Wollknäuel aufheben (feste Station, man trägt immer nur eins)
-  if (!p.item) for (const y of L.yarns) if (Math.abs(y.x - cx) < 20 && p.y < y.y && p.y + p.h > y.y - 28) { p.item = 'yarn'; s.events.push('yarn'); }
+  if (L.chase && L.chase.boss) {
+    // Finale: jedes Wollknäuel wird sofort nach Fürst Fauch geworfen; nach drei Treffern gibt er auf
+    L.yarns.forEach((y, i) => {
+      if (s.yarnUsed[i] || !(Math.abs(y.x - cx) < 20 && p.y < y.y && p.y + p.h > y.y - 28)) return;
+      s.yarnUsed[i] = true;
+      const ch = s.chaser; ch.hits++; ch.x -= C.bossPush;
+      if (ch.hits >= 3) { ch.gone = true; s.events.push('bossDone'); } else s.events.push('bossHit');
+    });
+  } else if (!p.item) for (const y of L.yarns) if (Math.abs(y.x - cx) < 20 && p.y < y.y && p.y + p.h > y.y - 28) { p.item = 'yarn'; s.events.push('yarn'); }
+  // Gießkanne: Kürbisranke wächst als Leiter
+  L.vines.forEach((v, i) => {
+    if (s.vines[i] || !(Math.abs(v.cx - cx) < 20 && p.y < v.cy && p.y + p.h > v.cy - 30)) return;
+    s.vines[i] = true; for (let y = v.yTop; y <= v.yBot; y++) L.grid[y * L.w + v.x] = LADDER;
+    s.events.push('vine');
+  });
   // Gartenschlauch: Wasserhahn antreten spritzt wilde Katzen bis 10 Kacheln weiter rechts weg
   for (const tp of L.taps) if (Math.abs(tp.x - cx) < 18 && p.y < tp.y && p.y + p.h > tp.y - 28) {
     let hit = false;
@@ -605,15 +657,15 @@ function enemies(s) {
   if (s.opt.noEnemies) return;
   const p = s.p;
   for (const c of s.cats) {
-    if (c.state !== 'walk') continue;
+    if (c.state !== 'walk' || (c.kind === 'mole' && !c.up)) continue;
     const box = { x: c.x + 3, y: c.y + 4, w: c.w - 6, h: c.h - 4 };
     if (!overlap(p, box)) continue;
     const prevBottom = p.y + p.h - p.vy;
-    if (p.vy > 0 && prevBottom <= c.y + 10 && !p.ladder) {
+    if (p.vy > 0 && prevBottom <= c.y + 10 && !p.ladder && !(CRIT[c.kind] || CRIT.cat).spiky) {
       // Sprung drauf: Kätzchen erschrickt und rennt weg, Krümel prallt ab
       c.state = 'flee'; c.t = 0; c.vx = p.x + p.w / 2 < c.x + c.w / 2 ? 3 : -3;
       p.vy = p.prevJump ? -C.jump : -C.bounce; p.jumping = p.prevJump; p.ground = false;
-      s.stomps++;
+      s.stomps++; if (c.kind === 'ginger') s.nCrumbs += 3;   // Lebkuchenmännchen zerbröselt zu Krümeln
       s.events.push('stomp');
     } else if (p.invuln === 0) {
       const away = p.x + p.w / 2 < c.x + c.w / 2 ? -1 : 1;
@@ -638,7 +690,7 @@ function enemies(s) {
     }
   }
   // Fürst Fauch holt auf
-  if (s.chaser && p.invuln === 0 && s.chaser.x + 34 > p.x + p.w / 2) { p.vy = -4; resetToCheck(s, 'hit'); s.events.push('caught'); return; }
+  if (s.chaser && !s.chaser.gone && p.invuln === 0 && s.chaser.x + 34 > p.x + p.w / 2) { p.vy = -4; resetToCheck(s, 'hit'); s.events.push('caught'); return; }
   // Schlafkater: wach schiebt er Krümel sanft zurück (kein Rücksetzer)
   for (const c of s.sleepers) {
     if (c.state !== 'awake' || p.push > 0) continue;
@@ -663,7 +715,7 @@ export function cloneWorld(s) {
     ...s, L: s.L.hasSugar ? { ...s.L, grid: s.L.grid.slice() } : s.L,
     p: { ...s.p }, check: { ...s.check }, flagHit: s.flagHit.slice(), crumbs: s.crumbs.slice(), chocs: s.chocs.slice(), golds: s.golds.slice(),
     cats: s.cats.map((c) => ({ ...c })), sleepers: s.sleepers.map((c) => ({ ...c })), plats: s.plats.map((l) => ({ ...l })), scaleT: s.scaleT.slice(), events: [],
-    balloons: s.balloons.map((b) => ({ ...b })), wilds: s.wilds.map((w) => ({ ...w })), cages: s.cages.slice(), cakesOpen: s.cakesOpen.slice(), chaser: s.chaser && { ...s.chaser },
+    balloons: s.balloons.map((b) => ({ ...b })), wilds: s.wilds.map((w) => ({ ...w })), cages: s.cages.slice(), cakesOpen: s.cakesOpen.slice(), chaser: s.chaser && { ...s.chaser }, yarnUsed: s.yarnUsed.slice(), vines: s.vines.slice(),
   };
 }
 export function solve(L, o = {}) {
@@ -676,11 +728,12 @@ export function solve(L, o = {}) {
     L.cakes.forEach((k, i) => { if ((k.x1 + 1) * T <= o.from.x) { start.cakesOpen[i] = true; for (let y = k.ty0; y <= k.ty1; y++) for (let x = k.x0; x <= k.x1; x++) start.L.grid[y * L.w + x] = EMPTY; } });
   }
   const target = o.target || null; // {x,y,r} oder null = Ziel
-  const lifts = start.plats.filter((pl) => pl.kind === 'lift');
-  const cycles = lifts.map(liftCycle).map((c) => c.total);
+  L.vines.forEach((v, i) => { if (o.from && v.cx < o.from.x) { start.vines[i] = true; for (let y = v.yTop; y <= v.yBot; y++) start.L.grid[y * L.w + v.x] = LADDER; } });
+  const lifts = start.plats.filter((pl) => pl.kind === 'lift' || pl.kind === 'mover');
+  const cycles = lifts.map((lf) => liftCycle(lf.kind === 'mover' ? { low: lf.x0, high: lf.x1, speed: lf.speed, wait: lf.wait } : lf).total);
   const period = cycles.length ? cycles.reduce((a, b) => a * b / gcd(a, b)) : 1;
   // Die Aufzug-Phase zählt nur in Aufzugsnähe – sonst würde die Suche unnötig groß
-  const nearLift = (p) => lifts.some((lf) => p.x + p.w > lf.x - 3 * T && p.x < lf.x + lf.w + 3 * T);
+  const nearLift = (p) => lifts.some((lf) => p.x + p.w > (lf.kind === 'mover' ? Math.min(lf.x0, lf.x1) : lf.x) - 3 * T && p.x < (lf.kind === 'mover' ? Math.max(lf.x0, lf.x1) : lf.x) + lf.w + 3 * T);
   const key = (s) => {
     const p = s.p;
     let k = [Math.round(p.x / 6), Math.round(p.y / 6), Math.round(p.vy / 2), Math.sign(Math.round(p.vx)), p.ground ? 1 : 0, p.ladder ? 1 : 0, p.jumping ? 1 : 0, p.big ? 1 : 0,
@@ -689,6 +742,7 @@ export function solve(L, o = {}) {
     if (s.balloons.length) k += '|' + p.ride + s.balloons.map((b) => b.state + ':' + Math.round(b.x / 8) + ':' + Math.round(b.y / 8)).join(';');
     if (s.wilds.length) k += '|' + s.wilds.map((w) => w.state[0]).join('') + p.item;
     if (s.cages.length) k += '|' + s.freed + s.cakesOpen.map(Number).join('');
+    if (s.vines.length) k += '|v' + s.vines.map(Number).join('');
     if (p.slowD > 0) k += '|s' + Math.ceil(p.slowD / 32);
     if (s.scaleT.length) k += ',' + s.scaleT.map((t) => (t < 0 ? 0 : Math.min(2, 1 + Math.floor((s.t - t) / C.scaleMove)))).join('');
     return k;

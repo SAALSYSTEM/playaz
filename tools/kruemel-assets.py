@@ -40,12 +40,26 @@ SHEETS = [
     ('fuerst-fauch.png', ['fuerst-fauch-0', 'fuerst-fauch-1', 'fuerst-fauch-2', 'fuerst-fauch-3', 'fuerst-fauch-wut'], 180),
     ('maeusefreunde.png', [f'freund-{i}-{n}' for i in range(3) for n in ('traurig', 'lauf-0', 'lauf-1')], 112),
     ('wilde-katze.png', ['wilde-katze', 'wilde-katze-fauch', 'wilde-katze-nass', 'wilde-katze-knaeuel'], 128),
+    ('spinne.png', ['spinne-0', 'spinne-1', 'spinne-weg'], 128),
+    ('aufziehmaus.png', ['aufziehmaus-0', 'aufziehmaus-1', 'aufziehmaus-weg'], 128),
+    ('schnecke.png', ['schnecke-0', 'schnecke-1', 'schnecke-weg'], 128),
+    ('frosch.png', ['frosch-0', 'frosch-1', 'frosch-weg'], 128),
+    ('kaefer.png', ['kaefer-0', 'kaefer-1', 'kaefer-weg'], 128),
+    ('igel.png', ['igel-0', 'igel-1', 'igel-kugel'], 128),
+    ('lebkuchen.png', ['lebkuchen-0', 'lebkuchen-1', 'lebkuchen-weg'], 128),
+    ('bad-objekte.png', ['seifenblase', 'seifenblase-platzt', 'ente', 'tube', 'tube-gedrueckt', 'pfuetze-bad', 'wannenrand'], 128),
+    ('kinderzimmer-objekte.png', ['lok', 'waggon', 'schiene', 'klotz-rot', 'klotz-blau', 'trampolin', 'murmel'], 128),
+    ('gemuese-objekte.png', ['maulwurfhuegel', 'maulwurf', 'ranke', 'kuerbis', 'sonnenblume', 'giesskanne'], 160),
+    ('winter-objekte.png', ['eis', 'eiszapfen', 'schneeball', 'kakao', 'schneehaufen', 'faeustling'], 128),
+    ('baeckerei-objekte.png', ['lebkuchenplatte', 'zuckerstange', 'ausstecher', 'blech', 'lebkuchenhaus', 'puderzucker'], 128),
     ('extras.png', ['linse-0', 'linse-1', 'linse-2', 'linse-3', 'linse-4', 'cookie', 'cookie-riss', 'cookie-krumen', 'kaese-station', 'minze'], 96),
 ]
 BACKGROUNDS = [('kammer-hintergrund.png', 'kammer-hintergrund', 640), ('kueche-hintergrund.png', 'kueche-hintergrund', 640),
                ('keller-hintergrund.png', 'keller-hintergrund', 640), ('garten-hintergrund.png', 'garten-hintergrund', 640),
                ('backstube-hintergrund.png', 'backstube-hintergrund', 640), ('dachboden-hintergrund.png', 'dachboden-hintergrund', 640),
-               ('gartenfest-hintergrund.png', 'gartenfest-hintergrund', 640)]
+               ('gartenfest-hintergrund.png', 'gartenfest-hintergrund', 640),
+               ('bad-hintergrund.png', 'bad-hintergrund', 640), ('kinderzimmer-hintergrund.png', 'kinderzimmer-hintergrund', 640),
+               ('gemuese-hintergrund.png', 'gemuese-hintergrund', 640), ('winter-hintergrund.png', 'winter-hintergrund', 640)]
 
 
 def split_cols(img, n):
@@ -144,7 +158,7 @@ def main():
         if len(parts) != len(names):
             sys.exit(f'{src}: {len(parts)} Teile gefunden, erwartet {len(names)}')
         # Figuren-Posen: gemeinsame Ober-/Unterkante, damit die Animation nicht springt (Füße bleiben auf einer Linie)
-        same_rows = src.startswith(('kruemel', 'kaetzchen', 'schlafkater', 'fuerst', 'maeuse', 'wilde'))
+        same_rows = src.startswith(('kruemel', 'kaetzchen', 'schlafkater', 'fuerst', 'maeuse', 'wilde', 'spinne', 'aufzieh', 'schnecke', 'kaefer', 'igel', 'lebkuchen.'))
         boxes = [p.getbbox() for p in parts]
         top, bottom = min(b[1] for b in boxes), max(b[3] for b in boxes)
         k_all = min(1, max_h / (bottom - top))
@@ -160,6 +174,9 @@ def main():
             print('fehlt:', src); continue
         img = Image.open(path).convert('RGB')
         img = img.resize((round(img.width * h / img.height), h), Image.LANCZOS)
+        if img.width < img.height:
+            # Hochformat-Bild: mit dem Spiegelbild daneben wird es nahtlos kachelbar (keine Kante beim Weiterlaufen)
+            wide = Image.new('RGB', (img.width * 2, h)); wide.paste(img, (0, 0)); wide.paste(img.transpose(Image.FLIP_LEFT_RIGHT), (img.width, 0)); img = wide
         # Hintergrund zurücknehmen: leicht unscharf, weniger Kontrast und Farbe – sonst sehen gemalte Schränke wie Plattformen aus
         img = img.filter(ImageFilter.GaussianBlur(2.2))
         img = ImageEnhance.Contrast(img).enhance(0.72)
