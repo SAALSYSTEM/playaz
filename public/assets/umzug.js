@@ -66,6 +66,8 @@
       info: (g) => { const d = J(g['kruemel.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 110 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
     { id: 'ausfahrt', name: 'Ausfahrt frei', prefix: 'ausfahrt.', haupt: ['ausfahrt.v1'],
       info: (g) => { const d = J(g['ausfahrt.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level · ' + Object.keys(d.tage || {}).length + ' Tagesrätsel', wert: lv * 100 + Object.keys(d.tage || {}).length }; } },
+    { id: 'neunmalklug', name: 'Neunmalklug', prefix: 'neunmalklug.', haupt: ['neunmalklug.v1'],
+      info: (g) => { const d = J(g['neunmalklug.v1']) || {}; const st = d.stats || {}; const n = ['leicht', 'mittel', 'schwer', 'experte'].reduce((a, k) => a + ((st[k] && Number(st[k].n)) || 0), 0); const t = Object.keys(d.tage || {}).length; return { text: n + ' frei gelöst · ' + t + ' Tagesrätsel', wert: n * 10 + t * 20 }; } },
     { id: 'leitungschaos', name: 'Leitungschaos', prefix: 'leitungschaos.', haupt: ['leitungschaos.v1'],
       info: (g) => { const d = J(g['leitungschaos.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level · ' + Object.keys(d.tage || {}).length + ' Tagesrätsel', wert: lv * 100 + Object.keys(d.tage || {}).length }; } },
     { id: 'turmschicht', name: 'Turmschicht', prefix: 'turmschicht.', haupt: ['turmschicht.v1'],

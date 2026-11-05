@@ -245,6 +245,7 @@
     <section class="block block-neu" id="neu" aria-labelledby="neu-titel">
       <div class="block-kopf"><h2 id="neu-titel"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5a2 2 0 0 0 1.44 1.44l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Neu</h2><p>Neu bei PlaySaal</p></div>
       <ul class="kacheln" data-lay="neu">
+      <li class="kachel" data-slug="neunmalklug" data-kategorien="raetsel" data-rec="neunmalklug" data-name="Neunmalklug" data-arten="Sudoku,Rätsel,Logik,Tagesrangliste" data-kat="neu"><a href="/spiele/neunmalklug"><img src="/bilder/neunmalklug.webp?v=1" width="720" height="720" alt="Neunmalklug: ein Sudoku-Brett mit einem leuchtend orangen Feld" decoding="async" loading="lazy"><span class="name">Neunmalklug</span><span class="badge" title="Neu">★</span></a></li>
       <li class="kachel" data-slug="tuff-tuff-land" data-kategorien="aufbau,kinder" data-rec="tufftuff" data-name="Tuff-Tuff-Land" data-arten="Für Kinder,3D,Eisenbahn,Bauen" data-kat="neu"><a href="/spiele/tuff-tuff-land"><img src="/bilder/tuff-tuff-land.webp" width="720" height="720" alt="Tuff-Tuff-Land: Eine blaue Dampflok mit rotem und gelbem Wagen fährt an einem Bahnhof vorbei durch eine bunte Spielzeuglandschaft" decoding="async" loading="lazy"><span class="name">Tuff-Tuff-Land</span><span class="badge" title="Neu">★</span></a></li>
       <li class="kachel" data-slug="putt-profi" data-kategorien="geschick" data-rec="puttprofi" data-name="Putt-Profi" data-arten="3D,Minigolf,Sport,Tagesrunde" data-kat="neu"><a href="/spiele/putt-profi"><img src="/bilder/putt-profi.webp?v=1" width="720" height="720" alt="Putt-Profi: Eine weiße Golfkugel rollt auf einer Minigolfbahn mit orangefarbenen Banden auf das Loch zu, dahinter eine Windmühle" decoding="async" loading="lazy"><span class="name">Putt-Profi</span><span class="badge" title="Neu">★</span></a></li>
       <li class="kachel" data-slug="texas-holdem" data-kategorien="casino" data-rec="holdem" data-name="Texas Hold'em" data-arten="Casino,Poker,Karten,Spielgeld,Nicht für Kinder" data-kat="neu"><a href="/spiele/texas-holdem"><img src="/bilder/texas-holdem.webp?v=1" width="720" height="720" alt="Texas Hold'em: Fünf offene Karten auf grünem Filz, davor zwei Asse und Chipstapel" decoding="async" loading="lazy"><span class="name">Texas Hold'em</span><span class="badge" title="Neu">★</span></a></li>
@@ -498,6 +499,9 @@
   if (km && km.best && Object.keys(km.best).length) show('kruemel', Object.keys(km.best).length + ' von 110 Level');
   const af = read('ausfahrt.v1');
   if (af && af.best && Object.keys(af.best).length) show('ausfahrt', Object.keys(af.best).length + ' von 30 Level');
+  const nk = read('neunmalklug.v1');
+  if (nk && nk.frei) show('neunmalklug', 'Sudoku läuft');
+  else if (nk && nk.tage && Object.keys(nk.tage).length) show('neunmalklug', Object.keys(nk.tage).length + ' Tagesrätsel gelöst');
   const lc = read('leitungschaos.v1');
   if (lc && lc.best && Object.keys(lc.best).length) show('leitungschaos', Object.keys(lc.best).length + ' von 30 Level');
   const df = read('dartfieber.v1');

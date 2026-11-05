@@ -688,6 +688,84 @@ test('LEITUNGSCHAOS: Rätsel pro Tag fest, ein Versuch je Konto und Tag, Zeit vo
   assert.equal((await db.query(`select count(*)::int n from private.leitungschaos_runden where user_id = '${P}'`)).rows[0].n, 0);
 });
 
+test('NEUNMALKLUG: Rätsel pro Tag fest, ein Versuch je Konto und Tag, Zeit von der Datenbank; Rangliste, Gleichstand, Archiv, Löschung', async () => {
+  const { VERSION } = await import(pathToFileURL(join(ROOT, 'public/spiele/neunmalklug/sim.js')).href);
+  assert.equal((await db.query('select private.neunmalklug_version() v')).rows[0].v, VERSION, 'Version in SQL und sim.js gleich');
+  const gl = (await db.query(`select listed, save_prefix from public.games where slug = 'neunmalklug'`)).rows[0];
+  assert.equal(gl.listed, true); assert.equal(gl.save_prefix, 'neunmalklug.');
+  const U = ['a9a9a9a9-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'b9b9b9b9-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'c9c9c9c9-cccc-4ccc-8ccc-cccccccccccc', 'd9d9d9d9-dddd-4ddd-8ddd-dddddddddddd'];
+  await db.exec(`insert into auth.users (id, email) values ${U.map((u, i) => `('${u}', 'nk${i}@example.org')`).join(',')}`);
+  const [P, Q, R, K] = U;
+  await rpc('authenticated', P, 'profil_speichern', 'Nora', 'a3');
+  await rpc('authenticated', Q, 'profil_speichern', 'Nils', 'a4');
+  await rpc('authenticated', R, 'profil_speichern', 'Nele', 'a5');
+  const L = '1'.repeat(81);   // die Datenbank prüft nur das Format; die Sudoku-Prüfung macht die Edge Function
+  const heute = (await db.query(`select to_char(private.berlin_heute(), 'YYYYMMDD') d`)).rows[0].d;
+  const t1 = await rpc('anon', null, 'neunmalklug_tag'), t2 = await rpc('authenticated', P, 'neunmalklug_tag');
+  assert.equal(t1.tag, heute); assert.deepEqual(t1, t2); assert.ok(Number.isInteger(t1.seed) && t1.seed >= 1); assert.equal(t1.version, VERSION);
+  assert.ok(await fehler('anon', null, 'select public.neunmalklug_start()'));
+  assert.equal((await rpc('authenticated', K, 'neunmalklug_start')).grund, 'kein_profil');
+  const s1 = await rpc('authenticated', P, 'neunmalklug_start');
+  assert.equal(s1.ok, true); assert.equal(s1.seed, t1.seed); assert.equal(s1.tag, heute);
+  await db.exec(`update private.neunmalklug_runden set issued_at = now() - interval '300 seconds' where id = '${s1.run_id}'`);
+  const s2 = await rpc('authenticated', P, 'neunmalklug_start');
+  assert.equal(s2.run_id, s1.run_id); assert.ok(Number(s2.sek) >= 299 && Number(s2.sek) < 330, 'Uhr läuft weiter');
+  for (const rolle of ['anon', 'authenticated']) {
+    assert.match(String((await fehler(rolle, P, `select public.neunmalklug_abschliessen('${P}', '${s1.run_id}', 50, '${L}')`)).message), /permission denied/);
+    assert.match(String((await fehler(rolle, P, `select public.neunmalklug_run_lesen('${P}', '${s1.run_id}')`)).message), /permission denied/);
+    assert.match(String((await fehler(rolle, P, 'select * from private.neunmalklug_runden')).message), /permission denied/);
+  }
+  const lesen = (u, r) => rpc('service_role', null, 'neunmalklug_run_lesen', u, r);
+  const fertig = (u, r, felder = 50, l = L) => rpc('service_role', null, 'neunmalklug_abschliessen', u, r, felder, l);
+  assert.equal((await lesen(Q, s1.run_id)).grund, 'unbekannt');
+  const l = await lesen(P, s1.run_id); assert.equal(l.ok, true); assert.equal(l.seed, t1.seed); assert.equal(l.tag, heute);
+  assert.equal((await fertig(P, s1.run_id, 50, '1'.repeat(80))).grund, 'ungueltig');
+  assert.equal((await fertig(P, s1.run_id, 50, '0'.repeat(81))).grund, 'ungueltig');
+  assert.equal((await fertig(P, s1.run_id, 0)).grund, 'ungueltig');
+  const a = await fertig(P, s1.run_id); assert.equal(a.ok, true); assert.equal(a.tag, heute);
+  assert.ok(a.zeit_cs >= 30000 && a.zeit_cs < 33000, 'Zeit von der Datenbankuhr'); assert.equal(a.rang.platz, 1);
+  assert.equal((await fertig(P, s1.run_id)).grund, 'schon_abgeschlossen');
+  const s3 = await rpc('authenticated', P, 'neunmalklug_start');
+  assert.equal(s3.ok, false); assert.equal(s3.grund, 'schon_geloest'); assert.equal(s3.zeit_cs, a.zeit_cs); assert.equal(s3.rang.platz, 1); assert.equal(s3.seed, undefined);
+  // Zu schnell: unter 10 s bzw. unter 0,4 s je Feld
+  const q1 = await rpc('authenticated', Q, 'neunmalklug_start');
+  assert.equal((await fertig(Q, q1.run_id, 5)).grund, 'zu_schnell');
+  await db.exec(`update private.neunmalklug_runden set issued_at = now() - interval '15 seconds' where id = '${q1.run_id}'`);
+  assert.equal((await fertig(Q, q1.run_id, 55)).grund, 'zu_schnell', '55 Felder in 15 s');
+  // Gleichstand: gleiche Zeit = gleicher Platz
+  const zeitVon = async (u, run, sek) => { await db.exec(`update private.neunmalklug_runden set issued_at = now() - interval '${sek} seconds' where id = '${run}'`); return fertig(u, run); };
+  await db.exec(`update private.neunmalklug_runden set zeit_cs = 24000 where id = '${s1.run_id}'`);
+  assert.equal((await zeitVon(Q, q1.run_id, 240)).ok, true);
+  await db.exec(`update private.neunmalklug_runden set zeit_cs = 24000 where id = '${q1.run_id}'`);
+  const r1 = await rpc('authenticated', R, 'neunmalklug_start'); const ra = await zeitVon(R, r1.run_id, 400);
+  assert.equal(ra.rang.platz, 3); assert.equal(ra.rang.naechster_platz, 1); assert.ok(ra.rang.luecke > 15000); assert.equal(ra.rang.spieler, 3);
+  const rl = await rpc('authenticated', R, 'neunmalklug_rangliste', null, 10);
+  assert.deepEqual(rl.zeilen.map((z) => [z.platz, z.name, z.ich]).map(String), ['1,Nils,false', '1,Nora,false', '3,Nele,true']);
+  assert.deepEqual(Object.keys(rl.zeilen[0]).sort(), ['avatar', 'ich', 'name', 'platz', 'pos', 'zeit_cs']);
+  assert.equal((await rpc('anon', null, 'neunmalklug_rangliste', null, 10)).ich, null);
+  assert.match(String((await fehler('anon', null, `select public.neunmalklug_rangliste('20261399', 5)`)).message), /tag_unbekannt/);
+  // Archiv
+  await db.exec(`insert into private.neunmalklug_tage (tag, seed, version) values (private.berlin_heute() - 1, 4242, 1)`);
+  await db.exec(`insert into private.neunmalklug_runden (user_id, tag, finished_at, zeit_cs, loesung) values ('${Q}', private.berlin_heute() - 1, now(), 90000, '${L}')`);
+  const gestern = (await db.query(`select to_char(private.berlin_heute() - 1, 'YYYYMMDD') d`)).rows[0].d;
+  assert.equal((await rpc('anon', null, 'neunmalklug_rangliste', gestern, 10)).zeilen[0].name, 'Nils');
+  assert.deepEqual(await rpc('anon', null, 'neunmalklug_tage_liste', 10), [heute, gestern]);
+  // Zu lange offen
+  const F = 'f9f9f9f9-ffff-4fff-8fff-ffffffffffff';
+  await db.exec(`insert into auth.users (id, email) values ('${F}', 'nkf@example.org')`); await rpc('authenticated', F, 'profil_speichern', 'Nina', 'a1');
+  const f1 = await rpc('authenticated', F, 'neunmalklug_start');
+  await db.exec(`update private.neunmalklug_runden set issued_at = now() - interval '13 hours' where id = '${f1.run_id}'`);
+  assert.equal((await fertig(F, f1.run_id)).grund, 'abgelaufen');
+  // Aufräumen: nie beendete alte Runden weg, gewertete bleiben
+  await db.exec(`update private.neunmalklug_runden set issued_at = now() - interval '3 days' where finished_at is null`);
+  await db.exec('select private.aufraeumen()');
+  assert.equal((await db.query(`select count(*)::int n from private.neunmalklug_runden where finished_at is null`)).rows[0].n, 0);
+  assert.equal((await db.query(`select count(*)::int n from private.neunmalklug_runden where finished_at is not null`)).rows[0].n, 4);
+  // Kontolöschung entfernt die Runden
+  await rpc('authenticated', P, 'konto_loeschen', 'LÖSCHEN');
+  assert.equal((await db.query(`select count(*)::int n from private.neunmalklug_runden where user_id = '${P}'`)).rows[0].n, 0);
+});
+
 test('AUSFAHRT FREI: Rätsel pro Tag fest, ein Versuch je Konto und Tag, Züge vor Zeit; Rangliste, Archiv, Löschung', async () => {
   const { VERSION } = await import(pathToFileURL(join(ROOT, 'public/spiele/ausfahrt-frei/sim.js')).href);
   assert.equal((await db.query('select private.ausfahrt_version() v')).rows[0].v, VERSION, 'Version in SQL und sim.js gleich');
