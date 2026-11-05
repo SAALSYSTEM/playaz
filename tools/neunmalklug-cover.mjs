@@ -1,13 +1,28 @@
 // NEUNMALKLUG: Startseiten-Kachel (720 × 720 WebP) und Teilen-Vorschau (1200 × 630 JPG).
-// Liegen die ChatGPT-Bilder in design/neunmalklug/ (nk-kachel.png, nk-social.png, beide ohne Schrift), werden sie benutzt,
-// sonst zeichnet das Skript ein Sudoku-Brett in den PlaySaal-Farben. Der Schriftzug kommt immer hier dazu (richtig geschrieben).
-// node tools/neunmalklug-cover.mjs   (braucht Playwright mit Chromium und Python mit Pillow für WebP)
+// Stand 05.11.2026: Die ChatGPT-Bilder liegen in design/neunmalklug/ – nk-kachel.gif (animiert, 6 Bilder) wird zu einem
+// animierten WebP, nk-social.png (Schriftzug schon im Bild, richtig geschrieben) wird nur verkleinert. Dann ist hier Schluss.
+// Ohne diese Dateien zeichnet das Skript ein Sudoku-Brett in den PlaySaal-Farben samt Schriftzug (erste Fassung).
+// node tools/neunmalklug-cover.mjs   (Python mit Pillow; für die gezeichnete Fassung zusätzlich Playwright mit Chromium)
 import { createRequire } from 'node:module';
 import { execSync } from 'node:child_process';
-import { readFileSync, existsSync, unlinkSync } from 'node:fs';
+import { readFileSync, existsSync, unlinkSync, writeFileSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+if (existsSync(resolve(root, 'design/neunmalklug/nk-kachel.gif')) && existsSync(resolve(root, 'design/neunmalklug/nk-social.png'))) {
+  const py = resolve(root, 'design/neunmalklug/.cover.py');
+  writeFileSync(py, `from PIL import Image, ImageSequence
+r = ${JSON.stringify(root + '/')}
+src = Image.open(r + 'design/neunmalklug/nk-kachel.gif'); fr = []; dur = []
+for f in ImageSequence.Iterator(src):
+    dur.append(f.info.get('duration', 350)); fr.append(f.convert('RGB').resize((720, 720), Image.LANCZOS))
+fr[0].save(r + 'public/bilder/neunmalklug.webp', 'WEBP', save_all=True, append_images=fr[1:], duration=dur, loop=0, quality=68, method=6)
+Image.open(r + 'design/neunmalklug/nk-social.png').convert('RGB').resize((1200, 630), Image.LANCZOS).save(r + 'public/bilder/neunmalklug-og.jpg', 'JPEG', quality=86, optimize=True, progressive=True)
+`);
+  try { execSync('python3 -I ' + JSON.stringify(py)); } finally { unlinkSync(py); }
+  console.log('Neunmalklug: public/bilder/neunmalklug.webp (animiert, 720 × 720), public/bilder/neunmalklug-og.jpg (1200 × 630) aus den ChatGPT-Bildern');
+  process.exit(0);
+}
 const req = createRequire(import.meta.url);
 let pw; try { pw = req('playwright'); } catch (e) { try { pw = req(join(execSync('npm root -g').toString().trim(), 'playwright')); } catch (e2) { pw = req('/opt/npm-tools/node_modules/playwright'); } }
 const b64 = (p) => readFileSync(resolve(root, p)).toString('base64');

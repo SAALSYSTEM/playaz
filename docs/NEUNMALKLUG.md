@@ -42,7 +42,7 @@ Gleicher Ablauf wie Leitungschaos (`docs/LEITUNGSCHAOS.md`, Abschnitt 3):
 Das Spiel braucht keine Bilder. Optional:
 
 - `public/spiele/neunmalklug/img/nk-hintergrund.webp` (Hochformat, darf animiert sein): wird geladen, wenn vorhanden, und abgedunkelt. Bei „weniger Bewegung“ bleibt nur der Verlauf. Ein GIF vorher in animiertes WebP umwandeln (viel kleiner, mehr Farben), z. B. `python3 -c "from PIL import Image; Image.open('in.gif').save('nk-hintergrund.webp', save_all=True, quality=70, method=6)"`.
-- Kachel und Teilen-Bild: ChatGPT-Bilder **ohne Schrift** als `design/neunmalklug/nk-kachel.png` (1:1) und `design/neunmalklug/nk-social.png` (Querformat, Motiv links, rechts Platz für den Schriftzug), dann `node tools/neunmalklug-cover.mjs`. Ohne diese Dateien zeichnet das Skript ein Sudoku-Brett in den PlaySaal-Farben (Stand 05.11.: gezeichnete Fassung).
+- Kachel und Teilen-Bild (Stand 05.11.2026, von ChatGPT): `design/neunmalklug/nk-kachel.gif` (508 × 508, 6 Bilder, pulsierendes Mittelfeld) wird zur **animierten** Kachel `public/bilder/neunmalklug.webp` (720 × 720, ~160 KB); `design/neunmalklug/nk-social.png` hat den Schriftzug „Neunmalklug – Das Tages-Sudoku auf PlaySaal“ schon im Bild (richtig geschrieben) und wird nur auf 1200 × 630 verkleinert. Umwandeln: `node tools/neunmalklug-cover.mjs`. Bei neuen Bildern Versionsnummer `?v=` in `index.html` bzw. `og:image` erhöhen.
 
 ## 4. Tests
 
