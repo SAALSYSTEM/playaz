@@ -466,7 +466,7 @@
   if (rr && rr.roulette && rr.roulette.stats && rr.roulette.stats.runden) show('roulette', n(rr.coins || 0) + ' Coins · ' + n(rr.roulette.stats.runden) + ' Runden');
   if (rr && rr.poker && rr.poker.stats && (rr.poker.stats.haende || rr.poker.t)) show('holdem', rr.poker.t ? 'Am Tisch' : n(rr.poker.stats.haende) + ' Hände · ' + n(rr.poker.stats.gewonnen) + ' gewonnen');
   const putt = read('puttprofi.v1');
-  if (putt && putt.bahnen && Object.keys(putt.bahnen).length) show('puttprofi', Object.keys(putt.bahnen).length + ' von 108 Bahnen');
+  if (putt && putt.bahnen && Object.keys(putt.bahnen).length) show('puttprofi', Object.keys(putt.bahnen).length + ' von 162 Bahnen');
   const sch = read('schattenschritt.v1');
   if (sch && Array.isArray(sch.sterne) && sch.sterne.some((x) => x > 0)) show('schattenschritt', sch.sterne.filter((x) => x > 0).length + ' von 24 Level · ' + sch.sterne.reduce((a, x) => a + (Number(x) || 0), 0) + ' ★');
   const bas = read('bastion.v1');

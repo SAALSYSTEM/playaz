@@ -1,7 +1,7 @@
 // Putt-Profi – Darstellung (three.js r128), Steuerung (zurückziehen, zielen, loslassen), Kamera, Menüs, Ton.
 // Regeln und Physik stehen in logik.js, die Bahnen in bahnen.js, die Kollisionsdaten in teile.js.
 // Modelle: Kenney Minigolf Kit (CC0, www.kenney.nl), aufbereitet mit tools/putt-profi-assets.py.
-import * as L from './logik.js?v=4';
+import * as L from './logik.js?v=5';
 
 const THREE = window.THREE;
 const $ = (id) => document.getElementById(id);
