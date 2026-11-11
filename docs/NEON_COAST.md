@@ -5,8 +5,8 @@ Verfolgungsjagd von oben für Jugendliche und Erwachsene (Zielgruppe wie GTA 1/2
 Kein Konto nötig, keine Gewalt gegen Menschen (Fußgänger springen immer zur Seite).
 
 Stand 11.11.2026: Branch `neon-coast`, **noch nicht auf `main`**. Katalog-Eintrag:
-`supabase/migrations/20261111120000_neon_coast.sql` (noch nicht ausgeführt). Kachel und Teilen-Vorschau sind vorläufig
-(Bilder aus dem laufenden Spiel); die Prompts für ChatGPT stehen in `design/neon-coast/PROMPTS.md`.
+`supabase/migrations/20261111120000_neon_coast.sql` (noch nicht ausgeführt). Kachel und Teilen-Vorschau von ChatGPT
+(vom Auftraggeber, Originale in `design/neon-coast/`, Prompts in `PROMPTS.md`).
 
 Alle Spielgrafiken stammen aus den vorhandenen Neon-Coast-Tafeln der Sternenfahrt (`design/sternenfahrt/tafel-*.png`, ChatGPT,
 vom Auftraggeber): 12 Fahrzeuge, 14 Gebäude, Palmen, Stadtmöbel, Strand, Hafen, Fußgänger, Böden. Das Autoradio spielt die

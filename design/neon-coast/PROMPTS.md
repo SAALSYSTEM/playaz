@@ -1,9 +1,8 @@
 # Neon Coast – Fluchtwagen – Bildprompts für ChatGPT
 
 Für das Spiel selbst sind keine neuen Bilder nötig (alle Motive kommen aus den Neon-Coast-Tafeln in `design/sternenfahrt/`).
-Gebraucht werden nur Kachel und Teilen-Vorschau. Ablage hier als `kachel.png` und `social-preview.png` (die vorläufigen
-Bilder aus dem Spiel werden dabei überschrieben), dann `python3 tools/neon-coast-assets.py` und in `public/index.html`
-und `public/spiele/neon-coast.html` die Bildversion (`?v=1` → `?v=2`) anheben.
+Gebraucht werden nur Kachel und Teilen-Vorschau. Ablage hier als `kachel.png` und `social-preview.png`, dann `python3 tools/neon-coast-assets.py` und in
+`public/index.html` und `public/spiele/neon-coast.html` die Bildversion anheben. Stand 11.11.2026: beide Bilder geliefert (`?v=2`).
 
 ## kachel.png – Startseiten-Kachel, quadratisch, ohne Schrift
 ```
