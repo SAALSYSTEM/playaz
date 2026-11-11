@@ -66,6 +66,8 @@
       info: (g) => { const d = J(g['kruemel.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 110 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
     { id: 'ausfahrt', name: 'Ausfahrt frei', prefix: 'ausfahrt.', haupt: ['ausfahrt.v1'],
       info: (g) => { const d = J(g['ausfahrt.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level · ' + Object.keys(d.tage || {}).length + ' Tagesrätsel', wert: lv * 100 + Object.keys(d.tage || {}).length }; } },
+    { id: 'neoncoast', name: 'Neon Coast – Fluchtwagen', prefix: 'neoncoast.', haupt: ['neoncoast.v1'],
+      info: (g) => { const d = J(g['neoncoast.v1']) || {}; const geld = Number(d.geld) || 0, au = Array.isArray(d.autos) ? d.autos.length : 1, rek = Number(d.rekord) || 0; return { text: geld.toLocaleString('de-DE') + ' $ · ' + au + ' von 8 Autos · Rekord ' + rek.toLocaleString('de-DE') + ' $', wert: geld + au * 5000 + rek }; } },
     { id: 'gleichgleich', name: 'Gleich, gleich!', prefix: 'gleichgleich.', haupt: ['gleichgleich.v1'],
       info: (g) => { const d = J(g['gleichgleich.v1']) || {}; const b = d.best || {}; const lv = Object.keys(b).length; const st = Object.values(b).reduce((a, x) => a + (Number(x) || 0), 0); return { text: lv + ' von 21 Level · ' + st + ' ★', wert: st * 10 + lv }; } },
     { id: 'neunmalklug', name: 'Neunmalklug', prefix: 'neunmalklug.', haupt: ['neunmalklug.v1'],

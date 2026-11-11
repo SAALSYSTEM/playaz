@@ -1,0 +1,268 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Neon Coast – Fluchtwagen · Verfolgungsjagd in der Neonstadt | PlaySaal</title><meta name="description" content="Nachts in Neon Coast: Koffer schnappen, Polizei abhängen, Beute ins Versteck bringen. Verfolgungsjagd von oben mit Fahndungssternen, Driften, Nitro, 8 Autos und 28 Aufträgen – kostenlos, ohne Anmeldung, direkt im Browser."><link rel="canonical" href="https://playsaal.com/spiele/neon-coast"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Neon Coast – Fluchtwagen · Wie viel Beute schaffst du in einer Nacht?"><meta property="og:description" content="Koffer schnappen, Polizei abhängen, Beute sichern. Verfolgungsjagd von oben mit Fahndungssternen, Driften und Nitro."><meta property="og:url" content="https://playsaal.com/spiele/neon-coast"><meta property="og:image" content="https://playsaal.com/bilder/neon-coast-og.jpg?v=1"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Neon Coast – Fluchtwagen"><meta name="twitter:description" content="Koffer schnappen, Polizei abhängen, Beute sichern – wie viel schaffst du in einer Nacht?"><meta name="twitter:image" content="https://playsaal.com/bilder/neon-coast-og.jpg?v=1"><meta name="theme-color" content="#11121A"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/fonts.css"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'neon-coast',t:Date.now()}))}catch(e){}</script><style>
+:root{color-scheme:dark;--ink:#11121A;--brand:#FF9200;--act:#FFD21C;--cyan:#1ED6E0;--pink:#FF5FA2;--gruen:#3DF08A;--rot:#FF4A5E;--nacht:#0c1024;--glas:rgba(12,16,36,.78);font-family:"Barlow",system-ui,sans-serif}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{width:100%;height:100%;margin:0;overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;overscroll-behavior:none;touch-action:none}
+body{background:#070a18;color:#f3f5ff}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible,a:focus-visible{outline:3px solid var(--act);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.pz-home{position:fixed;z-index:30;top:calc(env(safe-area-inset-top,0px) + 12px);left:calc(env(safe-area-inset-left,0px) + 12px);width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:rgba(17,18,26,.72);color:#f6f7f9;border:1px solid rgba(246,247,249,.25);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);text-decoration:none}
+body:not([data-mode="start"]) .pz-home{display:none}
+
+/* ---------- HUD ---------- */
+#hud{position:fixed;z-index:5;left:0;right:0;top:0;padding:calc(env(safe-area-inset-top,0px) + 10px) calc(env(safe-area-inset-right,0px) + 10px) 0 calc(env(safe-area-inset-left,0px) + 116px);display:flex;align-items:flex-start;gap:8px;pointer-events:none;font-family:"Barlow Condensed","Barlow",sans-serif}
+.h-links{display:grid;gap:5px;min-width:0}
+.sterne{display:flex;gap:1px;height:26px}
+.sterne svg{width:25px;height:25px;fill:rgba(255,255,255,.16);stroke:rgba(0,0,0,.55);stroke-width:1.2;transition:fill .15s,transform .2s}
+.sterne svg.an{fill:var(--act);filter:drop-shadow(0 0 6px rgba(255,210,28,.8))}
+.sterne.such svg.an{animation:blink .5s steps(2,start) infinite}
+.sterne svg.neu{animation:plopp .45s cubic-bezier(.3,1.7,.5,1)}
+@keyframes blink{50%{fill:rgba(255,210,28,.25);filter:none}}
+@keyframes plopp{0%{transform:scale(2.2)}100%{transform:scale(1)}}
+.balken{width:132px;height:8px;border-radius:5px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.28);overflow:hidden}
+.balken i{display:block;height:100%;width:100%;border-radius:4px;background:var(--gruen);transition:width .15s linear,background .3s}
+#hSuch{visibility:hidden}
+#hSuch i{background:var(--cyan);transition:none}
+#hSuch.an{visibility:visible}
+.such-t{font-weight:700;font-size:13px;letter-spacing:.08em;color:var(--cyan);text-shadow:0 1px 2px #000;height:14px;line-height:14px;text-transform:uppercase}
+.such-t.rot{color:var(--rot)}
+.h-rechts{position:absolute;right:calc(env(safe-area-inset-right,0px) + 10px);top:calc(env(safe-area-inset-top,0px) + 60px);display:grid;justify-items:end;gap:1px;text-align:right;text-shadow:0 2px 3px rgba(0,0,0,.85)}
+.beute{display:flex;align-items:baseline;gap:6px;font-weight:800;font-size:30px;line-height:1;color:var(--act);letter-spacing:.01em;white-space:nowrap}
+.beute.pop b{animation:pop .3s ease-out}
+@keyframes pop{40%{transform:scale(1.25)}}
+.beute b{display:inline-block;font-weight:800}
+#hMal{justify-self:end;font-size:14px;font-weight:700;padding:1px 8px 2px;border-radius:9px;background:var(--pink);color:#fff;text-shadow:none;white-space:nowrap}
+.beute small{font-size:13px;font-weight:700;letter-spacing:.1em;color:#fff;opacity:.8;text-transform:uppercase}
+.sicher{font-weight:700;font-size:17px;color:var(--gruen)}
+#bPause{pointer-events:auto;margin-left:auto;width:44px;height:44px;flex-shrink:0;border:1px solid rgba(255,255,255,.28);border-radius:13px;background:var(--glas);display:grid;place-items:center}
+#bPause svg{width:22px;height:22px}
+#viertel{position:fixed;z-index:4;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 176px);text-align:center;font:400 clamp(26px,8vw,40px)/1 "Bungee",sans-serif;letter-spacing:.06em;color:#fff;text-shadow:0 0 14px var(--pink),0 0 34px var(--pink),0 3px 0 rgba(0,0,0,.5);opacity:0;transition:opacity .6s;pointer-events:none}
+#viertel.an{opacity:.8}
+#meldung{position:fixed;z-index:6;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 124px);display:grid;justify-items:center;gap:6px;pointer-events:none;font-family:"Barlow Condensed",sans-serif}
+.mld{padding:7px 16px 8px;border-radius:12px;background:rgba(8,10,24,.82);border:2px solid var(--act);font-weight:800;font-size:23px;line-height:1.05;text-align:center;letter-spacing:.02em;max-width:calc(100vw - 30px);animation:mld .28s cubic-bezier(.2,1.5,.5,1);box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.mld small{display:block;font-size:15px;font-weight:600;letter-spacing:.03em;opacity:.9}
+.mld.gruen{border-color:var(--gruen);color:var(--gruen)}.mld.rot{border-color:var(--rot);color:#ffd9de}.mld.cyan{border-color:var(--cyan);color:#d8fbff}.mld.pink{border-color:var(--pink)}
+.mld.raus{opacity:0;transform:translateY(-10px);transition:opacity .35s,transform .35s}
+@keyframes mld{0%{transform:scale(.6);opacity:0}}
+#haft{position:fixed;z-index:6;left:50%;top:46%;transform:translate(-50%,-50%);font:800 30px/1 "Barlow Condensed",sans-serif;color:#fff;letter-spacing:.06em;text-align:center;text-shadow:0 0 12px var(--rot),0 2px 0 #000;pointer-events:none;animation:blink2 .4s steps(2,start) infinite}
+#haft small{display:block;font-size:16px;letter-spacing:.04em;margin-top:4px}
+@keyframes blink2{50%{opacity:.55}}
+#hinweis{position:fixed;z-index:6;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 132px);width:max-content;max-width:calc(100vw - 28px);padding:9px 15px;border-radius:14px;background:rgba(255,255,255,.96);color:var(--ink);font-weight:600;font-size:16px;line-height:1.25;text-align:center;box-shadow:0 6px 18px rgba(0,0,0,.45);pointer-events:none;transition:opacity .3s}
+#hinweis.weg{opacity:0}
+#hinweis b{color:#c2185b}
+
+/* ---------- Steuerung ---------- */
+#ctl{position:fixed;z-index:5;left:0;right:0;bottom:0;padding:0 calc(env(safe-area-inset-right,0px) + 14px) calc(env(safe-area-inset-bottom,0px) + 14px) calc(env(safe-area-inset-left,0px) + 14px);display:flex;align-items:flex-end;justify-content:space-between;gap:10px;pointer-events:none}
+.pfeil{width:clamp(84px,25vw,120px);height:clamp(76px,11dvh,100px);border-radius:24px;background:rgba(255,255,255,.13);border:2px solid rgba(255,255,255,.4);display:grid;place-items:center;color:#fff;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transition:background .08s,transform .08s}
+.pfeil svg{width:44px;height:44px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+.pfeil.an{background:rgba(30,214,224,.5);border-color:#fff;transform:scale(.95)}
+.pfeil.hand{background:rgba(255,95,162,.6)}
+#bNitro{pointer-events:auto;position:relative;width:84px;height:84px;border-radius:50%;border:0;padding:0;background:conic-gradient(var(--brand) calc(var(--f,0) * 1turn),rgba(255,255,255,.16) 0);display:grid;place-items:center;touch-action:none}
+#bNitro span{width:70px;height:70px;border-radius:50%;background:rgba(10,12,28,.9);display:grid;place-items:center;font:800 15px/1 "Barlow Condensed",sans-serif;letter-spacing:.08em;color:rgba(255,255,255,.55)}
+#bNitro svg{width:26px;height:26px;display:block;margin:0 auto 1px}
+#bNitro.voll{box-shadow:0 0 0 3px #fff,0 0 22px 6px rgba(255,146,0,.9);animation:puls .7s ease-in-out infinite}
+#bNitro.voll span{background:var(--brand);color:var(--ink)}
+#bNitro.brennt span{background:#fff;color:#d94a00}
+@keyframes puls{50%{transform:scale(1.07)}}
+.tasten{display:none;position:fixed;z-index:5;left:50%;transform:translateX(-50%);bottom:14px;padding:6px 14px;border-radius:12px;background:var(--glas);font-size:14px;font-weight:500;color:#cfd6ff;white-space:nowrap;pointer-events:none}
+.tasten kbd{font:700 13px "Barlow",sans-serif;padding:1px 6px;border-radius:5px;background:#fff;color:var(--ink);margin:0 2px}
+@media (hover:hover) and (pointer:fine){.pfeil{display:none}#ctl{justify-content:center;padding-bottom:54px}.tasten{display:block}#hinweis{bottom:150px}}
+@media (prefers-reduced-motion:reduce){#bNitro.voll,.sterne.such svg.an,#haft{animation:none}}
+
+/* ---------- Bildschirme ---------- */
+.screen{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 60px) 16px calc(env(safe-area-inset-bottom,0px) + 18px);background:linear-gradient(180deg,rgba(9,11,30,.72),rgba(9,11,30,.9));text-align:center;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
+.screen>*{flex-shrink:0}
+#start{justify-content:center;padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
+.titel{margin:0;line-height:.92}
+.titel .nc{display:block;font:400 clamp(34px,11vw,58px)/1 "Bungee",sans-serif;color:#eaffff;letter-spacing:.03em;text-shadow:0 0 8px var(--cyan),0 0 26px var(--cyan),0 0 60px rgba(30,214,224,.6)}
+.titel .fw{display:block;margin-top:4px;font:400 clamp(26px,8.4vw,44px)/1 "Dela Gothic One","Bungee",sans-serif;color:#fff;text-shadow:0 0 8px var(--pink),0 0 24px var(--pink),0 4px 0 rgba(0,0,0,.4);transform:rotate(-3deg)}
+#hero{--hs:min(230px,56vw,26dvh);width:var(--hs);height:var(--hs);border-radius:26px;object-fit:cover;background:#1a1f3c;box-shadow:0 0 0 3px var(--pink),0 0 34px rgba(255,95,162,.55),0 12px 30px rgba(0,0,0,.55)}
+.konto-z{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;font-family:"Barlow Condensed",sans-serif}
+.pille{padding:5px 13px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22);font-weight:700;font-size:18px}
+.pille.geld{color:var(--gruen)}.pille.rang{color:var(--cyan)}.pille.rek{color:var(--act)}
+.gross{display:flex;align-items:center;justify-content:center;gap:10px;min-width:220px;height:68px;padding:0 28px;border:0;border-radius:20px;background:var(--act);color:var(--ink);font:800 29px/1 "Barlow Condensed",sans-serif;letter-spacing:.03em;text-transform:uppercase;box-shadow:0 6px 0 #b98f00,0 10px 26px rgba(0,0,0,.45)}
+.gross:active{transform:translateY(3px);box-shadow:0 3px 0 #b98f00}
+.gross svg{width:30px;height:30px}
+.reihe{display:flex;gap:9px;flex-wrap:wrap;justify-content:center}
+.kn{display:flex;align-items:center;gap:7px;height:50px;padding:0 15px;border:1px solid rgba(255,255,255,.3);border-radius:15px;background:rgba(255,255,255,.1);color:#fff;font:700 19px/1 "Barlow Condensed",sans-serif;letter-spacing:.03em;text-decoration:none}
+.kn svg{width:23px;height:23px}
+.kn.rund{width:50px;padding:0;justify-content:center}
+.kn .punkt{width:9px;height:9px;border-radius:50%;background:var(--pink);margin-left:-2px}
+#mStart{position:fixed;top:calc(env(safe-area-inset-top,0px) + 12px);right:calc(env(safe-area-inset-right,0px) + 12px);z-index:12}
+.einladung{margin:0;padding:10px 14px;border-radius:16px;background:rgba(255,95,162,.16);border:2px dashed var(--pink);font-weight:600;font-size:16px;line-height:1.3;max-width:340px}
+.einladung b{color:var(--act)}
+.ab18{font-size:12.5px;color:#9aa3cf;margin:0;max-width:320px;line-height:1.35}
+h2.kopf{margin:0;font:400 30px/1 "Bungee",sans-serif;letter-spacing:.03em;color:#fff;text-shadow:0 0 14px var(--cyan)}
+.unter{margin:-4px 0 0;color:#aab3e0;font-size:15.5px;max-width:340px;line-height:1.35}
+.tafel{width:min(100%,400px);display:grid;gap:10px}
+/* Garage */
+.auto{display:grid;grid-template-columns:74px 1fr;gap:4px 12px;align-items:center;padding:10px 12px;border-radius:18px;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.14);text-align:left}
+.auto.gewaehlt{border-color:var(--act);background:rgba(255,210,28,.1)}
+.auto .bild{grid-row:1 / span 3;height:92px;display:grid;place-items:center}
+.auto .bild img{height:92px;width:auto;transform:rotate(-90deg);filter:drop-shadow(0 4px 6px rgba(0,0,0,.6))}
+.auto.zu .bild img{filter:brightness(.25) drop-shadow(0 0 0 #000)}
+.auto h3{margin:0;font:800 22px/1 "Barlow Condensed",sans-serif;letter-spacing:.02em}
+.auto p{margin:0;font-size:13.5px;color:#b6beea;line-height:1.25}
+.werte{display:grid;grid-template-columns:auto 1fr auto 1fr;gap:3px 6px;align-items:center;font:600 12px/1 "Barlow Condensed",sans-serif;letter-spacing:.05em;text-transform:uppercase;color:#9aa3cf}
+.werte i{display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
+.werte i::after{content:"";display:block;height:100%;width:calc(var(--w) * 100%);background:var(--cyan);border-radius:3px}
+.auto .akt{grid-column:1 / -1;display:flex;justify-content:flex-end;margin-top:2px}
+.auto button{height:42px;padding:0 18px;border:0;border-radius:13px;background:var(--act);color:var(--ink);font:800 18px/1 "Barlow Condensed",sans-serif;letter-spacing:.03em}
+.auto button:disabled{background:rgba(255,255,255,.12);color:#8e96c2;cursor:default}
+.auto button.wahl{background:rgba(255,255,255,.16);color:#fff}
+/* Aufträge */
+.auftrag{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:15px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);text-align:left;font-size:16px;line-height:1.25;font-weight:500}
+.auftrag .lohn{margin-left:auto;font:800 19px/1 "Barlow Condensed",sans-serif;color:var(--gruen);white-space:nowrap}
+.auftrag .nr{width:26px;height:26px;border-radius:50%;background:var(--pink);display:grid;place-items:center;font:800 14px "Barlow Condensed",sans-serif;flex-shrink:0}
+.auftrag.ok{opacity:.6}.auftrag.ok .nr{background:var(--gruen);color:var(--ink)}
+.fortschritt{height:10px;border-radius:6px;background:rgba(255,255,255,.14);overflow:hidden}
+.fortschritt i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),var(--pink));border-radius:6px}
+.klein{font-size:14px;color:#aab3e0;margin:0}
+/* Hilfe */
+.hilfe{display:grid;gap:8px;text-align:left}
+.hilfe div{display:grid;grid-template-columns:40px 1fr;gap:10px;align-items:center;padding:9px 12px;border-radius:14px;background:rgba(255,255,255,.07);font-size:15.5px;line-height:1.3}
+.hilfe .ic{font-size:26px;text-align:center}
+.hilfe b{color:var(--act)}
+/* Pause */
+#karte{width:min(86vw,300px,38dvh);height:auto;border-radius:16px;border:2px solid rgba(30,214,224,.6);box-shadow:0 0 24px rgba(30,214,224,.3);image-rendering:auto}
+.legende{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:13px;color:#c5ccf2}
+.legende i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
+/* Abrechnung */
+#ende .kopf{font-size:clamp(30px,9.5vw,44px)}
+#ende.geschnappt .kopf{text-shadow:0 0 16px var(--rot),0 0 40px var(--rot)}
+#ende.feierabend .kopf{text-shadow:0 0 16px var(--gruen)}
+.rechnung{width:min(100%,360px);padding:14px 16px;border-radius:20px;background:rgba(10,12,30,.86);border:2px solid rgba(255,255,255,.18);display:grid;gap:7px;font:700 20px/1.1 "Barlow Condensed",sans-serif;letter-spacing:.02em}
+.rechnung div{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.rechnung .weg b{color:var(--rot);text-decoration:line-through}
+.rechnung .plus b{color:var(--gruen)}
+.rechnung .sum{border-top:2px solid rgba(255,255,255,.2);padding-top:8px;font-size:26px}
+.rechnung .sum b{color:var(--act)}
+.rechnung small{font:500 14px/1.25 "Barlow",sans-serif;color:#aab3e0;text-align:left;letter-spacing:0}
+.rekord{padding:6px 16px;border-radius:999px;background:var(--act);color:var(--ink);font:800 21px/1 "Barlow Condensed",sans-serif;letter-spacing:.05em;animation:puls .8s ease-in-out infinite}
+.ziel{width:min(100%,360px);display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;padding:10px 14px;border-radius:18px;background:rgba(255,255,255,.07);text-align:left;font-size:14.5px;color:#c5ccf2}
+.ziel img{grid-row:1 / span 2;height:64px;width:auto;transform:rotate(-90deg);margin:-6px 6px}
+.ziel b{color:#fff}
+.kontobox{width:min(100%,360px);padding:11px 13px;border-radius:16px;background:rgba(255,210,28,.1);border:2px dashed rgba(255,210,28,.6);display:grid;gap:6px;justify-items:center;font-size:14px;line-height:1.35;color:#ffeeb0}
+.kontobox b{font:800 18px/1 "Barlow Condensed",sans-serif;color:var(--act)}
+.kontobox button{height:40px;padding:0 16px;border:0;border-radius:12px;background:var(--act);color:var(--ink);font:800 17px/1 "Barlow Condensed",sans-serif}
+/* Versteck/Werkstatt */
+#ort{position:fixed;inset:0;z-index:9;display:grid;place-items:center;background:rgba(5,6,16,.86);pointer-events:none;animation:ein .25s ease-out}
+@keyframes ein{0%{opacity:0}}
+#ort div{font:400 clamp(28px,9vw,44px)/1.05 "Bungee",sans-serif;color:var(--gruen);text-shadow:0 0 18px currentColor;text-align:center;padding:0 16px}
+#ort div.cyan{color:var(--cyan)}
+#ort small{display:block;margin-top:10px;font:700 22px/1.1 "Barlow Condensed",sans-serif;color:#fff;text-shadow:none;letter-spacing:.03em}
+#lade{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:#070a18;font:400 22px "Bungee",sans-serif;color:var(--cyan);text-shadow:0 0 12px var(--cyan)}
+body.ready #lade{display:none}
+#toast{position:fixed;z-index:40;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);padding:10px 16px;border-radius:14px;background:#fff;color:var(--ink);font-weight:600;font-size:15.5px;max-width:calc(100vw - 24px);text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+</style></head><body data-mode="lade">
+<canvas id="game" aria-label="Die Stadt Neon Coast von oben: Dein Auto fährt von selbst. Mit links und rechts lenken, Koffer einsammeln, der Polizei entkommen und die Beute ins Versteck bringen."></canvas>
+<a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
+<div id="lade">Neon Coast …</div>
+
+<div id="hud" hidden>
+  <div class="h-links">
+    <div class="sterne" id="hSterne" role="img" aria-label="Fahndung: 0 von 5 Sternen"></div>
+    <div class="balken" id="hSuch"><i></i></div>
+    <div class="such-t" id="hSuchT" aria-live="polite"></div>
+    <div class="balken" id="hLeben" role="img" aria-label="Zustand des Autos"><i></i></div>
+  </div>
+  <div class="h-rechts">
+    <div class="beute" id="hBeute"><small>Beute</small><b id="hBeuteZ">0 $</b></div>
+    <div class="sicher" id="hSicher">Sicher: 0 $</div>
+    <div id="hMal" hidden>×1</div>
+  </div>
+  <button id="bPause" type="button" aria-label="Pause und Stadtplan" title="Pause (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/></svg></button>
+</div>
+<div id="viertel" aria-hidden="true"></div>
+<div id="meldung" role="status" aria-live="polite"></div>
+<div id="haft" hidden>FESTNAHME!<small>Fahr weg!</small></div>
+<div id="hinweis" class="weg" role="status"></div>
+<div id="ctl" hidden>
+  <div class="pfeil" id="bL" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M29 9L13 24l16 15" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+  <button id="bNitro" type="button" aria-label="Nitro zünden"><span><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2s1 3.5-2 6.5S7 13 7 16a5 5 0 0 0 10 0c0-2-1-3-1-3s-.5 2-2 2c-1.500 0-2-1.500-1.500-3.500C13.200 8.500 15 6.500 13 2z" fill="currentColor"/></svg>NITRO</b></span></button>
+  <div class="pfeil" id="bR" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M19 9l16 15-16 15" fill="none" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+</div>
+<div class="tasten" id="tasten" hidden><kbd>←</kbd><kbd>→</kbd> lenken · <kbd>Leertaste</kbd> Handbremse · <kbd>↓</kbd> bremsen/zurück · <kbd>↑</kbd> Nitro · <kbd>Esc</kbd> Pause</div>
+<div id="ort" hidden><div id="ortText"></div></div>
+<div id="toast" hidden></div>
+
+<section id="start" class="screen" aria-label="Start" hidden>
+  <button class="kn rund" id="mStart" type="button" data-mute><span class="ico"></span></button>
+  <h1 class="titel"><span class="nc">NEON COAST</span><span class="fw">Fluchtwagen</span></h1>
+  <img id="hero" src="../bilder/neon-coast.webp?v=1" width="720" height="720" alt="Ein Fluchtwagen rast nachts durch die Neonstadt, hinter ihm Streifenwagen mit Blaulicht">
+  <div class="konto-z"><span class="pille geld" id="sGeld">0 $</span><span class="pille rang" id="sRang">Kleiner Fisch</span><span class="pille rek" id="sRek" hidden></span></div>
+  <p id="einladung" class="einladung" hidden></p>
+  <button class="gross" id="bLos" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.500v15a1 1 0 0 0 1.500.860l12-7.500a1 1 0 0 0 0-1.720l-12-7.500A1 1 0 0 0 7 4.500z" fill="currentColor"/></svg><span>Losfahren</span></button>
+  <div class="reihe">
+    <button class="kn" id="bGarage" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l1.600-4.200A2 2 0 0 1 8.500 5.500h7a2 2 0 0 1 1.900 1.300L19 11" fill="none" stroke="currentColor" stroke-width="2.200"/><rect x="3" y="10.500" width="18" height="7" rx="2.500" fill="currentColor"/><circle cx="7.500" cy="18" r="2.200" fill="#11121A" stroke="currentColor"/><circle cx="16.500" cy="18" r="2.200" fill="#11121A" stroke="currentColor"/></svg>Garage<i class="punkt" id="garagePunkt" hidden></i></button>
+    <button class="kn" id="bAuftraege" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.500" fill="none" stroke="currentColor" stroke-width="2.200"/><path d="M8.500 9l2 2 4-4M8.500 15.500h7" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round"/></svg>Aufträge</button>
+    <button class="kn" id="bHilfe" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.200"/><path d="M9.500 9.500a2.500 2.500 0 1 1 3.500 2.300c-.700.400-1 1-1 1.700M12 17v.100" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round"/></svg>So geht’s</button>
+  </div>
+  <div class="kontobox" id="kontoStart" hidden><b>Spielstand sichern</b><span>Mit kostenlosem PlaySaal-Konto bleiben Geld und Autos erhalten – auch auf einem neuen Handy. (ab 16 Jahren)</span><button type="button" data-konto>Konto anlegen</button></div>
+  <p class="ab18">Arcade-Verfolgungsjagd ohne Gewalt gegen Menschen – Fußgänger springen immer zur Seite. Empfohlen ab 12 Jahren.</p>
+</section>
+
+<section id="garage" class="screen" aria-label="Garage" hidden>
+  <h2 class="kopf">Garage</h2>
+  <div class="konto-z"><span class="pille geld" id="gGeld">0 $</span></div>
+  <div class="tafel" id="gListe"></div>
+  <button class="kn" type="button" data-zurueck><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Zurück</button>
+</section>
+
+<section id="auftraege" class="screen" aria-label="Aufträge" hidden>
+  <h2 class="kopf">Aufträge</h2>
+  <p class="unter">Immer drei sind offen. Lohn gibt es am Ende der Nacht – auch wenn du geschnappt wirst.</p>
+  <div class="tafel" id="aListe"></div>
+  <div class="tafel"><div class="fortschritt"><i id="aBalken"></i></div><p class="klein" id="aStand"></p></div>
+  <div class="tafel"><p class="klein" id="aRang"></p><div class="fortschritt"><i id="aRangBalken"></i></div></div>
+  <button class="kn" type="button" data-zurueck><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Zurück</button>
+</section>
+
+<section id="hilfe" class="screen" aria-label="So geht’s" hidden>
+  <h2 class="kopf">So geht’s</h2>
+  <div class="tafel hilfe">
+    <div><span class="ic">🚗</span><span>Dein Auto gibt von selbst Gas. <b>Links oder rechts halten</b> lenkt (am Rechner: Pfeiltasten).</span></div>
+    <div><span class="ic">💼</span><span>Fahr über die <b>gelben Koffer</b>. Jeder weitere Koffer ohne Sichern ist mehr wert (×1,5 · ×2 · ×2,5 …).</span></div>
+    <div><span class="ic">⭐</span><span>Koffer lösen <b>Fahndung</b> aus. Verlierst du den Sichtkontakt lange genug, bist du entkommen.</span></div>
+    <div><span class="ic">🏠</span><span>Im <b>Versteck</b> (grün) ist die Beute sicher – aber nur, wenn dich gerade kein Streifenwagen sieht.</span></div>
+    <div><span class="ic">🔧</span><span><b>Lack &amp; Fix</b> (türkis) repariert und lackiert um: Fahndung weg, Beute bleibt im Auto. Kostet 10 % der Beute.</span></div>
+    <div><span class="ic">💨</span><span><b>Beide Seiten halten</b> = Handbremse: enge Kurven und Drifts. Im Stand fährst du so rückwärts.</span></div>
+    <div><span class="ic">🔥</span><span>Driften, haarscharf überholen und Sachen umfahren füllt das <b>Nitro</b>.</span></div>
+    <div><span class="ic">🚓</span><span>Geschnappt, Totalschaden oder im Wasser? Dann ist die Beute im Auto weg – <b>Gesichertes bleibt</b>.</span></div>
+  </div>
+  <button class="kn" type="button" data-zurueck><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Zurück</button>
+</section>
+
+<section id="pause" class="screen" aria-label="Pause" hidden>
+  <h2 class="kopf">Pause</h2>
+  <canvas id="karte" width="380" height="390" aria-label="Stadtplan von Neon Coast mit deinem Standort, Koffern, Verstecken und Werkstätten"></canvas>
+  <div class="legende"><span><i style="background:#fff"></i>Du</span><span><i style="background:#FFD21C"></i>Koffer</span><span><i style="background:#3DF08A"></i>Versteck</span><span><i style="background:#1ED6E0"></i>Lack &amp; Fix</span><span><i style="background:#FF4A5E"></i>Polizei</span></div>
+  <div class="tafel" id="pAuftraege"></div>
+  <button class="gross" id="pWeiter" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.500v15a1 1 0 0 0 1.500.860l12-7.500a1 1 0 0 0 0-1.720l-12-7.500A1 1 0 0 0 7 4.500z" fill="currentColor"/></svg><span>Weiter</span></button>
+  <div class="reihe">
+    <button class="kn" id="pMute" type="button" data-mute><span class="ico"></span>Ton</button>
+    <button class="kn" id="pSender" type="button">📻 Sender</button>
+    <button class="kn" id="pEnde" type="button">Nacht beenden</button>
+  </div>
+  <p class="klein">„Nacht beenden“: Gesichertes bleibt, Beute im Auto verfällt.</p>
+</section>
+
+<section id="ende" class="screen" aria-label="Abrechnung" hidden>
+  <h2 class="kopf" id="eTitel">Geschnappt!</h2>
+  <p class="unter" id="eUnter"></p>
+  <div class="rekord" id="eRekord" hidden>NEUER REKORD!</div>
+  <div class="rechnung" id="eRechnung"></div>
+  <div class="ziel" id="eZiel" hidden><img id="eZielBild" src="" alt=""><span id="eZielText"></span><div class="fortschritt"><i id="eZielBalken"></i></div></div>
+  <p class="einladung" id="eEinladung" hidden></p>
+  <button class="gross" id="eNochmal" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.400-5.700" fill="none" stroke="currentColor" stroke-width="2.800" stroke-linecap="round"/><path d="M4 4v5h5" fill="none" stroke="currentColor" stroke-width="2.800" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Nächste Nacht</span></button>
+  <div class="reihe">
+    <button class="kn" id="eGarage" type="button">Garage<i class="punkt" id="eGaragePunkt" hidden></i></button>
+    <button class="kn" id="eTeilen" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3" fill="currentColor"/><circle cx="6" cy="12" r="3" fill="currentColor"/><circle cx="18" cy="19" r="3" fill="currentColor"/><path d="M8.600 10.700l6.800-4M8.600 13.300l6.800 4" stroke="currentColor" stroke-width="2.200"/></svg>Teilen</button>
+    <button class="kn" id="eStart" type="button">Menü</button>
+  </div>
+  <div class="kontobox" id="kontoEnde" hidden><b>Spielstand sichern</b><span>Mit kostenlosem PlaySaal-Konto bleiben Geld und Autos erhalten. (ab 16 Jahren)</span><button type="button" data-konto>Konto anlegen</button></div>
+</section>
+<script type="module" src="neon-coast/game.js"></script>
+<script src="../assets/playsaal-config.js" defer></script><script src="../assets/playsaal.js" defer></script></body></html>
