@@ -4,8 +4,8 @@ Verfolgungsjagd von oben für Jugendliche und Erwachsene (Zielgruppe wie GTA 1/2
 `/spiele/neon-coast`. Nachts in der Stadt Neon Coast: Koffer einsammeln, der Polizei entkommen, Beute im Versteck sichern.
 Kein Konto nötig, keine Gewalt gegen Menschen (Fußgänger springen immer zur Seite).
 
-Stand 11.11.2026: Branch `neon-coast`, **noch nicht auf `main`**. Katalog-Eintrag:
-`supabase/migrations/20261111120000_neon_coast.sql` (noch nicht ausgeführt). Kachel und Teilen-Vorschau von ChatGPT
+Stand 11.11.2026: veröffentlicht auf `main` (Freigabe „Push Main“ vom Auftraggeber). Katalog-Eintrag:
+`supabase/migrations/20261111120000_neon_coast.sql` (führt der Auftraggeber selbst aus). Kachel und Teilen-Vorschau von ChatGPT
 (vom Auftraggeber, Originale in `design/neon-coast/`, Prompts in `PROMPTS.md`).
 
 Alle Spielgrafiken stammen aus den vorhandenen Neon-Coast-Tafeln der Sternenfahrt (`design/sternenfahrt/tafel-*.png`, ChatGPT,
