@@ -39,8 +39,26 @@ Spieler aus, alle 0,35 s, 96-m-Fenster) auch durch Hinterhöfe, Parks und über 
 verunglücken an Wänden und im Wasser. Nach der Jagd fahren sie als Streife im Verkehr weiter; wer eine Streife rammt
 oder vor ihren Augen einen Unfall baut, hat einen Stern.
 
+Polizeitaktik (seit 12.11.2026, `sperreBauen`, `heliSchritt` in `engine.js`):
+
+- **Straßensperre** ab 3 Sternen: alle paar Sekunden stellt die Polizei voraus außer Sicht Wagen quer (3 auf Alleen,
+  sonst 2) samt Absperrgittern. Vorbei geht es über Gehweg, Seitenstraße oder mitten durch (kostet Panzer). Wer durch ist,
+  bekommt 100 $ × Sterne (ohne Berührung das Doppelte), die Wagen nehmen die Jagd auf.
+- **Nagelband** ab 4 Sternen (45 % der Sperren): liegt quer, an einer Seite bleibt eine 3,4 m breite Lücke. Drüber heißt
+  7 s platte Reifen (`PLATT`: 62 % Tempo und Halt). Im Versteck sind die Reifen sofort wieder heil.
+- **Hubschrauber** bei 5 Sternen (`HELI`): der Suchscheinwerfer zählt als Sichtkontakt, auch hinter Häusern. Er folgt mit
+  höchstens 24 m/s und muss nach 24 s für 16 s tanken – das ist das Fenster zum Entkommen.
+
+Besondere Ziele (`ereignisse`, das erste nach 30–42 s, nach jedem 28–52 s Pause; in der ersten Nacht nur Gold):
+
+- **Goldkoffer** (`GOLD`): liegt 170–420 m entfernt, dreifacher Wert, 60 s Zeit, zählt zur Serie.
+- **Geldtransporter** (`TRANSPORTER`): fährt im Verkehr. Jeder Rammstoß mit der Schnauze zahlt 300 $ × Sterne und bringt
+  Fahndung, der fünfte knackt ihn (+1.500 $).
+- **Rivale**: lila Muscle-Car, holt sich den nächsten Koffer an der Straße und flieht. Rammt man ihn, lässt er den Koffer
+  mit doppeltem Wert fallen.
+
 Dauerhaft: Geld (gesicherte Beute + Auftragslohn), 8 Autos (Flitzer gratis … Supersportwagen 90.000 $) mit Tempo, Antritt,
-Halt und Panzer, 28 Aufträge (immer drei offen, Lohn am Ende der Nacht), 6 Ränge nach insgesamt gesicherter Beute,
+Halt und Panzer, 32 Aufträge (immer drei offen, Lohn am Ende der Nacht), 6 Ränge nach insgesamt gesicherter Beute,
 Rekord (beste Nacht) mit Herausforderung per Link `?r=Betrag`.
 
 ## Steuerung

@@ -5,7 +5,7 @@
 import { KLANG } from './klang.js';
 
 export function neuerTon(istStumm) {
-  let actx = null, rauschen = null, aus = null, motor = null, reifen = null, sirene = null, uhr = 0;
+  let actx = null, rauschen = null, aus = null, motor = null, reifen = null, sirene = null, rotor = null, uhr = 0;
   const puffer = {}; let laedt = false, motorA = null, sireneA = null;
   async function ladeAufnahmen() {
     if (laedt || !actx) return; laedt = true;
@@ -80,10 +80,16 @@ export function neuerTon(istStumm) {
       so.type = 'sawtooth'; so.frequency.value = 700; sf.type = 'lowpass'; sf.frequency.value = 2100; sg.gain.value = 0;
       so.connect(sf).connect(sg).connect(aus); so.start();
       sirene = { o: so, g: sg };
+      // Hubschrauber: tiefes Rauschen, vom Rotor zerhackt
+      const hs = actx.createBufferSource(), hf = actx.createBiquadFilter(), hz = actx.createGain(), hg = actx.createGain(), lfo = actx.createOscillator(), tiefe = actx.createGain();
+      hs.buffer = rauschen; hs.loop = true; hf.type = 'lowpass'; hf.frequency.value = 420; hz.gain.value = 0.5; hg.gain.value = 0;
+      lfo.type = 'sawtooth'; lfo.frequency.value = 13; tiefe.gain.value = 0.5; lfo.connect(tiefe).connect(hz.gain);
+      hs.connect(hf).connect(hz).connect(hg).connect(aus); hs.start(); lfo.start();
+      rotor = { g: hg };
     } catch { motor = null; }
   }
   // einmal je Bild: v = Tempo in m/s, rutsch 0..1, nah 0..1 (wie nah ist die Polizei), an = wird gerade gefahren, gas = Fuß auf dem Gas
-  function laufend(dt, v, vmax, rutsch, nah, nitro, an, gas) {
+  function laufend(dt, v, vmax, rutsch, nah, nitro, an, gas, heli = 0) {
     if (!actx || stumm()) return;
     dauer(); if (!motor) return;
     uhr += dt;
@@ -102,12 +108,13 @@ export function neuerTon(istStumm) {
       motor.f.frequency.setTargetAtTime(380 + v * 22 + (nitro ? 900 : 0), t, 0.08);
       motor.g.gain.setTargetAtTime(an ? (gas || nitro ? 0.05 : 0.03) + Math.min(0.03, v * 0.0012) : 0, t, 0.08);
     }
+    if (rotor) rotor.g.gain.setTargetAtTime(an ? heli * 0.3 : 0, t, 0.2);
     reifen.g.gain.setTargetAtTime(an ? Math.min(0.085, rutsch * 0.085) : 0, t, 0.06);
     reifen.f.frequency.setTargetAtTime(1300 + rutsch * 500, t, 0.1);
     if (sireneA) { sireneA.g.gain.setTargetAtTime(an ? nah * nah * 0.2 : 0, t, 0.15); sirene.g.gain.setTargetAtTime(0, t, 0.05); }
     else { sirene.o.frequency.setTargetAtTime(880 + 420 * Math.sin(uhr * 3.6), t, 0.03); sirene.g.gain.setTargetAtTime(an ? nah * 0.05 : 0, t, 0.15); }
   }
-  function still() { if (!actx || !motor) return; const t = actx.currentTime; for (const k of [motor, reifen, sirene, motorA, sireneA]) if (k) k.g.gain.setTargetAtTime(0, t, 0.05); }
+  function still() { if (!actx || !motor) return; const t = actx.currentTime; for (const k of [motor, reifen, sirene, rotor, motorA, sireneA]) if (k) k.g.gain.setTargetAtTime(0, t, 0.05); }
 
   const SFX = {
     klick: () => ton(520, 0.06, 'sine', 0.06),
@@ -131,6 +138,8 @@ export function neuerTon(istStumm) {
     geschnappt: () => { ton(392, 0.25, 'sawtooth', 0.07, 0.94, 0, 1500); ton(330, 0.25, 'sawtooth', 0.07, 0.94, 0.26, 1500); ton(262, 0.7, 'sawtooth', 0.08, 0.6, 0.52, 1500); },
     hupe: () => { ton(415, 0.3, 'square', 0.035, 0, 0, 1500); ton(520, 0.3, 'square', 0.03, 0, 0, 1500); },
     auftrag: () => [659, 784, 988, 1319, 1568].forEach((f, i) => ton(f, 0.18, 'triangle', 0.08, 0, i * 0.08)),
+    platt: () => { rausch(0.9, 5200, 0.16, 0.8, 0, 'bandpass', 1800); ton(140, 0.25, 'square', 0.08, 0.5, 0, 700); },
+    gold: () => { [1047, 1319, 1568, 2093].forEach((f, i) => ton(f, 0.22, 'triangle', 0.08, 0, i * 0.07)); ton(2637, 0.5, 'sine', 0.05, 0, 0.3); },
     tor: () => { ton(150, 0.18, 'square', 0.06, 0, 0, 900); ton(150, 0.22, 'square', 0.06, 0, 0.22, 900); },
     kauf: () => { [784, 988, 1175, 1568].forEach((f, i) => ton(f, 0.16, 'triangle', 0.09, 0, i * 0.07)); rausch(0.06, 7000, 0.05, 2, 0.3); },
     los: () => { if (!aufnahme('start', 0.3)) ton(110, 0.5, 'sawtooth', 0.07, 2, 0, 1200); }

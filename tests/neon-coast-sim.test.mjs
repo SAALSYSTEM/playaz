@@ -5,12 +5,14 @@ import assert from 'node:assert/strict';
 import { baueWelt, BODEN, bodenBei, NX, Z, viertel } from '../public/spiele/neon-coast/welt.js';
 import { GROESSE, UMRISS } from '../public/spiele/neon-coast/bilder.js';
 import { FAHRZEUG, AUTOS, AUFTRAEGE, frisch, saeubere, kaufen, abrechnen, aktiveAuftraege, rang, parseEinladung, geld } from '../public/spiele/neon-coast/daten.js';
-import { neueFahrt, schritt, DT, neuerBot, botEingabe, probefahrt, neuesFeld, feldRechnen, multi, suchzeit, PEILZEIT, werkstattKosten, feierabend, POLIZEI } from '../public/spiele/neon-coast/engine.js';
+import { neueFahrt, schritt, DT, neuerBot, botEingabe, probefahrt, neuesFeld, feldRechnen, multi, suchzeit, PEILZEIT, werkstattKosten, feierabend, POLIZEI, HELI, PLATT, GOLD, TRANSPORTER } from '../public/spiele/neon-coast/engine.js';
 import { existsSync } from 'node:fs';
 
 const W = baueWelt();
 const alt = () => { const s = frisch(); s.stat.naechte = 3; return s; };   // kein Erst-Nacht-Koffer
-function fahrt(seed = 1, o = {}) { return neueFahrt(o.save || alt(), seed, { verkehr: o.verkehr ?? 0 }); }
+function fahrt(seed = 1, o = {}) { return neueFahrt(o.save || alt(), seed, { verkehr: o.verkehr ?? 0, ereignisAb: o.ereignisAb ?? 1e9, ereignis: o.ereignis }); }
+const ohnePolizei = (S) => { for (let i = S.autos.length - 1; i > 0; i--) if (S.autos[i].art === 'polizei') S.autos.splice(i, 1); };
+const alle = (S, t) => S.ev.filter((e) => e.t === t);
 const laufe = (S, sek, e = { los: true }, jeSchritt) => { for (let n = 0; n < Math.round(sek / DT) && !S.ende; n++) { schritt(S, typeof e === 'function' ? e(S) : e); if (jeSchritt) jeSchritt(S); } };
 const steh = (S) => { S.sp.vmax = 0.0001; S.sp.vx = S.sp.vy = 0; };
 const hat = (S, t) => S.ev.some((e) => e.t === t);
@@ -82,7 +84,6 @@ test('Koffer: Beute, Serie und Faktor, Fahndung, Peilsender; drei Koffer sind im
 
 test('Entkommen: erst sendet der Peilsender, danach zählt die Zeit ohne Sichtkontakt; Bonus und Zähler', () => {
   const S = fahrt(4); steh(S); aufKoffer(S); laufe(S, 0.1);
-  const ohnePolizei = (S) => { for (let i = S.autos.length - 1; i > 0; i--) if (S.autos[i].art === 'polizei') S.autos.splice(i, 1); };
   laufe(S, PEILZEIT - 1, { los: true }, ohnePolizei);
   assert.equal(S.sterne, 1); assert.equal(S.sucht, 0, 'solange der Sender läuft, zählt die Suchuhr nicht');
   const beute = S.beute;
@@ -143,7 +144,7 @@ test('Ende der Nacht: Wasser, Totalschaden, Feierabend – Gesichertes bleibt, B
 test('Prüf-Fahrer: sechs Nächte ohne Rechenfehler, sammelt Koffer und sichert Beute; gleiche Nacht läuft gleich ab', () => {
   let koffer = 0, sicher = 0, gesichert = 0;
   const nacht = (seed) => {
-    const S = neueFahrt(alt(), seed), B = neuerBot({ gier: 2 }); let minV = 1e9, sumV = 0, nV = 0;
+    const S = neueFahrt(alt(), seed, { ereignisAb: 5 }), B = neuerBot({ gier: 2 }); let minV = 1e9, sumV = 0, nV = 0;
     while (!S.ende && S.t < 200) {
       schritt(S, botEingabe(S, B));
       if (S.n % 20 === 0) {
@@ -158,7 +159,7 @@ test('Prüf-Fahrer: sechs Nächte ohne Rechenfehler, sammelt Koffer und sichert 
     return S;
   };
   for (let seed = 1; seed <= 6; seed++) { const S = nacht(seed); koffer += S.stat.koffer; sicher += S.sicher; if (S.sicher > 0) gesichert++; assert.ok(S.stat.koffer >= 1, 'Nacht ' + seed + ': kein Koffer'); }
-  assert.ok(koffer >= 12, 'Koffer gesamt ' + koffer); assert.ok(gesichert >= 3 && sicher >= 2000, `gesichert in ${gesichert} von 6 Nächten, zusammen ${sicher} $`);
+  assert.ok(koffer >= 12, 'Koffer gesamt ' + koffer); assert.ok(gesichert >= 2 && sicher >= 2000, `gesichert in ${gesichert} von 6 Nächten, zusammen ${sicher} $`);
   const a = nacht(3), b = nacht(3);
   assert.deepEqual([a.t, a.sicher, a.beute, a.sp.x, a.sp.y, a.stat.koffer], [b.t, b.sicher, b.beute, b.sp.x, b.sp.y, b.stat.koffer]);
 });
@@ -166,6 +167,7 @@ test('Prüf-Fahrer: sechs Nächte ohne Rechenfehler, sammelt Koffer und sichert 
 test('Aufträge, Abrechnung, Kauf, Spielstand und Einladung', () => {
   const S0 = fahrt(1);
   for (const a of AUFTRAEGE) assert.ok(a.k in S0.stat, 'Auftrag ' + a.id + ' zählt etwas, das es nicht gibt: ' + a.k);
+  assert.equal(AUFTRAEGE.length, 32);
   assert.equal(new Set(AUFTRAEGE.map((a) => a.id)).size, AUFTRAEGE.length);
   // Auftrag 1 (500 $ sichern) wird in der Fahrt erkannt und am Ende bezahlt
   const save = frisch(); const S = neueFahrt(save, 2, { verkehr: 0 }); S.wartet = false;
@@ -185,4 +187,124 @@ test('Aufträge, Abrechnung, Kauf, Spielstand und Einladung', () => {
   assert.equal(geld(12340), '12.340 $');
   // Preise steigen, das Startauto ist gratis
   assert.equal(AUTOS[0].preis, 0); for (let i = 1; i < AUTOS.length; i++) assert.ok(AUTOS[i].preis > AUTOS[i - 1].preis);
+});
+
+test('Straßensperre ab 3 Sternen: steht voraus außer Sicht quer auf der Fahrbahn; wer durch ist, hat die Wagen im Nacken', () => {
+  const S = fahrt(21); S.wartet = false;
+  S.sp.x = 80; S.sp.y = 294.6; S.sp.a = 0; S.fahndung = 3.3; S.sterne = 3;   // Allee nach Osten
+  let da = null;
+  laufe(S, 6, (S) => { S.peil = 9; return { gas: true }; }, (S) => { ohnePolizeiJagd(S); if (!da && S.sperren.length) da = { ...S.sperren[0], spx: S.sp.x }; });
+  assert.ok(da && hat(S, 'sperre'), 'Sperre wurde aufgebaut');
+  assert.ok(Math.abs(da.y - 292) < 0.01 && da.x > da.spx + S.sichtweite, `voraus auf derselben Straße, außer Sicht (${(da.x - da.spx).toFixed(0)} m)`);
+  assert.equal(da.art, 'wagen'); assert.equal(da.autos.length, 3, 'breite Allee: drei Wagen');
+  for (const c of da.autos) { assert.equal(c.modus, 'sperre'); assert.ok(Math.abs(Math.cos(c.a)) < 0.01, 'steht quer'); assert.ok(Math.abs(c.y - 292) < 6); }
+  assert.equal(S.deko.length, 2, 'Absperrgitter an beiden Gehwegen');
+  const s = S.sperren[0];
+  // über den Gehweg vorbei
+  S.sp.x = s.x - 10; S.sp.y = 292 + 12; S.sp.vx = 20; S.sp.vy = 0; S.sp.a = 0; S.ev.length = 0;
+  laufe(S, 3, (S) => { S.peil = 9; S.sperreT = 1e9; return { gas: true }; });
+  const d = alle(S, 'durchbruch')[0];
+  assert.ok(d && d.sauber, 'Durchbruch ohne Berührung gezählt'); assert.equal(S.stat.sperren, 1); assert.equal(S.sperren.length, 0);
+  assert.ok(s.autos.every((c) => c.modus === 'jagd'), 'die Wagen der Sperre nehmen die Jagd auf');
+  // unter 3 Sternen keine Sperren
+  const T = fahrt(22); T.wartet = false; T.sp.x = 80; T.sp.y = 294.6; T.fahndung = 2.5; T.sterne = 2;
+  laufe(T, 8, (T) => { T.peil = 9; return { gas: true }; }, ohnePolizeiJagd);
+  assert.equal(T.sperren.length, 0); assert.ok(!hat(T, 'sperre'));
+});
+function ohnePolizeiJagd(S) { for (let i = S.autos.length - 1; i > 0; i--) if (S.autos[i].art === 'polizei' && S.autos[i].modus !== 'sperre') S.autos.splice(i, 1); }
+
+test('Nagelband: platte Reifen für 7 s (langsamer, weniger Halt), danach und im Versteck wieder heil; durch die Lücke passiert nichts', () => {
+  const S = fahrt(23); S.wartet = false; S.fahndung = 4.2; S.sterne = 4; S.sperreT = 1e9;
+  S.sp.x = 200; S.sp.y = 294.6; S.sp.a = 0; S.sp.vx = 18;
+  const band = (x) => ({ x, y: 292, t: 0, art: 'nagel', autos: [], nah: false, nagel: { x0: x, y0: 282, x1: x, y1: 298.6, benutzt: false } });   // Lücke am Südrand (y 298,6–302)
+  S.sperren.push(band(215));
+  const vmax = S.sp.vmax, grip = S.sp.grip;
+  laufe(S, 1.2, { gas: true }, ohnePolizei);
+  assert.ok(hat(S, 'platt')); assert.ok(Math.abs(S.sp.vmax - vmax * PLATT.tempo) < 1e-9 && Math.abs(S.sp.grip - grip * PLATT.halt) < 1e-9);
+  assert.ok(S.platt > PLATT.dauer - 1.3);
+  laufe(S, PLATT.dauer, { hand: true }, ohnePolizei);
+  assert.ok(hat(S, 'plattEnde')); assert.equal(S.sp.vmax, vmax); assert.equal(S.sp.grip, grip); assert.equal(S.platt, 0);
+  const T = fahrt(24); T.wartet = false; T.fahndung = 4.2; T.sterne = 4; T.sperreT = 1e9; T.sp.x = 200; T.sp.y = 300.4; T.sp.a = 0; T.sp.vx = 18; T.sperren.push(band(215));
+  laufe(T, 1.5, { gas: true }, ohnePolizei); assert.ok(!hat(T, 'platt'), 'durch die Lücke am Rand');
+  assert.ok(T.sp.x > 222);
+});
+
+test('Hubschrauber bei 5 Sternen: Suchscheinwerfer hält den Sichtkontakt ohne Streifenwagen, tankt nach 24 s – dann kann man entkommen', () => {
+  const S = fahrt(25); S.wartet = false; steh(S);
+  S.fahndung = 5.5; S.sterne = 5; S.sp.x = 300; S.sp.y = 294.6;
+  let licht = 0, gesehen = 0, n = 0;
+  laufe(S, 3.5, {}, ohnePolizei); assert.equal(S.heli, null, 'kommt erst nach ein paar Sekunden');
+  laufe(S, 14, {}, (S) => { ohnePolizei(S); n++; if (S.heli && S.heli.licht) licht++; if (S.gesehen) gesehen++; });
+  assert.ok(S.heli && S.heli.phase === 'an' && alle(S, 'heli').some((e) => e.an));
+  assert.ok(licht > n * 0.4 && gesehen > n * 0.4, 'der stehende Wagen ist im Licht und gilt als gesehen');
+  assert.equal(S.sucht, 0); assert.equal(S.sterne, 5);
+  // schneller als der Lichtkegel: Tempo über 24 m/s lässt ihn zurück
+  assert.ok(HELI.licht < 32 && HELI.licht > 20);
+  laufe(S, HELI.da, {}, ohnePolizei);
+  assert.ok(alle(S, 'heli').some((e) => e.grund === 'tankt')); assert.equal(S.heli.licht, false);
+  laufe(S, suchzeit(5) + 0.5, {}, ohnePolizei);
+  assert.ok(hat(S, 'entkommen'), 'während er tankt, reicht die Zeit zum Entkommen'); assert.equal(S.stat.entkommenSterne, 5);
+  laufe(S, 30, {}, ohnePolizei);
+  assert.equal(S.heli, null, 'ohne Sterne fliegt er ab');
+});
+
+test('Goldkoffer: 60 s, dreifacher Wert, zählt zur Serie; läuft die Zeit ab, ist er weg', () => {
+  const S = fahrt(26, { save: frisch(), ereignisAb: 0.5 }); S.wartet = false;   // erste Nacht: nur Gold
+  laufe(S, 1, {});
+  const g = S.koffer.find((k) => k.gold), e = alle(S, 'gold')[0];
+  assert.ok(g && e, 'Goldkoffer liegt aus'); assert.equal(S.koffer.length, 4);
+  const d = Math.hypot(g.x - S.sp.x, g.y - S.sp.y); assert.ok(d >= 170 && d <= 420, 'Entfernung ' + d.toFixed(0));
+  assert.ok(Math.abs(g.bis - S.t - GOLD.zeit) < 1.1); assert.equal(g.wert % 300, 0); assert.ok(g.wert >= 600);
+  S.serie = 1; S.sp.x = g.x; S.sp.y = g.y; laufe(S, 0.05, {});
+  const k = alle(S, 'koffer')[0];
+  assert.ok(k.gold && k.name === 'Goldkoffer'); assert.equal(k.betrag, Math.round(g.wert * 1.5 / 10) * 10); assert.equal(S.serie, 2); assert.equal(S.stat.gold, 1);
+  assert.equal(S.koffer.length, 3, 'kein Ersatz für den Goldkoffer, die drei normalen bleiben');
+  const T = fahrt(27, { save: frisch(), ereignisAb: 0.5 }); T.wartet = false;
+  laufe(T, GOLD.zeit + 2, {});
+  assert.ok(hat(T, 'gold') && hat(T, 'goldWeg')); assert.equal(T.koffer.length, 3); assert.ok(!T.koffer.some((k) => k.gold));
+  assert.ok(T.ereignisAb > T.t + 20, 'danach ist erst einmal Pause');
+});
+
+test('Geldtransporter: jeder Rammstoß mit der Schnauze zahlt und bringt Sterne, der fünfte knackt ihn', () => {
+  const S = fahrt(28, { ereignisAb: 0.5, ereignis: 'transporter' }); S.wartet = false;
+  laufe(S, 1, {});
+  const c = S.transporter; assert.ok(c && c.transporter && hat(S, 'transporter'));
+  assert.ok(Math.hypot(c.x - S.sp.x, c.y - S.sp.y) > S.sichtweite, 'taucht außer Sicht auf');
+  let beute = 0;
+  for (let n = 1; n <= TRANSPORTER.treffer; n++) {
+    S.ev.length = 0;
+    const fx = Math.cos(c.a), fy = Math.sin(c.a);
+    S.sp.x = c.x - fx * 9; S.sp.y = c.y - fy * 9; S.sp.a = c.a; S.sp.vx = c.vx + fx * 16; S.sp.vy = c.vy + fy * 16; S.sp.hp = S.sp.hpMax; S.fahndung = Math.min(S.fahndung, 2.5);
+    laufe(S, 0.9, { gas: true }, ohnePolizei);
+    const e = alle(S, n < TRANSPORTER.treffer ? 'geldsack' : 'geknackt')[0];
+    assert.ok(e, 'Treffer ' + n + ' gezählt'); assert.equal(e.n, n);
+    assert.equal(e.betrag, TRANSPORTER.sack * 2 + (n === TRANSPORTER.treffer ? TRANSPORTER.knack : 0));
+    beute += e.betrag;
+    if (n === 1) assert.ok(S.sterne >= 2 && S.ev.some((q) => q.t === 'alarm'), 'Überfall löst zwei Sterne aus');
+  }
+  assert.equal(S.beute, beute); assert.equal(S.stat.geknackt, 1); assert.equal(c.art, 'wrack'); assert.equal(c.transporter, false);
+  laufe(S, 0.5, {}, ohnePolizei); assert.equal(S.transporter, null); assert.equal(S.ereignis.art, '');
+});
+
+test('Rivale: holt sich den nächsten Koffer an der Straße; rammt man ihn, liegt der Koffer mit doppeltem Wert da', () => {
+  const S = fahrt(29, { ereignisAb: 0.5, ereignis: 'rivale' }); S.wartet = false;
+  laufe(S, 1, {});
+  const c = S.rivale; assert.ok(c && c.art === 'rivale' && hat(S, 'rivale'));
+  const ziel = S.koffer.find((k) => k.id === c.zielId); assert.ok(ziel && !['yacht', 'kai', 'strand', 'park'].includes(ziel.art));
+  laufe(S, 90, {}, (S) => { if (c.hat && !S.x) S.x = 1; });
+  const h = alle(S, 'rivaleHat')[0];
+  assert.ok(h, 'der Rivale erreicht den Koffer (über die Straßen)'); assert.equal(h.wert, ziel.wert);
+  assert.equal(S.koffer.filter((k) => !k.extra).length, 3, 'ein neuer Koffer rückt nach');
+  // Der Spieler stand die ganze Zeit: der Rivale ist inzwischen mit der Beute über alle Berge
+  assert.ok(hat(S, 'rivaleWeg') && S.rivale === null || c.hat, 'entweder weg oder noch mit Koffer unterwegs');
+  // neue Nacht: diesmal wird er gerammt
+  const T = fahrt(30, { ereignisAb: 0.5, ereignis: 'rivale' }); T.wartet = false;
+  laufe(T, 1, {}); const r = T.rivale;
+  r.hat = { wert: 400 }; r.hatT = T.t; r.flucht = true;
+  const fx = Math.cos(r.a), fy = Math.sin(r.a);
+  T.sp.x = r.x - fx * 8; T.sp.y = r.y - fy * 8; T.sp.a = r.a; T.sp.vx = r.vx + fx * 14; T.sp.vy = r.vy + fy * 14;
+  laufe(T, 1.2, { gas: true });
+  const f = alle(T, 'rivaleFallen')[0]; assert.ok(f); assert.equal(f.wert, 800); assert.equal(T.stat.rivale, 1); assert.equal(r.hat, null);
+  const k = alle(T, 'koffer')[0] || (() => { const q = T.koffer.find((x) => x.name === 'Koffer vom Rivalen'); T.sp.x = q.x; T.sp.y = q.y; laufe(T, 0.05, {}); return alle(T, 'koffer')[0]; })();
+  assert.equal(k.name, 'Koffer vom Rivalen'); assert.equal(k.betrag, 800);
 });

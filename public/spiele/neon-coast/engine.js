@@ -2,7 +2,7 @@
 // Feste Schritte von 1/60 s. Einheiten: Meter und Sekunden. Winkel a: 0 = Osten, π/2 = Süden (y zeigt nach unten).
 // Alle Autos sind Körper mit derselben Fahrphysik; sie unterscheiden sich nur darin, wer lenkt:
 // der Spieler, die Polizei (jagt über ein Wegefeld zum Spieler), der Verkehr (folgt den Fahrspuren) oder niemand (geparkt, Wrack).
-import { baueWelt, bodenBei, sichtFrei, BODEN, Z, NX, NY, BREITE, HOEHE, rng } from './welt.js';
+import { baueWelt, bodenBei, sichtFrei, BODEN, Z, NX, NY, BREITE, HOEHE, rng, KOFFER } from './welt.js';
 import { FAHRZEUG, autoVon, aktiveAuftraege } from './daten.js';
 
 export const DT = 1 / 60;
@@ -132,8 +132,9 @@ export function neueFahrt(save, seed = 1, opt = {}) {
   const W = baueWelt(), A = autoVon(save.auto);
   const S = {
     W, r: rng(seed), seed, t: 0, n: 0, nid: 1, auto: A, sp: null, autos: [], koffer: [], beute: 0, sicher: 0, serie: 0, fahndung: 0, sterne: 0,
-    gesehen: false, sucht: 0, letzte: { x: 0, y: 0 }, suchT: 0, peil: 0, peilT: 0, torT: -9, haft: 0, nitro: opt.nitro ?? 0.35, nitroT: 0, lack: 0,
-    stat: { koffer: 0, sicher: 0, entkommen: 0, entkommenSterne: 0, dinge: 0, nitro: 0, serie: 0, schrott: 0, haarscharf: 0, werkstatt: 0, drift: 0, pier: 0, maxSterne: 0, versenkt: 0, dauer: 0 },
+    gesehen: false, sucht: 0, letzte: { x: 0, y: 0 }, suchT: 0, peil: 0, peilT: 0, torT: -9, haft: 0,
+    sperren: [], deko: [], sperreT: 0, platt: 0, heli: null, heliAb: 0, ereignis: { art: '', bis: 0 }, ereignisAb: 0, ereignisLetztes: '', transporter: null, rivale: null, nitro: opt.nitro ?? 0.35, nitroT: 0, lack: 0,
+    stat: { koffer: 0, sicher: 0, entkommen: 0, entkommenSterne: 0, dinge: 0, nitro: 0, serie: 0, schrott: 0, haarscharf: 0, werkstatt: 0, drift: 0, pier: 0, maxSterne: 0, versenkt: 0, dauer: 0, gold: 0, geknackt: 0, rivale: 0, sperren: 0 },
     auftraege: aktiveAuftraege(save), erledigt: [], ev: [], ende: null, pause: 0, pauseOrt: null, ort: null, wartet: true,
     weg: new Uint8Array(W.weich.length), feld: neuesFeld(), feldT: -9, spawnT: 0, res: new Array(W.knoten.length).fill(null),
     sichtweite: opt.sichtweite || 78, verkehr: opt.verkehr ?? VERKEHR_MAX, zu: new Map(), driftT: 0, erste: !save.stat || !save.stat.naechte
@@ -149,6 +150,7 @@ export function neueFahrt(save, seed = 1, opt = {}) {
     if (best) S.koffer.push({ id: best.id, x: best.x, y: best.y, art: best.art, wert: best.wert });
   }
   while (S.koffer.length < 3) kofferNeu(S);
+  S.ereignisAb = opt.ereignisAb ?? 30 + S.r() * 12; S.ereignisNur = opt.ereignis || '';
   for (let n = 0; n < 400 && zaehle(S, 'verkehr') < S.verkehr; n++) verkehrNeu(S, 30);
   return S;
 }
@@ -235,7 +237,10 @@ function schade(S, c, d) {
       ev(S, 'schrott', { x: c.x, y: c.y, bonus });
     }
     c.modus = 'wrack'; c.wrackT = S.t;
-  } else if (c.art === 'verkehr') { c.art = 'wrack'; c.warn = true; c.wrackT = S.t; }
+  } else if (c.art === 'verkehr' || c.art === 'rivale') {
+    if (c.art === 'rivale' && c.hat) rivaleFallen(S, c);
+    c.art = 'wrack'; c.warn = true; c.wrackT = S.t; c.transporter = false;
+  }
 }
 
 // Stoß gegen etwas Festes: Kreis k (−1 hinten, 0 Mitte, 1 vorn) des Autos dringt um "tief" ein, n zeigt vom Hindernis weg
@@ -349,7 +354,11 @@ function paar(S, A, B) {
     if (stark > 2) ev(S, 'krach', { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2, s: stark, mit: o.bild.startsWith('polizei') ? 'polizei' : 'auto' });
     if (o.bild.startsWith('polizei') && stark > 3.5 && !S.ende) {   // Polizeiwagen gerammt
       if (S.sterne === 0) alarm(S, 1, 'Streifenwagen gerammt'); else if ((A === sp ? bi : bj) === 1) S.fahndung = Math.min(5.99, S.fahndung + 0.1);   // nur wer selbst rammt
-      if (o.modus === 'streife') { o.modus = 'jagd'; o.art = 'polizei'; }
+      if (o.modus === 'streife' || o.modus === 'sperre') { o.modus = 'jagd'; o.hand = false; }
+    } else if (o.transporter && !S.ende) {   // Geldtransporter: jeder Rammstoß mit der Schnauze schüttelt Geld heraus
+      if (stark > 5 && (A === sp ? bi : bj) === 1 && S.t - o.sackT > 0.7) transporterTreffer(S, o);
+    } else if (o.art === 'rivale' && !S.ende) {
+      if (o.hat && stark > 4.5) rivaleFallen(S, o);
     } else if (stark > 7 && S.sterne === 0 && !S.ende) {   // Unfall vor den Augen einer Streife
       for (const z of S.autos) if (z.art === 'polizei' && z.modus === 'streife' && z.hp > 0 && Math.abs(z.x - sp.x) + Math.abs(z.y - sp.y) < 45 && sichtFrei(S.W, z.x, z.y, sp.x, sp.y)) { alarm(S, 1, 'Unfall vor einer Streife'); z.modus = 'jagd'; break; }
     }
@@ -456,8 +465,13 @@ function naechsteKante(S, c) {   // nächstgelegene Spur in Fahrtrichtung
   }
   c.k = best; c.spur = bs; c.nk = null; c.abbiegen = 0; c.von = -1; c.tempo = c.tempo || 9;
 }
-function waehle(S, k) {
+function waehle(S, k, c) {
   const W = S.W, raus = W.knoten[k.b].raus;
+  if (c && c.art === 'rivale') {   // die Kante, deren Ende dem Ziel am nächsten liegt (im Straßenraster führt das hin)
+    let best = raus[0], bd = INF;
+    for (const e of raus) { const n = W.kanten[e]; if (n.b === k.a && raus.length > 1) continue; const q = W.knoten[n.b], d = Math.abs(q.x - c.tx) + Math.abs(q.y - c.ty); if (d < bd) { bd = d; best = e; } }
+    return best;
+  }
   let wahl = -1, sum = 0;
   for (const e of raus) {
     const n = W.kanten[e]; if (n.b === k.a) continue;
@@ -471,14 +485,14 @@ function verkehrLenken(S, c) {
   if (c.k < 0 || c.k == null) naechsteKante(S, c);
   let k = W.kanten[c.k], s = (c.x - k.x0) * k.dx + (c.y - k.y0) * k.dy;
   const fx = Math.cos(c.a), fy = Math.sin(c.a), v = c.vx * fx + c.vy * fy;
-  if (s > k.len - 12 && c.nk == null) c.nk = waehle(S, k);
+  if (s > k.len - 12 && c.nk == null) c.nk = waehle(S, k, c);
   let vz = c.tempo;
   if (s > k.len - 0.5) {   // Kreuzung erreicht
     const n = W.kanten[c.nk]; c.von = k.b;
     c.abbiegen = k.dx * n.dy - k.dy * n.dx;   // > 0 rechts, < 0 links
     c.k = c.nk; c.nk = null; c.spur = n.spuren[Math.floor(S.r() * n.spuren.length)];
     k = n; s = (c.x - k.x0) * k.dx + (c.y - k.y0) * k.dy;
-  } else if (s > k.len - 10) {   // vor der Kreuzung: nur einer zurzeit
+  } else if (s > k.len - 10 && c.art !== 'rivale') {   // vor der Kreuzung: nur einer zurzeit
     const res = S.res[k.b];
     if (res && res.c !== c && !res.c.weg && res.c.art !== 'wrack' && S.t - res.t < 7) vz = Math.min(vz, clamp((k.len - 1.5 - s) * 1.5, 0, vz));
     else if (!res || res.c !== c) S.res[k.b] = { c, t: S.t };
@@ -520,6 +534,217 @@ function verkehrNeu(S, nah) {
   return true;
 }
 
+// ---------------------------------------------------------------- Polizei-Taktik: Straßensperre, Nagelband, Hubschrauber
+export const SPERRE_TAKT = [0, 0, 0, 20, 15, 11];                      // Sekunden bis zur nächsten Sperre je Sternzahl (plus bis zu 6)
+export const PLATT = { dauer: 7, tempo: 0.62, halt: 0.62 };            // platte Reifen nach einem Nagelband
+export const HELI = { da: 24, tankt: 16, tempo: 27, licht: 24, kreis: 6.5, arm: 34 };   // Suchscheinwerfer folgt mit 24 m/s
+function reifenHeil(S) { S.platt = 0; S.sp.vmax = S.auto.vmax; S.sp.grip = S.auto.grip; }
+function kanteBei(W, x, y, fx, fy) {   // die Straße, auf der jemand in diese Richtung fährt
+  let best = 0, bd = INF;
+  for (let i = 0; i < W.kanten.length; i++) {
+    const k = W.kanten[i], s = clamp((x - k.x0) * k.dx + (y - k.y0) * k.dy, 0, k.len);
+    const d = Math.hypot(k.x0 + k.dx * s - x, k.y0 + k.dy * s - y) + (1 - (fx * k.dx + fy * k.dy)) * 14;
+    if (d < bd) { bd = d; best = i; }
+  }
+  return best;
+}
+// Sperre voraus: auf der Straße des Spielers geradeaus weiter, bis die Stelle außer Sicht liegt
+function sperreNeu(S) {
+  const W = S.W, sp = S.sp, v = Math.hypot(sp.vx, sp.vy);
+  if (v < 8) return false;
+  let k = W.kanten[kanteBei(W, sp.x, sp.y, sp.vx / v, sp.vy / v)];
+  if (Math.abs((sp.x - k.x0) * k.nx + (sp.y - k.y0) * k.ny) > k.breite / 2 + 6 || k.dx * sp.vx + k.dy * sp.vy < v * 0.7) return false;
+  for (let n = 0; n < 4; n++) {
+    const mx = k.x0 + k.dx * k.len * 0.5, my = k.y0 + k.dy * k.len * 0.5, d = Math.hypot(mx - sp.x, my - sp.y);
+    if (d > S.sichtweite + 8 && k.len > 30) return d < S.sichtweite + 130 && sperreBauen(S, k, mx, my);
+    let nk = null; for (const e of W.knoten[k.b].raus) { const q = W.kanten[e]; if (q.dx === k.dx && q.dy === k.dy) nk = q; }
+    if (!nk) return false;
+    k = nk;
+  }
+  return false;
+}
+function sperreBauen(S, k, mx, my) {
+  const P = POLIZEI[Math.max(1, S.sterne)], nagel = S.sterne >= 4 && S.r() < 0.45, seite = S.r() < 0.5 ? 1 : -1;
+  const quer = Math.atan2(k.ny, k.nx), laengs = Math.atan2(k.dy, k.dx), h = k.breite / 2;
+  const s = { x: mx, y: my, t: S.t, art: nagel ? 'nagel' : 'wagen', autos: [], nagel: null, nah: false };
+  const wagen = (o, vor, a) => {
+    const x = mx + k.nx * o + k.dx * vor, y = my + k.ny * o + k.dy * vor; if (!frei(S, x, y, 5)) return;
+    const suv = S.r() < P.suv;
+    const c = koerper(S, suv ? 'polizei-suv' : 'polizei', x, y, a, { art: 'polizei', modus: 'sperre', hp: suv ? 95 : 60, hand: true, k: -1, steht: 0, zurueck: 0, zurLenk: 0, klemm: 0, rolle: 0, dist: 99, blau: true, suv });
+    S.autos.push(c); s.autos.push(c);
+  };
+  if (nagel) {   // Band quer über die Fahrbahn, an einer Seite bleiben 3,4 m frei; der Streifenwagen steht am Gehweg
+    s.nagel = { x0: mx - k.nx * h * seite, y0: my - k.ny * h * seite, x1: mx + k.nx * (h - 3.4) * seite, y1: my + k.ny * (h - 3.4) * seite, benutzt: false };
+    wagen(-(h + 2.1) * seite, 4, laengs);
+  } else {       // Wagen quer auf der Fahrbahn; vorbei geht es nur über den Gehweg oder mitten durch
+    for (const o of k.breite > 14 ? [-5.6, 0, 5.6] : [-2.9, 2.9]) wagen(o, 0, quer + (S.r() < 0.5 ? Math.PI : 0));
+    if (!s.autos.length) return false;
+    for (const o of [-(h + 2), h + 2]) S.deko.push({ bild: 'absperrung', x: mx + k.nx * o, y: my + k.ny * o, rot: quer, g: 2.6, r: 0.9 });
+  }
+  S.sperren.push(s);
+  ev(S, 'sperre', { x: mx, y: my, art: s.art });
+  return true;
+}
+function sperrenPflegen(S) {
+  const sp = S.sp;
+  for (let i = S.sperren.length - 1; i >= 0; i--) {
+    const s = S.sperren[i], d = Math.hypot(s.x - sp.x, s.y - sp.y);
+    if (d < 16) s.nah = true;
+    const durch = s.nah && d > 26, geweckt = s.autos.some((c) => c.modus !== 'sperre');
+    if (!durch && !geweckt && S.sterne > 0 && S.t - s.t < 35 && d < S.sichtweite + 160) continue;
+    for (const c of s.autos) if (c.modus === 'sperre') { c.modus = S.sterne > 0 ? 'jagd' : 'streife'; c.hand = false; c.k = -1; }
+    if (s.nah && S.sterne > 0) {   // der Spieler ist durch: kleiner Bonus, doppelt, wenn nichts berührt wurde
+      const sauber = s.art === 'nagel' ? !s.nagel.benutzt : !geweckt, bonus = 100 * S.sterne * (sauber ? 2 : 1);
+      S.stat.sperren++; S.beute += bonus; ev(S, 'durchbruch', { art: s.art, sauber, bonus });
+    }
+    S.sperren.splice(i, 1);
+  }
+  for (let i = S.deko.length - 1; i >= 0; i--) if (Math.abs(S.deko[i].x - sp.x) + Math.abs(S.deko[i].y - sp.y) > S.sichtweite + 120) S.deko.splice(i, 1);
+}
+// Hubschrauber bei 5 Sternen: sein Suchscheinwerfer hält den Sichtkontakt, auch hinter Häusern. Er folgt mit 24 m/s
+// (schnelle Autos und Nitro hängen ihn ab) und muss nach 24 s für 16 s tanken.
+function heliSchritt(S) {
+  const sp = S.sp; let h = S.heli;
+  if (!h) {
+    if (S.sterne < 5) { S.heliAb = 0; return; }
+    if (!S.heliAb) S.heliAb = S.t + 4;
+    if (S.t < S.heliAb) return;
+    h = S.heli = { x: sp.x - 150, y: sp.y - 110, vx: 0, vy: 0, lx: sp.x - 150, ly: sp.y - 110, a: 0, phase: 'an', t: HELI.da, licht: false };
+    ev(S, 'heli', { an: true });
+  }
+  if (h.phase === 'an') {
+    if (S.sterne < 5) { h.phase = 'ab'; ev(S, 'heli', { an: false, grund: 'ab' }); }
+    else if ((h.t -= DT) <= 0) { h.phase = 'tankt'; h.t = HELI.tankt; ev(S, 'heli', { an: false, grund: 'tankt' }); }
+  } else if (h.phase === 'tankt') {
+    if (S.sterne < 5) h.phase = 'ab';
+    else if ((h.t -= DT) <= 0) { h.phase = 'an'; h.t = HELI.da; ev(S, 'heli', { an: true }); }
+  }
+  const an = h.phase === 'an';
+  const zx = an ? sp.x + Math.cos(S.t * 0.5) * 9 : sp.x - 300, zy = an ? sp.y + Math.sin(S.t * 0.5) * 9 - 4 : sp.y - 240;
+  const dx = zx - h.x, dy = zy - h.y, d = Math.hypot(dx, dy) || 1, vz = Math.min(HELI.tempo, d * 1.2);
+  h.vx += clamp(dx / d * vz - h.vx, -16 * DT, 16 * DT); h.vy += clamp(dy / d * vz - h.vy, -16 * DT, 16 * DT);
+  h.x += h.vx * DT; h.y += h.vy * DT;
+  if (h.vx * h.vx + h.vy * h.vy > 4) h.a += wrap(Math.atan2(h.vy, h.vx) - h.a) * Math.min(1, 3 * DT);
+  if (!an) { h.lx = h.x; h.ly = h.y; h.licht = false; if (h.phase === 'ab' && Math.hypot(h.x - sp.x, h.y - sp.y) > 230) S.heli = null; return; }
+  const ex = sp.x - h.lx, ey = sp.y - h.ly, e = Math.hypot(ex, ey), weit = Math.min(e, HELI.licht * DT);
+  if (e > 0) { h.lx += ex / e * weit; h.ly += ey / e * weit; }
+  const qx = h.lx - h.x, qy = h.ly - h.y, q = Math.hypot(qx, qy);
+  if (q > HELI.arm) { h.lx = h.x + qx / q * HELI.arm; h.ly = h.y + qy / q * HELI.arm; }
+  h.licht = Math.hypot(sp.x - h.lx, sp.y - h.ly) < HELI.kreis;
+}
+
+// ---------------------------------------------------------------- Besondere Ziele: Goldkoffer, Geldtransporter, Rivale (immer nur eines)
+export const GOLD = { zeit: 60, faktor: 3 };
+function ereignisEnde(S) { S.ereignis.art = ''; S.ereignisAb = S.t + 28 + S.r() * 24; }
+function ereignisse(S) {
+  const E = S.ereignis;
+  if (E.art === 'gold') {
+    const k = S.koffer.find((q) => q.gold);
+    if (!k) ereignisEnde(S);
+    else if (S.t > k.bis) { S.koffer.splice(S.koffer.indexOf(k), 1); ev(S, 'goldWeg', {}); ereignisEnde(S); }
+  } else if (E.art === 'transporter') {
+    const c = S.transporter;
+    if (!c || c.weg || !c.transporter) { S.transporter = null; ereignisEnde(S); }
+    else if (S.t > E.bis && Math.hypot(c.x - S.sp.x, c.y - S.sp.y) > 40) { c.transporter = false; S.transporter = null; ev(S, 'transporterWeg', {}); ereignisEnde(S); }
+  } else if (E.art === 'rivale') {
+    const c = S.rivale;
+    if (!c || c.weg || c.art !== 'rivale') { S.rivale = null; ereignisEnde(S); }
+  } else if (S.t >= S.ereignisAb) {
+    const wahl = (S.erste ? ['gold'] : ['gold', 'transporter', 'rivale']).filter((a) => a !== S.ereignisLetztes);
+    const art = S.ereignisNur || wahl[Math.floor(S.r() * wahl.length)] || 'gold';   // erste Nacht: nur Goldkoffer
+    if (art === 'gold' ? goldNeu(S) : art === 'transporter' ? transporterNeu(S) : rivaleNeu(S)) { E.art = art; E.bis = S.t + 75; S.ereignisLetztes = art; }
+    else S.ereignisAb = S.t + 2;
+  }
+}
+function goldNeu(S) {
+  const W = S.W, sp = S.sp;
+  for (let n = 0; n < 30; n++) {
+    const q = W.koffer[Math.floor(S.r() * W.koffer.length)], d = Math.hypot(q.x - sp.x, q.y - sp.y);
+    if (d < 170 || d > 420 || S.koffer.some((k) => k.id === q.id)) continue;
+    S.koffer.push({ id: q.id, x: q.x, y: q.y, art: q.art, wert: q.wert * GOLD.faktor, gold: true, extra: true, bis: S.t + GOLD.zeit, name: 'Goldkoffer' });
+    ev(S, 'gold', { x: q.x, y: q.y, wert: q.wert * GOLD.faktor, wo: KOFFER[q.art].name });
+    return true;
+  }
+  return false;
+}
+function strassenPunkt(S, von, bis) {   // freie Stelle auf einer Fahrspur in diesem Abstand zum Spieler
+  const W = S.W, sp = S.sp;
+  for (let n = 0; n < 24; n++) {
+    const ki = Math.floor(S.r() * W.kanten.length), k = W.kanten[ki], s = 6 + S.r() * (k.len - 14), o = k.spuren[0];
+    const x = k.x0 + k.dx * s + k.nx * o, y = k.y0 + k.dy * s + k.ny * o, d = Math.hypot(x - sp.x, y - sp.y);
+    if (d >= von && d <= bis && frei(S, x, y, 10)) return { x, y, ki, k, o };
+  }
+  return null;
+}
+function transporterNeu(S) {
+  const p = strassenPunkt(S, S.sichtweite + 10, S.sichtweite + 110); if (!p) return false;
+  const c = koerper(S, 'auto-van', p.x, p.y, Math.atan2(p.k.dy, p.k.dx), { art: 'verkehr', k: p.ki, spur: p.o, nk: null, von: -1, abbiegen: 0, vmax: 15, acc: 5, grip: 19, hp: 150, tempo: 9, nahT: 0, nahAus: 0, transporter: true, saecke: 0, sackT: -9 });
+  c.masse = 2.6; c.traeg = c.masse * (c.l * c.l + c.b * c.b) / 12; c.vx = p.k.dx * 9; c.vy = p.k.dy * 9;
+  S.autos.push(c); S.transporter = c;
+  ev(S, 'transporter', {});
+  return true;
+}
+export const TRANSPORTER = { treffer: 5, sack: 300, knack: 1500 };
+function transporterTreffer(S, c) {
+  c.sackT = S.t; c.saecke++; c.tempo = 15; c.vmax = 18; c.acc = 8;   // er gibt Gas
+  if (S.sterne === 0) alarm(S, 2, 'Geldtransporter überfallen'); else S.fahndung = Math.min(5.99, S.fahndung + 0.3);
+  let betrag = TRANSPORTER.sack * Math.max(1, Math.floor(S.fahndung));
+  const knack = c.saecke >= TRANSPORTER.treffer;
+  if (knack) { betrag += TRANSPORTER.knack; c.transporter = false; c.art = 'wrack'; c.warn = true; c.wrackT = S.t; c.hand = true; c.gas = 0; S.stat.geknackt++; }
+  S.beute += betrag; S.nitro = Math.min(1, S.nitro + 0.15);
+  ev(S, knack ? 'geknackt' : 'geldsack', { x: c.x, y: c.y, betrag, n: c.saecke });
+}
+// Rivale: fährt über die Straßen zum nächsten Koffer und schnappt ihn weg. Rammt man ihn danach, lässt er ihn fallen (doppelter Wert).
+function rivaleZiel(S, c) {
+  let best = null, bd = INF;
+  for (const k of S.koffer) { if (k.extra || k.art === 'yacht' || k.art === 'kai' || k.art === 'strand' || k.art === 'park') continue; const d = Math.hypot(k.x - c.x, k.y - c.y); if (d < bd) { bd = d; best = k; } }
+  return best;
+}
+function rivaleNeu(S) {
+  const p = strassenPunkt(S, S.sichtweite + 10, S.sichtweite + 120); if (!p) return false;
+  const c = koerper(S, 'auto-muscle', p.x, p.y, Math.atan2(p.k.dy, p.k.dx), { art: 'rivale', k: p.ki, spur: p.o, nk: null, von: -1, abbiegen: 0, vmax: 19, acc: 9, grip: 22, hp: 70, tempo: 15.5, hat: null, flucht: false, tx: 0, ty: 0, zielId: 0, hatT: 0, steht: 0, zurueck: 0 });
+  const z = rivaleZiel(S, c); if (!z) return false;
+  c.zielId = z.id; c.tx = z.x; c.ty = z.y; c.vx = p.k.dx * 10; c.vy = p.k.dy * 10;
+  S.autos.push(c); S.rivale = c;
+  ev(S, 'rivale', { wo: KOFFER[z.art].name });
+  return true;
+}
+function rivaleFlieht(S, c) {
+  const W = S.W; let best = W.knoten[0], bd = -1;
+  for (let n = 0; n < 8; n++) { const q = W.knoten[Math.floor(S.r() * W.knoten.length)], d = Math.hypot(q.x - S.sp.x, q.y - S.sp.y); if (d > bd) { bd = d; best = q; } }
+  c.flucht = true; c.tx = best.x; c.ty = best.y; c.nk = null; c.tempo = 17; if (!c.hatT) c.hatT = S.t;
+}
+function rivaleFallen(S, c) {
+  const wert = c.hat.wert * 2; c.hat = null;
+  S.koffer.push({ id: -(S.nid++), x: c.x, y: c.y, art: 'laden', wert, extra: true, name: 'Koffer vom Rivalen' });
+  S.stat.rivale++;
+  ev(S, 'rivaleFallen', { x: c.x, y: c.y, wert });
+}
+function rivaleLenken(S, c) {
+  const sp = S.sp, W = S.W;
+  if (c.hp <= 0) return;
+  if (!c.flucht) {
+    let z = S.koffer.find((k) => k.id === c.zielId && !k.extra);
+    if (!z) { z = rivaleZiel(S, c); if (z) { c.zielId = z.id; c.tx = z.x; c.ty = z.y; c.nk = null; } else rivaleFlieht(S, c); }
+    else if (Math.hypot(z.x - c.x, z.y - c.y) < 4.2) {
+      S.koffer.splice(S.koffer.indexOf(z), 1); kofferNeu(S);
+      c.hat = { wert: z.wert }; c.hatT = S.t; rivaleFlieht(S, c);
+      ev(S, 'rivaleHat', { x: c.x, y: c.y, wert: z.wert });
+    }
+  } else {
+    const fern = Math.hypot(c.x - sp.x, c.y - sp.y) > S.sichtweite + 15;
+    if (fern && S.t - c.hatT > 12) { c.weg = true; ev(S, 'rivaleWeg', { mit: !!c.hat }); return; }
+    if (Math.hypot(c.tx - c.x, c.ty - c.y) < 14) rivaleFlieht(S, c);
+  }
+  const v = Math.hypot(c.vx, c.vy);
+  if (c.zurueck > 0) { c.zurueck -= DT; c.gas = 0; c.bremse = 1; c.hand = false; c.lenk = 0.6; return; }
+  if (v < 0.8) { c.steht += DT; if (c.steht > 2.5) { c.steht = 0; if (Math.hypot(c.x - sp.x, c.y - sp.y) > S.sichtweite + 5) { c.weg = true; return; } c.zurueck = 1; c.k = -1; } } else c.steht = 0;
+  if (Math.hypot(c.tx - c.x, c.ty - c.y) < 30 && wegFrei(W, c.x, c.y, c.tx, c.ty)) {   // das letzte Stück direkt
+    const ang = wrap(Math.atan2(c.ty - c.y, c.tx - c.x) - c.a);
+    c.lenk = clamp(ang * 2.4, -1, 1); c.bremse = 0; c.hand = Math.abs(ang) > 1.2 && v > 9; c.gas = v > 11 ? 0.2 : 1; c.k = -1;
+  } else verkehrLenken(S, c);
+}
+
 // ---------------------------------------------------------------- Orte: Versteck und Werkstatt
 // Einfahrt: das Feld vor dem Tor (Vorplatz, ragt 1,5 m in die Straße). Es zählt, sobald die Wagenmitte im Feld ist –
 // egal aus welcher Richtung und wie schnell. Die Fahrspur daneben bleibt frei, damit niemand im Vorbeifahren sichert.
@@ -555,7 +780,7 @@ function orte(S) {
     S.beute -= kosten; S.stat.werkstatt++; S.lack++; S.zu.set(drin, S.t + 60);
     ev(S, 'werkstatt', { kosten, sterne: S.sterne });
   }
-  S.fahndung = 0; S.sterne = 0; S.sucht = 0; S.haft = 0; S.peil = 0; S.gesehen = false; sp.hp = sp.hpMax;
+  S.fahndung = 0; S.sterne = 0; S.sucht = 0; S.haft = 0; S.peil = 0; S.gesehen = false; sp.hp = sp.hpMax; reifenHeil(S);
   abziehen(S);
   S.pause = 1.6; S.pauseOrt = { v: drin, typ };
   sp.vx = sp.vy = sp.w = 0; sp.lenk = 0;
@@ -602,8 +827,9 @@ export function schritt(S, e) {
   // --- Fahrer
   for (let i = 1; i < autos.length; i++) {
     const c = autos[i];
-    if (c.art === 'polizei') { if (c.modus === 'jagd') polizeiLenken(S, c); else if (c.modus === 'streife' && c.hp > 0) { c.vmax = 15; c.acc = 6; c.grip = 20; c.tempo = 9.5; verkehrLenken(S, c); } else { c.gas = 0; c.bremse = 0; c.hand = true; } }
+    if (c.art === 'polizei') { if (c.modus === 'jagd') polizeiLenken(S, c); else if (c.modus === 'streife' && c.hp > 0) { c.blau = false; c.vmax = 15; c.acc = 6; c.grip = 20; c.tempo = 9.5; verkehrLenken(S, c); } else { c.gas = 0; c.bremse = 0; c.hand = true; c.blau = c.modus === 'sperre'; } }
     else if (c.art === 'verkehr') verkehrLenken(S, c);
+    else if (c.art === 'rivale') rivaleLenken(S, c);
   }
   // --- Bewegung und Stöße
   for (let i = 0; i < autos.length; i++) { const c = autos[i]; if (!c.ruht) fahre(S, c); }
@@ -637,6 +863,7 @@ export function schritt(S, e) {
         else ges = true;
       }
     }
+    if (S.heli && S.heli.licht) ges = true;   // im Suchscheinwerfer hilft kein Haus
     if (S.sterne > 0) {
       if (ges && !S.gesehen && S.sucht > 1.5) ev(S, 'entdeckt', {});
       S.gesehen = ges;
@@ -694,16 +921,40 @@ export function schritt(S, e) {
     S.serie++; S.stat.koffer++; if (S.serie > S.stat.serie) S.stat.serie = S.serie;
     if (k.art === 'yacht' || k.art === 'kai') S.stat.pier++;
     const m = multi(S.serie), betrag = Math.round(k.wert * m / 10) * 10;
-    S.beute += betrag;
+    S.beute += betrag; if (k.gold) S.stat.gold++;
     const grund = Math.min(4.2, 1 + 0.5 * (S.serie - 1) + 0.25 * Math.floor(S.stat.koffer / 3));
     const vorher = S.sterne;
     S.fahndung = Math.min(5.99, Math.max(S.fahndung + 0.6, grund));
     S.peil = PEILZEIT; S.peilT = S.t;
     if (vorher === 0) { S.sucht = 0; S.letzte.x = k.x; S.letzte.y = k.y; S.suchT = S.t; S.spawnT = POLIZEI[Math.floor(S.fahndung)].takt - 1.5; S.feldT = -9; }
-    ev(S, 'koffer', { x: k.x, y: k.y, betrag, m, art: k.art, serie: S.serie });
-    kofferNeu(S);
+    ev(S, 'koffer', { x: k.x, y: k.y, betrag, m, art: k.art, serie: S.serie, gold: !!k.gold, name: k.name || KOFFER[k.art].name });
+    if (!k.extra) kofferNeu(S);
   }
   orte(S);
+  if (S.ende) return;
+
+  // --- Polizei-Taktik und besondere Ziele
+  heliSchritt(S);
+  for (const q of S.sperren) {   // Nagelband: wer drüberfährt, hat platte Reifen
+    const n = q.nagel; if (!n || n.benutzt) continue;
+    const ux = n.x1 - n.x0, uy = n.y1 - n.y0, t = clamp(((sp.x - n.x0) * ux + (sp.y - n.y0) * uy) / (ux * ux + uy * uy), 0, 1);
+    if (Math.hypot(sp.x - n.x0 - ux * t, sp.y - n.y0 - uy * t) < 1) { n.benutzt = true; if (S.platt <= 0) { sp.vmax *= PLATT.tempo; sp.grip *= PLATT.halt; } S.platt = PLATT.dauer; ev(S, 'platt', { x: sp.x, y: sp.y }); }
+  }
+  if (S.platt > 0) { S.platt -= DT; if (S.platt <= 0) { reifenHeil(S); ev(S, 'plattEnde', {}); } }
+  for (let i = S.deko.length - 1; i >= 0; i--) {   // Absperrgitter fliegen weg
+    const q = S.deko[i];
+    for (const c of autos) {
+      if (c.ruht || Math.abs(c.x - q.x) > 4 || Math.abs(c.y - q.y) > 4 || c.vx * c.vx + c.vy * c.vy < 9) continue;
+      let hit = false; for (let k = -1; k <= 1 && !hit; k++) hit = Math.hypot(c.x + Math.cos(c.a) * c.hl * k - q.x, c.y + Math.sin(c.a) * c.hl * k - q.y) < c.r + q.r;
+      if (!hit) continue;
+      c.vx *= 0.96; c.vy *= 0.96; ev(S, 'deko', { bild: q.bild, x: q.x, y: q.y, rot: q.rot, g: q.g, vx: c.vx, vy: c.vy, eigen: c === sp });
+      S.deko.splice(i, 1); break;
+    }
+  }
+  if (S.n % 15 === 7) {
+    sperrenPflegen(S); ereignisse(S);
+    if (S.sterne >= 3 && (S.gesehen || S.peil > 0) && S.t >= S.sperreT && S.sperren.length < (S.sterne >= 5 ? 2 : 1)) S.sperreT = S.t + (sperreNeu(S) ? SPERRE_TAKT[S.sterne] + S.r() * 6 : 1.5);
+  }
 
   // --- Nachschub
   if (S.sterne > 0) {
@@ -719,9 +970,10 @@ export function schritt(S, e) {
     for (let i = 1; i < autos.length; i++) {
       const c = autos[i]; if (c.art === 'parker') continue;
       const d = Math.abs(c.x - sp.x) + Math.abs(c.y - sp.y);
-      if (c.art === 'verkehr') { nv++; if (d > R + 150) { c.weg = true; raus = true; } }
+      if (c.art === 'verkehr') { nv++; if (d > R + 150 && !c.transporter) { c.weg = true; raus = true; } }
       else if (c.art === 'wrack') { if (d > R + 70) { c.weg = true; raus = true; } }
       else if (c.art === 'polizei') {
+        if (c.modus === 'sperre') continue;
         if (c.modus === 'wrack' ? d > R + 60 && S.t - c.wrackT > 12 : c.modus === 'streife' ? d > R + 150 : d > R + 170 || (c.klemm >= 4 && d > R + 20)) { c.weg = true; raus = true; }
       }
     }

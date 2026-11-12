@@ -176,6 +176,11 @@ export function neuerZeichner(cv) {
     else if (e.t === 'schrott') { pops.push({ x: e.x, y: e.y, text: e.wasser ? 'VERSENKT' : 'SCHROTT', sub: '+' + e.bonus + ' $', col: '#FF5FA2', t: 0, life: 1.4, gr: 1 }); wackel = Math.max(wackel, 9); for (let i = 0; i < 12; i++) rauch(e.x, e.y, 'rgba(60,60,70,', 0.9, 1.6); funke(e.x, e.y, 16, 1.2); }
     else if (e.t === 'platsch') { for (let i = 0; i < 22 && parts.length < 420; i++) { const a = Math.random() * TAU, v = 2 + Math.random() * 7; parts.push({ typ: 0, x: e.x, y: e.y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, t: 0, life: 0.9 + Math.random() * 0.5, r: 0.5, col: 'rgba(220,245,255,' }); } parts.push({ typ: 2, x: e.x, y: e.y, vx: 0, vy: 0, t: 0, life: 1.4, r: 1, col: 'rgba(230,250,255,' }); if (e.eigen) wackel = 12; }
     else if (e.t === 'nitro') wackel = Math.max(wackel, 6);
+    else if (e.t === 'deko') { if (truemmer.length > 90) truemmer.shift(); truemmer.push({ bild: e.bild, x: e.x, y: e.y, g: e.g, rot: e.rot, vx: e.vx * 0.9, vy: e.vy * 0.9, vr: (Math.random() - 0.5) * 12, t: 0 }); if (e.eigen) wackel = Math.max(wackel, 4); }
+    else if (e.t === 'geldsack' || e.t === 'geknackt') { pops.push({ x: e.x, y: e.y, text: e.t === 'geknackt' ? 'GEKNACKT' : 'TREFFER ' + e.n + '/5', sub: '+' + e.betrag.toLocaleString('de-DE') + ' $', col: '#3DF08A', t: 0, life: 1.4, gr: e.t === 'geknackt' ? 1.25 : 1 }); funke(e.x, e.y, 14, 1.1); wackel = Math.max(wackel, e.t === 'geknackt' ? 12 : 7); for (let i = 0; i < 6; i++) rauch(e.x, e.y, 'rgba(120,230,150,', 0.4, 0.9); }
+    else if (e.t === 'platt') { pops.push({ x: e.x, y: e.y, text: 'REIFEN PLATT', sub: '', col: '#FF4A5E', t: 0, life: 1.3, gr: 1 }); funke(e.x, e.y, 16, 0.9); wackel = Math.max(wackel, 8); }
+    else if (e.t === 'rivaleHat') pops.push({ x: e.x, y: e.y, text: 'GESCHNAPPT', sub: '', col: '#B48CFF', t: 0, life: 1.3, gr: 1 });
+    else if (e.t === 'rivaleFallen') { pops.push({ x: e.x, y: e.y, text: 'FALLEN GELASSEN', sub: e.wert.toLocaleString('de-DE') + ' $', col: '#B48CFF', t: 0, life: 1.4, gr: 1 }); funke(e.x, e.y, 12, 1); }
   }
 
   // ---------- Fußgänger (nur Stimmung: laufen auf den Gehwegen und springen vor Autos zur Seite)
@@ -290,8 +295,26 @@ export function neuerZeichner(cv) {
         for (let i = 0; i < 3; i++) { const u = tief + EINFAHRT_VOR + 3.4 - i * 2 - ((uhr * 2.5) % 2); if (u < tief + EINFAHRT_VOR - 0.4) continue; X.globalAlpha = 0.85; X.beginPath(); X.moveTo(u + 1.1, -2.2); X.lineTo(u, 0); X.lineTo(u + 1.1, 2.2); X.stroke(); }
         X.restore(); X.globalAlpha = 1; X.lineCap = 'butt';
       }
-      // Koffer: Lichtkreis am Boden
-      for (const k of S.koffer) { if (!sichtbar(k.x, k.y, 6)) continue; const p = 0.5 + 0.5 * Math.sin(uhr * 5 + k.id); X.strokeStyle = `rgba(255,210,28,${0.5 + 0.4 * p})`; X.lineWidth = 0.35; X.beginPath(); X.arc(k.x, k.y, 2.2 + p * 0.9, 0, TAU); X.stroke(); X.fillStyle = 'rgba(255,210,28,.16)'; X.fill(); }
+      // Koffer: Lichtkreis am Boden (Goldkoffer größer, mit Strahlen)
+      for (const k of S.koffer) {
+        if (!sichtbar(k.x, k.y, 8)) continue;
+        const p = 0.5 + 0.5 * Math.sin(uhr * 5 + k.id), g = k.gold ? 1.6 : 1;
+        X.strokeStyle = `rgba(255,${k.gold ? 232 : 210},${k.gold ? 120 : 28},${0.5 + 0.4 * p})`; X.lineWidth = 0.35 * g; X.beginPath(); X.arc(k.x, k.y, (2.2 + p * 0.9) * g, 0, TAU); X.stroke(); X.fillStyle = 'rgba(255,210,28,.16)'; X.fill();
+        if (k.gold) { X.lineWidth = 0.25; for (let i = 0; i < 8; i++) { const a = uhr * 0.8 + i * TAU / 8; X.beginPath(); X.moveTo(k.x + Math.cos(a) * 4.6, k.y + Math.sin(a) * 4.6); X.lineTo(k.x + Math.cos(a) * 6.2, k.y + Math.sin(a) * 6.2); X.stroke(); } }
+      }
+      // Nagelbänder
+      for (const q of S.sperren) {
+        const n = q.nagel; if (!n || !sichtbar(q.x, q.y, 14)) continue;
+        X.globalAlpha = n.benutzt ? 0.35 : 1; X.lineCap = 'butt';
+        X.strokeStyle = '#15161d'; X.lineWidth = 0.8; X.setLineDash([]); X.beginPath(); X.moveTo(n.x0, n.y0); X.lineTo(n.x1, n.y1); X.stroke();
+        X.strokeStyle = '#d9dde8'; X.lineWidth = 0.5; X.setLineDash([0.14, 0.42]); X.beginPath(); X.moveTo(n.x0, n.y0); X.lineTo(n.x1, n.y1); X.stroke();
+        X.strokeStyle = 'rgba(255,74,94,.9)'; X.lineWidth = 0.12; X.setLineDash([0.6, 0.6]); X.beginPath(); X.moveTo(n.x0, n.y0); X.lineTo(n.x1, n.y1); X.stroke();
+        X.setLineDash([]); X.globalAlpha = 1;
+      }
+      // Absperrgitter der Straßensperren
+      for (const q of S.deko) { const im = IMG[q.bild]; if (!im || !sichtbar(q.x, q.y, 3)) continue; const k = q.g / im.naturalWidth; X.save(); X.translate(q.x, q.y); X.rotate(q.rot); X.drawImage(im, -q.g / 2, -im.naturalHeight * k / 2, q.g, im.naturalHeight * k); X.restore(); }
+      // Schatten des Hubschraubers
+      if (S.heli && sichtbar(S.heli.x + 7, S.heli.y + 9, 8)) { const h = S.heli; X.save(); X.translate(h.x + 7, h.y + 9); X.rotate(h.a); X.fillStyle = 'rgba(0,0,0,.33)'; X.beginPath(); X.ellipse(0, 0, 4.2, 1.5, 0, 0, TAU); X.fill(); X.fillRect(-7.5, -0.35, 5, 0.7); X.beginPath(); X.arc(0, 0, 5.2, 0, TAU); X.fillStyle = 'rgba(0,0,0,.12)'; X.fill(); X.restore(); }
     }
 
     // --- Schatten der Gebäude, Dinge am Boden
@@ -328,6 +351,8 @@ export function neuerZeichner(cv) {
         const tot = c.hp <= 0 && c !== sp;
         let im = IMG[c.bild];
         if (tot) im = variante(c.bild, 'wrack'); else if (c === sp && LACK[S.lack % LACK.length]) im = variante(c.bild, 'lack', LACK[S.lack % LACK.length]);
+        else if (c.art === 'rivale') im = variante(c.bild, 'lack', '#A06BFF'); else if (c.transporter) im = variante(c.bild, 'lack', '#2E9B63');
+        if (c === sp && S.platt > 0 && Math.hypot(c.vx, c.vy) > 4 && Math.random() < 0.6) funke(x - Math.cos(a) * c.hl + (Math.random() - 0.5) * c.b, y - Math.sin(a) * c.hl + (Math.random() - 0.5) * c.b, 1, 0.5);
         if (!im) { X.save(); X.translate(x, y); X.rotate(a); X.fillStyle = c.bild.startsWith('polizei') ? '#223' : '#c44'; X.fillRect(-c.l / 2, -c.b / 2, c.l, c.b); X.restore(); continue; }
         const h = c.l * 1.04, w = h * (im.naturalWidth || im.width) / (im.naturalHeight || im.height);
         X.save(); X.translate(x, y); X.rotate(a + Math.PI / 2);
@@ -371,6 +396,7 @@ export function neuerZeichner(cv) {
     if (licht) nacht(S, al);
     leuchten(S);
     teilchen(0, true);
+    if (S && S.heli) hubschrauber(S.heli);
 
     // --- Bildschirm-Ebene: Koffer, Schilder, Zahlen, Wegweiser, Radar
     X.setTransform(dpr, 0, 0, dpr, 0, 0); X.globalCompositeOperation = 'source-over';
@@ -435,7 +461,8 @@ export function neuerZeichner(cv) {
       }
       pkt(S.sp.x, S.sp.y, 9, 'rgba(255,255,255,1)', 0.5);
       if (S.sp.nitro) pkt(S.sp.x - Math.cos(S.sp.a) * 3, S.sp.y - Math.sin(S.sp.a) * 3, 9, 'rgba(255,150,40,1)', 0.9);
-      for (const k of S.koffer) pkt(k.x, k.y, 8, 'rgba(255,210,28,1)', 0.85);
+      for (const k of S.koffer) pkt(k.x, k.y, k.gold ? 13 : 8, k.gold ? 'rgba(255,232,130,1)' : 'rgba(255,210,28,1)', k.gold ? 1 : 0.85);
+      if (S.heli && S.heli.phase === 'an') { const h = S.heli; pkt(h.lx, h.ly, 13, 'rgba(235,245,255,1)', 1); pkt(h.lx, h.ly, 7, 'rgba(255,255,255,1)', 0.9); }
       for (const v of W.verstecke) pkt(v.x, v.y, 14, 'rgba(61,240,138,1)', 0.6);
       for (const v of W.werkstaetten) pkt(v.x, v.y, 14, 'rgba(30,214,224,1)', 0.6);
     }
@@ -484,12 +511,38 @@ export function neuerZeichner(cv) {
     X.globalCompositeOperation = 'source-over';
   }
 
+  // Hubschrauber: fliegt über allem, also nach dem Licht gezeichnet
+  function hubschrauber(h) {
+    if (!sichtbar(h.x, h.y, 16) && !(h.phase === 'an' && sichtbar(h.lx, h.ly, 16))) return;
+    welt(X, dpr);
+    if (h.phase === 'an') {   // Lichtkegel vom Hubschrauber zum Lichtfleck
+      const dx = h.lx - h.x, dy = h.ly - h.y, d = Math.hypot(dx, dy) || 1, nx = -dy / d, ny = dx / d;
+      X.globalCompositeOperation = 'lighter'; X.fillStyle = 'rgba(220,235,255,.09)';
+      X.beginPath(); X.moveTo(h.x + nx * 0.6, h.y + ny * 0.6); X.lineTo(h.lx + nx * 6.5, h.ly + ny * 6.5); X.lineTo(h.lx - nx * 6.5, h.ly - ny * 6.5); X.lineTo(h.x - nx * 0.6, h.y - ny * 0.6); X.closePath(); X.fill();
+      X.strokeStyle = `rgba(235,245,255,${h.licht ? 0.75 : 0.4})`; X.lineWidth = 0.3; X.beginPath(); X.arc(h.lx, h.ly, 6.5, 0, TAU); X.stroke();
+      X.globalCompositeOperation = 'source-over';
+    }
+    X.save(); X.translate(h.x, h.y); X.rotate(h.a); X.scale(1.25, 1.25);
+    X.fillStyle = '#27406b'; X.strokeStyle = 'rgba(190,215,255,.55)'; X.lineWidth = 0.16;
+    X.fillRect(-8, -0.4, 5.4, 0.8); X.fillRect(-8.5, -1.4, 0.55, 2.8);
+    X.beginPath(); X.ellipse(0, 0, 3.7, 1.75, 0, 0, TAU); X.fill(); X.stroke();
+    X.strokeStyle = '#0c101c'; X.lineWidth = 0.28; X.beginPath(); X.moveTo(-2, -2.3); X.lineTo(2.4, -2.3); X.moveTo(-2, 2.3); X.lineTo(2.4, 2.3); X.stroke();
+    X.fillStyle = '#7fb4e6'; X.beginPath(); X.ellipse(1.7, 0, 1.6, 1.25, 0, 0, TAU); X.fill();
+    X.fillStyle = '#f2f4fa'; X.fillRect(-1.6, -1.75, 2.2, 0.35); X.fillRect(-1.6, 1.4, 2.2, 0.35);
+    if (Math.floor(uhr * 3) % 2) { X.fillStyle = '#ff3b4e'; X.beginPath(); X.arc(-8.2, 0, 0.5, 0, TAU); X.fill(); }
+    X.rotate(uhr * 26);
+    X.fillStyle = 'rgba(205,215,235,.1)'; X.beginPath(); X.arc(0, 0, 6.4, 0, TAU); X.fill();
+    X.fillStyle = 'rgba(215,225,240,.5)'; X.fillRect(-6.4, -0.26, 12.8, 0.52); X.fillRect(-0.26, -6.4, 0.52, 12.8);
+    X.restore();
+  }
+
   // ---------- Bildschirm-Ebene
-  function koffer(x, y, s) {
+  function koffer(x, y, s, gold) {
     X.save(); X.translate(x, y);
     X.lineJoin = 'round'; X.strokeStyle = '#11121A'; X.lineWidth = s * 0.1;
     rr(X, -s * 0.2, -s * 0.5, s * 0.4, s * 0.3, s * 0.08); X.stroke();
-    X.fillStyle = '#FFD21C'; rr(X, -s * 0.5, -s * 0.3, s, s * 0.66, s * 0.12); X.fill(); X.stroke();
+    X.fillStyle = gold ? '#FFE46B' : '#FFD21C'; rr(X, -s * 0.5, -s * 0.3, s, s * 0.66, s * 0.12); X.fill(); X.stroke();
+    if (gold) { X.fillStyle = 'rgba(255,255,255,.75)'; X.beginPath(); X.moveTo(-s * 0.38, -s * 0.22); X.lineTo(-s * 0.16, -s * 0.22); X.lineTo(-s * 0.36, s * 0.26); X.lineTo(-s * 0.44, s * 0.26); X.closePath(); X.fill(); }
     X.fillStyle = '#11121A'; X.fillRect(-s * 0.5, -s * 0.03, s, s * 0.07); X.fillStyle = '#fff'; X.fillRect(-s * 0.09, -s * 0.09, s * 0.18, s * 0.18);
     X.restore();
   }
@@ -512,7 +565,7 @@ export function neuerZeichner(cv) {
     X.save(); X.translate(px, py);
     X.fillStyle = farbe; X.beginPath(); X.moveTo(Math.cos(a) * 26, Math.sin(a) * 26); X.lineTo(Math.cos(a + 2.5) * 16, Math.sin(a + 2.5) * 16); X.lineTo(Math.cos(a - 2.5) * 16, Math.sin(a - 2.5) * 16); X.closePath(); X.fill();
     X.beginPath(); X.arc(0, 0, 17, 0, TAU); X.fillStyle = 'rgba(8,10,24,.88)'; X.fill(); X.strokeStyle = farbe; X.lineWidth = 2.5; X.stroke();
-    if (zeichen === 'koffer') koffer(0, 1, 17);
+    if (zeichen === 'koffer' || zeichen === 'gold') koffer(0, 1, 17, zeichen === 'gold');
     else { X.fillStyle = farbe; X.font = '800 17px "Barlow Condensed", sans-serif'; X.textAlign = 'center'; X.textBaseline = 'middle'; X.fillText(zeichen, 0, 1); }
     if (text) { X.font = '700 12px "Barlow Condensed", sans-serif'; X.textAlign = 'center'; X.textBaseline = 'middle'; const ty = py < my ? 28 : -27; X.fillStyle = 'rgba(8,10,24,.8)'; const tw = X.measureText(text).width + 8; rr(X, -tw / 2, ty - 8, tw, 16, 5); X.fill(); X.fillStyle = '#fff'; X.fillText(text, 0, ty + 1); }
     X.restore();
@@ -524,13 +577,22 @@ export function neuerZeichner(cv) {
     // Koffer im Bild: Symbol und Wert
     for (const k of S.koffer) {
       const x = sx(k.x, k.y), y = sy(k.x, k.y);
-      const d = Math.hypot(k.x - sp.x, k.y - sp.y);
-      if (!wegweiser(k.x, k.y, '#FFD21C', 'koffer', Math.round(d / 10) * 10 + ' m')) {
-        const hop = Math.sin(uhr * 5 + k.id) * 3;
-        koffer(x, y - 6 + hop, clamp(T.ppm * 2.3, 18, 30));
-        X.font = '800 14px "Barlow Condensed", sans-serif'; X.textAlign = 'center'; X.textBaseline = 'middle'; X.lineWidth = 3; X.strokeStyle = 'rgba(8,10,24,.9)'; X.fillStyle = '#FFD21C';
-        const txt = k.wert + ' $'; X.strokeText(txt, x, y - 30 + hop); X.fillText(txt, x, y - 30 + hop);
+      const d = Math.round(Math.hypot(k.x - sp.x, k.y - sp.y) / 10) * 10, rest = k.gold ? Math.max(0, Math.ceil(k.bis - S.t)) : 0, farbe = k.gold ? '#FFE98A' : '#FFD21C';
+      if (!wegweiser(k.x, k.y, farbe, k.gold ? 'gold' : 'koffer', k.gold ? rest + ' s · ' + d + ' m' : d + ' m')) {
+        const hop = Math.sin(uhr * 5 + k.id) * 3, gr = clamp(T.ppm * 2.3, 18, 30) * (k.gold ? 1.35 : 1);
+        koffer(x, y - 6 + hop, gr, k.gold);
+        X.font = '800 14px "Barlow Condensed", sans-serif'; X.textAlign = 'center'; X.textBaseline = 'middle'; X.lineWidth = 3; X.strokeStyle = 'rgba(8,10,24,.9)'; X.fillStyle = farbe;
+        const txt = k.gold ? 'GOLD ' + k.wert + ' $ · ' + rest + ' s' : k.wert + ' $'; X.strokeText(txt, x, y - 12 - gr + hop); X.fillText(txt, x, y - 12 - gr + hop);
       }
+    }
+    // besondere Ziele und Sperren
+    const marke = (c, farbe, zeichen, name) => { if (!wegweiser(c.x, c.y, farbe, zeichen, Math.round(Math.hypot(c.x - sp.x, c.y - sp.y) / 10) * 10 + ' m')) schild(sx(c.x, c.y), sy(c.x, c.y) - 34, name, farbe); };
+    if (S.transporter && !S.transporter.weg) marke(S.transporter, '#3DF08A', '$', 'GELDTRANSPORTER ' + S.transporter.saecke + '/5');
+    if (S.rivale && !S.rivale.weg && S.rivale.art === 'rivale') marke(S.rivale, '#B48CFF', 'R', S.rivale.hat ? 'RIVALE MIT KOFFER' : 'RIVALE');
+    for (const q of S.sperren) {   // nur warnen, solange sie noch vor einem liegt
+      const dx = q.x - sp.x, dy = q.y - sp.y;
+      if ((q.nagel && q.nagel.benutzt) || dx * Math.cos(sp.a) + dy * Math.sin(sp.a) < 8) continue;
+      wegweiser(q.x, q.y, '#FF4A5E', '!', (q.art === 'nagel' ? 'Nagelband ' : 'Sperre ') + Math.round(Math.hypot(dx, dy) / 10) * 10 + ' m');
     }
     // Versteck und Werkstatt
     const naechst = (liste) => { let b = null, bd = 1e9; for (const v of liste) { const d = Math.hypot(v.x - sp.x, v.y - sp.y); if (d < bd) { bd = d; b = v; } } return [b, bd]; };
@@ -576,7 +638,11 @@ export function neuerZeichner(cv) {
     const rand = (x, y) => { const dx = x - sp.x, dy = y - sp.y, d = Math.hypot(dx, dy), max = (R - 5) / mass; return d > max ? [sp.x + dx / d * max, sp.y + dy / d * max] : [x, y]; };
     for (const v of W.verstecke) { const [x, y] = rand(v.x, v.y); punkt(x, y, 4.2, '#3DF08A'); }
     for (const v of W.werkstaetten) { const [x, y] = rand(v.x, v.y); punkt(x, y, 3.4, '#1ED6E0'); }
-    for (const k of S.koffer) { const [x, y] = rand(k.x, k.y); punkt(x, y, 4, '#FFD21C'); }
+    for (const k of S.koffer) { const [x, y] = rand(k.x, k.y); if (k.gold) punkt(x, y, 6.5, '#fff'); punkt(x, y, k.gold ? 5 : 4, k.gold ? '#FFC400' : '#FFD21C'); }
+    if (S.transporter && !S.transporter.weg) { const [x, y] = rand(S.transporter.x, S.transporter.y); punkt(x, y, 4.5, '#3DF08A'); }
+    if (S.rivale && !S.rivale.weg && S.rivale.art === 'rivale') { const [x, y] = rand(S.rivale.x, S.rivale.y); punkt(x, y, 4.5, '#B48CFF'); }
+    for (const q of S.sperren) { const [x, y] = rand(q.x, q.y); X.fillStyle = '#FF4A5E'; X.fillRect(x - 4.5 / mass, y - 4.5 / mass, 9 / mass, 9 / mass); }
+    if (S.heli && S.heli.phase === 'an') { X.strokeStyle = 'rgba(255,255,255,.9)'; X.lineWidth = 1.5 / mass; X.beginPath(); X.arc(S.heli.lx, S.heli.ly, 7 / mass, 0, TAU); X.stroke(); }
     for (const c of S.autos) if (c.art === 'polizei' && c.hp > 0 && c.modus !== 'wrack') { if (Math.hypot(c.x - sp.x, c.y - sp.y) > (R - 3) / mass) continue; punkt(c.x, c.y, 3, c.modus === 'jagd' ? (Math.floor(uhr * 5) % 2 ? '#FF4A5E' : '#6aa0ff') : 'rgba(120,150,255,.7)'); }
     X.restore();
     X.save(); X.translate(mx, my);

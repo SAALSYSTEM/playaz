@@ -181,9 +181,9 @@ test('Garage: kaufen, wählen, speichern; Aufträge und Hilfe öffnen und schlie
   await page.click('#gListe .auto:nth-child(1) button');
   save = JSON.parse(await page.evaluate(() => localStorage.getItem('neoncoast.v1'))); assert.equal(save.auto, 'flitzer');
   await page.click('#garage [data-zurueck]'); assert.equal(await mode(page), 'start');
-  await page.click('#bAuftraege'); assert.equal(await page.locator('#aListe .auftrag').count(), 3); assert.match(await page.textContent('#aStand'), /1 von 28/);
+  await page.click('#bAuftraege'); assert.equal(await page.locator('#aListe .auftrag').count(), 3); assert.match(await page.textContent('#aStand'), /1 von 32/);
   await page.keyboard.press('Escape'); assert.equal(await mode(page), 'start');
-  await page.click('#bHilfe'); assert.equal(await page.locator('#hilfe .hilfe > div').count(), 8); await page.click('#hilfe [data-zurueck]');
+  await page.click('#bHilfe'); assert.equal(await page.locator('#hilfe .hilfe > div').count(), 10); await page.click('#hilfe [data-zurueck]');
   assert.deepEqual(errors, []);
   await ctx.close();
 });

@@ -3,7 +3,7 @@ import { STORE, AUTOS, AUFTRAEGE, RAENGE, rang, frisch, saeubere, aktiveAuftraeg
 import { neueFahrt, schritt, DT, feierabend, suchzeit, multi } from './engine.js';
 import { ladeBilder, neuerZeichner, bildUrl } from './zeichner.js';
 import { neuerTon } from './ton.js';
-import { viertel, KOFFER } from './welt.js';
+import { viertel } from './welt.js';
 
 const $ = (id) => document.getElementById(id);
 const cv = $('game');
@@ -124,7 +124,7 @@ function ereignisse() {
       case 'los': hinweisWeg(); break;
       case 'koffer':
         ton.sfx('koffer', e.m);
-        meldung('+' + geld(e.betrag), e.m > 1 ? 'Serie ×' + zahl(e.m) + ' · ' + KOFFER[e.art].name : KOFFER[e.art].name);
+        meldung((e.gold ? 'GOLD +' : '+') + geld(e.betrag), e.m > 1 ? 'Serie ×' + zahl(e.m) + ' · ' + e.name : e.name);
         $('hBeute').classList.remove('pop'); void $('hBeute').offsetWidth; $('hBeute').classList.add('pop');
         if (save.hilfe < 1) { save.hilfe = 1; hinweis('Die Polizei kommt! Fahr ins <b>grüne Feld</b> vor dem Versteck (grüner Pfeil) – oder riskier noch einen Koffer.', 7); }
         break;
@@ -152,6 +152,21 @@ function ereignisse() {
       case 'schrott': ton.sfx('schrott'); break;
       case 'platsch': ton.sfx('platsch'); break;
       case 'hupe': ton.sfx('hupe'); break;
+      case 'sperre': ton.sfx('alarm'); meldung(e.art === 'nagel' ? 'NAGELBAND VORAUS' : 'STRASSENSPERRE VORAUS', e.art === 'nagel' ? 'An einer Seite ist eine Lücke' : 'Gehweg, Seitenstraße – oder mitten durch', 'rot'); break;
+      case 'durchbruch': meldung(e.sauber ? 'SAUBER VORBEI' : 'DURCH DIE SPERRE', '+' + geld(e.bonus), 'cyan'); break;
+      case 'platt': ton.sfx('platt'); meldung('REIFEN PLATT', '7 Sekunden weniger Tempo und Halt', 'rot'); break;
+      case 'deko': ton.sfx('ding'); break;
+      case 'heli': if (e.an) { ton.sfx('alarm'); meldung('HUBSCHRAUBER', 'Im Scheinwerfer hilft kein Haus – fahr ihm davon', 'rot'); } else if (e.grund === 'tankt') meldung('HELI TANKT', 'Jetzt abhängen!', 'cyan'); break;
+      case 'gold': ton.sfx('gold'); meldung('GOLDKOFFER', e.wo + ' · ' + geld(e.wert) + ' · 60 Sekunden'); break;
+      case 'goldWeg': meldung('Goldkoffer weg', 'Zu langsam'); break;
+      case 'transporter': ton.sfx('gold'); meldung('GELDTRANSPORTER', 'Ramm ihn von hinten – 5 Treffer knacken ihn', 'gruen'); break;
+      case 'geldsack': ton.sfx('koffer', 1 + e.n * 0.5); break;
+      case 'geknackt': ton.sfx('gesichert'); meldung('TRANSPORTER GEKNACKT', '+' + geld(e.betrag), 'gruen'); break;
+      case 'transporterWeg': meldung('Transporter ist weg'); break;
+      case 'rivale': ton.sfx('alarm'); meldung('RIVALE UNTERWEGS', 'Er will: ' + e.wo, 'pink'); break;
+      case 'rivaleHat': ton.sfx('tor'); meldung('RIVALE HAT DEN KOFFER', 'Ramm ihn, dann lässt er ihn fallen', 'pink'); break;
+      case 'rivaleFallen': ton.sfx('haarscharf'); meldung('KOFFER LIEGT', 'Doppelter Wert: ' + geld(e.wert), 'pink'); break;
+      case 'rivaleWeg': if (e.mit) meldung('Rivale entkommen', 'Der Koffer ist weg'); break;
       case 'auftrag': ton.sfx('auftrag'); meldung('AUFTRAG ERLEDIGT', e.text + ' · +' + geld(e.lohn), 'gruen'); break;
       case 'ende':
         ton.still(); ton.sfx(e.grund === 'feierabend' ? 'gesichert' : e.grund === 'wasser' ? 'platsch' : e.grund === 'schrott' ? 'schrott' : 'geschnappt');
@@ -218,8 +233,8 @@ function hud() {
   }
   const such = S.sterne > 0 && !S.gesehen && S.peil <= 0;
   if (H.such !== such) { H.such = such; $('hSterne').classList.toggle('such', such); $('hSuch').classList.toggle('an', such); }
-  const st = S.sterne === 0 ? '' : S.gesehen ? 'Polizei sieht dich' : S.peil > 0 ? 'Peilsender ' + Math.ceil(S.peil) + ' s' : 'Abhängen …';
-  if (H.st !== st) { H.st = st; const t = $('hSuchT'); t.textContent = st; t.classList.toggle('rot', S.gesehen); }
+  const st = S.platt > 0 ? 'Reifen platt ' + Math.ceil(S.platt) + ' s' : S.sterne === 0 ? '' : S.heli && S.heli.licht ? 'Im Suchscheinwerfer' : S.gesehen ? 'Polizei sieht dich' : S.peil > 0 ? 'Peilsender ' + Math.ceil(S.peil) + ' s' : 'Abhängen …';
+  if (H.st !== st) { H.st = st; const t = $('hSuchT'); t.textContent = st; t.classList.toggle('rot', S.gesehen || S.platt > 0); }
   if (such) $('hSuch').firstChild.style.width = Math.min(100, S.sucht / suchzeit(S.sterne) * 100) + '%';
   const hp = Math.round(sp.hp / sp.hpMax * 50);
   if (H.hp !== hp) { H.hp = hp; const b = $('hLeben').firstChild; b.style.width = hp * 2 + '%'; b.style.background = hp > 25 ? 'var(--gruen)' : hp > 12 ? 'var(--brand)' : 'var(--rot)'; }
@@ -322,7 +337,8 @@ function bild(jetzt) {
       hud();
       const sp = S.sp, v = Math.hypot(sp.vx, sp.vy);
       let nah = 0; if (S.sterne > 0) for (const c of S.autos) if (c.art === 'polizei' && c.modus === 'jagd' && c.hp > 0) nah = Math.max(nah, 1 - Math.min(1, c.dist / 70));
-      ton.laufend(dt, v, sp.vmax, Math.min(1, Math.max(0, sp.rutsch - 2) / 7), nah, sp.nitro, S.pause <= 0, eingabe.gas);
+      const heli = S.heli ? Math.max(0, 1 - Math.hypot(S.heli.x - sp.x, S.heli.y - sp.y) / 90) : 0;
+      ton.laufend(dt, v, sp.vmax, Math.min(1, Math.max(0, sp.rutsch - 2) / 7), nah, sp.nitro, S.pause <= 0, eingabe.gas, heli);
       if (viertelT > 0) { viertelT -= dt; if (viertelT <= 0) $('viertel').classList.remove('an'); }
     }
   } else if (mode === 'schluss') { schluss -= dt; if (schluss <= 0) abrechnung(); }
