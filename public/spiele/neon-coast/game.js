@@ -94,8 +94,9 @@ function malAuftraege() {
   $('aRang').textContent = 'Rang: ' + r.name + (r.naechster ? ' · noch ' + geld(r.bis - save.stat.sicher) + ' bis „' + r.naechster + '“' : ' · höchster Rang');
   $('aRangBalken').style.width = (r.bis ? Math.min(1, (save.stat.sicher - r.ab) / (r.bis - r.ab)) * 100 : 100) + '%';
 }
+const malSender = () => { $('pSender').textContent = '📻 ' + (ton.titel() || 'Sender'); };
 function malPause() {
-  Zr.plan($('karte'), S);
+  Zr.plan($('karte'), S); malSender();
   const L = $('pAuftraege'); L.textContent = '';
   if (S) S.auftraege.forEach((a) => L.append(auftragZeile(a, AUFTRAEGE.indexOf(a) + 1, S.erledigt.includes(a.id))));
 }
@@ -125,7 +126,7 @@ function ereignisse() {
         ton.sfx('koffer', e.m);
         meldung('+' + geld(e.betrag), e.m > 1 ? 'Serie ×' + zahl(e.m) + ' · ' + KOFFER[e.art].name : KOFFER[e.art].name);
         $('hBeute').classList.remove('pop'); void $('hBeute').offsetWidth; $('hBeute').classList.add('pop');
-        if (save.hilfe < 1) { save.hilfe = 1; hinweis('Die Polizei kommt! Bring die Beute ins <b>Versteck</b> (grüner Pfeil) – oder riskier noch einen Koffer.', 7); }
+        if (save.hilfe < 1) { save.hilfe = 1; hinweis('Die Polizei kommt! Fahr ins <b>grüne Feld</b> vor dem Versteck (grüner Pfeil) – oder riskier noch einen Koffer.', 7); }
         break;
       case 'stern': ton.sfx('stern', e.n); meldung('FAHNDUNG ' + '★'.repeat(e.n), FUNK[e.n], 'rot'); sternNeu = e.n; break;
       case 'alarm': meldung(e.grund.toUpperCase() + '!', '', 'rot'); break;
@@ -140,7 +141,7 @@ function ereignisse() {
       case 'raus': $('ort').hidden = true; hinweis(save.hilfe < 3 ? 'Sauber! Jeder weitere Koffer <b>ohne Sichern</b> ist mehr wert. Gas geben und weiter.' : 'Gas geben und weiter.', 0); if (save.hilfe < 3) save.hilfe = 3; break;
       case 'tor':
         ton.sfx('tor');
-        if (e.grund === 'gesehen') hinweis('Das Tor bleibt zu, solange dich ein <b>Streifenwagen sieht</b>. Erst abhängen!', 4);
+        if (e.grund === 'gesehen') hinweis('Das Tor bleibt zu, solange dich ein <b>Streifenwagen sieht</b>. Häng sie ab und komm ins Feld zurück!', 4);
         else if (e.grund === 'trocknet') hinweis('Der Lack trocknet noch ' + e.s + ' Sekunden.', 3);
         else if (e.grund === 'leer') hinweis(e.typ === 'versteck' ? 'Dein Versteck. Komm mit Beute wieder.' : 'Lack &amp; Fix: hilft bei Fahndung oder Schaden.', 3);
         break;
@@ -301,7 +302,7 @@ klick('bLos', losfahren); klick('eNochmal', losfahren);
 klick('bGarage', () => { zurueck = 'start'; zeige('garage'); }); klick('eGarage', () => { zurueck = 'ende'; zeige('garage'); });
 klick('bAuftraege', () => { zurueck = 'start'; zeige('auftraege'); }); klick('bHilfe', () => { zurueck = 'start'; zeige('hilfe'); });
 klick('eStart', () => { demo(); zeige('start'); }); klick('eTeilen', teilen);
-klick('bPause', pause); klick('pWeiter', weiter); klick('pSender', () => ton.sender());
+klick('bPause', pause); klick('pWeiter', weiter); klick('pSender', () => { ton.sender(); malSender(); });
 klick('pEnde', () => { if (S && !S.ende) { zeige('spiel'); feierabend(S); ereignisse(); } });
 document.querySelectorAll('[data-zurueck]').forEach((b) => b.addEventListener('click', () => { ton.sfx('klick'); zeige(zurueck); }));
 document.querySelectorAll('[data-konto]').forEach((b) => b.addEventListener('click', () => { try { window.PlaySaal && window.PlaySaal.anmelden({}); } catch { /* Konten nicht verfügbar */ } }));
@@ -321,7 +322,7 @@ function bild(jetzt) {
       hud();
       const sp = S.sp, v = Math.hypot(sp.vx, sp.vy);
       let nah = 0; if (S.sterne > 0) for (const c of S.autos) if (c.art === 'polizei' && c.modus === 'jagd' && c.hp > 0) nah = Math.max(nah, 1 - Math.min(1, c.dist / 70));
-      ton.laufend(dt, v, sp.vmax, Math.min(1, Math.max(0, sp.rutsch - 2) / 7), nah, sp.nitro, !S.wartet && S.pause <= 0);
+      ton.laufend(dt, v, sp.vmax, Math.min(1, Math.max(0, sp.rutsch - 2) / 7), nah, sp.nitro, S.pause <= 0, eingabe.gas);
       if (viertelT > 0) { viertelT -= dt; if (viertelT <= 0) $('viertel').classList.remove('an'); }
     }
   } else if (mode === 'schluss') { schluss -= dt; if (schluss <= 0) abrechnung(); }

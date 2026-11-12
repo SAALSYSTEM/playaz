@@ -15,6 +15,8 @@ Schreibt public/spiele/neon-coast/img/*.webp und public/spiele/neon-coast/bilder
 die Grundfläche als wenige Rechtecke, abgeleitet aus der Bildform; daraus entstehen die Kollisionsflächen).
 Liegen design/neon-coast/kachel.png bzw. social-preview.png vor, werden daraus Kachel und Teilen-Vorschau.
 Radio: design/neon-coast/radio/*.mp3 (Pixabay, vom Auftraggeber) → public/spiele/neon-coast/radio/ (mono, 64 kbit/s, braucht ffmpeg).
+Geräusche: design/neon-coast/ton/*.mp3 (Pixabay, vom Auftraggeber) → public/spiele/neon-coast/ton/ (Motor- und Sirenenschleife, Startklang, Crash)
+und klang.js mit den Schleifenpunkten.
 """
 import importlib.util
 import json
@@ -99,7 +101,15 @@ DINGE = {
 RADIO = {
     'eliza_music-golden-dreams-of-california-432189.mp3': 'sender-1.mp3',
     'eliza_music-california-snares-and-synths-435003.mp3': 'sender-2.mp3',
+    'grand_project-neon-odyssey-399913.mp3': 'sender-3.mp3',
+    'alex-morgan-neon-synthwave-drive-537447.mp3': 'sender-4.mp3',
+    'the_mountain-pop-neon-246793.mp3': 'sender-5.mp3',
+    'luis_humanoide-miami-cops-80s-retrowave-music-without-sounds-296632.mp3': 'sender-6.mp3',
 }
+# Geräusche (Pixabay, vom Auftraggeber): Motor (Leerlauf als Schleife, Aufheulen als Startklang), Sirene (Schleife), Crash
+TON = {'motor': 'freesound_community-car-motor-revving-99317.mp3', 'sirene': 'magiaz-sirene-373610.mp3', 'crash': 'freesound_community-box-crash-106687.mp3'}
+RATE = 44100
+VORLAUF = 0.2   # so viel Schleife steht zusätzlich vor und hinter der Schleife in der Datei (MP3 verschiebt den Anfang um ein paar ms)
 FIGUR_ZEILEN = SF.FIGUR_ZEILEN
 FIGUR_SPALTEN = SF.FIGUR_SPALTEN
 FIGUR_H = 96
@@ -150,6 +160,87 @@ def umriss(im, n=24, deckung=0.5, rest=0.035):
         if min(x1 - x0, y1 - y0) >= 3 and best[0] >= gesamt * 0.04:
             rects.append(best[1])
     return [[round(x0 / n, 3), round(y0 / n, 3), round(x1 / n, 3), round(y1 / n, 3)] for x0, y0, x1, y1 in rects]
+
+
+def lies_ton(pfad):
+    roh = subprocess.run(['ffmpeg', '-loglevel', 'error', '-i', str(pfad), '-ac', '1', '-ar', str(RATE), '-f', 'f32le', '-'], check=True, capture_output=True).stdout
+    return np.frombuffer(roh, dtype=np.float32).astype(np.float64)
+
+
+def schreib_ton(x, pfad, spitze=0.89, kbit=96):
+    x = x / max(np.abs(x).max(), 1e-9) * spitze
+    subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-f', 'f32le', '-ar', str(RATE), '-ac', '1', '-i', '-', '-b:a', f'{kbit}k', str(pfad)], input=x.astype(np.float32).tobytes(), check=True)
+
+
+def schleife(x, start, laenge, blende=0.06):
+    """Nahtlose Schleife: das Ende wird in das Material vor dem Start übergeblendet. Rückgabe mit Vor- und Nachlauf."""
+    s, n, f, v = int(start * RATE), int(laenge * RATE), int(blende * RATE), int(VORLAUF * RATE)
+    teil = x[s:s + n].copy()
+    w = np.linspace(0, 1, f)
+    teil[n - f:] = teil[n - f:] * np.sqrt(1 - w) + x[s - f:s] * np.sqrt(w)
+    return np.concatenate([teil[-v:], teil, teil[:v]]), n / RATE
+
+
+def periode(x, von, bis, fenster=0.02):
+    """Wiederholdauer eines Jaultons: Autokorrelation des Klang-Schwerpunkts."""
+    w = int(fenster * RATE)
+    z = []
+    for i in range(0, len(x) - w, w // 2):
+        sp = np.abs(np.fft.rfft(x[i:i + w] * np.hanning(w)))
+        z.append((sp * np.arange(len(sp))).sum() / max(sp.sum(), 1e-9))
+    z = np.array(z) - np.mean(z)
+    ac = np.correlate(z, z, 'full')[len(z) - 1:]
+    lo, hi = int(von / (fenster / 2)), int(bis / (fenster / 2))
+    k = lo + int(np.argmax(ac[lo:hi]))
+    # Scheitel verfeinern (Parabel durch drei Punkte)
+    a, b, c = ac[k - 1], ac[k], ac[k + 1]
+    k += 0.5 * (a - c) / (a - 2 * b + c)
+    return k * fenster / 2
+
+
+def geraeusche():
+    ziel = ROOT / 'public' / 'spiele' / 'neon-coast' / 'ton'
+    quelle = DESIGN / 'ton'
+    if not shutil.which('ffmpeg') or not all((quelle / f).exists() for f in TON.values()):
+        return None
+    ziel.mkdir(parents=True, exist_ok=True)
+    klang = {}
+    # Motor: ruhiger Leerlauf (um 5 s, rund 42 Zündungen je Sekunde) als Schleife; das Aufheulen ab 6 s als Startklang
+    m = lies_ton(quelle / TON['motor'])
+    hz = 1 / periode_welle(m, 4.9, 0.02, 0.03)
+    lauf, laenge = schleife(m, 4.9, round(0.95 * hz) / hz)
+    schreib_ton(lauf, ziel / 'motor.mp3')
+    klang['motor'] = {'von': VORLAUF, 'bis': round(VORLAUF + laenge, 4), 'hz': round(hz, 1)}
+    heul = m[int(6.02 * RATE):int(9.6 * RATE)].copy()
+    heul[:int(0.03 * RATE)] *= np.linspace(0, 1, int(0.03 * RATE))
+    heul[-int(0.9 * RATE):] *= np.linspace(1, 0, int(0.9 * RATE)) ** 2
+    schreib_ton(heul, ziel / 'start.mp3')
+    # Sirene: ganze Zahl von Jaul-Runden
+    si = lies_ton(quelle / TON['sirene'])
+    p = periode(si, 0.4, 1.1)
+    runden = int((len(si) / RATE - 0.5) // p)
+    lauf, laenge = schleife(si, 0.25, runden * p, 0.04)
+    schreib_ton(lauf, ziel / 'sirene.mp3')
+    klang['sirene'] = {'von': VORLAUF, 'bis': round(VORLAUF + laenge, 4), 'runde': round(p, 3)}
+    # Crash: Stille davor weg, kurz ausblenden
+    c = lies_ton(quelle / TON['crash'])
+    an = int(np.argmax(np.abs(c) > 0.1 * np.abs(c).max())) - int(0.012 * RATE)
+    c = c[max(an, 0):max(an, 0) + int(0.75 * RATE)].copy()
+    c[-int(0.25 * RATE):] *= np.linspace(1, 0, int(0.25 * RATE))
+    schreib_ton(c, ziel / 'crash.mp3')
+    (ROOT / 'public' / 'spiele' / 'neon-coast' / 'klang.js').write_text(
+        '// Erzeugt von tools/neon-coast-assets.py – nicht von Hand ändern. Schleifenpunkte der Geräusche in Sekunden.\n'
+        'export const KLANG = ' + json.dumps(klang, ensure_ascii=False) + ';\n', encoding='utf-8')
+    return klang
+
+
+def periode_welle(x, start, von, bis):
+    """Dauer einer Zündung im Leerlauf: Autokorrelation der Welle selbst."""
+    s = x[int(start * RATE):int((start + 0.5) * RATE)]
+    s = s - s.mean()
+    ac = np.correlate(s, s, 'full')[len(s) - 1:]
+    lo, hi = int(von * RATE), int(bis * RATE)
+    return (lo + int(np.argmax(ac[lo:hi]))) / RATE
 
 
 def main():
@@ -222,6 +313,10 @@ def main():
         for src, dst in RADIO.items():
             if (DESIGN / 'radio' / src).exists():
                 subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', str(DESIGN / 'radio' / src), '-ac', '1', '-b:a', '64k', str(radio / dst)], check=True)
+
+    klang = geraeusche()
+    if klang:
+        print('Geräusche:', klang)
 
     if '--preview' in sys.argv:
         i = sys.argv.index('--preview')

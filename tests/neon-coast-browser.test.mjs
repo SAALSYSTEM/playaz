@@ -95,7 +95,7 @@ test('Fahren: Lenkleiste stufenlos, Gas/Bremse/Handbremse (auch von Pedal zu Ped
     await zeiger(page, 'pointermove', 1, (await mitte(page, '#lenk'))[0], y); assert.equal((await lenk(page)).lenk, 0);
     await zeiger(page, 'pointermove', 1, k['#lenk'].x1 - 8, y); assert.equal((await lenk(page)).lenk, 1);
     await zeiger(page, 'pointermove', 1, k['#lenk'].x0 + 8, y - 40); assert.equal((await lenk(page)).lenk, -1, 'auch knapp über der Leiste');
-    assert.equal(await page.evaluate(() => window.__neoncoast.S.wartet), false);
+    await page.waitForFunction(() => !window.__neoncoast.S.wartet && window.__neoncoast.S.t > 0.1);   // die erste Eingabe weckt die Welt
     assert.ok(await page.evaluate(() => Math.hypot(window.__neoncoast.S.sp.vx, window.__neoncoast.S.sp.vy) < 0.01), 'ohne Gas rollt nichts');
     // Gas: fährt los und dreht nach links
     await zeiger(page, 'pointerdown', 2, ...(await mitte(page, '#bGas')));
@@ -207,12 +207,21 @@ test('Rechner im Querformat: ganze Fensterbreite, Tastenhilfe statt Pedalen, Shi
   await ctx.close();
 });
 
-test('Autoradio: nach dem ersten Tippen lädt einer der beiden eigenen Sender, beide Dateien sind da', async () => {
+test('Ton: nach dem ersten Tippen lädt einer der sechs Sender; alle Sender und Aufnahmen (Motor, Sirene, Crash, Start) sind da', async () => {
   const { ctx, page, errors } = await open();
-  const geladen = page.waitForRequest((r) => /\/spiele\/neon-coast\/radio\/sender-[12]\.mp3$/.test(r.url()), { timeout: 15000 });
+  const geladen = page.waitForRequest((r) => /\/spiele\/neon-coast\/radio\/sender-[1-6]\.mp3$/.test(r.url()), { timeout: 15000 });
+  const motor = page.waitForResponse((r) => /\/spiele\/neon-coast\/ton\/motor\.mp3$/.test(r.url()) && r.status() === 200, { timeout: 15000 });
   await page.click('#bLos');
-  await geladen;
-  for (const n of [1, 2]) assert.equal(await page.evaluate(async (k) => (await fetch('/spiele/neon-coast/radio/sender-' + k + '.mp3', { method: 'HEAD' })).status, n), 200);
+  await geladen; await motor;
+  const dateien = [1, 2, 3, 4, 5, 6].map((n) => 'radio/sender-' + n).concat(['ton/motor', 'ton/sirene', 'ton/crash', 'ton/start']);
+  for (const d of dateien) assert.equal(await page.evaluate(async (k) => (await fetch('/spiele/neon-coast/' + k + '.mp3', { method: 'HEAD' })).status, d), 200, d);
+  // Schleifenpunkte liegen in den Aufnahmen
+  const klang = await page.evaluate(async () => { const { KLANG } = await import('/spiele/neon-coast/klang.js'); const A = new AudioContext(), r = {}; for (const n of ['motor', 'sirene']) { const b = await A.decodeAudioData(await (await fetch('/spiele/neon-coast/ton/' + n + '.mp3')).arrayBuffer()); r[n] = [KLANG[n].von, KLANG[n].bis, b.duration]; } return r; });
+  for (const n of ['motor', 'sirene']) assert.ok(klang[n][0] >= 0.15 && klang[n][1] > klang[n][0] + 0.5 && klang[n][1] < klang[n][2] - 0.1, n + ': ' + klang[n]);
+  // Pause zeigt den laufenden Titel, der Knopf wechselt den Sender
+  await page.click('#bPause');
+  const titel = await page.textContent('#pSender'); assert.match(titel, /📻 \S/);
+  await page.click('#pSender'); assert.notEqual(await page.textContent('#pSender'), titel);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

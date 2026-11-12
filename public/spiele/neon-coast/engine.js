@@ -132,7 +132,7 @@ export function neueFahrt(save, seed = 1, opt = {}) {
   const W = baueWelt(), A = autoVon(save.auto);
   const S = {
     W, r: rng(seed), seed, t: 0, n: 0, nid: 1, auto: A, sp: null, autos: [], koffer: [], beute: 0, sicher: 0, serie: 0, fahndung: 0, sterne: 0,
-    gesehen: false, sucht: 0, letzte: { x: 0, y: 0 }, suchT: 0, peil: 0, peilT: 0, haft: 0, nitro: opt.nitro ?? 0.35, nitroT: 0, lack: 0,
+    gesehen: false, sucht: 0, letzte: { x: 0, y: 0 }, suchT: 0, peil: 0, peilT: 0, torT: -9, haft: 0, nitro: opt.nitro ?? 0.35, nitroT: 0, lack: 0,
     stat: { koffer: 0, sicher: 0, entkommen: 0, entkommenSterne: 0, dinge: 0, nitro: 0, serie: 0, schrott: 0, haarscharf: 0, werkstatt: 0, drift: 0, pier: 0, maxSterne: 0, versenkt: 0, dauer: 0 },
     auftraege: aktiveAuftraege(save), erledigt: [], ev: [], ende: null, pause: 0, pauseOrt: null, ort: null, wartet: true,
     weg: new Uint8Array(W.weich.length), feld: neuesFeld(), feldT: -9, spawnT: 0, res: new Array(W.knoten.length).fill(null),
@@ -521,12 +521,14 @@ function verkehrNeu(S, nah) {
 }
 
 // ---------------------------------------------------------------- Orte: Versteck und Werkstatt
-// Einfahrt: Streifen vor dem Tor (in Richtung "raus" 6 m verlängert), das Auto muss aufs Tor zufahren
+// Einfahrt: das Feld vor dem Tor (Vorplatz, ragt 1,5 m in die Straße). Es zählt, sobald die Wagenmitte im Feld ist –
+// egal aus welcher Richtung und wie schnell. Die Fahrspur daneben bleibt frei, damit niemand im Vorbeifahren sichert.
+export const EINFAHRT_VOR = 1.5;
 function inEinfahrt(v, c) {
   const rx = Math.cos(v.raus), ry = Math.sin(v.raus), quer = Math.abs(ry) > 0.5;
   const tief = quer ? v.by : v.bx, breit = quer ? v.bx : v.by;
   const u = (c.x - v.x) * rx + (c.y - v.y) * ry, w = -(c.x - v.x) * ry + (c.y - v.y) * rx;
-  return Math.abs(w) <= breit && u >= -tief - 1.5 && u <= tief + 6 && Math.cos(c.a) * rx + Math.sin(c.a) * ry < -0.3;
+  return Math.abs(w) <= breit && u >= -tief - 1.5 && u <= tief + EINFAHRT_VOR;
 }
 export function werkstattKosten(S) { return S.beute <= 0 ? 0 : Math.min(S.beute, Math.max(100, Math.round(S.beute * 0.1 / 10) * 10)); }
 function orte(S) {
@@ -536,8 +538,9 @@ function orte(S) {
   for (const v of W.werkstaetten) if (inEinfahrt(v, sp)) { drin = v; typ = 'werkstatt'; }
   if (!drin) { S.ort = null; return; }
   if (S.ort === drin) return;
+  // Sieht die Polizei zu, bleibt das Tor zu – es geht auf, sobald der Sichtkontakt weg ist (auch wenn man im Feld wartet)
+  if (S.sterne > 0 && S.gesehen) { if (S.t - S.torT > 2.5) { S.torT = S.t; ev(S, 'tor', { typ, grund: 'gesehen' }); } return; }
   S.ort = drin;
-  if (S.sterne > 0 && S.gesehen) { ev(S, 'tor', { typ, grund: 'gesehen' }); return; }
   const heil = sp.hp >= sp.hpMax - 0.5;
   if (typ === 'versteck') {
     if (S.beute <= 0 && S.sterne === 0 && heil) { ev(S, 'tor', { typ, grund: 'leer' }); return; }
@@ -559,7 +562,7 @@ function orte(S) {
 }
 function pauseEnde(S) {
   const { v } = S.pauseOrt, sp = S.sp, rx = Math.cos(v.raus), ry = Math.sin(v.raus);
-  sp.x = v.x + rx * 2.5; sp.y = v.y + ry * 2.5; sp.a = v.raus; sp.vx = sp.vy = sp.w = 0;
+  sp.x = v.x + rx * 1.2; sp.y = v.y + ry * 1.2; sp.a = v.raus; sp.vx = sp.vy = sp.w = 0;
   S.pauseOrt = null; S.wartet = true; S.ort = v;
   // Platz machen: was vor dem Tor steht, wird weggeräumt
   for (const c of S.autos) if (c !== sp && c.art !== 'parker' && Math.hypot(c.x - sp.x, c.y - sp.y) < 9) c.weg = true;

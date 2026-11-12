@@ -1,7 +1,32 @@
-// Neon Coast – Fluchtwagen: Ton. Alles über WebAudio erzeugt (Motor, Reifen, Sirene, Effekte);
-// das Autoradio spielt zwei eigene Sender (radio/, Pixabay, vom Auftraggeber); das Rauschen beim Umschalten kommt aus der Sternenfahrt.
+// Neon Coast – Fluchtwagen: Ton. Motor, Sirene, Crash und Startklang sind Aufnahmen (ton/, Pixabay, vom Auftraggeber):
+// der Leerlauf läuft als Schleife und wird mit dem Tempo höher abgespielt. Reifen und die übrigen Effekte erzeugt WebAudio;
+// solange die Aufnahmen nicht geladen sind (oder fehlen), springen erzeugte Töne ein.
+// Das Autoradio spielt sechs eigene Sender (radio/, Pixabay, vom Auftraggeber); das Rauschen beim Umschalten kommt aus der Sternenfahrt.
+import { KLANG } from './klang.js';
+
 export function neuerTon(istStumm) {
   let actx = null, rauschen = null, aus = null, motor = null, reifen = null, sirene = null, uhr = 0;
+  const puffer = {}; let laedt = false, motorA = null, sireneA = null;
+  async function ladeAufnahmen() {
+    if (laedt || !actx) return; laedt = true;
+    for (const n of ['motor', 'sirene', 'crash', 'start']) {
+      try {
+        const r = await fetch(new URL('ton/' + n + '.mp3', import.meta.url)); if (!r.ok) continue;
+        const roh = await r.arrayBuffer();
+        puffer[n] = await new Promise((ja, nein) => { const p = actx.decodeAudioData(roh, ja, nein); if (p && p.catch) p.catch(nein); });
+      } catch { /* dann bleibt der erzeugte Ton */ }
+    }
+  }
+  function aufnahme(name, laut, tempo = 1) {
+    if (stumm() || !actx || !aus || !puffer[name]) return false;
+    try { const q = actx.createBufferSource(), g = actx.createGain(); q.buffer = puffer[name]; q.playbackRate.value = tempo; g.gain.value = laut; q.connect(g).connect(aus); q.start(); return true; } catch { return false; }
+  }
+  function schleife(name) {
+    const q = actx.createBufferSource(), g = actx.createGain();
+    q.buffer = puffer[name]; q.loop = true; q.loopStart = KLANG[name].von; q.loopEnd = KLANG[name].bis; g.gain.value = 0;
+    q.connect(g).connect(aus); q.start(0, KLANG[name].von);
+    return { q, g };
+  }
   const stumm = () => !!istStumm();
   function entsperren() {
     if (stumm()) return;
@@ -13,6 +38,7 @@ export function neuerTon(istStumm) {
         const d = rauschen.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
         aus = actx.createGain(); aus.gain.value = 1; aus.connect(actx.destination);
       }
+      ladeAufnahmen();
     } catch { actx = null; }
   }
   function ton(freq, dauer, form = 'sine', laut = 0.1, gleit = 0, spaeter = 0, tief = 0) {
@@ -56,22 +82,32 @@ export function neuerTon(istStumm) {
       sirene = { o: so, g: sg };
     } catch { motor = null; }
   }
-  // einmal je Bild: v = Tempo in m/s, rutsch 0..1, nah 0..1 (wie nah ist die Polizei), an = wird gerade gefahren
-  function laufend(dt, v, vmax, rutsch, nah, nitro, an) {
+  // einmal je Bild: v = Tempo in m/s, rutsch 0..1, nah 0..1 (wie nah ist die Polizei), an = wird gerade gefahren, gas = Fuß auf dem Gas
+  function laufend(dt, v, vmax, rutsch, nah, nitro, an, gas) {
     if (!actx || stumm()) return;
     dauer(); if (!motor) return;
     uhr += dt;
+    try {
+      if (puffer.motor && !motorA) motorA = schleife('motor');
+      if (puffer.sirene && !sireneA) sireneA = schleife('sirene');
+    } catch { /* erzeugte Töne bleiben */ }
     const t = actx.currentTime, gang = Math.min(4, Math.floor(v / (vmax / 4 + 0.01))), im = (v % (vmax / 4 + 0.01)) / (vmax / 4 + 0.01);
-    const f = 52 + gang * 9 + im * 58 + (nitro ? 40 : 0);
-    motor.o1.frequency.setTargetAtTime(f, t, 0.05); motor.o2.frequency.setTargetAtTime(f / 2, t, 0.05);
-    motor.f.frequency.setTargetAtTime(380 + v * 22 + (nitro ? 900 : 0), t, 0.08);
-    motor.g.gain.setTargetAtTime(an ? 0.05 + Math.min(0.03, v * 0.0012) + (nitro ? 0.03 : 0) : 0, t, 0.08);
+    const f = 52 + gang * 9 + im * 58 + (nitro ? 40 : 0) + (gas ? 6 : 0);
+    if (motorA) {   // Aufnahme: Leerlauf, mit dem Tempo höher gedreht (Gänge wie beim erzeugten Ton)
+      motorA.q.playbackRate.setTargetAtTime(f / 58, t, 0.06);
+      motorA.g.gain.setTargetAtTime(an ? (gas || nitro ? 0.2 : 0.11) + Math.min(0.06, v * 0.0025) : 0, t, 0.09);
+      motor.g.gain.setTargetAtTime(0, t, 0.05);
+    } else {
+      motor.o1.frequency.setTargetAtTime(f, t, 0.05); motor.o2.frequency.setTargetAtTime(f / 2, t, 0.05);
+      motor.f.frequency.setTargetAtTime(380 + v * 22 + (nitro ? 900 : 0), t, 0.08);
+      motor.g.gain.setTargetAtTime(an ? (gas || nitro ? 0.05 : 0.03) + Math.min(0.03, v * 0.0012) : 0, t, 0.08);
+    }
     reifen.g.gain.setTargetAtTime(an ? Math.min(0.085, rutsch * 0.085) : 0, t, 0.06);
     reifen.f.frequency.setTargetAtTime(1300 + rutsch * 500, t, 0.1);
-    sirene.o.frequency.setTargetAtTime(880 + 420 * Math.sin(uhr * 3.6), t, 0.03);
-    sirene.g.gain.setTargetAtTime(an ? nah * 0.05 : 0, t, 0.15);
+    if (sireneA) { sireneA.g.gain.setTargetAtTime(an ? nah * nah * 0.2 : 0, t, 0.15); sirene.g.gain.setTargetAtTime(0, t, 0.05); }
+    else { sirene.o.frequency.setTargetAtTime(880 + 420 * Math.sin(uhr * 3.6), t, 0.03); sirene.g.gain.setTargetAtTime(an ? nah * 0.05 : 0, t, 0.15); }
   }
-  function still() { if (!actx || !motor) return; const t = actx.currentTime; for (const k of [motor, reifen, sirene]) k.g.gain.setTargetAtTime(0, t, 0.05); }
+  function still() { if (!actx || !motor) return; const t = actx.currentTime; for (const k of [motor, reifen, sirene, motorA, sireneA]) if (k) k.g.gain.setTargetAtTime(0, t, 0.05); }
 
   const SFX = {
     klick: () => ton(520, 0.06, 'sine', 0.06),
@@ -80,24 +116,30 @@ export function neuerTon(istStumm) {
     stern: (n = 1) => { for (let i = 0; i < Math.min(n, 5); i++) ton(980, 0.09, 'square', 0.045, 0, i * 0.12, 3000); ton(740, 0.25, 'square', 0.04, 0, Math.min(n, 5) * 0.12, 3000); },
     alarm: () => { ton(620, 0.16, 'square', 0.05, 0, 0, 2600); ton(830, 0.2, 'square', 0.05, 0, 0.17, 2600); },
     entkommen: () => { [784, 659, 523, 784, 1047].forEach((f, i) => ton(f, 0.16, 'sine', 0.08, 0, i * 0.1)); rausch(0.6, 2500, 0.04, 0.7, 0, 'bandpass', 400); },
-    krach: (s = 8) => { const k = Math.min(1, s / 16); rausch(0.14 + k * 0.3, 900 + k * 900, 0.08 + k * 0.2, 0.6, 0, 'lowpass'); ton(90 - k * 30, 0.2 + k * 0.2, 'sine', 0.1 + k * 0.2, 0.5); if (k > 0.45) rausch(0.3, 3500, 0.07, 1.5, 0.03); },
+    krach: (s = 8) => {
+      const k = Math.min(1, s / 16);
+      ton(90 - k * 30, 0.2 + k * 0.2, 'sine', 0.1 + k * 0.2, 0.5);   // dumpfer Schlag darunter
+      if (aufnahme('crash', 0.16 + k * 0.5, 1.2 - k * 0.45 + (Math.random() - 0.5) * 0.12)) return;
+      rausch(0.14 + k * 0.3, 900 + k * 900, 0.08 + k * 0.2, 0.6, 0, 'lowpass'); if (k > 0.45) rausch(0.3, 3500, 0.07, 1.5, 0.03);
+    },
     fern: () => rausch(0.25, 500, 0.05, 0.6, 0, 'lowpass'),
     ding: () => { rausch(0.09, 1800, 0.1, 1, 0); ton(180, 0.1, 'triangle', 0.09, 0.6); },
     haarscharf: () => { rausch(0.3, 600, 0.09, 1.2, 0, 'bandpass', 3200); ton(1200, 0.12, 'sine', 0.05, 1.5, 0.12); },
     nitro: () => { rausch(0.9, 500, 0.14, 0.8, 0, 'bandpass', 4200); ton(120, 0.8, 'sawtooth', 0.07, 3.2, 0, 1800); },
-    schrott: () => { rausch(0.7, 1400, 0.3, 0.5, 0, 'lowpass'); ton(70, 0.5, 'sine', 0.3, 0.5); rausch(0.5, 4200, 0.09, 2, 0.05); [988, 1319].forEach((f, i) => ton(f, 0.2, 'triangle', 0.07, 0, 0.25 + i * 0.1)); },
+    schrott: () => { aufnahme('crash', 0.75, 0.62); rausch(0.7, 1400, 0.3, 0.5, 0, 'lowpass'); ton(70, 0.5, 'sine', 0.3, 0.5); rausch(0.5, 4200, 0.09, 2, 0.05); [988, 1319].forEach((f, i) => ton(f, 0.2, 'triangle', 0.07, 0, 0.25 + i * 0.1)); },
     platsch: () => { rausch(0.7, 2200, 0.2, 0.6, 0, 'lowpass', 300); ton(160, 0.35, 'sine', 0.12, 0.4); },
     geschnappt: () => { ton(392, 0.25, 'sawtooth', 0.07, 0.94, 0, 1500); ton(330, 0.25, 'sawtooth', 0.07, 0.94, 0.26, 1500); ton(262, 0.7, 'sawtooth', 0.08, 0.6, 0.52, 1500); },
     hupe: () => { ton(415, 0.3, 'square', 0.035, 0, 0, 1500); ton(520, 0.3, 'square', 0.03, 0, 0, 1500); },
     auftrag: () => [659, 784, 988, 1319, 1568].forEach((f, i) => ton(f, 0.18, 'triangle', 0.08, 0, i * 0.08)),
     tor: () => { ton(150, 0.18, 'square', 0.06, 0, 0, 900); ton(150, 0.22, 'square', 0.06, 0, 0.22, 900); },
     kauf: () => { [784, 988, 1175, 1568].forEach((f, i) => ton(f, 0.16, 'triangle', 0.09, 0, i * 0.07)); rausch(0.06, 7000, 0.05, 2, 0.3); },
-    los: () => { ton(110, 0.5, 'sawtooth', 0.07, 2, 0, 1200); }
+    los: () => { if (!aufnahme('start', 0.3)) ton(110, 0.5, 'sawtooth', 0.07, 2, 0, 1200); }
   };
   const sfx = (name, a) => { try { SFX[name] && SFX[name](a); } catch { /* egal */ } };
 
-  // ---------- Autoradio (wie in der Sternenfahrt): nach 45–90 s kurzes Rauschen und Wechsel zum anderen Sender
-  const SENDER = ['sender-1', 'sender-2'];
+  // ---------- Autoradio (wie in der Sternenfahrt): nach 45–90 s kurzes Rauschen und Wechsel auf einen anderen Sender
+  const SENDER = ['sender-1', 'sender-2', 'sender-3', 'sender-4', 'sender-5', 'sender-6'];
+  const TITEL = ['Golden Dreams of California', 'California Snares and Synths', 'Neon Odyssey', 'Neon Synthwave Drive', 'Pop Neon', 'Miami Cops'];
   const url = (k) => new URL((k === 'rauschen' ? '../sternenfahrt/radio/' : 'radio/') + k + '.mp3', import.meta.url).href;
   const VOL_M = 0.24, VOL_R = 0.16;
   const musik = new Audio(); musik.preload = 'none'; musik.volume = VOL_M;
@@ -138,5 +180,5 @@ export function neuerTon(istStumm) {
   for (const e of ['pointerup', 'touchend', 'click', 'keydown']) document.addEventListener(e, ersteBeruehrung, { capture: true, passive: true });
   document.addEventListener('visibilitychange', () => { radio(); if (document.hidden) still(); });
 
-  return { entsperren, sfx, laufend, still, radio, sender: () => { if (will()) umschalten(); }, wechselStumm: () => { if (stumm()) { still(); } else entsperren(); radio(); } };
+  return { entsperren, sfx, laufend, still, radio, titel: () => (sender >= 0 ? TITEL[sender] : ''), sender: () => { if (will()) umschalten(); }, wechselStumm: () => { if (stumm()) { still(); } else entsperren(); radio(); } };
 }

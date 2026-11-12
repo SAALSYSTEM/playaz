@@ -103,11 +103,15 @@ test('Polizei: kommt nach dem Alarm, findet den stehenden Wagen und nimmt ihn fe
 
 test('Versteck und Werkstatt: Tor zu bei Sichtkontakt, sonst Beute sicher, Fahndung weg, Auto repariert', () => {
   const S = fahrt(7); S.wartet = false;
-  const v = W.verstecke[0], rein = (S, v) => { S.ort = null; S.sp.x = v.x + Math.cos(v.raus) * 5; S.sp.y = v.y + Math.sin(v.raus) * 5; S.sp.a = v.raus + Math.PI; S.sp.vx = S.sp.vy = 0; };
+  const v = W.verstecke[0], rein = (S, v, a = v.raus + Math.PI / 2) => { S.ort = null; S.sp.x = v.x + Math.cos(v.raus); S.sp.y = v.y + Math.sin(v.raus); S.sp.a = a; S.sp.vx = S.sp.vy = 0; };   // quer ins Feld: die Richtung ist egal
   S.beute = 900; S.serie = 3; S.fahndung = 2.2; S.sterne = 2; S.gesehen = true; S.sp.hp = 40; S.n = 1;   // n ungerade: Sicht wird in diesem Schritt nicht neu geprüft
   rein(S, v); schritt(S, { los: true });
   assert.ok(S.ev.some((e) => e.t === 'tor' && e.grund === 'gesehen')); assert.equal(S.beute, 900); assert.equal(S.sicher, 0);
-  S.gesehen = false; S.n = 1; rein(S, v); schritt(S, { los: true });
+  // knapp neben dem Feld (Fahrspur) passiert nichts; im Feld geht das Tor auf, sobald niemand mehr hinsieht – ohne neu einzufahren
+  S.gesehen = false; S.n = 1; S.sp.x = v.x + Math.cos(v.raus) * (v.by + 2.6); S.sp.y = v.y + Math.sin(v.raus) * (v.by + 2.6); schritt(S, { los: true });
+  assert.equal(S.sicher, 0, 'in der Fahrspur vor dem Feld wird nicht gesichert');
+  S.gesehen = true; S.n = 1; rein(S, v); schritt(S, { los: true }); assert.equal(S.sicher, 0);
+  S.gesehen = false; S.n = 1; schritt(S, { los: true });
   assert.ok(hat(S, 'gesichert')); assert.equal(S.sicher, 900); assert.equal(S.beute, 0); assert.equal(S.serie, 0); assert.equal(S.sterne, 0); assert.equal(S.sp.hp, S.sp.hpMax);
   assert.ok(S.pause > 0); laufe(S, 2, {});
   assert.ok(hat(S, 'raus') && S.wartet, 'nach dem Versteck wartet das Auto auf die nächste Eingabe');

@@ -3,7 +3,7 @@
 // dann die Nacht (Lichtkarte, multipliziert) und zuletzt alles, was leuchtet (Neon, Scheinwerfer, Blaulicht).
 import { GROESSE } from './bilder.js';
 import { baueWelt, BODEN, NX, NY, Z, BREITE, HOEHE } from './welt.js';
-import { wrap } from './engine.js';
+import { wrap, EINFAHRT_VOR } from './engine.js';
 
 const TAU = Math.PI * 2;
 const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
@@ -283,10 +283,11 @@ export function neuerZeichner(cv) {
         const zu = (S.sterne > 0 && S.gesehen) || (S.zu.get(v) || 0) > S.t, col = zu ? '#FF4A5E' : farbe;
         const rx = Math.cos(v.raus), ry = Math.sin(v.raus), quer = Math.abs(ry) > 0.5, tief = quer ? v.by : v.bx, breit = quer ? v.bx : v.by;
         X.save(); X.translate(v.x, v.y); X.rotate(v.raus);
-        X.fillStyle = rgba(col, 0.13 + 0.07 * Math.sin(uhr * 4)); X.fillRect(-tief, -breit, tief * 2 + 5, breit * 2);
-        X.strokeStyle = rgba(col, 0.9); X.lineWidth = 0.3; X.strokeRect(-tief, -breit, tief * 2 + 5, breit * 2);
+        // genau das Feld, das zählt (engine.js: inEinfahrt)
+        X.fillStyle = rgba(col, 0.2 + 0.1 * Math.sin(uhr * 4)); X.fillRect(-tief - 1.5, -breit, tief * 2 + 1.5 + EINFAHRT_VOR, breit * 2);
+        X.strokeStyle = rgba(col, 0.95); X.lineWidth = 0.35; X.strokeRect(-tief - 1.5, -breit, tief * 2 + 1.5 + EINFAHRT_VOR, breit * 2);
         X.lineWidth = 0.5; X.lineCap = 'round';
-        for (let i = 0; i < 3; i++) { const u = 5.5 - i * 2.2 - ((uhr * 2.5) % 2.2); if (u < -tief + 0.6) continue; X.globalAlpha = 0.85; X.beginPath(); X.moveTo(u + 1.1, -2.2); X.lineTo(u, 0); X.lineTo(u + 1.1, 2.2); X.stroke(); }
+        for (let i = 0; i < 3; i++) { const u = tief + EINFAHRT_VOR + 3.4 - i * 2 - ((uhr * 2.5) % 2); if (u < tief + EINFAHRT_VOR - 0.4) continue; X.globalAlpha = 0.85; X.beginPath(); X.moveTo(u + 1.1, -2.2); X.lineTo(u, 0); X.lineTo(u + 1.1, 2.2); X.stroke(); }
         X.restore(); X.globalAlpha = 1; X.lineCap = 'butt';
       }
       // Koffer: Lichtkreis am Boden

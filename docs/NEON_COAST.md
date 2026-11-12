@@ -10,9 +10,10 @@ Stand 11.11.2026: veröffentlicht auf `main` (Freigabe „Push Main“ vom Auftr
 
 Alle Spielgrafiken stammen aus den vorhandenen Neon-Coast-Tafeln der Sternenfahrt (`design/sternenfahrt/tafel-*.png`, ChatGPT,
 vom Auftraggeber): 12 Fahrzeuge, 14 Gebäude, Palmen, Stadtmöbel, Strand, Hafen, Fußgänger, Böden. Neue Bilder waren für
-das Spiel selbst nicht nötig. Das Autoradio hat zwei eigene Sender (Pixabay, eliza_music: „Golden Dreams of California“,
-„California Snares and Synths“; Originale in `design/neon-coast/radio/`, mono 64 kbit/s in `public/spiele/neon-coast/radio/`);
-nur das Rauschen beim Umschalten kommt aus der Sternenfahrt.
+das Spiel selbst nicht nötig. Das Autoradio hat sechs eigene Sender (Pixabay, vom Auftraggeber: Golden Dreams of California, California Snares and
+Synths, Neon Odyssey, Neon Synthwave Drive, Pop Neon, Miami Cops; Originale in `design/neon-coast/radio/`, mono 64 kbit/s
+in `public/spiele/neon-coast/radio/`); nur das Rauschen beim Umschalten kommt aus der Sternenfahrt. Motor, Sirene, Crash
+und Startklang sind Aufnahmen (Pixabay, vom Auftraggeber, `design/neon-coast/ton/`).
 
 ## Spielprinzip
 
@@ -25,8 +26,8 @@ oben), bei Tempo zoomt sie heraus.
 | Fahndung ★ bis ★★★★★ | Jeder Koffer löst Alarm aus: mindestens `1 + 0,5 × (Serie − 1) + 0,25 × ⌊Koffer der Nacht / 3⌋` Sterne (höchstens 4), sonst +0,6. Bei Sichtkontakt +1 Stern je 42 s, Streifenwagen rammen +0,1, Streifenwagen Schrott +0,35 |
 | Peilsender | 12 s nach jedem Koffer kennt die Polizei alle 2 s die Position; so lange läuft die Suchuhr nicht |
 | Entkommen | Ohne Sichtkontakt (Gebäude und Container verdecken, Sichtweite 58 m) für `7 + 1,5 × Sterne` Sekunden: Sterne weg, Bonus `100 × Sterne²` $ |
-| Versteck (grün, 3 Stück) | Aufs Tor zufahren: Beute ist sicher, Fahndung weg, Auto repariert, Serie beginnt neu. Nur ohne Sichtkontakt |
-| Lack & Fix (türkis, 2 Stück) | Fahndung weg und Auto repariert, Beute und Serie bleiben im Auto. Kostet 10 % der Beute (mindestens 100 $), danach 60 s gesperrt. Nur ohne Sichtkontakt |
+| Versteck (grün, 3 Stück) | Ins grüne Feld vor dem Tor fahren (Vorplatz, ragt 1,5 m in die Straße; Richtung und Tempo egal, es zählt die Wagenmitte): Beute ist sicher, Fahndung weg, Auto repariert, Serie beginnt neu. Nur ohne Sichtkontakt – wer im Feld wartet, kommt rein, sobald niemand mehr hinsieht |
+| Lack & Fix (türkises Feld, 2 Stück) | Fahndung weg und Auto repariert, Beute und Serie bleiben im Auto. Kostet 10 % der Beute (mindestens 100 $), danach 60 s gesperrt. Nur ohne Sichtkontakt |
 | Nitro | Füllt sich durch Driften, haarscharfes Überholen, Umfahren, Streifenwagen-Schrott (und langsam von selbst). Voll: 2,6 s Schub, halber Schaden, Rammen wirkt stärker |
 | Haarscharf | dicht und schnell an fahrendem Verkehr vorbei ohne Berührung: +50 $ × Sterne |
 | Ende der Nacht | Festnahme (unter 3 m/s neben einem Streifenwagen, ca. 2 s), Totalschaden, tiefes Wasser oder „Nacht beenden“. Gesichertes bleibt, Beute im Auto verfällt |
@@ -72,10 +73,14 @@ Bodenraster 2 m für Untergrund (Sand und Gras bremsen), Sicht und Wege; Gebäud
   interpoliert), Gebäude, Teilchen, Bremsspuren; Nacht als Lichtkarte in Viertel-Auflösung (multipliziert), darüber alles,
   was leuchtet (Neon, Scheinwerfer, Blaulicht). Bildschirm-Ebene: Koffer, Schilder, Wegweiser am Rand, Radar, Stadtplan.
   Fußgänger sind nur Stimmung (laufen auf Gehwegen, springen vor Autos weg).
-- `ton.js` – Motor, Reifen, Sirene und Effekte über WebAudio erzeugt; Autoradio wie in der Sternenfahrt (Senderwechsel mit Rauschen).
+- `ton.js` – Motor (Leerlauf-Aufnahme als Schleife, mit dem Tempo und den Gängen höher abgespielt), Sirene (Schleife, lauter
+  je näher die Polizei), Crash und Startklang als Aufnahmen; Reifen und die übrigen Effekte über WebAudio erzeugt. Fehlt
+  eine Aufnahme, springt der erzeugte Ton ein. Schleifenpunkte in `klang.js` (erzeugt). Autoradio wie in der Sternenfahrt
+  (Senderwechsel mit Rauschen), der Titel steht in der Pause.
 - `game.js` – Schleife, Steuerung, HUD, Menüs, Abrechnung, Teilen, Spielstand `neoncoast.v1`.
 - `daten.js` – Autos, Aufträge, Ränge, Abrechnung, Spielstand-Prüfung. `welt.js` – Stadt. `bilder.js` – erzeugt.
-- `tools/neon-coast-assets.py` – schneidet die Motive aus den Tafeln (`--preview` schreibt ein Kontrollbild) und wandelt
+- `tools/neon-coast-assets.py` – schneidet die Motive aus den Tafeln (`--preview` schreibt ein Kontrollbild), baut Radio und
+  Geräusche (nahtlose Schleifen aus Leerlauf und Sirene, braucht ffmpeg) und wandelt
   `design/neon-coast/kachel.png` / `social-preview.png` in `public/bilder/neon-coast.webp` / `neon-coast-og.jpg`.
 - Bei dauerhaft langsamen Bildern (über 27 ms) zeichnet das Spiel mit weniger Bildpunkten (Schärfe 2 → 1,5 → 1).
 
@@ -94,7 +99,8 @@ mit Stadtplan, Abrechnung und Speichern, Garage, Platz der Bedienelemente.
 
 ## Offen
 
-- Nicht geprüft: echte Handys (Bildrate, Daumenwege), Ton und Radio hörbar. Die Balance (Schaden, Polizei-Tempo, Preise)
+- Nicht geprüft: echte Handys (Bildrate, Daumenwege); Ton und Radio wurden nicht angehört (Lautstärken und Motorklang nur
+  nach Zahlen eingestellt). Die Balance (Schaden, Polizei-Tempo, Preise)
   ist nur mit dem Prüf-Fahrer und nach Zahlen eingestellt – nach den ersten echten Nächten nachstellen.
 - Mögliche Ausbaustufen: Straßensperren ab 3 Sternen, Hubschrauber bei 5 Sternen, Tagesnacht mit geprüfter Rangliste
-  (bräuchte Edge Function und SQL), weitere Radiosender, weitere Stadtteile.
+  (bräuchte Edge Function und SQL), Aufnahmen für Reifen, Kasse und Nitro, weitere Stadtteile.
