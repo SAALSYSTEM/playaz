@@ -50,6 +50,20 @@ test('Fahrphysik: zügig auf Tempo, bessere Autos sind schneller, Handbremse mac
   assert.ok(r.c.vx < -3 && r.c.vx >= -7.01, 'Bremse im Stand fährt rückwärts, höchstens 7 m/s');
 });
 
+test('Gas und Bremse: ohne Gas steht das Auto, vom Gas gehen bremst der Motor, Nitro schiebt von selbst', () => {
+  const S = fahrt(2);
+  laufe(S, 1, { los: true });
+  assert.ok(Math.hypot(S.sp.vx, S.sp.vy) < 0.001 && Math.abs(S.sp.x - W.start.x) < 0.001, 'ohne Gas bewegt sich nichts');
+  laufe(S, 1.5, { gas: true }); const v1 = Math.hypot(S.sp.vx, S.sp.vy);
+  assert.ok(v1 > 10, 'mit Gas nach 1,5 s ' + v1.toFixed(1) + ' m/s');
+  laufe(S, 1, {}); const v2 = Math.hypot(S.sp.vx, S.sp.vy);
+  assert.ok(v2 < v1 - 2.5 && v2 > v1 - 5, 'Motorbremse: ' + v1.toFixed(1) + ' -> ' + v2.toFixed(1));
+  laufe(S, 0.4, { bremse: true }); assert.ok(Math.hypot(S.sp.vx, S.sp.vy) < v2 - 6, 'Bremse greift kräftig');
+  laufe(S, 2, { hand: true }); assert.ok(Math.hypot(S.sp.vx, S.sp.vy) < 0.05, 'Handbremse hält das Auto');
+  S.nitro = 1; laufe(S, 0.1, { nitro: true }); assert.equal(S.stat.nitro, 1);
+  laufe(S, 1, {}); assert.ok(Math.hypot(S.sp.vx, S.sp.vy) > 8, 'Nitro beschleunigt auch ohne Gas');
+});
+
 test('Koffer: Beute, Serie und Faktor, Fahndung, Peilsender; drei Koffer sind immer im Spiel', () => {
   assert.deepEqual([1, 2, 3, 4, 9, 20].map(multi), [1, 1.5, 2, 2.5, 5, 5]);
   const S = fahrt(3); steh(S);

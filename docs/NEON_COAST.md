@@ -9,12 +9,15 @@ Stand 11.11.2026: veröffentlicht auf `main` (Freigabe „Push Main“ vom Auftr
 (vom Auftraggeber, Originale in `design/neon-coast/`, Prompts in `PROMPTS.md`).
 
 Alle Spielgrafiken stammen aus den vorhandenen Neon-Coast-Tafeln der Sternenfahrt (`design/sternenfahrt/tafel-*.png`, ChatGPT,
-vom Auftraggeber): 12 Fahrzeuge, 14 Gebäude, Palmen, Stadtmöbel, Strand, Hafen, Fußgänger, Böden. Das Autoradio spielt die
-Sender der Sternenfahrt (`public/spiele/sternenfahrt/radio/`). Neue Bilder waren für das Spiel selbst nicht nötig.
+vom Auftraggeber): 12 Fahrzeuge, 14 Gebäude, Palmen, Stadtmöbel, Strand, Hafen, Fußgänger, Böden. Neue Bilder waren für
+das Spiel selbst nicht nötig. Das Autoradio hat zwei eigene Sender (Pixabay, eliza_music: „Golden Dreams of California“,
+„California Snares and Synths“; Originale in `design/neon-coast/radio/`, mono 64 kbit/s in `public/spiele/neon-coast/radio/`);
+nur das Rauschen beim Umschalten kommt aus der Sternenfahrt.
 
 ## Spielprinzip
 
-Das Auto gibt von selbst Gas. Die Kamera dreht mit der Fahrtrichtung (vorn ist immer oben), bei Tempo zoomt sie heraus.
+Man fährt selbst: Gas, Bremse, Handbremse, stufenlose Lenkung. Die Kamera dreht mit der Fahrtrichtung (vorn ist immer
+oben), bei Tempo zoomt sie heraus.
 
 | Was | Wirkung |
 |---|---|
@@ -41,10 +44,16 @@ Rekord (beste Nacht) mit Herausforderung per Link `?r=Betrag`.
 
 ## Steuerung
 
-- Handy: linke oder rechte Bildhälfte halten = lenken. Kommt die zweite Seite dazu = Handbremse (Lenkrichtung bleibt die
-  zuerst gedrückte) – enge Kurven und Drifts; unter 5 m/s fährt das Auto so rückwärts. Nitro-Knopf unten in der Mitte.
-- Rechner: ← → (oder A D) lenken, Leertaste Handbremse, ↓ bremsen/rückwärts, ↑ Nitro, Esc Pause. Ganze Fensterbreite.
-- Das Auto wartet am Start und nach Versteck/Werkstatt auf die erste Eingabe. Pause auch bei Tab-Wechsel.
+Seit 12.11.2026 für Erwachsene ausgelegt (Wunsch des Auftraggebers: „muss nicht für Kinder sein“) – kein Auto-Gas mehr.
+
+- Handy: links die **Lenkleiste** (stufenlos: Ruhezone in der Mitte, je weiter außen der Daumen, desto stärker; gilt für
+  die ganze linke untere Bildhälfte). Rechts die Pedale: **Gas** (groß, unten rechts), **Bremse** daneben (im Stand:
+  rückwärts), **Handbremse** über dem Gas, **Nitro** über der Bremse. Ein Daumen darf von Pedal zu Pedal rutschen
+  (Gas → Handbremse → Gas für die Kehre); gewertet wird das Pedal unter dem Finger, sonst das nächste in 64 px.
+- Rechner: W/↑ Gas, S/↓ Bremse und rückwärts, A D/← → lenken, Leertaste Handbremse, Shift (oder N, X) Nitro, Esc Pause.
+  Ganze Fensterbreite; von den Bedienelementen bleibt nur die Nitro-Anzeige.
+- Vom Gas gehen bremst mit dem Motor (ca. 3,4 m/s²). Nitro schiebt 2,6 s von selbst, auch wenn der Daumen nicht auf dem
+  Gas ist. Die Welt wartet am Start und nach Versteck/Werkstatt auf die erste Eingabe. Pause auch bei Tab-Wechsel.
 
 ## Stadt
 
@@ -63,7 +72,7 @@ Bodenraster 2 m für Untergrund (Sand und Gras bremsen), Sicht und Wege; Gebäud
   interpoliert), Gebäude, Teilchen, Bremsspuren; Nacht als Lichtkarte in Viertel-Auflösung (multipliziert), darüber alles,
   was leuchtet (Neon, Scheinwerfer, Blaulicht). Bildschirm-Ebene: Koffer, Schilder, Wegweiser am Rand, Radar, Stadtplan.
   Fußgänger sind nur Stimmung (laufen auf Gehwegen, springen vor Autos weg).
-- `ton.js` – Motor, Reifen, Sirene und Effekte über WebAudio erzeugt; Autoradio wie in der Sternenfahrt.
+- `ton.js` – Motor, Reifen, Sirene und Effekte über WebAudio erzeugt; Autoradio wie in der Sternenfahrt (Senderwechsel mit Rauschen).
 - `game.js` – Schleife, Steuerung, HUD, Menüs, Abrechnung, Teilen, Spielstand `neoncoast.v1`.
 - `daten.js` – Autos, Aufträge, Ränge, Abrechnung, Spielstand-Prüfung. `welt.js` – Stadt. `bilder.js` – erzeugt.
 - `tools/neon-coast-assets.py` – schneidet die Motive aus den Tafeln (`--preview` schreibt ein Kontrollbild) und wandelt
@@ -88,4 +97,4 @@ mit Stadtplan, Abrechnung und Speichern, Garage, Platz der Bedienelemente.
 - Nicht geprüft: echte Handys (Bildrate, Daumenwege), Ton und Radio hörbar. Die Balance (Schaden, Polizei-Tempo, Preise)
   ist nur mit dem Prüf-Fahrer und nach Zahlen eingestellt – nach den ersten echten Nächten nachstellen.
 - Mögliche Ausbaustufen: Straßensperren ab 3 Sternen, Hubschrauber bei 5 Sternen, Tagesnacht mit geprüfter Rangliste
-  (bräuchte Edge Function und SQL), eigene Radiosender (Synthwave), weitere Stadtteile.
+  (bräuchte Edge Function und SQL), weitere Radiosender, weitere Stadtteile.

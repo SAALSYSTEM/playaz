@@ -14,9 +14,12 @@ Ausrichtung: Fahrzeuge Front nach oben. Gebäude wie auf der Tafel (Fassade unte
 Schreibt public/spiele/neon-coast/img/*.webp und public/spiele/neon-coast/bilder.js (Bildgrößen und – für Gebäude –
 die Grundfläche als wenige Rechtecke, abgeleitet aus der Bildform; daraus entstehen die Kollisionsflächen).
 Liegen design/neon-coast/kachel.png bzw. social-preview.png vor, werden daraus Kachel und Teilen-Vorschau.
+Radio: design/neon-coast/radio/*.mp3 (Pixabay, vom Auftraggeber) → public/spiele/neon-coast/radio/ (mono, 64 kbit/s, braucht ffmpeg).
 """
 import importlib.util
 import json
+import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -92,6 +95,10 @@ DINGE = {
     'steg':          ('strand-hafen', 30, 550, 168, 925, 0, 380),
     'boot':          ('strand-hafen', 685, 515, 870, 965, 0, 260),
     'container':     ('strand-hafen', 1100, 550, 1295, 950, 0, 280),
+}
+RADIO = {
+    'eliza_music-golden-dreams-of-california-432189.mp3': 'sender-1.mp3',
+    'eliza_music-california-snares-and-synths-435003.mp3': 'sender-2.mp3',
 }
 FIGUR_ZEILEN = SF.FIGUR_ZEILEN
 FIGUR_SPALTEN = SF.FIGUR_SPALTEN
@@ -207,6 +214,14 @@ def main():
             y0 = (og.height - th) / 2
             og = og.crop((0, round(y0), og.width, round(y0 + th)))
         og.resize((1200, 630), Image.LANCZOS).save(BILDER / 'neon-coast-og.jpg', 'JPEG', quality=86, optimize=True, progressive=True)
+
+    # Autoradio: eigene Sender (das Rauschen beim Umschalten kommt aus der Sternenfahrt)
+    radio = ROOT / 'public' / 'spiele' / 'neon-coast' / 'radio'
+    if shutil.which('ffmpeg'):
+        radio.mkdir(parents=True, exist_ok=True)
+        for src, dst in RADIO.items():
+            if (DESIGN / 'radio' / src).exists():
+                subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', str(DESIGN / 'radio' / src), '-ac', '1', '-b:a', '64k', str(radio / dst)], check=True)
 
     if '--preview' in sys.argv:
         i = sys.argv.index('--preview')

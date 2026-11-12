@@ -1,4 +1,4 @@
-// Neon Coast – Fluchtwagen – Browserprüfung: Seite lädt ohne Fehler, Steuerung (Finger und Tasten), Koffer -> HUD,
+// Neon Coast – Fluchtwagen – Browserprüfung: Seite lädt ohne Fehler, Steuerung (Lenkleiste, Pedale, Tasten), Koffer -> HUD,
 // Nitro, Pause mit Stadtplan, Nacht beenden -> Abrechnung und Spielstand, Garage-Kauf, Platz auf kleinen Handys.
 // Eigener kleiner Static-Server (wie Cloudflare: /pfad -> pfad.html).
 import { test, before, after } from 'node:test';
@@ -54,6 +54,7 @@ async function open({ size = { width: 390, height: 780 }, save = null, query = '
 const mode = (page) => page.evaluate(() => window.__neoncoast.mode);
 const zeiger = (page, typ, id, x, y) => page.evaluate(([t, i, a, b]) => document.getElementById('game').dispatchEvent(new PointerEvent(t, { pointerId: i, clientX: a, clientY: b, bubbles: true, cancelable: true, pointerType: 'touch' })), [typ, id, x, y]);
 const lenk = (page) => page.evaluate(() => ({ ...window.__neoncoast.eingabe }));
+const mitte = async (page, sel, fx = 0.5, fy = 0.5) => { const k = await kasten(page, sel); return [k.x0 + (k.x1 - k.x0) * fx, k.y0 + (k.y1 - k.y0) * fy]; };
 const kasten = (page, sel) => page.evaluate((s) => { const r = document.querySelector(s).getBoundingClientRect(); return { x0: r.left, y0: r.top, x1: r.right, y1: r.bottom }; }, sel);
 const frei = (a, b) => a.x1 <= b.x0 || b.x1 <= a.x0 || a.y1 <= b.y0 || b.y1 <= a.y0;
 
@@ -72,32 +73,56 @@ test('Start: lädt ohne Fehler, alle Bilder da, Losfahren auf kleinen Handys sic
   }
 });
 
-test('Fahren: Finger links/rechts lenkt, zweite Seite zieht die Handbremse, Tasten am Rechner, Bedienelemente überlappen nicht', async () => {
+test('Fahren: Lenkleiste stufenlos, Gas/Bremse/Handbremse (auch von Pedal zu Pedal gerutscht), Nitro, Tasten; nichts überlappt', async () => {
   for (const size of [{ width: 320, height: 568 }, { width: 390, height: 780 }]) {
     const { ctx, page, errors } = await open({ size });
     await page.click('#bLos');
     assert.equal(await mode(page), 'spiel');
     assert.ok(await page.isVisible('#hud') && await page.isVisible('#ctl'));
-    const [l, n, r, p] = [await kasten(page, '#bL'), await kasten(page, '#bNitro'), await kasten(page, '#bR'), await kasten(page, '#bPause')];
-    for (const k of [l, n, r, p]) assert.ok(k.x0 >= 0 && k.x1 <= size.width && k.y0 >= 0 && k.y1 <= size.height, 'Knopf im Bild');
-    assert.ok(frei(l, n) && frei(n, r) && frei(l, r), 'Lenkflächen und Nitro überlappen nicht');
-    assert.ok(n.x1 - n.x0 >= 64 && l.x1 - l.x0 >= 76, 'Knöpfe groß genug für Daumen');
-    // Auto wartet bis zur ersten Eingabe
+    const namen = ['#lenk', '#bGas', '#bBremse', '#bHand', '#bNitro'], k = {};
+    for (const n of [...namen, '#bPause']) { k[n] = await kasten(page, n); assert.ok(k[n].x0 >= 0 && k[n].x1 <= size.width && k[n].y0 >= 0 && k[n].y1 <= size.height, n + ' im Bild'); }
+    for (let a = 0; a < namen.length; a++) for (let b = a + 1; b < namen.length; b++) assert.ok(frei(k[namen[a]], k[namen[b]]), namen[a] + ' und ' + namen[b] + ' überlappen nicht');
+    assert.ok(k['#bGas'].x1 - k['#bGas'].x0 >= 72 && k['#bGas'].y1 - k['#bGas'].y0 >= 96 && k['#bBremse'].x1 - k['#bBremse'].x0 >= 60 && k['#lenk'].x1 - k['#lenk'].x0 >= 125, 'groß genug für Daumen');
+    // Auto steht, bis Gas kommt
     assert.equal(await page.evaluate(() => window.__neoncoast.S.wartet), true);
     const a0 = await page.evaluate(() => window.__neoncoast.S.sp.a);
-    await zeiger(page, 'pointerdown', 1, 40, size.height - 60);
-    assert.deepEqual([(await lenk(page)).lenk, (await lenk(page)).hand], [-1, false]);
-    await page.waitForFunction(() => !window.__neoncoast.S.wartet && window.__neoncoast.S.t > 0.8);
-    assert.ok(await page.evaluate((a) => window.__neoncoast.S.sp.a < a - 0.2, a0), 'Auto dreht nach links');
-    await zeiger(page, 'pointerdown', 2, size.width - 40, size.height - 60);
-    assert.deepEqual([(await lenk(page)).lenk, (await lenk(page)).hand], [-1, true], 'beide Seiten: Handbremse, Lenkrichtung bleibt');
-    await zeiger(page, 'pointerup', 1, 40, size.height - 60);
-    assert.deepEqual([(await lenk(page)).lenk, (await lenk(page)).hand], [1, false]);
-    await zeiger(page, 'pointerup', 2, size.width - 40, size.height - 60);
-    assert.equal((await lenk(page)).lenk, 0);
+    // Lenkleiste: Rand = Vollausschlag, dazwischen stufenlos, Mitte = geradeaus
+    const y = (await mitte(page, '#lenk'))[1];
+    await zeiger(page, 'pointerdown', 1, k['#lenk'].x0 + 8, y);
+    assert.equal((await lenk(page)).lenk, -1);
+    await zeiger(page, 'pointermove', 1, (await mitte(page, '#lenk', 0.33))[0], y);
+    const teil = (await lenk(page)).lenk; assert.ok(teil < -0.1 && teil > -0.8, 'halber Weg lenkt nur teilweise: ' + teil);
+    await zeiger(page, 'pointermove', 1, (await mitte(page, '#lenk'))[0], y); assert.equal((await lenk(page)).lenk, 0);
+    await zeiger(page, 'pointermove', 1, k['#lenk'].x1 - 8, y); assert.equal((await lenk(page)).lenk, 1);
+    await zeiger(page, 'pointermove', 1, k['#lenk'].x0 + 8, y - 40); assert.equal((await lenk(page)).lenk, -1, 'auch knapp über der Leiste');
+    assert.equal(await page.evaluate(() => window.__neoncoast.S.wartet), false);
+    assert.ok(await page.evaluate(() => Math.hypot(window.__neoncoast.S.sp.vx, window.__neoncoast.S.sp.vy) < 0.01), 'ohne Gas rollt nichts');
+    // Gas: fährt los und dreht nach links
+    await zeiger(page, 'pointerdown', 2, ...(await mitte(page, '#bGas')));
+    assert.deepEqual([(await lenk(page)).gas, (await lenk(page)).bremse, (await lenk(page)).hand], [true, false, false]);
+    assert.ok(await page.evaluate(() => document.getElementById('bGas').classList.contains('an')));
+    await page.waitForFunction(() => window.__neoncoast.S.t > 0.9);
+    assert.ok(await page.evaluate((a) => window.__neoncoast.S.sp.a < a - 0.2 && Math.hypot(window.__neoncoast.S.sp.vx, window.__neoncoast.S.sp.vy) > 3, a0), 'Auto fährt und dreht nach links');
+    // derselbe Daumen rutscht aufs nächste Pedal
+    await zeiger(page, 'pointermove', 2, ...(await mitte(page, '#bHand')));
+    assert.deepEqual([(await lenk(page)).gas, (await lenk(page)).hand], [false, true]);
+    await zeiger(page, 'pointermove', 2, ...(await mitte(page, '#bBremse')));
+    assert.deepEqual([(await lenk(page)).gas, (await lenk(page)).hand, (await lenk(page)).bremse], [false, false, true]);
+    await zeiger(page, 'pointermove', 2, ...(await mitte(page, '#bGas'))); assert.equal((await lenk(page)).gas, true);
+    // Nitro mit einem dritten Finger
+    await page.evaluate(() => { window.__neoncoast.S.nitro = 1; });
+    await zeiger(page, 'pointerdown', 3, ...(await mitte(page, '#bNitro')));
+    await page.waitForFunction(() => window.__neoncoast.S.stat.nitro === 1);
+    await zeiger(page, 'pointerup', 3, 0, 0);
+    await zeiger(page, 'pointerup', 2, 0, 0); await zeiger(page, 'pointerup', 1, 0, 0);
+    assert.deepEqual(await lenk(page), { lenk: 0, gas: false, bremse: false, hand: false, nitro: false });
+    // Tasten
     await page.keyboard.down('ArrowRight'); assert.equal((await lenk(page)).lenk, 1);
+    await page.keyboard.down('KeyW'); assert.equal((await lenk(page)).gas, true);
     await page.keyboard.down('Space'); assert.equal((await lenk(page)).hand, true);
-    await page.keyboard.up('Space'); await page.keyboard.up('ArrowRight'); assert.equal((await lenk(page)).lenk, 0);
+    await page.keyboard.down('ArrowDown'); assert.equal((await lenk(page)).bremse, true);
+    for (const t of ['ArrowDown', 'Space', 'KeyW', 'ArrowRight']) await page.keyboard.up(t);
+    assert.deepEqual(await lenk(page), { lenk: 0, gas: false, bremse: false, hand: false, nitro: false });
     assert.deepEqual(errors, []);
     await ctx.close();
   }
@@ -114,7 +139,7 @@ test('Koffer füllt die Beute, Stern leuchtet, Nitro zündet; Pause zeigt den St
   assert.match(await page.textContent('#hSuchT'), /Peilsender|Polizei sieht dich/);
   await page.evaluate(() => { window.__neoncoast.S.nitro = 1; });
   await page.waitForSelector('#bNitro.voll');
-  await page.dispatchEvent('#bNitro', 'pointerdown');
+  await zeiger(page, 'pointerdown', 7, ...(await mitte(page, '#bNitro'))); await zeiger(page, 'pointerup', 7, 0, 0);
   await page.waitForSelector('#bNitro.brennt');
   assert.equal(await page.evaluate(() => window.__neoncoast.S.stat.nitro), 1);
   // Pause
@@ -163,17 +188,31 @@ test('Garage: kaufen, wählen, speichern; Aufträge und Hilfe öffnen und schlie
   await ctx.close();
 });
 
-test('Rechner im Querformat: ganze Fensterbreite, Tastenhilfe statt Lenkflächen', async () => {
+test('Rechner im Querformat: ganze Fensterbreite, Tastenhilfe statt Pedalen, Shift zündet Nitro', async () => {
   const { ctx, page, errors } = await open({ size: { width: 1280, height: 720 }, touch: false });
   await page.click('#bLos');
-  assert.ok(await page.isVisible('#tasten')); assert.ok(!(await page.isVisible('#bL')));
+  assert.ok(await page.isVisible('#tasten')); assert.ok(!(await page.isVisible('#lenk')) && !(await page.isVisible('#bGas')));
+  assert.ok(await page.isVisible('#bNitro'), 'Nitro-Anzeige bleibt sichtbar');
   assert.deepEqual(await page.evaluate(() => { const c = document.getElementById('game'); return [c.clientWidth, c.clientHeight]; }), [1280, 720]);
-  await page.keyboard.down('ArrowLeft');
+  await page.keyboard.down('ArrowUp'); await page.keyboard.down('ArrowLeft');
   await page.waitForFunction(() => window.__neoncoast.S.t > 1);
-  await page.keyboard.up('ArrowLeft');
+  await page.keyboard.up('ArrowLeft'); await page.keyboard.up('ArrowUp');
   assert.ok(await page.evaluate(() => Math.hypot(window.__neoncoast.S.sp.vx, window.__neoncoast.S.sp.vy) > 5), 'Auto fährt');
+  await page.evaluate(() => { window.__neoncoast.S.nitro = 1; });
+  await page.keyboard.press('ShiftLeft');
+  await page.waitForFunction(() => window.__neoncoast.S.stat.nitro === 1);
   await page.keyboard.press('Escape'); assert.equal(await mode(page), 'pause');
   await page.keyboard.press('Escape'); assert.equal(await mode(page), 'spiel');
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('Autoradio: nach dem ersten Tippen lädt einer der beiden eigenen Sender, beide Dateien sind da', async () => {
+  const { ctx, page, errors } = await open();
+  const geladen = page.waitForRequest((r) => /\/spiele\/neon-coast\/radio\/sender-[12]\.mp3$/.test(r.url()), { timeout: 15000 });
+  await page.click('#bLos');
+  await geladen;
+  for (const n of [1, 2]) assert.equal(await page.evaluate(async (k) => (await fetch('/spiele/neon-coast/radio/sender-' + k + '.mp3', { method: 'HEAD' })).status, n), 200);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

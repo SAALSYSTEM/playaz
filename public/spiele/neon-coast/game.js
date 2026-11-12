@@ -18,7 +18,7 @@ const einladung = parseEinladung(location.search);
 const ton = neuerTon(() => save.mute);
 const Zr = neuerZeichner(cv);
 let mode = 'lade', S = null, acc = 0, letzte = 0, zurueck = 'start', schluss = 0, bilanz = null;
-const eingabe = { lenk: 0, bremse: false, hand: false, nitro: false };
+const eingabe = { lenk: 0, gas: false, bremse: false, hand: false, nitro: false };
 
 // ---------- Bildschirme
 const SCREENS = ['start', 'garage', 'auftraege', 'hilfe', 'pause', 'ende'];
@@ -28,7 +28,7 @@ function zeige(m) {
   const spiel = m === 'spiel' || m === 'schluss';
   $('hud').hidden = !spiel; $('ctl').hidden = m !== 'spiel'; $('tasten').hidden = m !== 'spiel';
   if (!spiel) { $('haft').hidden = true; $('hinweis').classList.add('weg'); $('viertel').classList.remove('an'); ton.still(); }
-  if (m !== 'spiel') { tasten.clear(); zeiger.clear(); folge.length = 0; lies(); }
+  if (m !== 'spiel') { tasten.clear(); zeiger.clear(); lies(); } else messen();
   if (m === 'start') malStart(); else if (m === 'garage') malGarage(); else if (m === 'auftraege') malAuftraege(); else if (m === 'pause') malPause();
 }
 function toast(text) { const t = $('toast'); t.textContent = text; t.hidden = false; clearTimeout(toast.h); toast.h = setTimeout(() => { t.hidden = true; }, 2600); }
@@ -109,7 +109,7 @@ function losfahren() {
   $('meldung').textContent = '';
   zeige('spiel');
   ton.sfx('los'); ton.radio();
-  hinweis(feinZeiger() ? 'Mit <b>← →</b> lenken. Hol dir den gelben Koffer!' : '<b>Links oder rechts halten</b> zum Lenken. Hol dir den gelben Koffer!', 0);
+  hinweis(feinZeiger() ? '<b>W</b> oder <b>↑</b> gibt Gas, <b>A D</b> oder <b>← →</b> lenken. Hol dir den gelben Koffer!' : 'Rechts <b>Gas</b> halten, links <b>lenken</b>. Hol dir den gelben Koffer!', 0);
 }
 const feinZeiger = () => window.matchMedia && window.matchMedia('(hover:hover) and (pointer:fine)').matches;
 const merke = () => { for (const c of S.autos) { c.px = c.x; c.py = c.y; c.pa = c.a; } };
@@ -137,7 +137,7 @@ function ereignisse() {
         if (save.hilfe < 2) save.hilfe = 2;
         break;
       case 'werkstatt': ton.sfx('kauf'); ton.still(); ortZeigen('Neu lackiert', (e.kosten ? 'Kostet ' + geld(e.kosten) + ' · ' : '') + 'Fahndung weg, Auto wie neu', 'cyan'); break;
-      case 'raus': $('ort').hidden = true; hinweis(save.hilfe < 3 ? 'Sauber! Jeder weitere Koffer <b>ohne Sichern</b> ist mehr wert. Tippen und weiter.' : 'Tippen und weiter.', 0); if (save.hilfe < 3) save.hilfe = 3; break;
+      case 'raus': $('ort').hidden = true; hinweis(save.hilfe < 3 ? 'Sauber! Jeder weitere Koffer <b>ohne Sichern</b> ist mehr wert. Gas geben und weiter.' : 'Gas geben und weiter.', 0); if (save.hilfe < 3) save.hilfe = 3; break;
       case 'tor':
         ton.sfx('tor');
         if (e.grund === 'gesehen') hinweis('Das Tor bleibt zu, solange dich ein <b>Streifenwagen sieht</b>. Erst abhängen!', 4);
@@ -160,7 +160,7 @@ function ereignisse() {
     }
   }
   S.ev.length = 0;
-  if (!nitroGesagt && S.nitro >= 1 && save.stat.naechte < 3 && S.t > 8) { nitroGesagt = true; hinweis(feinZeiger() ? 'Nitro ist voll: <b>Pfeil nach oben</b> zündet!' : 'Nitro ist voll: <b>Knopf unten in der Mitte</b> zündet!', 4); }
+  if (!nitroGesagt && S.nitro >= 1 && save.stat.naechte < 3 && S.t > 8) { nitroGesagt = true; hinweis(feinZeiger() ? 'Nitro ist voll: <b>Shift</b> zündet!' : 'Nitro ist voll: <b>NITRO</b> über der Bremse zündet!', 4); }
   void sp;
 }
 function ortZeigen(titel, unter, farbe) { const t = $('ortText'); t.className = farbe; t.textContent = titel; const s = document.createElement('small'); s.textContent = unter; t.append(s); $('ort').hidden = false; }
@@ -234,36 +234,59 @@ function hud() {
   if (v !== letztesViertel) { letztesViertel = v; const e = $('viertel'); e.textContent = v; e.classList.add('an'); viertelT = 2.4; }
 }
 
-// ---------- Steuerung: links/rechts halten lenkt; kommt die zweite Seite dazu, zieht das die Handbremse
-const zeiger = new Map(), folge = [], tasten = new Set();
+// ---------- Steuerung
+// Handy: links die Lenkleiste (stufenlos: je weiter außen der Daumen, desto stärker), rechts Gas, Bremse (im Stand rückwärts),
+// Handbremse und Nitro. Ein Daumen darf von Pedal zu Pedal rutschen. Rechner: W A S D oder Pfeiltasten, Leertaste, Shift.
+const zeiger = new Map(), tasten = new Set();   // zeiger: Kennung -> { x, y, seite, pedal }
+const PEDALE = ['gas', 'bremse', 'hand', 'nitro'], KNOPF = { gas: 'bGas', bremse: 'bBremse', hand: 'bHand', nitro: 'bNitro' };
+let lage = null;
+function messen() { lage = { lenk: $('lenk').getBoundingClientRect() }; for (const k of PEDALE) lage[k] = $(KNOPF[k]).getBoundingClientRect(); window.__ncUnten = lage.gas.height ? window.innerHeight - lage.nitro.top + 14 : 120; }
+function pedalBei(x, y) {   // das Pedal unter dem Finger, sonst das nächste in Daumenweite
+  let best = '', bd = 64;
+  for (const k of PEDALE) { const q = lage[k]; if (!q.width) continue; const d = Math.hypot(Math.max(q.left - x, 0, x - q.right), Math.max(q.top - y, 0, y - q.bottom)); if (d < bd) { bd = d; best = k; } }
+  return best;
+}
+function lenkBei(x) {   // −1..1: kleine Ruhezone in der Mitte, zum Rand hin feiner dosierbar, Vollausschlag kurz vor dem Rand
+  const q = lage.lenk; if (!q.width) return x < window.innerWidth / 4 ? -1 : 1;
+  const v = Math.max(-1, Math.min(1, (x - (q.left + q.right) / 2) / (q.width / 2 - 30))), a = Math.abs(v);
+  return a < 0.1 ? 0 : Math.sign(v) * ((a - 0.1) / 0.9) * (0.6 + 0.4 * a);
+}
 function lies() {
-  let l = false, r = false;
-  for (const s of zeiger.values()) { if (s === 'L') l = true; else r = true; }
+  let lenk = 0, gas = false, bremse = false, hand = false, finger = false;
+  if (lage) for (const p of zeiger.values()) {
+    if (p.seite === 'L') { lenk = lenkBei(p.x); finger = true; continue; }
+    const k = pedalBei(p.x, p.y);
+    if (k === 'nitro' && p.pedal !== 'nitro') eingabe.nitro = true;
+    p.pedal = k;
+    if (k === 'gas') gas = true; else if (k === 'bremse') bremse = true; else if (k === 'hand') hand = true;
+  }
   const tl = tasten.has('ArrowLeft') || tasten.has('KeyA'), tr = tasten.has('ArrowRight') || tasten.has('KeyD');
-  let lenk = 0, hand = false;
-  if (l && r) { lenk = folge[0] === 'L' ? -1 : 1; hand = true; } else if (l) lenk = -1; else if (r) lenk = 1;
   if (tl !== tr) lenk = tl ? -1 : 1;
-  eingabe.lenk = lenk; eingabe.hand = hand || tasten.has('Space');
-  eingabe.bremse = tasten.has('ArrowDown') || tasten.has('KeyS');
-  $('bL').classList.toggle('an', lenk < 0 || (l && r)); $('bR').classList.toggle('an', lenk > 0 || (l && r));
-  $('bL').classList.toggle('hand', hand); $('bR').classList.toggle('hand', hand);
+  eingabe.lenk = lenk;
+  eingabe.gas = gas || tasten.has('ArrowUp') || tasten.has('KeyW');
+  eingabe.bremse = bremse || tasten.has('ArrowDown') || tasten.has('KeyS');
+  eingabe.hand = hand || tasten.has('Space');
+  const L = $('lenk'); L.style.setProperty('--l', lenk.toFixed(2)); L.classList.toggle('an', finger);
+  $('bGas').classList.toggle('an', gas); $('bBremse').classList.toggle('an', bremse); $('bHand').classList.toggle('an', hand);
 }
 cv.addEventListener('pointerdown', (e) => {
   if (mode !== 'spiel') return;
   e.preventDefault(); ton.entsperren();
-  const s = e.clientX < window.innerWidth / 2 ? 'L' : 'R';
-  zeiger.set(e.pointerId, s); folge.push(s); lies();
+  const unten = e.clientY > window.innerHeight * 0.38;
+  if (e.pointerType === 'mouse') { if (lage && pedalBei(e.clientX, e.clientY) === 'nitro') eingabe.nitro = true; return; }   // Maus fährt nicht, darf aber Nitro anklicken
+  if (!unten) return;
+  zeiger.set(e.pointerId, { x: e.clientX, y: e.clientY, seite: e.clientX < window.innerWidth / 2 ? 'L' : 'R', pedal: '' }); lies();
   try { cv.setPointerCapture(e.pointerId); } catch { /* egal */ }
 });
-const los = (e) => { const s = zeiger.get(e.pointerId); if (!s) return; zeiger.delete(e.pointerId); const i = folge.indexOf(s); if (i >= 0) folge.splice(i, 1); lies(); };
+cv.addEventListener('pointermove', (e) => { const p = zeiger.get(e.pointerId); if (!p) return; p.x = e.clientX; p.y = e.clientY; lies(); });
+const los = (e) => { if (zeiger.delete(e.pointerId)) lies(); };
 cv.addEventListener('pointerup', los); cv.addEventListener('pointercancel', los); cv.addEventListener('lostpointercapture', los);
 cv.addEventListener('contextmenu', (e) => e.preventDefault());
-$('bNitro').addEventListener('pointerdown', (e) => { e.preventDefault(); if (mode === 'spiel') eingabe.nitro = true; });
 window.addEventListener('keydown', (e) => {
   if (e.code === 'Escape' || e.code === 'KeyP') { if (mode === 'spiel') pause(); else if (mode === 'pause') weiter(); else if (['garage', 'auftraege', 'hilfe'].includes(mode)) zeige(zurueck); return; }
-  if (mode !== 'spiel') { if ((e.code === 'Enter' || e.code === 'Space') && !e.repeat && !(e.target instanceof HTMLButtonElement)) { if (mode === 'start') { e.preventDefault(); losfahren(); } else if (mode === 'ende') { e.preventDefault(); losfahren(); } } return; }
+  if (mode !== 'spiel') { if ((e.code === 'Enter' || e.code === 'Space') && !e.repeat && !(e.target instanceof HTMLButtonElement)) { if (mode === 'start' || mode === 'ende') { e.preventDefault(); losfahren(); } } return; }
   if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'Space', 'KeyA', 'KeyD', 'KeyS', 'KeyW'].includes(e.code)) e.preventDefault();
-  if (e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'ShiftLeft' || e.code === 'ShiftRight' || e.code === 'KeyN') { eingabe.nitro = true; return; }
+  if (e.code === 'ShiftLeft' || e.code === 'ShiftRight' || e.code === 'KeyN' || e.code === 'KeyX') { if (!e.repeat) eingabe.nitro = true; return; }
   tasten.add(e.code); lies();
 });
 window.addEventListener('keyup', (e) => { tasten.delete(e.code); lies(); });
@@ -307,7 +330,7 @@ function bild(jetzt) {
   if (mode === 'spiel' && dt > 0) { zeitSumme += dt; if (++zeitN >= 150) { const m = zeitSumme / zeitN; zeitSumme = 0; zeitN = 0; if (m > 0.027 && Zr.schaerfe() > 1) Zr.groesse(Zr.schaerfe() - 0.5); } }
   requestAnimationFrame(bild);
 }
-function passe() { Zr.groesse(); if (S) S.sichtweite = Zr.sichtweite(); window.__ncOben = parseFloat(getComputedStyle($('hud')).paddingTop) - 10 || 0; }
+function passe() { Zr.groesse(); if (S) S.sichtweite = Zr.sichtweite(); window.__ncOben = parseFloat(getComputedStyle($('hud')).paddingTop) - 10 || 0; if (mode === 'spiel') messen(); }
 window.addEventListener('resize', passe); window.addEventListener('orientationchange', passe);
 
 // ---------- Start

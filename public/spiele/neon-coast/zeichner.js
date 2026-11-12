@@ -500,7 +500,7 @@ export function neuerZeichner(cv) {
   }
   // Wegweiser am Bildrand für Ziele außerhalb des Bildes
   function wegweiser(wx0, wy0, farbe, zeichen, text) {
-    const x = sx(wx0, wy0), y = sy(wx0, wy0), l = 30, r = vw - 30, o = 150 + (window.__ncOben || 0), u = vh - 150;
+    const x = sx(wx0, wy0), y = sy(wx0, wy0), l = 30, r = vw - 30, o = 150 + (window.__ncOben || 0), u = vh - (window.__ncUnten || 150) - 26;
     if (x >= l - 10 && x <= r + 10 && y >= o - 10 && y <= u + 10) return false;
     const mx = vw / 2, my = (o + u) / 2, dx = x - mx, dy = y - my;
     const k = Math.min(dx > 0 ? (r - mx) / dx : dx < 0 ? (l - mx) / dx : 1e9, dy > 0 ? (u - my) / dy : dy < 0 ? (o - my) / dy : 1e9);

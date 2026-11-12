@@ -138,7 +138,7 @@ export function neueFahrt(save, seed = 1, opt = {}) {
     weg: new Uint8Array(W.weich.length), feld: neuesFeld(), feldT: -9, spawnT: 0, res: new Array(W.knoten.length).fill(null),
     sichtweite: opt.sichtweite || 78, verkehr: opt.verkehr ?? VERKEHR_MAX, zu: new Map(), driftT: 0, erste: !save.stat || !save.stat.naechte
   };
-  S.sp = koerper(S, A.bild, W.start.x, W.start.y, W.start.a, { art: 'spieler', vmax: A.vmax, acc: A.acc, grip: A.grip, hp: 100 * A.panzer });
+  S.sp = koerper(S, A.bild, W.start.x, W.start.y, W.start.a, { art: 'spieler', vmax: A.vmax, acc: A.acc, grip: A.grip, hp: 100 * A.panzer, mb: 2.2 });
   S.autos.push(S.sp);
   S.letzte.x = S.sp.x; S.letzte.y = S.sp.y;
   for (const p of W.parker) S.autos.push(koerper(S, p.typ, p.x, p.y, p.a, { art: 'parker', hand: true, ruht: true, hp: 45 }));
@@ -189,7 +189,7 @@ function fahre(S, c) {
     else if (!tot) vf = Math.max(-7 * vfak, vf - 9 * c.bremse * dt);
   }
   if (c.hand) vf -= Math.sign(vf) * Math.min(Math.abs(vf), 8 * dt);
-  const reib = (gas === 0 && c.bremse === 0 ? roll : roll - 1.2) + (tot ? 6 : 0);
+  const reib = (gas === 0 && c.bremse === 0 ? roll + (c.mb || 0) : roll - 1.2) + (tot ? 6 : 0);   // mb: Motorbremse, wenn man vom Gas geht
   if (reib > 0) vf -= Math.sign(vf) * Math.min(Math.abs(vf), reib * dt);
   // seitlicher Halt: was die Reifen nicht halten, wird zur Rutschpartie
   const grip = c.grip * gf * (c.hand ? 0.4 : 1) * (c.nitro ? 1.1 : 1), al = Math.abs(vl), dv = grip * dt;
@@ -373,8 +373,15 @@ function entkommen(S) {
 function abziehen(S) {
   for (const c of S.autos) if (c.art === 'polizei' && c.modus === 'jagd') { c.modus = 'streife'; c.k = -1; c.blau = false; }
 }
+function auftraegePruefen(S) {
+  for (const a of S.auftraege) {
+    if (S.erledigt.includes(a.id)) continue;
+    if ((S.stat[a.k] || 0) >= a.ziel) { S.erledigt.push(a.id); ev(S, 'auftrag', { id: a.id, text: a.text, lohn: a.lohn }); }
+  }
+}
 function ende(S, grund) {
   if (S.ende) return;
+  auftraegePruefen(S);   // was in den letzten Augenblicken noch geschafft wurde, zählt
   S.ende = { grund, t: S.t, verloren: S.beute };
   ev(S, 'ende', { grund });
 }
@@ -565,23 +572,22 @@ function raeumen(S) {
 }
 
 // ---------------------------------------------------------------- ein Schritt (1/60 s)
-// Eingabe e: { lenk: −1..1, bremse: bool, hand: bool, nitro: bool }
+// Eingabe e: { lenk: −1..1 (stufenlos), gas: bool, bremse: bool (im Stand: rückwärts), hand: bool (Handbremse), nitro: bool }
 export function schritt(S, e) {
   if (S.ende) return;
   if (S.pause > 0) { S.pause -= DT; if (S.pause <= 0) pauseEnde(S); return; }
-  if (S.wartet) { if (e.lenk || e.nitro || e.hand || e.bremse || e.los) { S.wartet = false; ev(S, 'los', {}); } else return; }
+  if (S.wartet) { if (e.gas || e.lenk || e.nitro || e.hand || e.bremse || e.los) { S.wartet = false; ev(S, 'los', {}); } else return; }
   S.t += DT; S.n++; S.stat.dauer = S.t;
   const sp = S.sp, W = S.W, autos = S.autos;
 
   // --- Eingabe
   const zl = clamp(e.lenk || 0, -1, 1);
   sp.lenk += clamp(zl - sp.lenk, -9 * DT, 9 * DT);
-  const svf = sp.vx * Math.cos(sp.a) + sp.vy * Math.sin(sp.a);
-  sp.gas = 1; sp.bremse = 0; sp.hand = false;
+  sp.gas = e.gas ? 1 : 0; sp.bremse = 0; sp.hand = !!e.hand;
   if (e.bremse) { sp.gas = 0; sp.bremse = 1; }
-  else if (e.hand) { if (svf > 5) sp.hand = true; else { sp.gas = 0; sp.bremse = 1; } }
   if (e.nitro && S.nitro >= 1 && S.nitroT <= 0) { S.nitro = 0; S.nitroT = NITRO_DAUER; S.stat.nitro++; ev(S, 'nitro', {}); }
-  if (S.nitroT > 0) S.nitroT -= DT; else S.nitro = Math.min(1, S.nitro + 0.012 * DT);
+  if (S.nitroT > 0) { S.nitroT -= DT; if (!e.bremse && !e.hand) sp.gas = 1; }   // Nitro schiebt von selbst, auch wenn der Daumen kurz vom Gas ist
+  else S.nitro = Math.min(1, S.nitro + 0.012 * DT);
   sp.nitro = S.nitroT > 0;
 
   // --- Wegefeld für die Polizei (zum Spieler, solange er gesehen wird, sonst zur letzten bekannten Stelle)
@@ -721,10 +727,7 @@ export function schritt(S, e) {
   if (raus || S.n % 30 === 0) raeumen(S);
 
   // --- Aufträge
-  if (S.n % 15 === 0) for (const a of S.auftraege) {
-    if (S.erledigt.includes(a.id)) continue;
-    if ((S.stat[a.k] || 0) >= a.ziel) { S.erledigt.push(a.id); ev(S, 'auftrag', { id: a.id, text: a.text, lohn: a.lohn }); }
-  }
+  if (S.n % 15 === 0) auftraegePruefen(S);
 }
 function haarscharf(S, c) {
   c.nahT = 0; c.nahAus = S.t + 4;
@@ -736,7 +739,7 @@ function haarscharf(S, c) {
 // ---------------------------------------------------------------- Prüf-Fahrer (für Tests und Balance): fährt Koffer an und sichert im Versteck
 export function neuerBot(o = {}) { return { feld: neuesFeld(), ziel: null, gier: o.gier ?? 2, zurueck: 0, steht: 0, lenk: 1, nitro: o.nitro ?? true }; }
 export function botEingabe(S, B) {
-  const sp = S.sp, W = S.W, e = { lenk: 0, bremse: false, hand: false, nitro: false, los: true };
+  const sp = S.sp, W = S.W, e = { lenk: 0, gas: true, bremse: false, hand: false, nitro: false };
   const v = Math.hypot(sp.vx, sp.vy);
   // Ziel wählen
   let ziel = null, tor = null;

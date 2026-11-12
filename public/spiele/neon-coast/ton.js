@@ -1,5 +1,5 @@
 // Neon Coast – Fluchtwagen: Ton. Alles über WebAudio erzeugt (Motor, Reifen, Sirene, Effekte);
-// das Autoradio spielt die Sender der Sternenfahrt (../sternenfahrt/radio, Pixabay, vom Auftraggeber).
+// das Autoradio spielt zwei eigene Sender (radio/, Pixabay, vom Auftraggeber); das Rauschen beim Umschalten kommt aus der Sternenfahrt.
 export function neuerTon(istStumm) {
   let actx = null, rauschen = null, aus = null, motor = null, reifen = null, sirene = null, uhr = 0;
   const stumm = () => !!istStumm();
@@ -96,9 +96,9 @@ export function neuerTon(istStumm) {
   };
   const sfx = (name, a) => { try { SFX[name] && SFX[name](a); } catch { /* egal */ } };
 
-  // ---------- Autoradio (wie in der Sternenfahrt): zufälliger Sender, nach 45–90 s kurzes Rauschen und Senderwechsel
-  const SENDER = ['sender-1', 'sender-2', 'sender-3', 'sender-4'];
-  const url = (k) => new URL('../sternenfahrt/radio/' + k + '.mp3', import.meta.url).href;
+  // ---------- Autoradio (wie in der Sternenfahrt): nach 45–90 s kurzes Rauschen und Wechsel zum anderen Sender
+  const SENDER = ['sender-1', 'sender-2'];
+  const url = (k) => new URL((k === 'rauschen' ? '../sternenfahrt/radio/' : 'radio/') + k + '.mp3', import.meta.url).href;
   const VOL_M = 0.24, VOL_R = 0.16;
   const musik = new Audio(); musik.preload = 'none'; musik.volume = VOL_M;
   const stoer = new Audio(url('rauschen')); stoer.preload = 'none'; stoer.volume = VOL_R;
