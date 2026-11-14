@@ -1,4 +1,4 @@
-<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Neon Coast – Fluchtwagen · Verfolgungsjagd in der Neonstadt | PlaySaal</title><meta name="description" content="Nachts in Neon Coast: Koffer schnappen, Polizei abhängen, Beute ins Versteck bringen. Verfolgungsjagd von oben mit Fahndungssternen, Driften, Nitro, Straßensperren, Hubschrauber, Goldkoffer, 8 Autos und 32 Aufträgen – kostenlos, ohne Anmeldung, direkt im Browser."><link rel="canonical" href="https://playsaal.com/spiele/neon-coast"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Neon Coast – Fluchtwagen · Wie viel Beute schaffst du in einer Nacht?"><meta property="og:description" content="Koffer schnappen, Polizei abhängen, Beute sichern. Verfolgungsjagd von oben mit Fahndungssternen, Driften und Nitro."><meta property="og:url" content="https://playsaal.com/spiele/neon-coast"><meta property="og:image" content="https://playsaal.com/bilder/neon-coast-og.jpg?v=2"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Neon Coast – Fluchtwagen"><meta name="twitter:description" content="Koffer schnappen, Polizei abhängen, Beute sichern – wie viel schaffst du in einer Nacht?"><meta name="twitter:image" content="https://playsaal.com/bilder/neon-coast-og.jpg?v=2"><meta name="theme-color" content="#11121A"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/fonts.css"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'neon-coast',t:Date.now()}))}catch(e){}</script><style>
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><title>Neon Coast – Fluchtwagen · Verfolgungsjagd in der Neonstadt | PlaySaal</title><meta name="description" content="Nachts in Neon Coast: Koffer schnappen, Polizei abhängen, Beute ins Versteck bringen. Verfolgungsjagd von oben mit Fahndungssternen, Driften, Nitro, Straßensperren, Hubschrauber, Goldkoffer, Tagesnacht mit Rangliste, 8 Autos und 32 Aufträgen – kostenlos, ohne Anmeldung, direkt im Browser."><link rel="canonical" href="https://playsaal.com/spiele/neon-coast"><meta name="robots" content="index,follow,max-image-preview:large"><meta property="og:type" content="website"><meta property="og:site_name" content="PlaySaal"><meta property="og:title" content="Neon Coast – Fluchtwagen · Wie viel Beute schaffst du in einer Nacht?"><meta property="og:description" content="Koffer schnappen, Polizei abhängen, Beute sichern. Verfolgungsjagd von oben mit Fahndungssternen, Driften und Nitro."><meta property="og:url" content="https://playsaal.com/spiele/neon-coast"><meta property="og:image" content="https://playsaal.com/bilder/neon-coast-og.jpg?v=2"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Neon Coast – Fluchtwagen"><meta name="twitter:description" content="Koffer schnappen, Polizei abhängen, Beute sichern – wie viel schaffst du in einer Nacht?"><meta name="twitter:image" content="https://playsaal.com/bilder/neon-coast-og.jpg?v=2"><meta name="theme-color" content="#11121A"><link rel="icon" href="../favicon.ico"><link rel="stylesheet" href="../assets/fonts.css"><script>try{localStorage.setItem('playsaal.zuletzt',JSON.stringify({s:'neon-coast',t:Date.now()}))}catch(e){}</script><style>
 :root{color-scheme:dark;--ink:#11121A;--brand:#FF9200;--act:#FFD21C;--cyan:#1ED6E0;--pink:#FF5FA2;--gruen:#3DF08A;--rot:#FF4A5E;--nacht:#0c1024;--glas:rgba(12,16,36,.78);font-family:"Barlow",system-ui,sans-serif}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
@@ -88,7 +88,7 @@ body:not([data-mode="start"]) .pz-home{display:none}
 /* ---------- Bildschirme ---------- */
 .screen{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 60px) 16px calc(env(safe-area-inset-bottom,0px) + 18px);background:linear-gradient(180deg,rgba(9,11,30,.72),rgba(9,11,30,.9));text-align:center;overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y}
 .screen>*{flex-shrink:0}
-#start{justify-content:center;padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
+#start{justify-content:safe center;padding-top:calc(env(safe-area-inset-top,0px) + 56px)}
 .titel{margin:0;line-height:.92}
 .titel .nc{display:block;font:400 clamp(34px,11vw,58px)/1 "Bungee",sans-serif;color:#eaffff;letter-spacing:.03em;text-shadow:0 0 8px var(--cyan),0 0 26px var(--cyan),0 0 60px rgba(30,214,224,.6)}
 .titel .fw{display:block;margin-top:4px;font:400 clamp(26px,8.4vw,44px)/1 "Dela Gothic One","Bungee",sans-serif;color:#fff;text-shadow:0 0 8px var(--pink),0 0 24px var(--pink),0 4px 0 rgba(0,0,0,.4);transform:rotate(-3deg)}
@@ -170,6 +170,31 @@ h2.kopf{margin:0;font:400 30px/1 "Bungee",sans-serif;letter-spacing:.03em;color:
 #lade{position:fixed;inset:0;z-index:20;display:grid;place-items:center;background:#070a18;font:400 22px "Bungee",sans-serif;color:var(--cyan);text-shadow:0 0 12px var(--cyan)}
 body.ready #lade{display:none}
 #toast{position:fixed;z-index:40;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);padding:10px 16px;border-radius:14px;background:#fff;color:var(--ink);font-weight:600;font-size:15.5px;max-width:calc(100vw - 24px);text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+
+/* Tagesnacht und Rangliste */
+.tagbox{display:flex;gap:10px;align-items:stretch;width:min(100%,420px)}
+.tag{flex:1;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 14px;border:1px solid rgba(255,146,0,.65);border-radius:16px;background:linear-gradient(135deg,rgba(255,146,0,.28),rgba(255,74,19,.16));color:#fff;font:600 15px/1.2 "Barlow Condensed",system-ui,sans-serif;text-align:left;cursor:pointer}
+.tag b{font-size:22px;letter-spacing:.02em}
+.tag em{font-style:normal;color:#FFD21C;font-weight:700}
+.tag small{opacity:.8;font-size:14px}
+.tagbox .kn.rund{height:auto;width:58px;font-size:24px}
+#hUhr{margin-top:4px;padding:3px 9px;border-radius:10px;background:rgba(17,18,26,.7);color:#FFD21C;font:800 18px/1 "Barlow Condensed",system-ui,sans-serif;text-align:right}
+#hUhr.knapp{color:#FF4A5E;animation:ncKnapp .8s steps(2) infinite}
+@keyframes ncKnapp{50%{opacity:.45}}
+.status{min-height:1.3em;margin:4px 0 0;font:600 15px/1.3 "Barlow Condensed",system-ui,sans-serif;color:rgba(255,255,255,.8);text-align:center}
+.status.ok{color:#3DF08A}
+.tabs{display:flex;gap:6px}
+.tabs button{padding:7px 14px;border:1px solid rgba(255,255,255,.3);border-radius:12px;background:rgba(255,255,255,.08);color:#fff;font:700 16px/1 "Barlow Condensed",system-ui,sans-serif;cursor:pointer}
+.tabs button[aria-pressed="true"]{background:#FFD21C;border-color:#FFD21C;color:#11121A}
+.rangliste{list-style:none;margin:0;padding:0;width:min(100%,420px);max-height:52vh;overflow:auto;font:600 16px/1.2 "Barlow Condensed",system-ui,sans-serif;color:rgba(255,255,255,.85)}
+.rangliste li{display:grid;grid-template-columns:2.2em 1.8em 1fr auto;grid-template-rows:auto auto;column-gap:6px;align-items:center;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,.1)}
+.rangliste li.ich{background:rgba(255,146,0,.18);border-radius:10px}
+.rangliste .pl{grid-row:span 2;font-weight:800;color:#FFD21C;text-align:right}
+.rangliste .av{grid-row:span 2;font-size:20px}
+.rangliste .nm{text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
+.rangliste b{color:#3DF08A}
+.rangliste small{grid-column:3 / span 2;opacity:.65;font-size:13px;text-align:left}
+@media (max-height:640px){#hero{--hs:min(200px,56vw,19dvh)}#tBest,#start .ab18{display:none}.tag{padding:7px 12px}.tag b{font-size:19px}}
 </style></head><body data-mode="lade">
 <canvas id="game" aria-label="Die Stadt Neon Coast von oben. Gas geben, lenken, Koffer einsammeln, der Polizei entkommen und die Beute ins Versteck bringen."></canvas>
 <a class="pz-home" href="/" aria-label="Alle Spiele auf PlaySaal" title="Alle Spiele"><svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><rect x="2" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="2" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="2" y="11" width="7" height="7" rx="1.5" fill="currentColor"/><rect x="11" y="11" width="7" height="7" rx="1.5" fill="#FFD21C"/></svg></a>
@@ -186,6 +211,7 @@ body.ready #lade{display:none}
     <div class="beute" id="hBeute"><small>Beute</small><b id="hBeuteZ">0 $</b></div>
     <div class="sicher" id="hSicher">Sicher: 0 $</div>
     <div id="hMal" hidden>×1</div>
+    <div id="hUhr" hidden></div>
   </div>
   <button id="bPause" type="button" aria-label="Pause und Stadtplan" title="Pause (Esc)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1.5" fill="currentColor"/><rect x="14" y="5" width="4" height="14" rx="1.5" fill="currentColor"/></svg></button>
 </div>
@@ -213,6 +239,10 @@ body.ready #lade{display:none}
   <div class="konto-z"><span class="pille geld" id="sGeld">0 $</span><span class="pille rang" id="sRang">Kleiner Fisch</span><span class="pille rek" id="sRek" hidden></span></div>
   <p id="einladung" class="einladung" hidden></p>
   <button class="gross" id="bLos" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.500v15a1 1 0 0 0 1.500.860l12-7.500a1 1 0 0 0 0-1.720l-12-7.500A1 1 0 0 0 7 4.500z" fill="currentColor"/></svg><span>Losfahren</span></button>
+  <div class="tagbox">
+    <button class="tag" id="bTag" type="button"><b>🌅 Tagesnacht</b><span>Heute für alle: <em id="tAuto">Flitzer</em></span><small id="tBest">2:30 Minuten · alle fahren dieselbe Nacht</small></button>
+    <button class="kn rund" id="bRang" type="button" aria-label="Tagesrangliste" title="Tagesrangliste">🏆</button>
+  </div>
   <div class="reihe">
     <button class="kn" id="bGarage" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l1.600-4.200A2 2 0 0 1 8.500 5.500h7a2 2 0 0 1 1.900 1.300L19 11" fill="none" stroke="currentColor" stroke-width="2.200"/><rect x="3" y="10.500" width="18" height="7" rx="2.500" fill="currentColor"/><circle cx="7.500" cy="18" r="2.200" fill="#11121A" stroke="currentColor"/><circle cx="16.500" cy="18" r="2.200" fill="#11121A" stroke="currentColor"/></svg>Garage<i class="punkt" id="garagePunkt" hidden></i></button>
     <button class="kn" id="bAuftraege" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.500" fill="none" stroke="currentColor" stroke-width="2.200"/><path d="M8.500 9l2 2 4-4M8.500 15.500h7" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round" stroke-linejoin="round"/></svg>Aufträge</button>
@@ -250,6 +280,7 @@ body.ready #lade{display:none}
     <div><span class="ic">🔥</span><span>Driften, haarscharf überholen und Sachen umfahren füllt das <b>Nitro</b>.</span></div>
     <div><span class="ic">⛔</span><span>Ab 3 Sternen stehen <b>Straßensperren</b> voraus, ab 4 auch <b>Nagelbänder</b> (eine Seite ist frei). Bei 5 Sternen kommt der <b>Hubschrauber</b> – er muss alle 24 Sekunden tanken.</span></div>
     <div><span class="ic">🏆</span><span>Extra-Beute: <b>Goldkoffer</b> (60 Sekunden), <b>Geldtransporter</b> (von hinten rammen) und der <b>Rivale</b> – rammst du ihn, lässt er den Koffer fallen.</span></div>
+    <div><span class="ic">🌅</span><span><b>Tagesnacht</b>: jeden Tag dieselbe Nacht für alle – gleiche Koffer, gleiches Auto, 2:30 Minuten. Die gesicherte Beute zählt in der <b>Tagesrangliste</b> (mit Konto).</span></div>
     <div><span class="ic">🚓</span><span>Geschnappt, Totalschaden oder im Wasser? Dann ist die Beute im Auto weg – <b>Gesichertes bleibt</b>.</span></div>
   </div>
   <button class="kn" type="button" data-zurueck><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Zurück</button>
@@ -276,13 +307,22 @@ body.ready #lade{display:none}
   <div class="rechnung" id="eRechnung"></div>
   <div class="ziel" id="eZiel" hidden><img id="eZielBild" src="" alt=""><span id="eZielText"></span><div class="fortschritt"><i id="eZielBalken"></i></div></div>
   <p class="einladung" id="eEinladung" hidden></p>
-  <button class="gross" id="eNochmal" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.400-5.700" fill="none" stroke="currentColor" stroke-width="2.800" stroke-linecap="round"/><path d="M4 4v5h5" fill="none" stroke="currentColor" stroke-width="2.800" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Nächste Nacht</span></button>
+  <button class="gross" id="eNochmal" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.400-5.700" fill="none" stroke="currentColor" stroke-width="2.800" stroke-linecap="round"/><path d="M4 4v5h5" fill="none" stroke="currentColor" stroke-width="2.800" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="eNochmalT">Nächste Nacht</span></button>
+  <p class="status" id="eStatus" role="status" aria-live="polite"></p>
   <div class="reihe">
+    <button class="kn" id="eRang" type="button" hidden>🏆 Rangliste</button>
     <button class="kn" id="eGarage" type="button">Garage<i class="punkt" id="eGaragePunkt" hidden></i></button>
     <button class="kn" id="eTeilen" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3" fill="currentColor"/><circle cx="6" cy="12" r="3" fill="currentColor"/><circle cx="18" cy="19" r="3" fill="currentColor"/><path d="M8.600 10.700l6.800-4M8.600 13.300l6.800 4" stroke="currentColor" stroke-width="2.200"/></svg>Teilen</button>
     <button class="kn" id="eStart" type="button">Menü</button>
   </div>
   <div class="kontobox" id="kontoEnde" hidden><b>Spielstand sichern</b><span>Mit kostenlosem PlaySaal-Konto bleiben Geld und Autos erhalten. (ab 16 Jahren)</span><button type="button" data-konto>Konto anlegen</button></div>
+</section>
+<section id="rang" class="screen" aria-label="Tagesrangliste" hidden>
+  <h2 class="kopf">Tagesrangliste</h2>
+  <p class="unter">Gesicherte Beute in der Tagesnacht. Jede Nacht wird vom Server nachgefahren.</p>
+  <div class="tabs" id="rTabs" role="group" aria-label="Zeitraum"><button type="button" data-z="heute" aria-pressed="true">Heute</button><button type="button" data-z="monat" aria-pressed="false">Monat</button><button type="button" data-z="gesamt" aria-pressed="false">Gesamt</button></div>
+  <ol class="rangliste" id="rListe"></ol>
+  <button class="kn" type="button" data-zurueck><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>Zurück</button>
 </section>
 <script type="module" src="neon-coast/game.js"></script>
 <script src="../assets/playsaal-config.js" defer></script><script src="../assets/playsaal.js" defer></script></body></html>

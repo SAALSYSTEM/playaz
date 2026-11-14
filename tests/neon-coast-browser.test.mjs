@@ -1,5 +1,6 @@
 // Neon Coast – Fluchtwagen – Browserprüfung: Seite lädt ohne Fehler, Steuerung (Lenkleiste, Pedale, Tasten), Koffer -> HUD,
-// Nitro, Pause mit Stadtplan, Nacht beenden -> Abrechnung und Spielstand, Garage-Kauf, Platz auf kleinen Handys.
+// Nitro, Pause mit Stadtplan, Nacht beenden -> Abrechnung und Spielstand, Garage-Kauf, Platz auf kleinen Handys,
+// Tagesnacht: was der Browser fährt, fährt der Server (Node) genau gleich nach.
 // Eigener kleiner Static-Server (wie Cloudflare: /pfad -> pfad.html).
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -62,8 +63,10 @@ test('Start: lädt ohne Fehler, alle Bilder da, Losfahren auf kleinen Handys sic
   for (const size of [{ width: 320, height: 568 }, { width: 390, height: 780 }, { width: 412, height: 915 }]) {
     const { ctx, page, errors } = await open({ size, query: '?r=2500' });
     assert.equal(await mode(page), 'start');
-    const b = await kasten(page, '#bLos');
-    assert.ok(b.y1 <= size.height && b.x0 >= 0 && b.x1 <= size.width, `Losfahren im Bild bei ${size.width}×${size.height}`);
+    for (const sel of ['#bLos', '#bTag']) {
+      const b = await kasten(page, sel);
+      assert.ok(b.y1 <= size.height && b.x0 >= 0 && b.x1 <= size.width, `${sel} im Bild bei ${size.width}×${size.height}`);
+    }
     assert.match(await page.textContent('#einladung'), /2\.500 \$/);
     assert.ok(await page.evaluate(() => document.getElementById('hero').naturalWidth > 0), 'Kachel geladen');
     const bilder = await page.evaluate(async () => { const m = await import('/spiele/neon-coast/zeichner.js'); const g = await import('/spiele/neon-coast/bilder.js'); return [Object.keys(g.GROESSE).length, Object.keys(g.GROESSE).filter((k) => !m.IMG[k])]; });
@@ -183,7 +186,7 @@ test('Garage: kaufen, wählen, speichern; Aufträge und Hilfe öffnen und schlie
   await page.click('#garage [data-zurueck]'); assert.equal(await mode(page), 'start');
   await page.click('#bAuftraege'); assert.equal(await page.locator('#aListe .auftrag').count(), 3); assert.match(await page.textContent('#aStand'), /1 von 32/);
   await page.keyboard.press('Escape'); assert.equal(await mode(page), 'start');
-  await page.click('#bHilfe'); assert.equal(await page.locator('#hilfe .hilfe > div').count(), 10); await page.click('#hilfe [data-zurueck]');
+  await page.click('#bHilfe'); assert.equal(await page.locator('#hilfe .hilfe > div').count(), 11); await page.click('#hilfe [data-zurueck]');
   assert.deepEqual(errors, []);
   await ctx.close();
 });
@@ -222,6 +225,39 @@ test('Ton: nach dem ersten Tippen lädt einer der sechs Sender; alle Sender und 
   await page.click('#bPause');
   const titel = await page.textContent('#pSender'); assert.match(titel, /📻 \S/);
   await page.click('#pSender'); assert.notEqual(await page.textContent('#pSender'), titel);
+  assert.deepEqual(errors, []);
+  await ctx.close();
+});
+
+test('Tagesnacht: Uhr läuft, Eingaben werden aufgezeichnet, Node fährt die Nacht bitgenau nach; Rangliste öffnet', async () => {
+  const { ctx, page, errors } = await open();
+  await page.click('#bTag');
+  assert.equal(await mode(page), 'spiel');
+  assert.match(await page.textContent('#hUhr'), /2:30/);
+  // ein paar Sekunden mit wechselnder Lenkung, Gas, Handbremse und Nitro fahren (über die echte Eingabe)
+  for (let k = 0; k < 14; k++) {
+    await page.evaluate((k) => { const e = window.__neoncoast.eingabe; e.gas = k % 5 !== 4; e.bremse = k % 5 === 4; e.lenk = [0, 0.6, -0.35, 1, -1, 0.2][k % 6]; e.hand = k === 7; e.nitro = k === 9; }, k);
+    await page.waitForTimeout(260);
+  }
+  await page.evaluate(() => { const e = window.__neoncoast.eingabe; e.gas = false; e.lenk = 0; });
+  await page.click('#bPause'); await page.click('#pEnde');
+  await page.waitForFunction(() => window.__neoncoast.mode === 'ende', null, { timeout: 8000 });
+  const b = await page.evaluate(async () => {
+    const N = window.__neoncoast, S = N.S, T = await import('/spiele/neon-coast/tagesnacht.js');
+    return { lauf: T.lauf(S, N.codes, true), x: S.sp.x, y: S.sp.y, a: S.sp.a, t: S.t, n: S.autos.length, polizei: S.autos.filter((c) => c.art === 'polizei').length, rang: !document.getElementById('eRang').hidden, status: document.getElementById('eStatus').textContent };
+  });
+  assert.ok(b.lauf.takte > 150, 'genug gefahren: ' + b.lauf.takte);
+  const { tagFahrt, entpacke, dekodiere } = await import('../public/spiele/neon-coast/tagesnacht.js');
+  const { schritt, feierabend } = await import('../public/spiele/neon-coast/engine.js');
+  const S = tagFahrt(b.lauf.seed);
+  for (const c of entpacke(b.lauf.inputs)) { schritt(S, dekodiere(c)); S.ev.length = 0; }
+  feierabend(S);
+  assert.deepEqual([S.sp.x, S.sp.y, S.sp.a, S.t, S.autos.length, S.autos.filter((c) => c.art === 'polizei').length, S.sicher], [b.x, b.y, b.a, b.t, b.n, b.polizei, b.lauf.sicher]);
+  assert.ok(b.rang, 'Rangliste-Knopf am Ende');
+  await page.click('#eRang'); assert.equal(await mode(page), 'rang');
+  assert.match(await page.textContent('#rListe'), /nicht erreichbar/);   // ohne PlaySaal-Skript (im Test abgeschaltet)
+  await page.click('#rang [data-zurueck]'); assert.equal(await mode(page), 'ende');
+  assert.match(await page.textContent('#eNochmalT'), /Tagesnacht/);
   assert.deepEqual(errors, []);
   await ctx.close();
 });

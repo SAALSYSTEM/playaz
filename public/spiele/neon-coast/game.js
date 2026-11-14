@@ -4,6 +4,7 @@ import { neueFahrt, schritt, DT, feierabend, suchzeit, multi } from './engine.js
 import { ladeBilder, neuerZeichner, bildUrl } from './zeichner.js';
 import { neuerTon } from './ton.js';
 import { viertel } from './welt.js';
+import { berlinTag, tagesAuto, tagFahrt, tagSchritt, lauf } from './tagesnacht.js';
 
 const $ = (id) => document.getElementById(id);
 const cv = $('game');
@@ -18,10 +19,12 @@ const einladung = parseEinladung(location.search);
 const ton = neuerTon(() => save.mute);
 const Zr = neuerZeichner(cv);
 let mode = 'lade', S = null, acc = 0, letzte = 0, zurueck = 'start', schluss = 0, bilanz = null;
+// Tagesnacht: feste Nacht für alle, Eingaben je Takt werden für die Prüfung auf dem Server aufgezeichnet
+let tagModus = false, codes = [], tagAus = false;
 const eingabe = { lenk: 0, gas: false, bremse: false, hand: false, nitro: false };
 
 // ---------- Bildschirme
-const SCREENS = ['start', 'garage', 'auftraege', 'hilfe', 'pause', 'ende'];
+const SCREENS = ['start', 'garage', 'auftraege', 'hilfe', 'pause', 'ende', 'rang'];
 function zeige(m) {
   mode = m; document.body.dataset.mode = m;
   for (const s of SCREENS) $(s).hidden = s !== m;
@@ -58,6 +61,9 @@ function malStart() {
   const e = $('einladung');
   if (einladung) { e.hidden = false; e.innerHTML = save.rekord > einladung.r ? `Herausforderung geschafft: <b>${geld(einladung.r)}</b> in einer Nacht waren zu schlagen. Dein Rekord: <b>${geld(save.rekord)}</b>.` : `Jemand hat in einer Nacht <b>${geld(einladung.r)}</b> gesichert. Schaffst du mehr?`; }
   $('kontoStart').hidden = !(konto() && save.stat.naechte >= 2);
+  const heute = berlinTag(), A = tagesAuto(heute);
+  $('tAuto').textContent = A.name;
+  $('tBest').textContent = save.tag === heute && save.tagBest > 0 ? 'Dein Bestes heute: ' + geld(save.tagBest) : '2:30 Minuten · alle fahren dieselbe Nacht';
 }
 function malGarage() {
   $('gGeld').textContent = geld(save.geld);
@@ -104,8 +110,18 @@ function malPause() {
 // ---------- Fahrt
 function demo() { S = neueFahrt(save, 7, { sichtweite: Zr.sichtweite() }); merke(); Zr.neu(); }
 function losfahren() {
-  ton.entsperren();
+  ton.entsperren(); tagModus = false;
   S = neueFahrt(save, Math.floor(Math.random() * 1e9) + 1, { sichtweite: Zr.sichtweite() });
+  starten();
+}
+function tagesnacht() {
+  ton.entsperren(); tagModus = true; codes = []; tagAus = false;
+  S = tagFahrt(berlinTag(), save.erledigt);
+  starten();
+  hinweis('<b>Tagesnacht</b>: heute fahren alle mit dem <b>' + S.auto.name + '</b> dieselbe Nacht. Sichere in 2:30 Minuten so viel du kannst!', 6);
+}
+function nochmal() { if (tagModus) tagesnacht(); else losfahren(); }
+function starten() {
   merke(); Zr.neu(); acc = 0; hudAlt = {}; letztesViertel = ''; nitroGesagt = false;
   $('meldung').textContent = '';
   zeige('spiel');
@@ -169,9 +185,9 @@ function ereignisse() {
       case 'rivaleWeg': if (e.mit) meldung('Rivale entkommen', 'Der Koffer ist weg'); break;
       case 'auftrag': ton.sfx('auftrag'); meldung('AUFTRAG ERLEDIGT', e.text + ' · +' + geld(e.lohn), 'gruen'); break;
       case 'ende':
-        ton.still(); ton.sfx(e.grund === 'feierabend' ? 'gesichert' : e.grund === 'wasser' ? 'platsch' : e.grund === 'schrott' ? 'schrott' : 'geschnappt');
+        ton.still(); ton.sfx(e.grund === 'feierabend' || e.grund === 'morgen' ? 'gesichert' : e.grund === 'wasser' ? 'platsch' : e.grund === 'schrott' ? 'schrott' : 'geschnappt');
         schluss = e.grund === 'feierabend' ? 0.2 : 1.5; zeige('schluss');
-        meldung(TITEL[e.grund], '', e.grund === 'feierabend' ? 'gruen' : 'rot');
+        meldung(TITEL[e.grund], e.grund === 'morgen' ? 'Die Tagesnacht ist vorbei' : '', e.grund === 'feierabend' || e.grund === 'morgen' ? 'gruen' : 'rot');
         break;
     }
   }
@@ -182,7 +198,7 @@ function ereignisse() {
 function ortZeigen(titel, unter, farbe) { const t = $('ortText'); t.className = farbe; t.textContent = titel; const s = document.createElement('small'); s.textContent = unter; t.append(s); $('ort').hidden = false; }
 
 // ---------- Abrechnung
-const TITEL = { geschnappt: 'GESCHNAPPT!', schrott: 'TOTALSCHADEN!', wasser: 'ABGESOFFEN!', feierabend: 'FEIERABEND' };
+const TITEL = { geschnappt: 'GESCHNAPPT!', schrott: 'TOTALSCHADEN!', wasser: 'ABGESOFFEN!', feierabend: 'FEIERABEND', morgen: 'SONNENAUFGANG' };
 function abrechnung() {
   const grund = S.ende.grund, R = abrechnen(save, S); bilanz = R; sichern();
   $('ende').className = 'screen ' + grund;
@@ -211,7 +227,70 @@ function abrechnung() {
   const e = $('eEinladung'); e.hidden = !einladung;
   if (einladung) e.innerHTML = R.sicher > einladung.r ? `Herausforderung geschafft! <b>${geld(einladung.r)}</b> waren zu schlagen.` : `Zu schlagen: <b>${geld(einladung.r)}</b> in einer Nacht.`;
   $('kontoEnde').hidden = !(konto() && save.stat.naechte >= 2);
+  // Tagesnacht: eigenes Tagesbestes merken, beste Nächte an die Rangliste melden
+  $('eRang').hidden = !tagModus; $('eStatus').textContent = ''; $('eStatus').className = 'status';
+  $('eNochmalT').textContent = tagModus ? 'Tagesnacht nochmal' : 'Nochmal';
+  if (tagModus) {
+    if (save.tag !== S.tag) { save.tag = S.tag; save.tagBest = 0; }
+    const besser = R.sicher > save.tagBest;
+    if (besser) { save.tagBest = R.sicher; sichern(); }
+    if (R.sicher <= 0) zeigeStatus('Ohne gesicherte Beute kein Eintrag in der Tagesrangliste.');
+    else if (!besser) zeigeStatus('Dein Bestes heute: ' + geld(save.tagBest) + ' – das zählt in der Rangliste.');
+    else meldeLauf(lauf(S, codes, tagAus));
+  }
   zeige('ende');
+}
+
+// ---------- Tagesrangliste (geprüft: der Server fährt die Nacht mit deinen Eingaben nach)
+const CFG = () => window.PLAYSAAL_CFG || {};
+const PS = () => window.PlaySaal || null;
+function zeigeStatus(text, ok = false) { const st = $('eStatus'); st.textContent = text; st.className = 'status' + (ok ? ' ok' : ''); }
+async function melden(l) {
+  const p = PS(); if (!p || !p.online) return { status: 'lokal' };
+  if (!(p.hatSitzung && p.hatSitzung())) return { status: 'gast' };
+  try {
+    const tk = p.token && p.token(); if (!tk) return { status: 'gast' };
+    const r = await fetch(CFG().url + '/functions/v1/neon-coast-lauf', { method: 'POST', headers: { 'content-type': 'application/json', authorization: 'Bearer ' + tk, apikey: CFG().key || '' }, body: JSON.stringify(l) });
+    if (r.status === 404) return { status: 'lokal' };
+    const j = await r.json().catch(() => ({}));
+    if (r.ok && j.verifiziert) return { status: 'verifiziert', platz: j.platz_heute || null, von: j.spieler_heute || null };
+    if (r.ok) return { status: 'abgelehnt', grund: j.grund || '' };
+    return { status: 'fehler' };
+  } catch { return { status: 'fehler' }; }
+}
+function meldeLauf(l) {
+  zeigeStatus('Wird vom Server nachgefahren …');
+  melden(l).then((r) => {
+    if (r.status === 'verifiziert') zeigeStatus('✓ Geprüft' + (r.platz ? ` · Platz ${r.platz}${r.von ? ' von ' + r.von : ''} heute` : ''), true);
+    else if (r.status === 'gast') zeigeStatus('Melde dich an (Reiter am Rand), dann kommst du in die Tagesrangliste.');
+    else if (r.status === 'abgelehnt') zeigeStatus(r.grund === 'zu_oft' ? 'Zu viele Meldungen. Gleich wieder versuchen.' : r.grund === 'kein_profil' ? 'Lege zuerst einen Spielernamen an (Konto).' : r.grund === 'version' ? 'Neue Spielversion – bitte Seite neu laden.' : 'Nicht in die Rangliste übernommen.');
+    else if (r.status === 'fehler') zeigeStatus('Rangliste gerade nicht erreichbar. Dein Bestes bleibt auf diesem Gerät.');
+    else zeigeStatus('Neues Tagesbestes – gespeichert auf diesem Gerät.');
+  });
+}
+const avatar = (p, a) => ((p && p.avatare) || [])[(parseInt(String(a || 'a1').slice(1), 10) || 1) - 1] || '🙂';
+let rangZeit = 'heute';
+async function rangliste(zeit) {
+  rangZeit = zeit;
+  if (mode !== 'rang') { zurueck = mode === 'ende' ? 'ende' : 'start'; zeige('rang'); }
+  for (const b of document.querySelectorAll('#rTabs button')) b.setAttribute('aria-pressed', String(b.dataset.z === zeit));
+  const liste = $('rListe'); liste.textContent = 'Lädt …';
+  const p = PS();
+  const res = p && p.online && p.rpc ? await p.rpc('neon_coast_rangliste', { p_zeitraum: zeit, p_anzahl: 50 }).catch(() => null) : null;
+  if (zeit !== rangZeit || mode !== 'rang') return;
+  if (!res || res.fehler) { liste.textContent = 'Die Rangliste ist gerade nicht erreichbar.'; return; }
+  const rows = res.daten || [];
+  liste.textContent = '';
+  if (!rows.length) { liste.textContent = zeit === 'heute' ? 'Heute noch kein Eintrag. Fahr vor!' : 'Noch keine Einträge.'; return; }
+  for (const r of rows) {
+    const li = document.createElement('li'); if (r.ich) li.className = 'ich';
+    const a = document.createElement('span'); a.className = 'pl'; a.textContent = String(r.platz);
+    const b = document.createElement('span'); b.className = 'av'; b.textContent = avatar(p, r.avatar);
+    const c = document.createElement('span'); c.className = 'nm'; c.textContent = r.name + (r.ich ? ' (du)' : '');
+    const d = document.createElement('b'); d.textContent = geld(Number(r.beute));
+    const e = document.createElement('small'); e.textContent = r.koffer + ' Koffer';
+    li.append(a, b, c, d, e); liste.appendChild(li);
+  }
 }
 async function teilen() {
   const r = Math.max(bilanz ? bilanz.sicher : 0, save.rekord), url = location.origin + location.pathname + (r >= 100 ? '?r=' + r : '');
@@ -242,6 +321,8 @@ function hud() {
   const m = multi(S.serie + 1);
   if (H.m !== m) { H.m = m; $('hMal').hidden = m <= 1; $('hMal').textContent = 'nächster ×' + zahl(m); }
   if (H.sicher !== S.sicher) { H.sicher = S.sicher; $('hSicher').textContent = 'Sicher: ' + geld(S.sicher); }
+  const rest = S.limit ? Math.max(0, Math.ceil(S.limit - S.t)) : -1;   // Tagesnacht: Uhr bis Sonnenaufgang
+  if (H.rest !== rest) { H.rest = rest; const u = $('hUhr'); u.hidden = rest < 0; if (rest >= 0) { u.textContent = '🌅 ' + Math.floor(rest / 60) + ':' + String(rest % 60).padStart(2, '0'); u.classList.toggle('knapp', rest <= 20); } }
   const n = Math.round(Math.min(1, S.nitro) * 40), nz = S.nitroT > 0 ? 'b' : S.nitro >= 1 ? 'v' : '';
   if (H.n !== n || H.nz !== nz) { H.n = n; H.nz = nz; const b = $('bNitro'); b.style.setProperty('--f', S.nitroT > 0 ? S.nitroT / 2.6 : n / 40); b.classList.toggle('voll', nz === 'v'); b.classList.toggle('brennt', nz === 'b'); }
   const haft = S.haft > 0.08 && !S.ende;
@@ -299,8 +380,8 @@ const los = (e) => { if (zeiger.delete(e.pointerId)) lies(); };
 cv.addEventListener('pointerup', los); cv.addEventListener('pointercancel', los); cv.addEventListener('lostpointercapture', los);
 cv.addEventListener('contextmenu', (e) => e.preventDefault());
 window.addEventListener('keydown', (e) => {
-  if (e.code === 'Escape' || e.code === 'KeyP') { if (mode === 'spiel') pause(); else if (mode === 'pause') weiter(); else if (['garage', 'auftraege', 'hilfe'].includes(mode)) zeige(zurueck); return; }
-  if (mode !== 'spiel') { if ((e.code === 'Enter' || e.code === 'Space') && !e.repeat && !(e.target instanceof HTMLButtonElement)) { if (mode === 'start' || mode === 'ende') { e.preventDefault(); losfahren(); } } return; }
+  if (e.code === 'Escape' || e.code === 'KeyP') { if (mode === 'spiel') pause(); else if (mode === 'pause') weiter(); else if (['garage', 'auftraege', 'hilfe', 'rang'].includes(mode)) zeige(zurueck); return; }
+  if (mode !== 'spiel') { if ((e.code === 'Enter' || e.code === 'Space') && !e.repeat && !(e.target instanceof HTMLButtonElement)) { if (mode === 'start' || mode === 'ende') { e.preventDefault(); if (mode === 'ende') nochmal(); else losfahren(); } } return; }
   if (['ArrowLeft', 'ArrowRight', 'ArrowDown', 'ArrowUp', 'Space', 'KeyA', 'KeyD', 'KeyS', 'KeyW'].includes(e.code)) e.preventDefault();
   if (e.code === 'ShiftLeft' || e.code === 'ShiftRight' || e.code === 'KeyN' || e.code === 'KeyX') { if (!e.repeat) eingabe.nitro = true; return; }
   tasten.add(e.code); lies();
@@ -313,12 +394,14 @@ window.addEventListener('blur', () => pause());
 
 // ---------- Knöpfe
 const klick = (id, fn) => $(id).addEventListener('click', () => { ton.entsperren(); ton.sfx('klick'); fn(); });
-klick('bLos', losfahren); klick('eNochmal', losfahren);
+klick('bLos', losfahren); klick('eNochmal', nochmal); klick('bTag', tagesnacht);
+klick('bRang', () => rangliste('heute')); klick('eRang', () => rangliste('heute'));
+for (const b of document.querySelectorAll('#rTabs button')) b.addEventListener('click', () => { ton.sfx('klick'); rangliste(b.dataset.z); });
 klick('bGarage', () => { zurueck = 'start'; zeige('garage'); }); klick('eGarage', () => { zurueck = 'ende'; zeige('garage'); });
 klick('bAuftraege', () => { zurueck = 'start'; zeige('auftraege'); }); klick('bHilfe', () => { zurueck = 'start'; zeige('hilfe'); });
 klick('eStart', () => { demo(); zeige('start'); }); klick('eTeilen', teilen);
 klick('bPause', pause); klick('pWeiter', weiter); klick('pSender', () => { ton.sender(); malSender(); });
-klick('pEnde', () => { if (S && !S.ende) { zeige('spiel'); feierabend(S); ereignisse(); } });
+klick('pEnde', () => { if (S && !S.ende) { zeige('spiel'); tagAus = true; feierabend(S); ereignisse(); } });
 document.querySelectorAll('[data-zurueck]').forEach((b) => b.addEventListener('click', () => { ton.sfx('klick'); zeige(zurueck); }));
 document.querySelectorAll('[data-konto]').forEach((b) => b.addEventListener('click', () => { try { window.PlaySaal && window.PlaySaal.anmelden({}); } catch { /* Konten nicht verfügbar */ } }));
 
@@ -329,7 +412,7 @@ function bild(jetzt) {
   let al = 1;
   if (mode === 'spiel' && S) {
     acc += dt; let n = 0;
-    while (acc >= DT && n < 4 && mode === 'spiel') { merke(); schritt(S, eingabe); eingabe.nitro = false; acc -= DT; n++; if (S.ev.length) ereignisse(); }
+    while (acc >= DT && n < 4 && mode === 'spiel') { merke(); if (tagModus) tagSchritt(S, codes, eingabe); else schritt(S, eingabe); eingabe.nitro = false; acc -= DT; n++; if (S.ev.length) ereignisse(); }
     if (acc > DT * 3) acc = 0;
     for (const c of S.autos) if (c.px === undefined) { c.px = c.x; c.py = c.y; c.pa = c.a; }
     al = S.wartet || S.pause > 0 || S.ende ? 1 : acc / DT;
@@ -347,7 +430,8 @@ function bild(jetzt) {
   if (mode === 'spiel' && dt > 0) { zeitSumme += dt; if (++zeitN >= 150) { const m = zeitSumme / zeitN; zeitSumme = 0; zeitN = 0; if (m > 0.027 && Zr.schaerfe() > 1) Zr.groesse(Zr.schaerfe() - 0.5); } }
   requestAnimationFrame(bild);
 }
-function passe() { Zr.groesse(); if (S) S.sichtweite = Zr.sichtweite(); window.__ncOben = parseFloat(getComputedStyle($('hud')).paddingTop) - 10 || 0; if (mode === 'spiel') messen(); }
+function passe() { Zr.groesse(); if (S && !S.tag) S.sichtweite = Zr.sichtweite();   // Tagesnacht: feste Sichtweite, sonst liefe sie auf jedem Gerät anders
+  window.__ncOben = parseFloat(getComputedStyle($('hud')).paddingTop) - 10 || 0; if (mode === 'spiel') messen(); }
 window.addEventListener('resize', passe); window.addEventListener('orientationchange', passe);
 
 // ---------- Start
@@ -357,4 +441,4 @@ ladeBilder().then(() => {
   letzte = performance.now(); requestAnimationFrame(bild);
 });
 // Für Tests
-window.__neoncoast = { get S() { return S; }, get mode() { return mode; }, get save() { return save; }, eingabe, los: losfahren, zeichner: Zr, pause, weiter };
+window.__neoncoast = { get S() { return S; }, get mode() { return mode; }, get save() { return save; }, get codes() { return codes; }, eingabe, los: losfahren, tag: tagesnacht, zeichner: Zr, pause, weiter };

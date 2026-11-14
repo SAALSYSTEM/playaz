@@ -4,6 +4,10 @@
 // der Spieler, die Polizei (jagt über ein Wegefeld zum Spieler), der Verkehr (folgt den Fahrspuren) oder niemand (geparkt, Wrack).
 import { baueWelt, bodenBei, sichtFrei, BODEN, Z, NX, NY, BREITE, HOEHE, rng, KOFFER } from './welt.js';
 import { FAHRZEUG, autoVon, aktiveAuftraege } from './daten.js';
+import { dsin, dcos, datan2 } from './det.js';
+// Sinus, Kosinus, Arkustangens und die eingebaute Hypotenuse rechnen je nach Browser im letzten Bit anders. Damit eine
+// Nacht auf jedem Gerät und auf dem Server (Tagesnacht) genau gleich abläuft, nutzen die Regeln nur dsin/dcos/datan2 und hyp.
+const hyp = (x, y) => Math.sqrt(x * x + y * y);
 
 export const DT = 1 / 60;
 export const NITRO_DAUER = 2.6;
@@ -29,17 +33,17 @@ const VERKEHR_TYPEN = ['auto-flitzer', 'auto-limo', 'auto-taxi', 'auto-suv', 'au
 const NB = [1, 0, -1, 0, 0, 1, 0, -1, 1, 1, 1, -1, -1, 1, -1, -1];
 
 // ---------------------------------------------------------------- Wegefeld (Dijkstra vom Ziel aus, in einem Fenster)
-const HEAP_N = 1 << 19, hK = new Int32Array(HEAP_N), hD = new Float32Array(HEAP_N);
-let hN = 0, hTop = 0;
-function hPush(k, d) { if (hN >= HEAP_N) return; let i = hN++; while (i > 0) { const p = (i - 1) >> 1; if (hD[p] <= d) break; hK[i] = hK[p]; hD[i] = hD[p]; i = p; } hK[i] = k; hD[i] = d; }
-function hPop() {
-  const k = hK[0]; hTop = hD[0]; hN--; const lk = hK[hN], ld = hD[hN]; let i = 0;
-  for (;;) { let c = 2 * i + 1; if (c >= hN) break; if (c + 1 < hN && hD[c + 1] < hD[c]) c++; if (hD[c] >= ld) break; hK[i] = hK[c]; hD[i] = hD[c]; i = c; }
-  hK[i] = lk; hD[i] = ld; return k;
-}
+// Ganzzahlige Kosten (Zellkosten × 5, schräg × 1,4), darum reichen 64 Eimer im Kreis statt einer Halde – das ist mehrfach schneller.
+// Die Werte in F.d sind also Kosten × 5; verglichen werden sie nur untereinander.
+const EIMER = []; for (let n = 0; n < 64; n++) EIMER.push([]);
+const GERADE = new Uint8Array(8), SCHRAEG = new Uint8Array(8); for (let c = 0; c < 8; c++) { GERADE[c] = c * 5; SCHRAEG[c] = c * 7; }   // größte Kante 49 < 64
+let PX = new Float64Array(128), PY = new Float64Array(128), PR = new Float64Array(128), PZ = new Uint8Array(128), AK = new Int32Array(128);
+const MARKE = new Uint32Array(NX * NY); let marke = 0;
 export function neuesFeld() { return { d: new Float32Array(NX * NY).fill(INF), i0: 0, j0: 0, i1: 0, j1: 0, x: 0, y: 0, ok: false }; }
 // halb: halbe Fenstergröße in Zellen (48 = 96 m um das Ziel). halb >= NX rechnet die ganze Karte.
-export function feldRechnen(W, F, tx, ty, halb = 48) {
+// autos (optional): dann endet die Rechnung, sobald die Zellen aller Streifenwagen feststehen. Der Weg bergab von dort
+// führt nur über Zellen, die vorher feststanden – das Ergebnis für diese Wagen ist dasselbe wie beim vollen Feld.
+export function feldRechnen(W, F, tx, ty, halb = 48, autos = null) {
   let ci = clamp(Math.floor(tx / Z), 0, NX - 1), cj = clamp(Math.floor(ty / Z), 0, NY - 1);
   const K = W.kosten;
   if (!K[cj * NX + ci]) {   // Ziel klebt an einer Wand oder steht im Wasser: nächste freie Zelle
@@ -54,18 +58,39 @@ export function feldRechnen(W, F, tx, ty, halb = 48) {
   const d = F.d;
   for (let j = F.j0; j < F.j1; j++) d.fill(INF, j * NX + F.i0, j * NX + F.i1);
   const i0 = F.i0 = Math.max(0, ci - halb), i1 = F.i1 = Math.min(NX, ci + halb + 1), j0 = F.j0 = Math.max(0, cj - halb), j1 = F.j1 = Math.min(NY, cj + halb + 1);
-  hN = 0; d[cj * NX + ci] = 0; hPush(cj * NX + ci, 0);
-  while (hN > 0) {
-    const k = hPop(), dk = hTop; if (dk > d[k]) continue;
-    const i = k % NX, j = (k - i) / NX;
-    for (let n = 0; n < 8; n++) {
-      const ni = i + NB[n * 2], nj = j + NB[n * 2 + 1];
-      if (ni < i0 || nj < j0 || ni >= i1 || nj >= j1) continue;
-      const nk = nj * NX + ni, c = K[nk]; if (!c) continue;
-      let nd;
-      if (n < 4) nd = dk + c; else { if (!K[j * NX + ni] || !K[nj * NX + i]) continue; nd = dk + c * 1.4142; }
-      if (nd < d[nk]) { d[nk] = nd; hPush(nk, nd); }
+  let offen = -1;
+  if (autos) {
+    offen = 0; marke++;
+    for (let q = 1; q < autos.length; q++) {
+      const c = autos[q]; if (c.art !== 'polizei' || c.modus === 'wrack') continue;
+      const ai = Math.floor(c.x / Z), aj = Math.floor(c.y / Z);
+      if (ai < i0 || aj < j0 || ai >= i1 || aj >= j1) continue;
+      if (K[aj * NX + ai]) { if (MARKE[aj * NX + ai] !== marke) { MARKE[aj * NX + ai] = marke; offen++; } continue; }
+      for (let dj = -2; dj <= 2; dj++) for (let di = -2; di <= 2; di++) {   // steht auf gesperrter Zelle: moehre() sucht im Umkreis
+        const bi = ai + di, bj = aj + dj; if (bi < i0 || bj < j0 || bi >= i1 || bj >= j1) continue;
+        const bk = bj * NX + bi; if (K[bk] && MARKE[bk] !== marke) { MARKE[bk] = marke; offen++; }
+      }
     }
+  }
+  for (let n = 0; n < 64; n++) EIMER[n].length = 0;
+  let anz = 0, dk = 0;
+  d[cj * NX + ci] = 0; if (offen !== 0) { EIMER[0].push(cj * NX + ci); anz = 1; }
+  aussen: while (anz > 0) {
+    const E = EIMER[dk & 63];
+    for (let q = 0; q < E.length; q++) {
+      const k = E[q]; anz--; if (d[k] !== dk) continue;   // überholter Eintrag
+      if (offen > 0 && MARKE[k] === marke) { MARKE[k] = 0; if (--offen === 0) break aussen; }
+      const i = k % NX, j = (k - i) / NX;
+      for (let n = 0; n < 8; n++) {
+        const ni = i + NB[n * 2], nj = j + NB[n * 2 + 1];
+        if (ni < i0 || nj < j0 || ni >= i1 || nj >= j1) continue;
+        const nk = nj * NX + ni, c = K[nk]; if (!c) continue;
+        let nd;
+        if (n < 4) nd = dk + GERADE[c]; else { if (!K[j * NX + ni] || !K[nj * NX + i]) continue; nd = dk + SCHRAEG[c]; }
+        if (nd < d[nk]) { d[nk] = nd; EIMER[nd & 63].push(nk); anz++; }
+      }
+    }
+    E.length = 0; dk++;
   }
   F.x = tx; F.y = ty; F.ok = true; return F;
 }
@@ -114,13 +139,27 @@ export function moehre(W, F, x, y, n) {
 }
 
 // ---------------------------------------------------------------- Körper
-function koerper(S, bild, x, y, a, o) {
-  const f = FAHRZEUG[bild], r = f.b / 2;
-  const c = {
-    id: S.nid++, bild, x, y, a, vx: 0, vy: 0, w: 0, l: f.l, b: f.b, r, hl: f.l / 2 - r, masse: f.masse, traeg: f.masse * (f.l * f.l + f.b * f.b) / 12,
-    lenk: 0, gas: 0, bremse: 0, hand: false, nitro: false, vmax: 12, acc: 6, grip: 20, hp: 50, hpMax: 50, art: 'parker', ruht: false, rutsch: 0, boden: BODEN.ASPHALT,
-    weg: false, treffer: -9
+// Bauplan aller Autos. Die Zahlenfelder stehen hier mit 0.5, damit der Browser sie von Anfang an als Kommazahlen anlegt:
+// Würde ein Feld als ganze Zahl beginnen und später eine Kommazahl bekommen, baut der Browser alle Autos um und wirft
+// schon optimierten Code weg. Alle Felder, die je nach Art dazukommen (Polizei, Verkehr, Transporter, Rivale, Zeichnen),
+// stehen deshalb auch schon hier – das hält die Nachprüfung der Tagesnacht auf dem Server schnell.
+function bauplan() {
+  return {
+    id: 0, bild: '', x: 0.5, y: 0.5, a: 0.5, vx: 0.5, vy: 0.5, w: 0.5, l: 0.5, b: 0.5, r: 0.5, hl: 0.5, masse: 0.5, traeg: 0.5,
+    lenk: 0.5, gas: 0.5, bremse: 0.5, hand: false, nitro: false, vmax: 0.5, acc: 0.5, grip: 0.5, hp: 0.5, hpMax: 0.5, art: '', ruht: false, rutsch: 0.5, boden: 0,
+    weg: false, treffer: 0.5, mb: 0.5, modus: '', blau: false, suv: false, warn: false, wrackT: 0.5, dist: 0.5, rolle: 0, klemm: 0, steht: 0.5, zurueck: 0.5, zurLenk: 0.5, fest: 0.5, hupT: 0.5,
+    k: -1, nk: null, von: -1, spur: 0.5, abbiegen: 0.5, tempo: 0.5, nahT: 0.5, nahAus: 0.5,
+    transporter: false, saecke: 0, sackT: 0.5, hat: null, hatT: 0.5, flucht: false, tx: 0.5, ty: 0.5, zielId: 0,
+    px: 0.5, py: 0.5, pa: 0.5, zx: undefined, zy: undefined, za: undefined
   };
+}
+function koerper(S, bild, x, y, a, o) {
+  const f = FAHRZEUG[bild], r = f.b / 2, c = bauplan();
+  c.id = S.nid++; c.bild = bild; c.x = x; c.y = y; c.a = a; c.vx = 0; c.vy = 0; c.w = 0; c.l = f.l; c.b = f.b; c.r = r; c.hl = f.l / 2 - r;
+  c.masse = f.masse; c.traeg = f.masse * (f.l * f.l + f.b * f.b) / 12;
+  c.lenk = 0; c.gas = 0; c.bremse = 0; c.vmax = 12; c.acc = 6; c.grip = 20; c.hp = 50; c.art = 'parker'; c.rutsch = 0; c.boden = BODEN.ASPHALT;
+  c.treffer = -9; c.mb = 0; c.wrackT = 0; c.dist = 999; c.steht = 0; c.zurueck = 0; c.zurLenk = 0; c.fest = 0; c.hupT = 0;
+  c.spur = 0; c.abbiegen = 0; c.tempo = 0; c.nahT = 0; c.nahAus = 0; c.sackT = -9; c.hatT = 0; c.tx = 0; c.ty = 0; c.px = x; c.py = y; c.pa = a;
   Object.assign(c, o); c.hpMax = c.hp;
   return c;
 }
@@ -131,14 +170,17 @@ const frei = (S, x, y, r) => { for (const c of S.autos) if (Math.abs(c.x - x) < 
 export function neueFahrt(save, seed = 1, opt = {}) {
   const W = baueWelt(), A = autoVon(save.auto);
   const S = {
-    W, r: rng(seed), seed, t: 0, n: 0, nid: 1, auto: A, sp: null, autos: [], koffer: [], beute: 0, sicher: 0, serie: 0, fahndung: 0, sterne: 0,
-    gesehen: false, sucht: 0, letzte: { x: 0, y: 0 }, suchT: 0, peil: 0, peilT: 0, torT: -9, haft: 0,
-    sperren: [], deko: [], sperreT: 0, platt: 0, heli: null, heliAb: 0, ereignis: { art: '', bis: 0 }, ereignisAb: 0, ereignisLetztes: '', transporter: null, rivale: null, nitro: opt.nitro ?? 0.35, nitroT: 0, lack: 0,
-    stat: { koffer: 0, sicher: 0, entkommen: 0, entkommenSterne: 0, dinge: 0, nitro: 0, serie: 0, schrott: 0, haarscharf: 0, werkstatt: 0, drift: 0, pier: 0, maxSterne: 0, versenkt: 0, dauer: 0, gold: 0, geknackt: 0, rivale: 0, sperren: 0 },
-    auftraege: aktiveAuftraege(save), erledigt: [], ev: [], ende: null, pause: 0, pauseOrt: null, ort: null, wartet: true,
-    weg: new Uint8Array(W.weich.length), feld: neuesFeld(), feldT: -9, spawnT: 0, res: new Array(W.knoten.length).fill(null),
-    sichtweite: opt.sichtweite || 78, verkehr: opt.verkehr ?? VERKEHR_MAX, zu: new Map(), driftT: 0, erste: !save.stat || !save.stat.naechte
+    W, r: rng(seed), seed, t: 0.5, n: 0, nid: 1, auto: A, sp: null, autos: [], koffer: [], beute: 0, sicher: 0, serie: 0, fahndung: 0.5, sterne: 0,
+    gesehen: false, sucht: 0.5, letzte: { x: 0.5, y: 0.5 }, suchT: 0.5, peil: 0.5, peilT: 0.5, torT: -9.5, haft: 0.5,
+    sperren: [], deko: [], sperreT: 0.5, platt: 0.5, heli: null, heliAb: 0.5, ereignis: { art: '', bis: 0.5 }, ereignisAb: 0.5, ereignisLetztes: '', transporter: null, rivale: null, nitro: opt.nitro ?? 0.35, nitroT: 0.5, lack: 0,
+    stat: { koffer: 0, sicher: 0, entkommen: 0, entkommenSterne: 0, dinge: 0, nitro: 0, serie: 0, schrott: 0, haarscharf: 0, werkstatt: 0, drift: 0, pier: 0, maxSterne: 0, versenkt: 0, dauer: 0.5, gold: 0, geknackt: 0, rivale: 0, sperren: 0 },
+    auftraege: aktiveAuftraege(save), erledigt: [], ev: [], ende: null, pause: 0.5, pauseOrt: null, ort: null, wartet: true,
+    weg: new Uint8Array(W.weich.length), feld: neuesFeld(), feldT: -9.5, spawnT: 0.5, res: new Array(W.knoten.length).fill(null),
+    sichtweite: opt.sichtweite || 78, limit: opt.dauer || 0, tag: opt.tag || 0, verkehr: opt.verkehr ?? VERKEHR_MAX, zu: new Map(), driftT: 0.5, erste: !save.stat || !save.stat.naechte, ereignisNur: ''
   };
+  // Startwerte oben mit 0.5 bzw. -9.5, damit der Browser diese Felder gleich als Kommazahlen anlegt (siehe bauplan)
+  for (const k of ['t', 'sucht', 'suchT', 'peil', 'peilT', 'haft', 'sperreT', 'platt', 'heliAb', 'ereignisAb', 'nitroT', 'pause', 'spawnT', 'driftT', 'fahndung']) S[k] = 0;
+  S.torT = S.feldT = -9; S.letzte.x = S.letzte.y = 0; S.ereignis.bis = 0; S.stat.dauer = 0;
   S.sp = koerper(S, A.bild, W.start.x, W.start.y, W.start.a, { art: 'spieler', vmax: A.vmax, acc: A.acc, grip: A.grip, hp: 100 * A.panzer, mb: 2.2 });
   S.autos.push(S.sp);
   S.letzte.x = S.sp.x; S.letzte.y = S.sp.y;
@@ -146,7 +188,7 @@ export function neueFahrt(save, seed = 1, opt = {}) {
   // drei Koffer; in der allerersten Nacht liegt der erste gleich um die Ecke
   if (S.erste) {
     let best = null, bd = INF;
-    for (const q of W.koffer) { const d = Math.abs(Math.hypot(q.x - S.sp.x, q.y - S.sp.y) - 150); if (q.x > S.sp.x + 40 && d < bd) { bd = d; best = q; } }
+    for (const q of W.koffer) { const d = Math.abs(hyp(q.x - S.sp.x, q.y - S.sp.y) - 150); if (q.x > S.sp.x + 40 && d < bd) { bd = d; best = q; } }
     if (best) S.koffer.push({ id: best.id, x: best.x, y: best.y, art: best.art, wert: best.wert });
   }
   while (S.koffer.length < 3) kofferNeu(S);
@@ -162,8 +204,8 @@ function kofferNeu(S) {
   for (let n = 0; n < 16; n++) {
     const q = W.koffer[Math.floor(S.r() * W.koffer.length)];
     if (S.koffer.some((k) => k.id === q.id)) continue;
-    const d = Math.hypot(q.x - sp.x, q.y - sp.y);
-    let nah = INF; for (const k of S.koffer) nah = Math.min(nah, Math.hypot(k.x - q.x, k.y - q.y));
+    const d = hyp(q.x - sp.x, q.y - sp.y);
+    let nah = INF; for (const k of S.koffer) nah = Math.min(nah, hyp(k.x - q.x, k.y - q.y));
     const w = Math.min(nah, 260) + S.r() * 140 - (d < 110 ? 400 : 0) - (d > 420 ? (d - 420) : 0);
     if (w > bw) { bw = w; best = q; }
   }
@@ -173,7 +215,7 @@ function kofferNeu(S) {
 
 // ---------------------------------------------------------------- Fahrphysik
 function fahre(S, c) {
-  const dt = DT, fx = Math.cos(c.a), fy = Math.sin(c.a);
+  const dt = DT, fx = dcos(c.a), fy = dsin(c.a);
   let vf = c.vx * fx + c.vy * fy, vl = -c.vx * fy + c.vy * fx;
   const bo = bodenBei(S.W, c.x, c.y);
   let gf = 1, vfak = 1, roll = 1.2;
@@ -198,7 +240,7 @@ function fahre(S, c) {
   if (al <= dv) vl = 0; else { vl -= Math.sign(vl) * dv; vf -= Math.sign(vf) * Math.min(Math.abs(vf), al * 0.3 * dt); }
   c.rutsch = Math.abs(vl);
   // Lenken: bei hohem Tempo durch den Reifenhalt begrenzt; steht das Auto vor einer Wand, drehen die Räder trotzdem etwas
-  const av = Math.max(Math.abs(vf), gas > 0 ? 3.2 : 0), v = Math.hypot(vf, vl);
+  const av = Math.max(Math.abs(vf), gas > 0 ? 3.2 : 0), v = hyp(vf, vl);
   const wmax = Math.min(av / 3.4, 2.9, (c.hand ? 1.9 : 1.32) * c.grip * gf / Math.max(av, 6));
   let wl = c.lenk * wmax * (vf < -0.3 ? -1 : 1);
   if (v > 3) wl += clamp(vl / v, -1, 1) * (c.hand ? 0.6 : 2.2) * (vf < 0 ? -1 : 1);   // richtet sich in Fahrtrichtung aus
@@ -246,7 +288,7 @@ function schade(S, c, d) {
 // Stoß gegen etwas Festes: Kreis k (−1 hinten, 0 Mitte, 1 vorn) des Autos dringt um "tief" ein, n zeigt vom Hindernis weg
 function prall(S, c, k, nx, ny, tief) {
   c.x += nx * tief; c.y += ny * tief;
-  const fx = Math.cos(c.a), fy = Math.sin(c.a), rx = fx * c.hl * k - nx * c.r, ry = fy * c.hl * k - ny * c.r;
+  const fx = dcos(c.a), fy = dsin(c.a), rx = fx * c.hl * k - nx * c.r, ry = fy * c.hl * k - ny * c.r;
   const vn = (c.vx - c.w * ry) * nx + (c.vy + c.w * rx) * ny;
   if (vn >= 0) return;
   const rn = rx * ny - ry * nx, j = -1.3 * vn / (1 / c.masse + rn * rn / c.traeg);
@@ -268,7 +310,7 @@ function statisch(S, c) {
       const b = W.boxen[bl[q]];
       if (c.x + ext <= b.x0 || c.x - ext >= b.x1 || c.y + ext <= b.y0 || c.y - ext >= b.y1) continue;
       for (let k = -1; k <= 1; k++) {
-        const px = c.x + Math.cos(c.a) * c.hl * k, py = c.y + Math.sin(c.a) * c.hl * k;
+        const px = c.x + dcos(c.a) * c.hl * k, py = c.y + dsin(c.a) * c.hl * k;
         const qx = clamp(px, b.x0, b.x1), qy = clamp(py, b.y0, b.y1), dx = px - qx, dy = py - qy, d2 = dx * dx + dy * dy;
         if (d2 >= r * r) continue;
         if (d2 > 1e-8) { const d = Math.sqrt(d2); prall(S, c, k, dx / d, dy / d, r - d); }
@@ -281,7 +323,7 @@ function statisch(S, c) {
     for (let q = 0; q < kl.length; q++) {
       const o = W.kreise[kl[q]], rr = r + o.r;
       for (let k = -1; k <= 1; k++) {
-        const dx = c.x + Math.cos(c.a) * c.hl * k - o.x, dy = c.y + Math.sin(c.a) * c.hl * k - o.y, d2 = dx * dx + dy * dy;
+        const dx = c.x + dcos(c.a) * c.hl * k - o.x, dy = c.y + dsin(c.a) * c.hl * k - o.y, d2 = dx * dx + dy * dy;
         if (d2 >= rr * rr || d2 < 1e-8) continue;
         const d = Math.sqrt(d2); prall(S, c, k, dx / d, dy / d, rr - d);
       }
@@ -302,9 +344,9 @@ function weiche(S, c) {
       const px = d.fx ?? d.x, py = d.fy ?? d.y, rr = c.r + d.r;
       let hit = false;
       for (let k = -1; k <= 1 && !hit; k++) {
-        const cx = c.x + Math.cos(c.a) * c.hl * k, cy = c.y + Math.sin(c.a) * c.hl * k;
+        const cx = c.x + dcos(c.a) * c.hl * k, cy = c.y + dsin(c.a) * c.hl * k;
         if (d.lang) {   // längliches Ding: Abstand zur Strecke
-          const ux = Math.cos(d.rot), uy = Math.sin(d.rot), s = clamp((cx - px) * ux + (cy - py) * uy, -d.lang, d.lang), ex = cx - px - ux * s, ey = cy - py - uy * s;
+          const ux = dcos(d.rot), uy = dsin(d.rot), s = clamp((cx - px) * ux + (cy - py) * uy, -d.lang, d.lang), ex = cx - px - ux * s, ey = cy - py - uy * s;
           hit = ex * ex + ey * ey < rr * rr;
         } else { const ex = cx - px, ey = cy - py; hit = ex * ex + ey * ey < rr * rr; }
       }
@@ -321,7 +363,7 @@ function weiche(S, c) {
 function paar(S, A, B) {
   const dx0 = B.x - A.x, dy0 = B.y - A.y, reich = A.hl + A.r + B.hl + B.r;
   if (dx0 > reich || dx0 < -reich || dy0 > reich || dy0 < -reich) return;
-  const afx = Math.cos(A.a), afy = Math.sin(A.a), bfx = Math.cos(B.a), bfy = Math.sin(B.a), rr = A.r + B.r;
+  const afx = dcos(A.a), afy = dsin(A.a), bfx = dcos(B.a), bfy = dsin(B.a), rr = A.r + B.r;
   let best = 0, bi = 0, bj = 0, bnx = 1, bny = 0;
   for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) {
     const dx = B.x + bfx * B.hl * j - A.x - afx * A.hl * i, dy = B.y + bfy * B.hl * j - A.y - afy * A.hl * i, d2 = dx * dx + dy * dy;
@@ -398,11 +440,11 @@ export function feierabend(S) { ende(S, 'feierabend'); }
 
 // ---------------------------------------------------------------- Polizei
 function polizeiNeu(S) {
-  const W = S.W, sp = S.sp, R = S.sichtweite, P = POLIZEI[Math.max(1, S.sterne)], pv = Math.hypot(sp.vx, sp.vy);
+  const W = S.W, sp = S.sp, R = S.sichtweite, P = POLIZEI[Math.max(1, S.sterne)], pv = hyp(sp.vx, sp.vy);
   let best = null, bw = -INF;
   for (let n = 0; n < 28; n++) {
     const ki = Math.floor(S.r() * W.kanten.length), k = W.kanten[ki], s = 4 + S.r() * (k.len - 8), o = k.spuren[0];
-    const x = k.x0 + k.dx * s + k.nx * o, y = k.y0 + k.dy * s + k.ny * o, dx = x - sp.x, dy = y - sp.y, d = Math.hypot(dx, dy);
+    const x = k.x0 + k.dx * s + k.nx * o, y = k.y0 + k.dy * s + k.ny * o, dx = x - sp.x, dy = y - sp.y, d = hyp(dx, dy);
     if (d < R + 4 || d > R + 46 || !frei(S, x, y, 8)) continue;
     let w = S.r() * 30 - (d - R) * 0.6 - (dx * k.dx + dy * k.dy) / d * 25;   // lieber Wagen, die auf den Spieler zufahren
     if (pv > 4) w += (S.sterne >= 3 ? 45 : 12) * (dx * sp.vx + dy * sp.vy) / (d * pv);   // ab 3 Sternen kommen sie von vorn
@@ -410,7 +452,7 @@ function polizeiNeu(S) {
   }
   if (!best) return false;
   const k = W.kanten[best.ki], suv = S.r() < P.suv;
-  const c = koerper(S, suv ? 'polizei-suv' : 'polizei', best.x, best.y, Math.atan2(k.dy, k.dx), { art: 'polizei', modus: 'jagd', hp: suv ? 95 : 60, k: -1, steht: 0, zurueck: 0, zurLenk: 0, klemm: 0, rolle: 0, dist: 99, blau: true, suv });
+  const c = koerper(S, suv ? 'polizei-suv' : 'polizei', best.x, best.y, datan2(k.dy, k.dx), { art: 'polizei', modus: 'jagd', hp: suv ? 95 : 60, k: -1, steht: 0, zurueck: 0, zurLenk: 0, klemm: 0, rolle: 0, dist: 99, blau: true, suv });
   c.rolle = S.sterne >= 3 && c.id % 3 === 0 ? 1 : 0;
   c.vx = k.dx * 10; c.vy = k.dy * 10;
   S.autos.push(c);
@@ -421,14 +463,14 @@ function polizeiLenken(S, c) {
   if (c.hp <= 0) { c.gas = 0; c.bremse = 0; c.hand = true; c.lenk = 0; return; }
   const P = POLIZEI[Math.max(1, S.sterne)];
   c.vmax = Math.max(P.v, S.auto.vmax * P.f) * (c.suv ? 0.95 : 1) * (S.gesehen ? 1 : 0.78); c.acc = P.acc; c.grip = P.grip;
-  const dx = sp.x - c.x, dy = sp.y - c.y, dist = Math.hypot(dx, dy), v = Math.hypot(c.vx, c.vy);
+  const dx = sp.x - c.x, dy = sp.y - c.y, dist = hyp(dx, dy), v = hyp(c.vx, c.vy);
   c.dist = dist; c.blau = true;
   if (c.zurueck > 0) { c.zurueck -= DT; c.gas = 0; c.bremse = 1; c.hand = false; c.lenk = c.zurLenk; return; }
   if (v < 1.2) { c.steht += DT; if (c.steht > 1.1 && (dist > 8 || !S.gesehen)) { c.steht = 0; c.zurueck = 0.7 + S.r() * 0.5; c.zurLenk = S.r() < 0.5 ? -1 : 1; c.klemm++; } }
   else c.steht = Math.max(0, c.steht - DT * 2);
   let tx, ty, blockt = false;
   if (S.gesehen && dist < 36 && wegFrei(W, c.x, c.y, sp.x, sp.y)) {
-    const tau = clamp(dist / 26, 0.05, 0.8), pv = Math.hypot(sp.vx, sp.vy);
+    const tau = clamp(dist / 26, 0.05, 0.8), pv = hyp(sp.vx, sp.vy);
     tx = sp.x + sp.vx * tau; ty = sp.y + sp.vy * tau;
     if (c.rolle === 1 && dist > 6 && pv > 6) {   // Blocker: setzt sich vor den Spieler und bremst
       const px = sp.vx / pv, py = sp.vy / pv, seite = c.id % 2 ? 1 : -1, vorn = -(dx * px + dy * py);
@@ -439,13 +481,13 @@ function polizeiLenken(S, c) {
     const m = moehre(W, S.feld, c.x, c.y, 3 + Math.floor(v / 5));
     if (m) { tx = m.x; ty = m.y; } else { tx = S.feld.ok ? S.feld.x : S.letzte.x; ty = S.feld.ok ? S.feld.y : S.letzte.y; }
   }
-  const ang = wrap(Math.atan2(ty - c.y, tx - c.x) - c.a), aa = Math.abs(ang);
+  const ang = wrap(datan2(ty - c.y, tx - c.x) - c.a), aa = Math.abs(ang);
   c.lenk = clamp(ang * 2.4, -1, 1); c.gas = 1; c.bremse = 0; c.hand = false;
   if (aa > 1.1 && v > 9) c.hand = true; else if (aa > 0.6 && v > 14) c.gas = 0.25;
   if (aa > 2.3 && v < 5 && dist > 7) { c.zurueck = 0.6; c.zurLenk = ang > 0 ? -1 : 1; }
   if (blockt) { c.gas = 0; if (v > 4) c.bremse = 1; else c.hand = true; }
   // Abstand zu Kollegen: nicht im Gänsemarsch auffahren
-  const fx = Math.cos(c.a), fy = Math.sin(c.a);
+  const fx = dcos(c.a), fy = dsin(c.a);
   for (const o of S.autos) {
     if (o === c || o.art !== 'polizei' || o.hp <= 0) continue;
     const ox = o.x - c.x, oy = o.y - c.y; if (ox > 9 || ox < -9 || oy > 9 || oy < -9) continue;
@@ -456,11 +498,11 @@ function polizeiLenken(S, c) {
 
 // ---------------------------------------------------------------- Verkehr (und Polizei auf Streife): folgt den Fahrspuren
 function naechsteKante(S, c) {   // nächstgelegene Spur in Fahrtrichtung
-  const W = S.W, fx = Math.cos(c.a), fy = Math.sin(c.a);
+  const W = S.W, fx = dcos(c.a), fy = dsin(c.a);
   let best = -1, bd = INF, bs = 0;
   for (let i = 0; i < W.kanten.length; i++) {
     const k = W.kanten[i], s = clamp((c.x - k.x0) * k.dx + (c.y - k.y0) * k.dy, 0, k.len), o = k.spuren[0];
-    const d = Math.hypot(k.x0 + k.dx * s + k.nx * o - c.x, k.y0 + k.dy * s + k.ny * o - c.y) + (1 - (fx * k.dx + fy * k.dy)) * 14 + (s > k.len - 8 ? 20 : 0);
+    const d = hyp(k.x0 + k.dx * s + k.nx * o - c.x, k.y0 + k.dy * s + k.ny * o - c.y) + (1 - (fx * k.dx + fy * k.dy)) * 14 + (s > k.len - 8 ? 20 : 0);
     if (d < bd) { bd = d; best = i; bs = o; }
   }
   c.k = best; c.spur = bs; c.nk = null; c.abbiegen = 0; c.von = -1; c.tempo = c.tempo || 9;
@@ -484,7 +526,7 @@ function verkehrLenken(S, c) {
   const W = S.W;
   if (c.k < 0 || c.k == null) naechsteKante(S, c);
   let k = W.kanten[c.k], s = (c.x - k.x0) * k.dx + (c.y - k.y0) * k.dy;
-  const fx = Math.cos(c.a), fy = Math.sin(c.a), v = c.vx * fx + c.vy * fy;
+  const fx = dcos(c.a), fy = dsin(c.a), v = c.vx * fx + c.vy * fy;
   if (s > k.len - 12 && c.nk == null) c.nk = waehle(S, k, c);
   let vz = c.tempo;
   if (s > k.len - 0.5) {   // Kreuzung erreicht
@@ -513,7 +555,7 @@ function verkehrLenken(S, c) {
       if (o === S.sp && vz < 1 && S.t - (c.hupT || -9) > 3) { c.hupT = S.t; ev(S, 'hupe', { x: c.x, y: c.y }); }
     }
   }
-  const ang = wrap(Math.atan2(ty - c.y, tx - c.x) - c.a);
+  const ang = wrap(datan2(ty - c.y, tx - c.x) - c.a);
   c.lenk = clamp(ang * 2.4, -1, 1); c.hand = false; c.bremse = 0;
   if (vz > 2 && Math.abs(v) < 0.5) { c.fest = (c.fest || 0) + DT; if (c.fest > 5 && c.art === 'verkehr') { c.art = 'wrack'; c.warn = true; c.wrackT = S.t; c.hand = true; c.gas = 0; return; } } else c.fest = 0;
   if (vz < 0.3 && v < 0.6) { c.gas = 0; c.hand = true; }
@@ -525,10 +567,10 @@ function verkehrLenken(S, c) {
 function verkehrNeu(S, nah) {
   const W = S.W, sp = S.sp, R = nah ?? S.sichtweite + 6;
   const ki = Math.floor(S.r() * W.kanten.length), k = W.kanten[ki], s = 6 + S.r() * (k.len - 14), o = k.spuren[Math.floor(S.r() * k.spuren.length)];
-  const x = k.x0 + k.dx * s + k.nx * o, y = k.y0 + k.dy * s + k.ny * o, d = Math.hypot(x - sp.x, y - sp.y);
+  const x = k.x0 + k.dx * s + k.nx * o, y = k.y0 + k.dy * s + k.ny * o, d = hyp(x - sp.x, y - sp.y);
   if (d < R || d > S.sichtweite + 70 || !frei(S, x, y, 11)) return false;
   const bild = VERKEHR_TYPEN[Math.floor(S.r() * VERKEHR_TYPEN.length)], tempo = (bild === 'auto-lkw' ? 7 : 8.5) + S.r() * 3.5;
-  const c = koerper(S, bild, x, y, Math.atan2(k.dy, k.dx), { art: 'verkehr', k: ki, spur: o, nk: null, von: -1, abbiegen: 0, vmax: 15, acc: 5, grip: 19, hp: 45, tempo, nahT: 0, nahAus: 0 });
+  const c = koerper(S, bild, x, y, datan2(k.dy, k.dx), { art: 'verkehr', k: ki, spur: o, nk: null, von: -1, abbiegen: 0, vmax: 15, acc: 5, grip: 19, hp: 45, tempo, nahT: 0, nahAus: 0 });
   c.vx = k.dx * tempo; c.vy = k.dy * tempo;
   S.autos.push(c);
   return true;
@@ -543,19 +585,19 @@ function kanteBei(W, x, y, fx, fy) {   // die Straße, auf der jemand in diese R
   let best = 0, bd = INF;
   for (let i = 0; i < W.kanten.length; i++) {
     const k = W.kanten[i], s = clamp((x - k.x0) * k.dx + (y - k.y0) * k.dy, 0, k.len);
-    const d = Math.hypot(k.x0 + k.dx * s - x, k.y0 + k.dy * s - y) + (1 - (fx * k.dx + fy * k.dy)) * 14;
+    const d = hyp(k.x0 + k.dx * s - x, k.y0 + k.dy * s - y) + (1 - (fx * k.dx + fy * k.dy)) * 14;
     if (d < bd) { bd = d; best = i; }
   }
   return best;
 }
 // Sperre voraus: auf der Straße des Spielers geradeaus weiter, bis die Stelle außer Sicht liegt
 function sperreNeu(S) {
-  const W = S.W, sp = S.sp, v = Math.hypot(sp.vx, sp.vy);
+  const W = S.W, sp = S.sp, v = hyp(sp.vx, sp.vy);
   if (v < 8) return false;
   let k = W.kanten[kanteBei(W, sp.x, sp.y, sp.vx / v, sp.vy / v)];
   if (Math.abs((sp.x - k.x0) * k.nx + (sp.y - k.y0) * k.ny) > k.breite / 2 + 6 || k.dx * sp.vx + k.dy * sp.vy < v * 0.7) return false;
   for (let n = 0; n < 4; n++) {
-    const mx = k.x0 + k.dx * k.len * 0.5, my = k.y0 + k.dy * k.len * 0.5, d = Math.hypot(mx - sp.x, my - sp.y);
+    const mx = k.x0 + k.dx * k.len * 0.5, my = k.y0 + k.dy * k.len * 0.5, d = hyp(mx - sp.x, my - sp.y);
     if (d > S.sichtweite + 8 && k.len > 30) return d < S.sichtweite + 130 && sperreBauen(S, k, mx, my);
     let nk = null; for (const e of W.knoten[k.b].raus) { const q = W.kanten[e]; if (q.dx === k.dx && q.dy === k.dy) nk = q; }
     if (!nk) return false;
@@ -565,7 +607,7 @@ function sperreNeu(S) {
 }
 function sperreBauen(S, k, mx, my) {
   const P = POLIZEI[Math.max(1, S.sterne)], nagel = S.sterne >= 4 && S.r() < 0.45, seite = S.r() < 0.5 ? 1 : -1;
-  const quer = Math.atan2(k.ny, k.nx), laengs = Math.atan2(k.dy, k.dx), h = k.breite / 2;
+  const quer = datan2(k.ny, k.nx), laengs = datan2(k.dy, k.dx), h = k.breite / 2;
   const s = { x: mx, y: my, t: S.t, art: nagel ? 'nagel' : 'wagen', autos: [], nagel: null, nah: false };
   const wagen = (o, vor, a) => {
     const x = mx + k.nx * o + k.dx * vor, y = my + k.ny * o + k.dy * vor; if (!frei(S, x, y, 5)) return;
@@ -588,7 +630,7 @@ function sperreBauen(S, k, mx, my) {
 function sperrenPflegen(S) {
   const sp = S.sp;
   for (let i = S.sperren.length - 1; i >= 0; i--) {
-    const s = S.sperren[i], d = Math.hypot(s.x - sp.x, s.y - sp.y);
+    const s = S.sperren[i], d = hyp(s.x - sp.x, s.y - sp.y);
     if (d < 16) s.nah = true;
     const durch = s.nah && d > 26, geweckt = s.autos.some((c) => c.modus !== 'sperre');
     if (!durch && !geweckt && S.sterne > 0 && S.t - s.t < 35 && d < S.sichtweite + 160) continue;
@@ -620,17 +662,17 @@ function heliSchritt(S) {
     else if ((h.t -= DT) <= 0) { h.phase = 'an'; h.t = HELI.da; ev(S, 'heli', { an: true }); }
   }
   const an = h.phase === 'an';
-  const zx = an ? sp.x + Math.cos(S.t * 0.5) * 9 : sp.x - 300, zy = an ? sp.y + Math.sin(S.t * 0.5) * 9 - 4 : sp.y - 240;
-  const dx = zx - h.x, dy = zy - h.y, d = Math.hypot(dx, dy) || 1, vz = Math.min(HELI.tempo, d * 1.2);
+  const zx = an ? sp.x + dcos(S.t * 0.5) * 9 : sp.x - 300, zy = an ? sp.y + dsin(S.t * 0.5) * 9 - 4 : sp.y - 240;
+  const dx = zx - h.x, dy = zy - h.y, d = hyp(dx, dy) || 1, vz = Math.min(HELI.tempo, d * 1.2);
   h.vx += clamp(dx / d * vz - h.vx, -16 * DT, 16 * DT); h.vy += clamp(dy / d * vz - h.vy, -16 * DT, 16 * DT);
   h.x += h.vx * DT; h.y += h.vy * DT;
-  if (h.vx * h.vx + h.vy * h.vy > 4) h.a += wrap(Math.atan2(h.vy, h.vx) - h.a) * Math.min(1, 3 * DT);
-  if (!an) { h.lx = h.x; h.ly = h.y; h.licht = false; if (h.phase === 'ab' && Math.hypot(h.x - sp.x, h.y - sp.y) > 230) S.heli = null; return; }
-  const ex = sp.x - h.lx, ey = sp.y - h.ly, e = Math.hypot(ex, ey), weit = Math.min(e, HELI.licht * DT);
+  if (h.vx * h.vx + h.vy * h.vy > 4) h.a += wrap(datan2(h.vy, h.vx) - h.a) * Math.min(1, 3 * DT);
+  if (!an) { h.lx = h.x; h.ly = h.y; h.licht = false; if (h.phase === 'ab' && hyp(h.x - sp.x, h.y - sp.y) > 230) S.heli = null; return; }
+  const ex = sp.x - h.lx, ey = sp.y - h.ly, e = hyp(ex, ey), weit = Math.min(e, HELI.licht * DT);
   if (e > 0) { h.lx += ex / e * weit; h.ly += ey / e * weit; }
-  const qx = h.lx - h.x, qy = h.ly - h.y, q = Math.hypot(qx, qy);
+  const qx = h.lx - h.x, qy = h.ly - h.y, q = hyp(qx, qy);
   if (q > HELI.arm) { h.lx = h.x + qx / q * HELI.arm; h.ly = h.y + qy / q * HELI.arm; }
-  h.licht = Math.hypot(sp.x - h.lx, sp.y - h.ly) < HELI.kreis;
+  h.licht = hyp(sp.x - h.lx, sp.y - h.ly) < HELI.kreis;
 }
 
 // ---------------------------------------------------------------- Besondere Ziele: Goldkoffer, Geldtransporter, Rivale (immer nur eines)
@@ -645,7 +687,7 @@ function ereignisse(S) {
   } else if (E.art === 'transporter') {
     const c = S.transporter;
     if (!c || c.weg || !c.transporter) { S.transporter = null; ereignisEnde(S); }
-    else if (S.t > E.bis && Math.hypot(c.x - S.sp.x, c.y - S.sp.y) > 40) { c.transporter = false; S.transporter = null; ev(S, 'transporterWeg', {}); ereignisEnde(S); }
+    else if (S.t > E.bis && hyp(c.x - S.sp.x, c.y - S.sp.y) > 40) { c.transporter = false; S.transporter = null; ev(S, 'transporterWeg', {}); ereignisEnde(S); }
   } else if (E.art === 'rivale') {
     const c = S.rivale;
     if (!c || c.weg || c.art !== 'rivale') { S.rivale = null; ereignisEnde(S); }
@@ -659,7 +701,7 @@ function ereignisse(S) {
 function goldNeu(S) {
   const W = S.W, sp = S.sp;
   for (let n = 0; n < 30; n++) {
-    const q = W.koffer[Math.floor(S.r() * W.koffer.length)], d = Math.hypot(q.x - sp.x, q.y - sp.y);
+    const q = W.koffer[Math.floor(S.r() * W.koffer.length)], d = hyp(q.x - sp.x, q.y - sp.y);
     if (d < 170 || d > 420 || S.koffer.some((k) => k.id === q.id)) continue;
     S.koffer.push({ id: q.id, x: q.x, y: q.y, art: q.art, wert: q.wert * GOLD.faktor, gold: true, extra: true, bis: S.t + GOLD.zeit, name: 'Goldkoffer' });
     ev(S, 'gold', { x: q.x, y: q.y, wert: q.wert * GOLD.faktor, wo: KOFFER[q.art].name });
@@ -671,14 +713,14 @@ function strassenPunkt(S, von, bis) {   // freie Stelle auf einer Fahrspur in di
   const W = S.W, sp = S.sp;
   for (let n = 0; n < 24; n++) {
     const ki = Math.floor(S.r() * W.kanten.length), k = W.kanten[ki], s = 6 + S.r() * (k.len - 14), o = k.spuren[0];
-    const x = k.x0 + k.dx * s + k.nx * o, y = k.y0 + k.dy * s + k.ny * o, d = Math.hypot(x - sp.x, y - sp.y);
+    const x = k.x0 + k.dx * s + k.nx * o, y = k.y0 + k.dy * s + k.ny * o, d = hyp(x - sp.x, y - sp.y);
     if (d >= von && d <= bis && frei(S, x, y, 10)) return { x, y, ki, k, o };
   }
   return null;
 }
 function transporterNeu(S) {
   const p = strassenPunkt(S, S.sichtweite + 10, S.sichtweite + 110); if (!p) return false;
-  const c = koerper(S, 'auto-van', p.x, p.y, Math.atan2(p.k.dy, p.k.dx), { art: 'verkehr', k: p.ki, spur: p.o, nk: null, von: -1, abbiegen: 0, vmax: 15, acc: 5, grip: 19, hp: 150, tempo: 9, nahT: 0, nahAus: 0, transporter: true, saecke: 0, sackT: -9 });
+  const c = koerper(S, 'auto-van', p.x, p.y, datan2(p.k.dy, p.k.dx), { art: 'verkehr', k: p.ki, spur: p.o, nk: null, von: -1, abbiegen: 0, vmax: 15, acc: 5, grip: 19, hp: 150, tempo: 9, nahT: 0, nahAus: 0, transporter: true, saecke: 0, sackT: -9 });
   c.masse = 2.6; c.traeg = c.masse * (c.l * c.l + c.b * c.b) / 12; c.vx = p.k.dx * 9; c.vy = p.k.dy * 9;
   S.autos.push(c); S.transporter = c;
   ev(S, 'transporter', {});
@@ -697,12 +739,12 @@ function transporterTreffer(S, c) {
 // Rivale: fährt über die Straßen zum nächsten Koffer und schnappt ihn weg. Rammt man ihn danach, lässt er ihn fallen (doppelter Wert).
 function rivaleZiel(S, c) {
   let best = null, bd = INF;
-  for (const k of S.koffer) { if (k.extra || k.art === 'yacht' || k.art === 'kai' || k.art === 'strand' || k.art === 'park') continue; const d = Math.hypot(k.x - c.x, k.y - c.y); if (d < bd) { bd = d; best = k; } }
+  for (const k of S.koffer) { if (k.extra || k.art === 'yacht' || k.art === 'kai' || k.art === 'strand' || k.art === 'park') continue; const d = hyp(k.x - c.x, k.y - c.y); if (d < bd) { bd = d; best = k; } }
   return best;
 }
 function rivaleNeu(S) {
   const p = strassenPunkt(S, S.sichtweite + 10, S.sichtweite + 120); if (!p) return false;
-  const c = koerper(S, 'auto-muscle', p.x, p.y, Math.atan2(p.k.dy, p.k.dx), { art: 'rivale', k: p.ki, spur: p.o, nk: null, von: -1, abbiegen: 0, vmax: 19, acc: 9, grip: 22, hp: 70, tempo: 15.5, hat: null, flucht: false, tx: 0, ty: 0, zielId: 0, hatT: 0, steht: 0, zurueck: 0 });
+  const c = koerper(S, 'auto-muscle', p.x, p.y, datan2(p.k.dy, p.k.dx), { art: 'rivale', k: p.ki, spur: p.o, nk: null, von: -1, abbiegen: 0, vmax: 19, acc: 9, grip: 22, hp: 70, tempo: 15.5, hat: null, flucht: false, tx: 0, ty: 0, zielId: 0, hatT: 0, steht: 0, zurueck: 0 });
   const z = rivaleZiel(S, c); if (!z) return false;
   c.zielId = z.id; c.tx = z.x; c.ty = z.y; c.vx = p.k.dx * 10; c.vy = p.k.dy * 10;
   S.autos.push(c); S.rivale = c;
@@ -711,7 +753,7 @@ function rivaleNeu(S) {
 }
 function rivaleFlieht(S, c) {
   const W = S.W; let best = W.knoten[0], bd = -1;
-  for (let n = 0; n < 8; n++) { const q = W.knoten[Math.floor(S.r() * W.knoten.length)], d = Math.hypot(q.x - S.sp.x, q.y - S.sp.y); if (d > bd) { bd = d; best = q; } }
+  for (let n = 0; n < 8; n++) { const q = W.knoten[Math.floor(S.r() * W.knoten.length)], d = hyp(q.x - S.sp.x, q.y - S.sp.y); if (d > bd) { bd = d; best = q; } }
   c.flucht = true; c.tx = best.x; c.ty = best.y; c.nk = null; c.tempo = 17; if (!c.hatT) c.hatT = S.t;
 }
 function rivaleFallen(S, c) {
@@ -726,21 +768,21 @@ function rivaleLenken(S, c) {
   if (!c.flucht) {
     let z = S.koffer.find((k) => k.id === c.zielId && !k.extra);
     if (!z) { z = rivaleZiel(S, c); if (z) { c.zielId = z.id; c.tx = z.x; c.ty = z.y; c.nk = null; } else rivaleFlieht(S, c); }
-    else if (Math.hypot(z.x - c.x, z.y - c.y) < 4.2) {
+    else if (hyp(z.x - c.x, z.y - c.y) < 4.2) {
       S.koffer.splice(S.koffer.indexOf(z), 1); kofferNeu(S);
       c.hat = { wert: z.wert }; c.hatT = S.t; rivaleFlieht(S, c);
       ev(S, 'rivaleHat', { x: c.x, y: c.y, wert: z.wert });
     }
   } else {
-    const fern = Math.hypot(c.x - sp.x, c.y - sp.y) > S.sichtweite + 15;
+    const fern = hyp(c.x - sp.x, c.y - sp.y) > S.sichtweite + 15;
     if (fern && S.t - c.hatT > 12) { c.weg = true; ev(S, 'rivaleWeg', { mit: !!c.hat }); return; }
-    if (Math.hypot(c.tx - c.x, c.ty - c.y) < 14) rivaleFlieht(S, c);
+    if (hyp(c.tx - c.x, c.ty - c.y) < 14) rivaleFlieht(S, c);
   }
-  const v = Math.hypot(c.vx, c.vy);
+  const v = hyp(c.vx, c.vy);
   if (c.zurueck > 0) { c.zurueck -= DT; c.gas = 0; c.bremse = 1; c.hand = false; c.lenk = 0.6; return; }
-  if (v < 0.8) { c.steht += DT; if (c.steht > 2.5) { c.steht = 0; if (Math.hypot(c.x - sp.x, c.y - sp.y) > S.sichtweite + 5) { c.weg = true; return; } c.zurueck = 1; c.k = -1; } } else c.steht = 0;
-  if (Math.hypot(c.tx - c.x, c.ty - c.y) < 30 && wegFrei(W, c.x, c.y, c.tx, c.ty)) {   // das letzte Stück direkt
-    const ang = wrap(Math.atan2(c.ty - c.y, c.tx - c.x) - c.a);
+  if (v < 0.8) { c.steht += DT; if (c.steht > 2.5) { c.steht = 0; if (hyp(c.x - sp.x, c.y - sp.y) > S.sichtweite + 5) { c.weg = true; return; } c.zurueck = 1; c.k = -1; } } else c.steht = 0;
+  if (hyp(c.tx - c.x, c.ty - c.y) < 30 && wegFrei(W, c.x, c.y, c.tx, c.ty)) {   // das letzte Stück direkt
+    const ang = wrap(datan2(c.ty - c.y, c.tx - c.x) - c.a);
     c.lenk = clamp(ang * 2.4, -1, 1); c.bremse = 0; c.hand = Math.abs(ang) > 1.2 && v > 9; c.gas = v > 11 ? 0.2 : 1; c.k = -1;
   } else verkehrLenken(S, c);
 }
@@ -750,7 +792,7 @@ function rivaleLenken(S, c) {
 // egal aus welcher Richtung und wie schnell. Die Fahrspur daneben bleibt frei, damit niemand im Vorbeifahren sichert.
 export const EINFAHRT_VOR = 1.5;
 function inEinfahrt(v, c) {
-  const rx = Math.cos(v.raus), ry = Math.sin(v.raus), quer = Math.abs(ry) > 0.5;
+  const rx = dcos(v.raus), ry = dsin(v.raus), quer = Math.abs(ry) > 0.5;
   const tief = quer ? v.by : v.bx, breit = quer ? v.bx : v.by;
   const u = (c.x - v.x) * rx + (c.y - v.y) * ry, w = -(c.x - v.x) * ry + (c.y - v.y) * rx;
   return Math.abs(w) <= breit && u >= -tief - 1.5 && u <= tief + EINFAHRT_VOR;
@@ -786,11 +828,11 @@ function orte(S) {
   sp.vx = sp.vy = sp.w = 0; sp.lenk = 0;
 }
 function pauseEnde(S) {
-  const { v } = S.pauseOrt, sp = S.sp, rx = Math.cos(v.raus), ry = Math.sin(v.raus);
+  const { v } = S.pauseOrt, sp = S.sp, rx = dcos(v.raus), ry = dsin(v.raus);
   sp.x = v.x + rx * 1.2; sp.y = v.y + ry * 1.2; sp.a = v.raus; sp.vx = sp.vy = sp.w = 0;
   S.pauseOrt = null; S.wartet = true; S.ort = v;
   // Platz machen: was vor dem Tor steht, wird weggeräumt
-  for (const c of S.autos) if (c !== sp && c.art !== 'parker' && Math.hypot(c.x - sp.x, c.y - sp.y) < 9) c.weg = true;
+  for (const c of S.autos) if (c !== sp && c.art !== 'parker' && hyp(c.x - sp.x, c.y - sp.y) < 9) c.weg = true;
   raeumen(S);
   ev(S, 'raus', {});
 }
@@ -806,6 +848,7 @@ export function schritt(S, e) {
   if (S.pause > 0) { S.pause -= DT; if (S.pause <= 0) pauseEnde(S); return; }
   if (S.wartet) { if (e.gas || e.lenk || e.nitro || e.hand || e.bremse || e.los) { S.wartet = false; ev(S, 'los', {}); } else return; }
   S.t += DT; S.n++; S.stat.dauer = S.t;
+  if (S.limit && S.t >= S.limit) { ende(S, 'morgen'); return; }   // Tagesnacht: bei Sonnenaufgang ist Schluss
   const sp = S.sp, W = S.W, autos = S.autos;
 
   // --- Eingabe
@@ -821,7 +864,7 @@ export function schritt(S, e) {
   // --- Wegefeld für die Polizei (zum Spieler, solange er gesehen wird, sonst zur letzten bekannten Stelle)
   if (S.sterne > 0 && S.t - S.feldT > 0.35) {
     S.feldT = S.t;
-    if (S.gesehen) feldRechnen(W, S.feld, sp.x, sp.y); else feldRechnen(W, S.feld, S.letzte.x, S.letzte.y);
+    if (S.gesehen) feldRechnen(W, S.feld, sp.x, sp.y, 48, autos); else feldRechnen(W, S.feld, S.letzte.x, S.letzte.y, 48, autos);
   }
 
   // --- Fahrer
@@ -833,9 +876,25 @@ export function schritt(S, e) {
   }
   // --- Bewegung und Stöße
   for (let i = 0; i < autos.length; i++) { const c = autos[i]; if (!c.ruht) fahre(S, c); }
-  for (let i = 0; i < autos.length; i++) {
-    const A = autos[i];
-    for (let j = i + 1; j < autos.length; j++) { const B = autos[j]; if (A.ruht && B.ruht) continue; paar(S, A, B); }
+  // Vorauswahl über feste Zahlenfelder (Stand vor den Stößen, 1,5 m Zugabe je Auto): nur was sich nahe ist, wird genau geprüft
+  const na = autos.length;
+  if (na > PX.length) { PX = new Float64Array(na * 2); PY = new Float64Array(na * 2); PR = new Float64Array(na * 2); PZ = new Uint8Array(na * 2); AK = new Int32Array(na * 2); }
+  let nk = 0;
+  for (let i = 0; i < na; i++) { const c = autos[i]; PX[i] = c.x; PY[i] = c.y; PR[i] = c.hl + c.r + 1.5; PZ[i] = c.ruht ? 1 : 0; if (!c.ruht) AK[nk++] = i; }
+  for (let i = 0, ab = 0; i < na; i++) {
+    const x = PX[i], y = PY[i], r = PR[i];
+    while (ab < nk && AK[ab] <= i) ab++;
+    if (PZ[i]) {   // ruht: nur die fahrenden Autos dahinter
+      for (let q = ab; q < nk; q++) {
+        const j = AK[q], lim = r + PR[j], dx = PX[j] - x; if (dx > lim || dx < -lim) continue;
+        const dy = PY[j] - y; if (dy > lim || dy < -lim) continue;
+        paar(S, autos[i], autos[j]);
+      }
+    } else for (let j = i + 1; j < na; j++) {
+      const lim = r + PR[j], dx = PX[j] - x; if (dx > lim || dx < -lim) continue;
+      const dy = PY[j] - y; if (dy > lim || dy < -lim) continue;
+      paar(S, autos[i], autos[j]);
+    }
   }
   let raus = false;
   for (let i = 0; i < autos.length; i++) {
@@ -895,7 +954,7 @@ export function schritt(S, e) {
   // --- Festnahme: wer steht und einen Streifenwagen neben sich hat, wird geschnappt
   let nah = 0;
   if (S.sterne > 0) for (let i = 1; i < autos.length; i++) { const c = autos[i]; if (c.art === 'polizei' && c.modus === 'jagd' && c.hp > 0 && c.dist < 6.5) nah++; }
-  const tempo = Math.hypot(sp.vx, sp.vy);
+  const tempo = hyp(sp.vx, sp.vy);
   if (nah > 0 && tempo < 3) S.haft = Math.min(1, S.haft + DT * (0.38 + 0.12 * nah)); else S.haft = Math.max(0, S.haft - DT * 0.8);
   if (S.haft >= 1) { ende(S, 'geschnappt'); return; }
 
@@ -938,14 +997,14 @@ export function schritt(S, e) {
   for (const q of S.sperren) {   // Nagelband: wer drüberfährt, hat platte Reifen
     const n = q.nagel; if (!n || n.benutzt) continue;
     const ux = n.x1 - n.x0, uy = n.y1 - n.y0, t = clamp(((sp.x - n.x0) * ux + (sp.y - n.y0) * uy) / (ux * ux + uy * uy), 0, 1);
-    if (Math.hypot(sp.x - n.x0 - ux * t, sp.y - n.y0 - uy * t) < 1) { n.benutzt = true; if (S.platt <= 0) { sp.vmax *= PLATT.tempo; sp.grip *= PLATT.halt; } S.platt = PLATT.dauer; ev(S, 'platt', { x: sp.x, y: sp.y }); }
+    if (hyp(sp.x - n.x0 - ux * t, sp.y - n.y0 - uy * t) < 1) { n.benutzt = true; if (S.platt <= 0) { sp.vmax *= PLATT.tempo; sp.grip *= PLATT.halt; } S.platt = PLATT.dauer; ev(S, 'platt', { x: sp.x, y: sp.y }); }
   }
   if (S.platt > 0) { S.platt -= DT; if (S.platt <= 0) { reifenHeil(S); ev(S, 'plattEnde', {}); } }
   for (let i = S.deko.length - 1; i >= 0; i--) {   // Absperrgitter fliegen weg
     const q = S.deko[i];
     for (const c of autos) {
       if (c.ruht || Math.abs(c.x - q.x) > 4 || Math.abs(c.y - q.y) > 4 || c.vx * c.vx + c.vy * c.vy < 9) continue;
-      let hit = false; for (let k = -1; k <= 1 && !hit; k++) hit = Math.hypot(c.x + Math.cos(c.a) * c.hl * k - q.x, c.y + Math.sin(c.a) * c.hl * k - q.y) < c.r + q.r;
+      let hit = false; for (let k = -1; k <= 1 && !hit; k++) hit = hyp(c.x + dcos(c.a) * c.hl * k - q.x, c.y + dsin(c.a) * c.hl * k - q.y) < c.r + q.r;
       if (!hit) continue;
       c.vx *= 0.96; c.vy *= 0.96; ev(S, 'deko', { bild: q.bild, x: q.x, y: q.y, rot: q.rot, g: q.g, vx: c.vx, vy: c.vy, eigen: c === sp });
       S.deko.splice(i, 1); break;
@@ -992,29 +1051,29 @@ function haarscharf(S, c) {
 }
 
 // ---------------------------------------------------------------- Prüf-Fahrer (für Tests und Balance): fährt Koffer an und sichert im Versteck
-export function neuerBot(o = {}) { return { feld: neuesFeld(), ziel: null, gier: o.gier ?? 2, zurueck: 0, steht: 0, lenk: 1, nitro: o.nitro ?? true }; }
+export function neuerBot(o = {}) { return { r: rng(o.seed ?? 99), feld: neuesFeld(), ziel: null, gier: o.gier ?? 2, zurueck: 0, steht: 0, lenk: 1, nitro: o.nitro ?? true }; }
 export function botEingabe(S, B) {
   const sp = S.sp, W = S.W, e = { lenk: 0, gas: true, bremse: false, hand: false, nitro: false };
-  const v = Math.hypot(sp.vx, sp.vy);
+  const v = hyp(sp.vx, sp.vy);
   // Ziel wählen
   let ziel = null, tor = null;
   const heim = S.serie >= B.gier || (S.beute > 0 && (S.sterne >= 3 || sp.hp < sp.hpMax * 0.45));
   if (heim) {
     let bd = INF;
-    for (const h of W.verstecke) { const d = Math.hypot(h.x - sp.x, h.y - sp.y); if (d < bd) { bd = d; tor = h; } }
-    const rx = Math.cos(tor.raus), ry = Math.sin(tor.raus), u = (sp.x - tor.x) * rx + (sp.y - tor.y) * ry, w = Math.abs(-(sp.x - tor.x) * ry + (sp.y - tor.y) * rx);
+    for (const h of W.verstecke) { const d = hyp(h.x - sp.x, h.y - sp.y); if (d < bd) { bd = d; tor = h; } }
+    const rx = dcos(tor.raus), ry = dsin(tor.raus), u = (sp.x - tor.x) * rx + (sp.y - tor.y) * ry, w = Math.abs(-(sp.x - tor.x) * ry + (sp.y - tor.y) * rx);
     ziel = u > 3 && w < 5 ? { x: tor.x - rx * 1.5, y: tor.y - ry * 1.5, id: 'tor' } : { x: tor.x + rx * 13, y: tor.y + ry * 13, id: 'vor' + tor.name };
   } else {
     let bd = INF;
-    for (const k of S.koffer) { const d = Math.hypot(k.x - sp.x, k.y - sp.y); if (d < bd) { bd = d; ziel = { x: k.x, y: k.y, id: 'k' + k.id }; } }
+    for (const k of S.koffer) { const d = hyp(k.x - sp.x, k.y - sp.y); if (d < bd) { bd = d; ziel = { x: k.x, y: k.y, id: 'k' + k.id }; } }
   }
   if (!B.ziel || B.ziel.id !== ziel.id) { B.ziel = ziel; feldRechnen(W, B.feld, ziel.x, ziel.y, NX); }
   if (B.zurueck > 0) { B.zurueck -= DT; e.bremse = true; e.lenk = B.lenk; return e; }
-  if (v < 1.2 && !S.wartet) { B.steht += DT; if (B.steht > 0.8) { B.steht = 0; B.zurueck = 0.9; B.lenk = S.r() < 0.5 ? -1 : 1; } } else B.steht = 0;
+  if (v < 1.2 && !S.wartet) { B.steht += DT; if (B.steht > 0.8) { B.steht = 0; B.zurueck = 0.9; B.lenk = B.r() < 0.5 ? -1 : 1; } } else B.steht = 0;
   let tx = ziel.x, ty = ziel.y;
-  const dz = Math.hypot(ziel.x - sp.x, ziel.y - sp.y);
+  const dz = hyp(ziel.x - sp.x, ziel.y - sp.y);
   if (!(dz < 22 && wegFrei(W, sp.x, sp.y, ziel.x, ziel.y))) { const m = moehre(W, B.feld, sp.x, sp.y, 3 + Math.floor(v / 4)); if (m) { tx = m.x; ty = m.y; } }
-  const ang = wrap(Math.atan2(ty - sp.y, tx - sp.x) - sp.a), aa = Math.abs(ang);
+  const ang = wrap(datan2(ty - sp.y, tx - sp.x) - sp.a), aa = Math.abs(ang);
   e.lenk = clamp(ang * 2.6, -1, 1);
   if (aa > 1.2 && v > 11) e.hand = true; else if (aa > 0.7 && v > 13) e.bremse = true;
   if (ziel.id === 'tor' && v > 9) e.bremse = true;

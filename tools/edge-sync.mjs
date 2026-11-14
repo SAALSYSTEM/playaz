@@ -1,4 +1,4 @@
-// Kopiert die Spiellogik (SCHRÄGLAGE, SEITENWECHSEL, PUNKTLANDUNG, PAPIERPILOT, DARTFIEBER, LEITUNGSCHAOS, AUSFAHRT FREI, KERKERLAUF, LETZTE BASTION, ROCKET REELS, ROULETTE, TEXAS HOLD'EM, PUTT-PROFI, NEUNMALKLUG) in die Edge Functions (sie brauchen dieselben Dateien wie der Browser).
+// Kopiert die Spiellogik (SCHRÄGLAGE, SEITENWECHSEL, PUNKTLANDUNG, PAPIERPILOT, DARTFIEBER, LEITUNGSCHAOS, AUSFAHRT FREI, KERKERLAUF, LETZTE BASTION, ROCKET REELS, ROULETTE, TEXAS HOLD'EM, PUTT-PROFI, NEUNMALKLUG, NEON COAST) in die Edge Functions (sie brauchen dieselben Dateien wie der Browser).
 // node tools/edge-sync.mjs         kopiert
 // node tools/edge-sync.mjs --check prüft nur, ob die Kopien aktuell sind (Exit-Code 1, wenn nicht)
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -19,7 +19,8 @@ const FUNKTIONEN = [
   { quelle: 'public/spiele/roulette', ziel: 'supabase/functions/rocket-reels', dateien: ['roulette.js'] },
   { quelle: 'public/spiele/texas-holdem', ziel: 'supabase/functions/rocket-reels', dateien: ['poker.js'] },
   { quelle: 'public/spiele/putt-profi', ziel: 'supabase/functions/putt-profi-runde', dateien: ['logik.js', 'bahnen.js', 'teile.js'] },
-  { quelle: 'public/spiele/neunmalklug', ziel: 'supabase/functions/neunmalklug-lauf', dateien: ['sim.js'] }
+  { quelle: 'public/spiele/neunmalklug', ziel: 'supabase/functions/neunmalklug-lauf', dateien: ['sim.js'] },
+  { quelle: 'public/spiele/neon-coast', ziel: 'supabase/functions/neon-coast-lauf', dateien: ['tagesnacht.js', 'engine.js', 'welt.js', 'daten.js', 'bilder.js', 'det.js'] }
 ];
 let veraltet = 0;
 for (const fn of FUNKTIONEN) for (const f of fn.dateien) {

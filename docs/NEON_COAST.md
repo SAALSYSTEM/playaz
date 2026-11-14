@@ -61,6 +61,27 @@ Dauerhaft: Geld (gesicherte Beute + Auftragslohn), 8 Autos (Flitzer gratis … S
 Halt und Panzer, 32 Aufträge (immer drei offen, Lohn am Ende der Nacht), 6 Ränge nach insgesamt gesicherter Beute,
 Rekord (beste Nacht) mit Herausforderung per Link `?r=Betrag`.
 
+## Tagesnacht mit geprüfter Rangliste (seit 14.11.2026)
+
+- Jeden Tag (Berliner Datum) dieselbe Nacht für alle: gleiche Koffer, gleicher Verkehr, gleiche Ereignisse, gleiches Auto
+  (`tagesAuto`: reihum alle acht, niemand kann sich einen Vorteil kaufen), feste Sichtweite 78 m, Dauer 2:30 Minuten.
+  Bei Sonnenaufgang endet die Nacht (Grund `morgen`); Beute im Auto verfällt, gewertet wird die gesicherte Beute
+  (bei Gleichstand weniger Takte). Die Nacht zahlt wie jede andere aufs Konto, Aufträge zählen mit.
+- Der Browser zeichnet je Takt eine Zahl auf (Lenkung in 31 Stufen, Gas, Bremse, Handbremse, Nitro; gerechnet wird mit genau
+  dieser gerundeten Eingabe). Nur ein neues Tagesbestes wird gemeldet. Die Edge Function `neon-coast-lauf` fährt die Nacht
+  mit denselben Regeln nach und trägt nur bestätigte Nächte ein (`public.neon_coast_eintragen`, nur service_role).
+- Damit Browser und Server bitgenau gleich rechnen, nutzt `engine.js` nur `dsin/dcos/datan2` aus `det.js` (wie Schräglage)
+  und `hyp` statt `Math.hypot`; die Anzeige darf `S` nicht verändern (`passe()` setzt die Sichtweite nur außerhalb der
+  Tagesnacht). Ein Browsertest vergleicht eine im Chromium gefahrene Nacht mit der Nachfahrt in Node.
+- Rechenzeit der Nachprüfung: eine 2-minütige Nacht mit 4 Sternen ≈ 0,5 s (hier gemessen, kalt gestartet; Grenze der
+  Plattform: 2 s CPU). Dafür: Wegefeld mit Eimer-Warteschlange, das stoppt, sobald alle Streifenwagen versorgt sind;
+  Stoß-Vorauswahl über Zahlenfelder; alle Autos und der Zustand mit festem Aufbau (`bauplan`). Die Antwort meldet `ms`.
+- **Einrichtung (einmalig, nur du):** 1. SQL aus `supabase/migrations/20261114120000_neon_coast_tagesnacht.sql` im SQL Editor
+  ausführen. 2. `npx supabase functions deploy neon-coast-lauf --project-ref cphwxikfrxgejiqghlwn --no-verify-jwt`.
+  Ohne diese Schritte läuft die Tagesnacht trotzdem, das Tagesbeste bleibt dann nur auf dem Gerät.
+- **Regeländerungen** an `engine.js`, `welt.js`, `daten.js` oder `tagesnacht.js`: `SIM_VERSION` in `tagesnacht.js` erhöhen und
+  `node tools/edge-sync.mjs` ausführen (kopiert die sechs Dateien in die Edge Function). Ältere Nächte zählen dann nicht mehr.
+
 ## Steuerung
 
 Seit 12.11.2026 für Erwachsene ausgelegt (Wunsch des Auftraggebers: „muss nicht für Kinder sein“) – kein Auto-Gas mehr.
@@ -105,7 +126,7 @@ Bodenraster 2 m für Untergrund (Sand und Gras bremsen), Sicht und Wege; Gebäud
 ## Tests
 
 ```sh
-node --test tests/neon-coast-sim.test.mjs
+node --test tests/neon-coast-sim.test.mjs tests/neon-coast-tagesnacht.test.mjs
 node --test --test-concurrency=1 tests/neon-coast-browser.test.mjs
 ```
 
@@ -113,12 +134,14 @@ Simulation: Stadt (alle Koffer-Orte und Einfahrten erreichbar), Fahrphysik aller
 Entkommen, Festnahme eines stehenden Wagens, Versteck/Werkstatt, Wasser/Totalschaden/Feierabend, sechs Nächte mit dem
 Prüf-Fahrer (keine Rechenfehler, Verkehr fließt, gleiche Nacht läuft gleich ab), Aufträge, Abrechnung, Kauf, Spielstand.
 Browser (Chromium, 320×568 bis 412×915 und 1280×720): lädt ohne Fehler, Finger- und Tastensteuerung, HUD, Nitro, Pause
-mit Stadtplan, Abrechnung und Speichern, Garage, Platz der Bedienelemente.
+mit Stadtplan, Abrechnung und Speichern, Garage, Platz der Bedienelemente, Tagesnacht (Browser fährt, Node fährt bitgenau nach).
+Tagesnacht: Kodierung der Eingaben, gleiche Nacht je Tag, Ende bei Sonnenaufgang, Nachprüfung lehnt veränderte Zahlen und
+Eingaben ab, Prüf-Funktion (Anmeldung, CORS, Tag, Version, Datenbank-Antworten), Kopien in der Edge Function aktuell.
 
 ## Offen
 
 - Nicht geprüft: echte Handys (Bildrate, Daumenwege); Ton und Radio wurden nicht angehört (Lautstärken und Motorklang nur
   nach Zahlen eingestellt). Die Balance (Schaden, Polizei-Tempo, Preise)
   ist nur mit dem Prüf-Fahrer und nach Zahlen eingestellt – nach den ersten echten Nächten nachstellen.
-- Mögliche Ausbaustufen: Straßensperren ab 3 Sternen, Hubschrauber bei 5 Sternen, Tagesnacht mit geprüfter Rangliste
-  (bräuchte Edge Function und SQL), Aufnahmen für Reifen, Kasse und Nitro, weitere Stadtteile.
+- Rechenzeit der Edge Function auf Supabase nicht gemessen (nur hier); nach den ersten echten Meldungen `ms` in den Logs ansehen.
+- Mögliche Ausbaustufen: Tuning in der Garage, Fahrer-Jobs, Aufnahmen für Reifen, Kasse und Nitro, weitere Stadtteile.
