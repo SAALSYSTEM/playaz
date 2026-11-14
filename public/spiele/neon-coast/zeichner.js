@@ -2,7 +2,7 @@
 // Reihenfolge: Wasser, Bodenflächen (Muster), Markierungen, Bremsspuren, Dinge am Boden, Autos, Gebäude, Bäume,
 // dann die Nacht (Lichtkarte, multipliziert) und zuletzt alles, was leuchtet (Neon, Scheinwerfer, Blaulicht).
 import { GROESSE } from './bilder.js';
-import { baueWelt, BODEN, NX, NY, Z, BREITE, HOEHE } from './welt.js';
+import { baueWelt, BODEN, NX, NY, Z, BREITE, HOEHE, STRAND, OX, OY } from './welt.js';
 import { wrap, EINFAHRT_VOR } from './engine.js';
 
 const TAU = Math.PI * 2;
@@ -253,7 +253,7 @@ export function neuerZeichner(cv) {
       X.fillStyle = muster(f.t); X.fillRect(f.x0, f.y0, f.x1 - f.x0, f.y1 - f.y0);
     }
     // Brandung am Strand
-    if (B.y1 > 664) { const w = Math.sin(uhr * 0.9) * 0.8; X.fillStyle = 'rgba(255,255,255,.5)'; X.fillRect(Math.max(B.x0, 30), 671.2 + w, Math.min(B.x1, 646) - Math.max(B.x0, 30), 0.5); X.fillStyle = 'rgba(255,255,255,.25)'; X.fillRect(Math.max(B.x0, 30), 673.5 + w * 1.4, Math.min(B.x1, 646) - Math.max(B.x0, 30), 0.35); }
+    if (B.y1 > STRAND.y1 - 8) { const w = Math.sin(uhr * 0.9) * 0.8, x0 = Math.max(B.x0, 30), bx = Math.min(B.x1, STRAND.x1 + 20) - x0; X.fillStyle = 'rgba(255,255,255,.5)'; X.fillRect(x0, STRAND.y1 - 0.8 + w, bx, 0.5); X.fillStyle = 'rgba(255,255,255,.25)'; X.fillRect(x0, STRAND.y1 + 1.5 + w * 1.4, bx, 0.35); }
     // Bordsteine
     X.lineWidth = 0.3; X.strokeStyle = 'rgba(225,228,240,.55)';
     for (const b of W.bloecke) { if (b.x1 < B.x0 || b.x0 > B.x1 || b.y1 < B.y0 || b.y0 > B.y1) continue; X.strokeRect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0); }
@@ -657,6 +657,7 @@ export function neuerZeichner(cv) {
   }
   // Stadtplan für die Pause
   function plan(ziel, S) {
+    if (ziel.width !== NX || ziel.height !== NY) { ziel.width = NX; ziel.height = NY; }
     const g = ziel.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.drawImage(karte, 0, 0);
     const pk = (x, y, r, f) => { g.fillStyle = f; g.beginPath(); g.arc(x / Z, y / Z, r, 0, TAU); g.fill(); g.strokeStyle = '#11121A'; g.lineWidth = 1.5; g.stroke(); };
     for (const v of W.verstecke) pk(v.x, v.y, 8, '#3DF08A');
@@ -667,7 +668,7 @@ export function neuerZeichner(cv) {
       g.save(); g.translate(S.sp.x / Z, S.sp.y / Z); g.rotate(S.sp.a + Math.PI / 2); g.fillStyle = '#fff'; g.strokeStyle = '#11121A'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, -11); g.lineTo(8, 9); g.lineTo(0, 4); g.lineTo(-8, 9); g.closePath(); g.fill(); g.stroke(); g.restore();
     }
     g.font = '700 13px "Barlow Condensed", sans-serif'; g.textAlign = 'center'; g.fillStyle = 'rgba(255,255,255,.75)';
-    for (const [t, x, y] of [['PALMENHÜGEL', 250, 100], ['NEONSTADT', 300, 410], ['STRANDMEILE', 330, 650], ['HAFEN', 654, 360]]) { g.save(); g.translate(x / Z, y / Z); if (t === 'HAFEN') g.rotate(Math.PI / 2); g.fillText(t, 0, 0); g.restore(); }
+    for (const [t, x, y] of [['VILLENVIERTEL', 520, 140], ['WESTEND', 250, 520], ['WESTKAI', 104, 700], ['PALMENHÜGEL', 250 + OX, 100 + OY], ['NEONSTADT', 300 + OX, 410 + OY], ['STRANDMEILE', 330 + OX, 650 + OY], ['HAFEN', 654 + OX, 360 + OY]]) { g.save(); g.translate(x / Z, y / Z); if (t === 'HAFEN' || t === 'WESTKAI') g.rotate(Math.PI / 2); g.fillText(t, 0, 0); g.restore(); }
   }
 
   const neu = () => { parts = []; spuren = []; truemmer = []; pops = []; letzteRad.clear(); cam.bereit = false; wackel = 0; };

@@ -2,7 +2,7 @@
 // Feste Schritte von 1/60 s. Einheiten: Meter und Sekunden. Winkel a: 0 = Osten, π/2 = Süden (y zeigt nach unten).
 // Alle Autos sind Körper mit derselben Fahrphysik; sie unterscheiden sich nur darin, wer lenkt:
 // der Spieler, die Polizei (jagt über ein Wegefeld zum Spieler), der Verkehr (folgt den Fahrspuren) oder niemand (geparkt, Wrack).
-import { baueWelt, bodenBei, sichtFrei, BODEN, Z, NX, NY, BREITE, HOEHE, rng, KOFFER } from './welt.js';
+import { baueWelt, bodenBei, sichtFrei, BODEN, Z, NX, NY, BREITE, HOEHE, rng, KOFFER, LAND, STRAND } from './welt.js';
 import { FAHRZEUG, autoVon, aktiveAuftraege } from './daten.js';
 import { dsin, dcos, datan2 } from './det.js';
 // Sinus, Kosinus, Arkustangens und die eingebaute Hypotenuse rechnen je nach Browser im letzten Bit anders. Damit eine
@@ -930,8 +930,8 @@ export function schritt(S, e) {
   }
   if (S.sterne > 0) {
     // Peilsender im Koffer: verrät in den ersten Sekunden alle 2 s die Position; so lange läuft die Suchuhr nicht
-    if (S.peil > 0) { S.peil -= DT; if (!S.gesehen && S.t - S.peilT > 2) { S.peilT = S.t; S.letzte.x = clamp(sp.x + sp.vx, 52, 678); S.letzte.y = clamp(sp.y + sp.vy, 52, 670); S.suchT = S.t; S.feldT = -9; } }
-    if (S.gesehen) { S.sucht = 0; S.fahndung = Math.min(5.99, S.fahndung + DT / 42); S.letzte.x = clamp(sp.x + sp.vx * 1.5, 52, 678); S.letzte.y = clamp(sp.y + sp.vy * 1.5, 52, 670); S.suchT = S.t; }
+    if (S.peil > 0) { S.peil -= DT; if (!S.gesehen && S.t - S.peilT > 2) { S.peilT = S.t; S.letzte.x = clamp(sp.x + sp.vx, LAND.x0 + 2, LAND.x1 - 2); S.letzte.y = clamp(sp.y + sp.vy, LAND.y0 + 2, STRAND.y1 - 2); S.suchT = S.t; S.feldT = -9; } }
+    if (S.gesehen) { S.sucht = 0; S.fahndung = Math.min(5.99, S.fahndung + DT / 42); S.letzte.x = clamp(sp.x + sp.vx * 1.5, LAND.x0 + 2, LAND.x1 - 2); S.letzte.y = clamp(sp.y + sp.vy * 1.5, LAND.y0 + 2, STRAND.y1 - 2); S.suchT = S.t; }
     else if (S.peil > 0) S.sucht = 0;
     else {
       S.sucht += DT;

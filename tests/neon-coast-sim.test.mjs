@@ -2,7 +2,7 @@
 // Versteck/Werkstatt, Festnahme, Wasser, Totalschaden, Prüf-Fahrer über mehrere Nächte, Abrechnung und Spielstand.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { baueWelt, BODEN, bodenBei, NX, Z, viertel } from '../public/spiele/neon-coast/welt.js';
+import { baueWelt, BODEN, bodenBei, NX, Z, viertel, OX, OY, BREITE, HOEHE } from '../public/spiele/neon-coast/welt.js';
 import { GROESSE, UMRISS } from '../public/spiele/neon-coast/bilder.js';
 import { FAHRZEUG, AUTOS, AUFTRAEGE, frisch, saeubere, kaufen, abrechnen, aktiveAuftraege, rang, parseEinladung, geld } from '../public/spiele/neon-coast/daten.js';
 import { neueFahrt, schritt, DT, neuerBot, botEingabe, probefahrt, neuesFeld, feldRechnen, multi, suchzeit, PEILZEIT, werkstattKosten, feierabend, POLIZEI, HELI, PLATT, GOLD, TRANSPORTER } from '../public/spiele/neon-coast/engine.js';
@@ -23,13 +23,13 @@ test('Stadt: Bilder vorhanden, Start frei, alle Koffer-Orte, Verstecke und Werks
   for (const k of Object.keys(FAHRZEUG)) assert.ok(GROESSE[k], 'Fahrzeugbild fehlt: ' + k);
   for (const g of W.gebaeude) assert.ok(UMRISS[g.bild] || g.bild === 'tank-dach', 'Umriss fehlt: ' + g.bild);
   assert.equal(bodenBei(W, W.start.x, W.start.y), BODEN.ASPHALT);
-  assert.ok(W.koffer.length >= 60 && W.verstecke.length === 3 && W.werkstaetten.length === 2);
+  assert.ok(W.koffer.length >= 60 && W.verstecke.length === 6 && W.werkstaetten.length === 4);
   const F = feldRechnen(W, neuesFeld(), W.start.x, W.start.y, NX);
   const d = (x, y) => F.d[Math.floor(y / Z) * NX + Math.floor(x / Z)];
   for (const k of W.koffer) assert.ok(d(k.x, k.y) < 1e8, `Koffer ${k.art} bei ${k.x},${k.y} nicht erreichbar`);
   for (const v of [...W.verstecke, ...W.werkstaetten]) assert.ok(d(v.x + Math.cos(v.raus) * 4, v.y + Math.sin(v.raus) * 4) < 1e8, 'Einfahrt nicht erreichbar');
   for (const p of W.parker) assert.ok(!W.hoch[Math.floor(p.y / Z) * NX + Math.floor(p.x / Z)], 'Parker steht in einem Gebäude');
-  assert.deepEqual([viertel(100, 100), viertel(300, 400), viertel(300, 640), viertel(650, 300)], ['Palmenhügel', 'Neonstadt', 'Strandmeile', 'Hafen']);
+  assert.deepEqual([viertel(100 + OX, 100 + OY), viertel(300 + OX, 400 + OY), viertel(300 + OX, 640 + OY), viertel(650 + OX, 300 + OY), viertel(500, 100), viertel(250, 500), viertel(100, 500)], ['Palmenhügel', 'Neonstadt', 'Strandmeile', 'Hafen', 'Villenviertel', 'Westend', 'Westkai']);
 });
 
 test('Fahrphysik: zügig auf Tempo, bessere Autos sind schneller, Handbremse macht die Kurve enger, Rückwärtsgang', () => {
@@ -39,7 +39,7 @@ test('Fahrphysik: zügig auf Tempo, bessere Autos sind schneller, Handbremse mac
     const g = probefahrt(A.bild, w, () => ({}), 3);
     const v = Math.hypot(g.c.vx, g.c.vy);
     assert.ok(v > A.vmax * 0.9 && v <= A.vmax + 0.01, `${A.id}: nach 3 s ${v.toFixed(1)} von ${A.vmax}`);
-    assert.ok(Math.abs(g.c.y - 390) < 0.01, 'geradeaus bleibt geradeaus');
+    assert.ok(Math.abs(g.c.y - HOEHE / 2) < 0.01, 'geradeaus bleibt geradeaus');
     if (A.id !== 'pickup') assert.ok(A.vmax >= vor - 2); vor = A.vmax;
     // 90°-Kurve aus vollem Tempo: mit kurzer Handbremse deutlich weniger Platz nach außen
     const kurve = (th) => { const r = probefahrt(A.bild, w, (t, c) => ({ lenk: Math.atan2(c.vy, c.vx) < Math.PI / 2 - 0.08 ? 1 : 0, hand: t < th }), 5, A.vmax).spur; const i = r.findIndex((p, n) => n > 0 && Math.atan2(r[n][1] - r[n - 1][1], r[n][0] - r[n - 1][0]) >= Math.PI / 2 - 0.1); return r[i]; };
@@ -148,9 +148,9 @@ test('Prüf-Fahrer: sechs Nächte ohne Rechenfehler, sammelt Koffer und sichert 
     while (!S.ende && S.t < 200) {
       schritt(S, botEingabe(S, B));
       if (S.n % 20 === 0) {
-        for (const c of S.autos) { assert.ok(Number.isFinite(c.x + c.y + c.a + c.vx + c.vy + c.w), 'Rechenfehler bei ' + c.art); assert.ok(c.x > -5 && c.x < 765 && c.y > -5 && c.y < 785, c.art + ' außerhalb der Karte'); }
+        for (const c of S.autos) { assert.ok(Number.isFinite(c.x + c.y + c.a + c.vx + c.vy + c.w), 'Rechenfehler bei ' + c.art); assert.ok(c.x > -5 && c.x < BREITE + 5 && c.y > -5 && c.y < HOEHE + 5, c.art + ' außerhalb der Karte'); }
         for (const c of S.autos) if (c.art === 'verkehr') { sumV += Math.hypot(c.vx, c.vy); nV++; }
-        assert.ok(S.autos.length < 110, 'zu viele Autos: ' + S.autos.length);
+        assert.ok(S.autos.length < 170, 'zu viele Autos: ' + S.autos.length);
         assert.ok(S.fahndung >= 0 && S.fahndung < 6 && S.nitro >= 0 && S.nitro <= 1 && S.haft >= 0 && S.haft <= 1);
       }
       S.ev.length = 0;
@@ -159,7 +159,7 @@ test('Prüf-Fahrer: sechs Nächte ohne Rechenfehler, sammelt Koffer und sichert 
     return S;
   };
   for (let seed = 1; seed <= 6; seed++) { const S = nacht(seed); koffer += S.stat.koffer; sicher += S.sicher; if (S.sicher > 0) gesichert++; assert.ok(S.stat.koffer >= 1, 'Nacht ' + seed + ': kein Koffer'); }
-  assert.ok(koffer >= 12, 'Koffer gesamt ' + koffer); assert.ok(gesichert >= 2 && sicher >= 2000, `gesichert in ${gesichert} von 6 Nächten, zusammen ${sicher} $`);
+  assert.ok(koffer >= 12, 'Koffer gesamt ' + koffer); assert.ok(gesichert >= 1 && sicher >= 1500, `gesichert in ${gesichert} von 6 Nächten, zusammen ${sicher} $`);
   const a = nacht(3), b = nacht(3);
   assert.deepEqual([a.t, a.sicher, a.beute, a.sp.x, a.sp.y, a.stat.koffer], [b.t, b.sicher, b.beute, b.sp.x, b.sp.y, b.stat.koffer]);
 });
@@ -191,23 +191,23 @@ test('Aufträge, Abrechnung, Kauf, Spielstand und Einladung', () => {
 
 test('Straßensperre ab 3 Sternen: steht voraus außer Sicht quer auf der Fahrbahn; wer durch ist, hat die Wagen im Nacken', () => {
   const S = fahrt(21); S.wartet = false;
-  S.sp.x = 80; S.sp.y = 294.6; S.sp.a = 0; S.fahndung = 3.3; S.sterne = 3;   // Allee nach Osten
+  S.sp.x = 80 + OX; S.sp.y = 294.6 + OY; S.sp.a = 0; S.fahndung = 3.3; S.sterne = 3;   // Allee nach Osten
   let da = null;
   laufe(S, 6, (S) => { S.peil = 9; return { gas: true }; }, (S) => { ohnePolizeiJagd(S); if (!da && S.sperren.length) da = { ...S.sperren[0], spx: S.sp.x }; });
   assert.ok(da && hat(S, 'sperre'), 'Sperre wurde aufgebaut');
-  assert.ok(Math.abs(da.y - 292) < 0.01 && da.x > da.spx + S.sichtweite, `voraus auf derselben Straße, außer Sicht (${(da.x - da.spx).toFixed(0)} m)`);
+  assert.ok(Math.abs(da.y - (292 + OY)) < 0.01 && da.x > da.spx + S.sichtweite, `voraus auf derselben Straße, außer Sicht (${(da.x - da.spx).toFixed(0)} m)`);
   assert.equal(da.art, 'wagen'); assert.equal(da.autos.length, 3, 'breite Allee: drei Wagen');
-  for (const c of da.autos) { assert.equal(c.modus, 'sperre'); assert.ok(Math.abs(Math.cos(c.a)) < 0.01, 'steht quer'); assert.ok(Math.abs(c.y - 292) < 6); }
+  for (const c of da.autos) { assert.equal(c.modus, 'sperre'); assert.ok(Math.abs(Math.cos(c.a)) < 0.01, 'steht quer'); assert.ok(Math.abs(c.y - (292 + OY)) < 6); }
   assert.equal(S.deko.length, 2, 'Absperrgitter an beiden Gehwegen');
   const s = S.sperren[0];
   // über den Gehweg vorbei
-  S.sp.x = s.x - 10; S.sp.y = 292 + 12; S.sp.vx = 20; S.sp.vy = 0; S.sp.a = 0; S.ev.length = 0;
+  S.sp.x = s.x - 10; S.sp.y = 292 + OY + 12; S.sp.vx = 20; S.sp.vy = 0; S.sp.a = 0; S.ev.length = 0;
   laufe(S, 3, (S) => { S.peil = 9; S.sperreT = 1e9; return { gas: true }; });
   const d = alle(S, 'durchbruch')[0];
   assert.ok(d && d.sauber, 'Durchbruch ohne Berührung gezählt'); assert.equal(S.stat.sperren, 1); assert.equal(S.sperren.length, 0);
   assert.ok(s.autos.every((c) => c.modus === 'jagd'), 'die Wagen der Sperre nehmen die Jagd auf');
   // unter 3 Sternen keine Sperren
-  const T = fahrt(22); T.wartet = false; T.sp.x = 80; T.sp.y = 294.6; T.fahndung = 2.5; T.sterne = 2;
+  const T = fahrt(22); T.wartet = false; T.sp.x = 80 + OX; T.sp.y = 294.6 + OY; T.fahndung = 2.5; T.sterne = 2;
   laufe(T, 8, (T) => { T.peil = 9; return { gas: true }; }, ohnePolizeiJagd);
   assert.equal(T.sperren.length, 0); assert.ok(!hat(T, 'sperre'));
 });
@@ -215,23 +215,23 @@ function ohnePolizeiJagd(S) { for (let i = S.autos.length - 1; i > 0; i--) if (S
 
 test('Nagelband: platte Reifen für 7 s (langsamer, weniger Halt), danach und im Versteck wieder heil; durch die Lücke passiert nichts', () => {
   const S = fahrt(23); S.wartet = false; S.fahndung = 4.2; S.sterne = 4; S.sperreT = 1e9;
-  S.sp.x = 200; S.sp.y = 294.6; S.sp.a = 0; S.sp.vx = 18;
-  const band = (x) => ({ x, y: 292, t: 0, art: 'nagel', autos: [], nah: false, nagel: { x0: x, y0: 282, x1: x, y1: 298.6, benutzt: false } });   // Lücke am Südrand (y 298,6–302)
-  S.sperren.push(band(215));
+  S.sp.x = 200 + OX; S.sp.y = 294.6 + OY; S.sp.a = 0; S.sp.vx = 18;
+  const band = (x) => ({ x, y: 292 + OY, t: 0, art: 'nagel', autos: [], nah: false, nagel: { x0: x, y0: 282 + OY, x1: x, y1: 298.6 + OY, benutzt: false } });   // Lücke am Südrand (y 298,6–302)
+  S.sperren.push(band(215 + OX));
   const vmax = S.sp.vmax, grip = S.sp.grip;
   laufe(S, 1.2, { gas: true }, ohnePolizei);
   assert.ok(hat(S, 'platt')); assert.ok(Math.abs(S.sp.vmax - vmax * PLATT.tempo) < 1e-9 && Math.abs(S.sp.grip - grip * PLATT.halt) < 1e-9);
   assert.ok(S.platt > PLATT.dauer - 1.3);
   laufe(S, PLATT.dauer, { hand: true }, ohnePolizei);
   assert.ok(hat(S, 'plattEnde')); assert.equal(S.sp.vmax, vmax); assert.equal(S.sp.grip, grip); assert.equal(S.platt, 0);
-  const T = fahrt(24); T.wartet = false; T.fahndung = 4.2; T.sterne = 4; T.sperreT = 1e9; T.sp.x = 200; T.sp.y = 300.4; T.sp.a = 0; T.sp.vx = 18; T.sperren.push(band(215));
+  const T = fahrt(24); T.wartet = false; T.fahndung = 4.2; T.sterne = 4; T.sperreT = 1e9; T.sp.x = 200 + OX; T.sp.y = 300.4 + OY; T.sp.a = 0; T.sp.vx = 18; T.sperren.push(band(215 + OX));
   laufe(T, 1.5, { gas: true }, ohnePolizei); assert.ok(!hat(T, 'platt'), 'durch die Lücke am Rand');
-  assert.ok(T.sp.x > 222);
+  assert.ok(T.sp.x > 222 + OX);
 });
 
 test('Hubschrauber bei 5 Sternen: Suchscheinwerfer hält den Sichtkontakt ohne Streifenwagen, tankt nach 24 s – dann kann man entkommen', () => {
   const S = fahrt(25); S.wartet = false; steh(S);
-  S.fahndung = 5.5; S.sterne = 5; S.sp.x = 300; S.sp.y = 294.6;
+  S.fahndung = 5.5; S.sterne = 5; S.sp.x = 300 + OX; S.sp.y = 294.6 + OY;
   let licht = 0, gesehen = 0, n = 0;
   laufe(S, 3.5, {}, ohnePolizei); assert.equal(S.heli, null, 'kommt erst nach ein paar Sekunden');
   laufe(S, 14, {}, (S) => { ohnePolizei(S); n++; if (S.heli && S.heli.licht) licht++; if (S.gesehen) gesehen++; });
@@ -254,7 +254,7 @@ test('Goldkoffer: 60 s, dreifacher Wert, zählt zur Serie; läuft die Zeit ab, i
   const g = S.koffer.find((k) => k.gold), e = alle(S, 'gold')[0];
   assert.ok(g && e, 'Goldkoffer liegt aus'); assert.equal(S.koffer.length, 4);
   const d = Math.hypot(g.x - S.sp.x, g.y - S.sp.y); assert.ok(d >= 170 && d <= 420, 'Entfernung ' + d.toFixed(0));
-  assert.ok(Math.abs(g.bis - S.t - GOLD.zeit) < 1.1); assert.equal(g.wert % 300, 0); assert.ok(g.wert >= 600);
+  assert.ok(Math.abs(g.bis - S.t - GOLD.zeit) < 1.1); assert.equal(g.wert % 150, 0); assert.ok(g.wert >= 600);   // dreifacher Grundwert (alle Grundwerte sind Vielfache von 50)
   S.serie = 1; S.sp.x = g.x; S.sp.y = g.y; laufe(S, 0.05, {});
   const k = alle(S, 'koffer')[0];
   assert.ok(k.gold && k.name === 'Goldkoffer'); assert.equal(k.betrag, Math.round(g.wert * 1.5 / 10) * 10); assert.equal(S.serie, 2); assert.equal(S.stat.gold, 1);

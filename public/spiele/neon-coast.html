@@ -140,7 +140,7 @@ h2.kopf{margin:0;font:400 30px/1 "Bungee",sans-serif;letter-spacing:.03em;color:
 .hilfe .ic{font-size:26px;text-align:center}
 .hilfe b{color:var(--act)}
 /* Pause */
-#karte{width:min(86vw,300px,38dvh);height:auto;border-radius:16px;border:2px solid rgba(30,214,224,.6);box-shadow:0 0 24px rgba(30,214,224,.3);image-rendering:auto}
+#karte{width:min(92vw,400px,50dvh);height:auto;border-radius:16px;border:2px solid rgba(30,214,224,.6);box-shadow:0 0 24px rgba(30,214,224,.3);image-rendering:auto}
 .legende{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;font-size:13px;color:#c5ccf2}
 .legende i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:-1px}
 /* Abrechnung */
@@ -288,7 +288,7 @@ body.ready #lade{display:none}
 
 <section id="pause" class="screen" aria-label="Pause" hidden>
   <h2 class="kopf">Pause</h2>
-  <canvas id="karte" width="380" height="390" aria-label="Stadtplan von Neon Coast mit deinem Standort, Koffern, Verstecken und Werkstätten"></canvas>
+  <canvas id="karte" width="564" height="504" aria-label="Stadtplan von Neon Coast mit deinem Standort, Koffern, Verstecken und Werkstätten"></canvas>
   <div class="legende"><span><i style="background:#fff"></i>Du</span><span><i style="background:#FFD21C"></i>Koffer</span><span><i style="background:#3DF08A"></i>Versteck</span><span><i style="background:#1ED6E0"></i>Lack &amp; Fix</span><span><i style="background:#FF4A5E"></i>Polizei</span></div>
   <div class="tafel" id="pAuftraege"></div>
   <button class="gross" id="pWeiter" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.500v15a1 1 0 0 0 1.500.860l12-7.500a1 1 0 0 0 0-1.720l-12-7.500A1 1 0 0 0 7 4.500z" fill="currentColor"/></svg><span>Weiter</span></button>

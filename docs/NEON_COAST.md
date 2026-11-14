@@ -97,10 +97,14 @@ Seit 12.11.2026 für Erwachsene ausgelegt (Wunsch des Auftraggebers: „muss nic
 
 ## Stadt
 
-Feste Insel 760 × 780 m aus Regeln (`welt.js`, immer gleich): 7 × 8 Straßen (drei breite Alleen), 42 Blöcke –
-Palmenhügel (Wohnhäuser, Gärten), Neonstadt (Läden, Clubs, Hotels, Park, Platz, Polizeiwache, Tankstellen), Hafen
-(Hallen, Container, Kai, zwei Piers), Strandmeile mit Strand und zwei Stegen. Nord- und Westufer haben Leitplanken,
-Hafenkante, Piers, Stege und Strand sind offen (Wasser!). Koffer an Pier und Kai sind am wertvollsten und am riskantesten.
+Feste Insel 1128 × 1008 m aus Regeln (`welt.js`, immer gleich): 11 × 11 Straßen, 100 Blöcke. Seit 15.11.2026 doppelt so
+groß: die alte Stadt (Palmenhügel, Neonstadt, Hafen, Strandmeile) ist um `OX`/`OY` verschoben, davor liegen im Norden das
+**Villenviertel** (Villen, Gärten, zwei Parks, Villa-Garage, Werkstatt, Tankstelle) und im Westen das **Westend**
+(Läden, Clubs, zweite Polizeiwache, Park, Hinterhof West) mit dem **Westkai** (Hallen, Container, Westkai-Halle).
+Breite Uferstraßen (20 m, zwei Spuren je Richtung) im Norden und Westen, dazu Allee und Strandstraße. 6 Verstecke,
+4 Werkstätten, rund 200 Koffer-Orte; neue Koffer liegen weiter wie bisher 110–420 m vom Wagen entfernt.
+Nord- und Westufer haben Leitplanken, Hafenkante, Piers, Stege und Strand sind offen (Wasser!). Koffer an Pier und Kai
+sind am wertvollsten und am riskantesten.
 Bodenraster 2 m für Untergrund (Sand und Gras bremsen), Sicht und Wege; Gebäudeflächen aus der Bildform (`bilder.js`).
 
 ## Technik

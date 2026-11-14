@@ -3,15 +3,19 @@
 import { GROESSE, UMRISS } from './bilder.js';
 
 export const Z = 2;
-export const BREITE = 760, HOEHE = 780;
+// Ausbau (15.11.2026): die alte Stadt ist um OX nach Osten und OY nach Süden verschoben, davor liegen im Westen das Westend
+// mit dem Westkai und im Norden das Villenviertel. Alle Zahlen der alten Stadt stehen unten mit + OX / + OY.
+export const OX = 368, OY = 228;
+export const BREITE = 760 + OX, HOEHE = 780 + OY;
 export const NX = BREITE / Z, NY = HOEHE / Z;
 export const BODEN = { TIEF: 0, FLACH: 1, SAND: 2, GRAS: 3, ASPHALT: 4, GEHWEG: 5, PFLASTER: 6, BETON: 7, HOLZ: 8 };
 
-// Straßen: Mittellinien und Breiten (Nord–Süd bzw. West–Ost). Index 3 ist jeweils die breite Allee.
-export const SX = [60, 152, 244, 340, 436, 528, 620], SXB = [12, 12, 12, 20, 12, 12, 12];
-export const SY = [60, 136, 212, 292, 372, 448, 524, 604], SYB = [12, 12, 12, 20, 12, 12, 12, 20];
-const LAND = { x0: 50, y0: 50, x1: 680, y1: 626 };
-const STRAND = { y0: 626, y1: 672, x0: 50, x1: 626 };
+// Straßen: Mittellinien und Breiten (Nord–Süd bzw. West–Ost). Breit (20 m, zwei Spuren je Richtung): die Uferstraßen im
+// Westen und Norden, die Allee und die Strandstraße.
+export const SX = [64, 152, 244, 336, ...[60, 152, 244, 340, 436, 528, 620].map((x) => x + OX)], SXB = [20, 12, 12, 12, 12, 12, 12, 20, 12, 12, 12];
+export const SY = [64, 136, 212, ...[60, 136, 212, 292, 372, 448, 524, 604].map((y) => y + OY)], SYB = [20, 12, 12, 12, 12, 12, 20, 12, 12, 12, 20];
+export const LAND = { x0: 50, y0: 50, x1: 680 + OX, y1: 626 + OY };
+export const STRAND = { y0: 626 + OY, y1: 672 + OY, x0: 50, x1: 626 + OX };
 const GEHWEG_B = 4;
 
 // Gebäude: Breite in Metern (Tiefe folgt aus dem Bild), Neonfarbe für die Nacht
@@ -61,14 +65,15 @@ function bauen() {
   const ding = (bild, x, y, g, rot = 0, o = {}) => { const d = { bild, x, y, g, rot, ebene: 0, weich: false, r: 0, ...o }; W.dinge.push(d); return d; };
 
   // ---------- Grundflächen ----------
-  fuelle(30, STRAND.y1, 646, STRAND.y1 + 20, BODEN.FLACH);
+  fuelle(30, STRAND.y1, 646 + OX, STRAND.y1 + 20, BODEN.FLACH);
   fuelle(30, STRAND.y0 - 8, LAND.x0, STRAND.y1, BODEN.FLACH);
   fuelle(LAND.x0, LAND.y0, LAND.x1, LAND.y1, BODEN.PFLASTER);
   fuelle(STRAND.x0, STRAND.y0, STRAND.x1, STRAND.y1, BODEN.SAND);
-  fuelle(626, LAND.y0, LAND.x1, STRAND.y1, BODEN.BETON);
-  fuelle(LAND.x0, 614, 626, 626, BODEN.GEHWEG);   // Strandpromenade
+  fuelle(626 + OX, LAND.y0, LAND.x1, STRAND.y1, BODEN.BETON);
+  fuelle(LAND.x0, 614 + OY, 626 + OX, 626 + OY, BODEN.GEHWEG);   // Strandpromenade
   // Straßen
-  const xA = SX[0] - SXB[0] / 2, xE = SX[6] + SXB[6] / 2, yA = SY[0] - SYB[0] / 2, yE = SY[7] + SYB[7] / 2;
+  const nx = SX.length - 1, ny = SY.length - 1;
+  const xA = SX[0] - SXB[0] / 2, xE = SX[nx] + SXB[nx] / 2, yA = SY[0] - SYB[0] / 2, yE = SY[ny] + SYB[ny] / 2;
   fuelle(LAND.x0, LAND.y0, xE, yA, BODEN.GEHWEG); fuelle(LAND.x0, LAND.y0, xA, yE, BODEN.GEHWEG);   // Uferweg Nord und West
   SX.forEach((x, i) => { fuelle(x - SXB[i] / 2, yA, x + SXB[i] / 2, yE, BODEN.ASPHALT); W.strassen.push({ r: 'v', m: x, b: SXB[i], a: yA, e: yE, i }); });
   SY.forEach((y, j) => { fuelle(xA, y - SYB[j] / 2, xE, y + SYB[j] / 2, BODEN.ASPHALT); W.strassen.push({ r: 'h', m: y, b: SYB[j], a: xA, e: xE, i: j }); });
@@ -78,19 +83,19 @@ function bauen() {
   for (let x = LAND.x0 + 3; x < LAND.x1 - 2; x += 6) ding('leitplanke', x, LAND.y0 + 0.6, 6, 0);
   for (let y = LAND.y0 + 3; y < LAND.y1 - 2; y += 6) ding('leitplanke', LAND.x0 + 0.6, y, 6, 1.5708);
   // Stege (Holz) am Strand und Piers (Beton) im Hafen
-  const stege = [{ x: 200, e: 742 }, { x: 424, e: 730 }];
+  const stege = [{ x: 172, e: 736 + OY }, { x: 200 + OX, e: 742 + OY }, { x: 424 + OX, e: 730 + OY }];
   for (const s of stege) {
     fuelle(s.x - 4, STRAND.y0, s.x + 4, s.e, BODEN.HOLZ); fuelle(s.x - 10, s.e - 14, s.x + 10, s.e, BODEN.HOLZ);
     W.koffer.push({ x: s.x, y: s.e - 7, art: 'yacht' });
     ding('boot', s.x - 15, s.e - 8, 9, 0.1); ding('boot', s.x + 15.5, s.e - 30, 9, 3.2);
   }
-  const piers = [{ y: 170, e: 744 }, { y: 402, e: 738 }];
+  const piers = [{ y: 170, e: 744 + OX }, { y: 170 + OY, e: 744 + OX }, { y: 402 + OY, e: 738 + OX }];
   for (const p of piers) {
     fuelle(LAND.x1, p.y - 6, p.e, p.y + 6, BODEN.BETON); fuelle(p.e - 16, p.y - 12, p.e, p.y + 12, BODEN.BETON);
     W.koffer.push({ x: p.e - 8, y: p.y, art: 'kai' });
     ding('boot', p.e - 34, p.y - 12, 9, 1.57); ding('boot', p.e - 30, p.y + 12.5, 9, -1.5);
   }
-  for (let y = 80; y < 660; y += 58) if (!piers.some((p) => Math.abs(p.y - y) < 20)) ding('boot', LAND.x1 + 5.5, y, 9, y % 3 ? 0 : 3.14);
+  for (let y = 80; y < 660 + OY; y += 58) if (!piers.some((p) => Math.abs(p.y - y) < 20)) ding('boot', LAND.x1 + 5.5, y, 9, y % 3 ? 0 : 3.14);
 
   // ---------- Gebäude ----------
   function haus(bild, cx, cy, rot, skala = 1) {
@@ -162,25 +167,30 @@ function bauen() {
   }
 
   // ---------- Blöcke ----------
+  // Zeilen 0–2: Villenviertel (neu), Spalten 0–3: Westend mit Westkai (neu), Rest: die alte Stadt (Zeilen 3–9, Spalten 4–9)
   const PLAN = [
-    ['versteck', 'haus', 'haus', 'haus', 'tank', 'lager'],
-    ['haus', 'haus', 'werkstatt', 'haus', 'haus', 'versteckHafen'],
-    ['stadt', 'stadt', 'stadt', 'platz', 'polizei', 'container'],
-    ['stadt', 'park', 'stadt', 'stadt', 'stadt', 'lager'],
-    ['stadt', 'stadt', 'stadt', 'stadt', 'stadt', 'container'],
-    ['tank', 'versteckStadt', 'stadt', 'stadt', 'stadt', 'werkstatt'],
-    ['strand', 'strand', 'strand', 'strand', 'strand', 'lager']
+    ['haus', 'haus', 'park', 'haus', 'haus', 'versteck', 'haus', 'haus', 'tank', 'lager'],
+    ['haus', 'tank', 'haus', 'haus', 'park', 'haus', 'haus', 'werkstatt', 'haus', 'container'],
+    ['lager', 'stadt', 'stadt', 'platz', 'stadt', 'stadt', 'haus', 'stadt', 'stadt', 'lager'],
+    ['container', 'stadt', 'stadt', 'haus', 'versteck', 'haus', 'haus', 'haus', 'tank', 'lager'],
+    ['lager', 'versteckStadt', 'stadt', 'haus', 'haus', 'haus', 'werkstatt', 'haus', 'haus', 'versteckHafen'],
+    ['container', 'stadt', 'polizei', 'stadt', 'stadt', 'stadt', 'stadt', 'platz', 'polizei', 'container'],
+    ['werkstatt', 'stadt', 'park', 'stadt', 'stadt', 'park', 'stadt', 'stadt', 'stadt', 'lager'],
+    ['versteckHafen', 'stadt', 'stadt', 'stadt', 'stadt', 'stadt', 'stadt', 'stadt', 'stadt', 'container'],
+    ['container', 'tank', 'stadt', 'stadt', 'tank', 'versteckStadt', 'stadt', 'stadt', 'stadt', 'werkstatt'],
+    ['strand', 'strand', 'strand', 'strand', 'strand', 'strand', 'strand', 'strand', 'strand', 'lager']
   ];
+  const NAMEN = { '3,4': 'Garage am Hügel', '0,5': 'Villa-Garage', '8,5': 'Hinterhof-Werkstatt', '4,1': 'Hinterhof West', '4,9': 'Halle 7', '7,0': 'Westkai-Halle' };
   const STADT = ['haus-apart', 'haus-laden', 'haus-cafe', 'haus-club', 'haus-hotel', 'haus-neon', 'haus-terrasse', 'haus-apart', 'haus-laden'];
   W.bloecke = [];
-  for (let rr = 0; rr < 7; rr++) for (let c = 0; c < 6; c++) {
-    const typ = PLAN[rr][c], r = rng(1000 + rr * 37 + c * 101);
+  for (let rr = 0; rr < PLAN.length; rr++) for (let c = 0; c < PLAN[0].length; c++) {
+    const typ = PLAN[rr][c], r = rng(1000 + (rr - 3) * 37 + (c - 4) * 101), name = NAMEN[rr + ',' + c] || '';   // alte Blöcke: gleicher Zufall wie vorher
     const bx0 = SX[c] + SXB[c] / 2, bx1 = SX[c + 1] - SXB[c + 1] / 2, by0 = SY[rr] + SYB[rr] / 2, by1 = SY[rr + 1] - SYB[rr + 1] / 2;
     const lx0 = bx0 + GEHWEG_B, lx1 = bx1 - GEHWEG_B, ly0 = by0 + GEHWEG_B, ly1 = by1 - GEHWEG_B, mx = (bx0 + bx1) / 2, my = (by0 + by1) / 2;
     W.bloecke.push({ typ, x0: bx0, y0: by0, x1: bx1, y1: by1 });
     fuelle(bx0, by0, bx1, by1, BODEN.GEHWEG);
-    const hafen = c === 5;
-    const grund = typ === 'haus' || typ === 'park' || typ === 'versteck' ? BODEN.GRAS : hafen || typ === 'tank' || typ === 'polizei' || typ === 'werkstatt' ? BODEN.BETON : BODEN.PFLASTER;
+    const hafen = c === PLAN[0].length - 1, kai = hafen || c === 0;   // Ost: Hafen, West: Westkai
+    const grund = typ === 'haus' || typ === 'park' || typ === 'versteck' ? BODEN.GRAS : kai || typ === 'tank' || typ === 'polizei' || typ === 'werkstatt' ? BODEN.BETON : BODEN.PFLASTER;
     fuelle(lx0, ly0, lx1, ly1, grund);
 
     if (typ === 'stadt' || typ === 'strand') {
@@ -198,7 +208,7 @@ function bauen() {
       const pool = ['haus-wohn', 'haus-wohn', 'haus-terrasse'];
       if (typ === 'versteck') {
         const g = haus('haus-garage', mx, ly1 - tiefe('haus-garage') / 2, 0);
-        W.verstecke.push({ x: mx, y: by1 - 2, bx: 11, by: 2.2, name: 'Garage am Hügel', haus: g, raus: 1.5708 });
+        W.verstecke.push({ x: mx, y: by1 - 2, bx: 11, by: 2.2, name, haus: g, raus: 1.5708 });
         zeile(r, lx0, lx1, ly0, 'n', pool, { luecke: [7, 10], zu: 0, vor: 4, ohneKoffer: true });
         fuelle(mx - 14, ly1 - 0.1, mx + 14, by1, BODEN.BETON);
       } else {
@@ -246,12 +256,12 @@ function bauen() {
       const oben = zeile(r, lx0, lx1, ly0, 'n', STADT);
       void oben;
       const g = haus('haus-werk', lx0 + 13, ly1 - tiefe('haus-werk') / 2, 0);
-      W.verstecke.push({ x: g.x, y: by1 - 2, bx: 9, by: 2.2, name: 'Hinterhof-Werkstatt', haus: g, raus: 1.5708 });
+      W.verstecke.push({ x: g.x, y: by1 - 2, bx: 9, by: 2.2, name, haus: g, raus: 1.5708 });
       zeile(r, lx0 + 34, lx1, ly1, 's', ['haus-laden', 'haus-cafe', 'haus-apart']);
       parke(r, lx0 + 31, my + 8, 0);
     } else if (typ === 'versteckHafen') {
       const g = haus('haus-halle', lx0 + tiefe('haus-halle') / 2, my, 1);
-      W.verstecke.push({ x: bx0 + 2, y: my, bx: 2.2, by: 9, name: 'Halle 7', haus: g, raus: 3.1416 });
+      W.verstecke.push({ x: bx0 + 2, y: my, bx: 2.2, by: 9, name, haus: g, raus: 3.1416 });
       containerReihe(r, mx + 8, ly0 + 6, 5); containerReihe(r, mx + 8, ly1 - 6, 5); containerReihe(r, lx1 - 6, my - 4, 3, true);
     } else if (typ === 'lager') {
       const a = haus('haus-halle', lx0 + 13.5, ly0 + 13.5, 1), b = haus('haus-halle', lx1 - 13.5, ly1 - 13.5, 3);
@@ -267,16 +277,16 @@ function bauen() {
 
   // ---------- Kai (Hafenkante) ----------
   { const r = rng(77);
-    for (let y = 70; y < 650; y += 26 + Math.floor(r() * 14)) if (!piers.some((p) => Math.abs(p.y - y) < 16)) { if (r() < 0.7) containerReihe(r, 640 + Math.floor(r() * 12), y, 2 + Math.floor(r() * 2)); else if (frei(650, y, 2.6)) parke(r, 650, y, r() * 6.28, 'auto-pickup'); }
-    for (let y = 60; y < 668; y += 18) if (frei(LAND.x1 - 1.2, y, 0.6)) { kreis(LAND.x1 - 1.2, y, 0.32); ding('poller', LAND.x1 - 1.2, y, 0.9, 0, { ebene: 1 }); }
-    W.koffer.push({ x: 656, y: 300, art: 'kiste' }); W.koffer.push({ x: 656, y: 560, art: 'kiste' });
+    for (let y = 70; y < 650 + OY; y += 26 + Math.floor(r() * 14)) if (!piers.some((p) => Math.abs(p.y - y) < 16)) { if (r() < 0.7) containerReihe(r, 640 + OX + Math.floor(r() * 12), y, 2 + Math.floor(r() * 2)); else if (frei(650 + OX, y, 2.6)) parke(r, 650 + OX, y, r() * 6.28, 'auto-pickup'); }
+    for (let y = 60; y < 668 + OY; y += 18) if (frei(LAND.x1 - 1.2, y, 0.6)) { kreis(LAND.x1 - 1.2, y, 0.32); ding('poller', LAND.x1 - 1.2, y, 0.9, 0, { ebene: 1 }); }
+    W.koffer.push({ x: 656 + OX, y: 300 + OY, art: 'kiste' }); W.koffer.push({ x: 656 + OX, y: 560 + OY, art: 'kiste' }); W.koffer.push({ x: 656 + OX, y: 110, art: 'kiste' });
   }
 
   // ---------- Strand ----------
   { const r = rng(4242);
-    for (let x = 60; x < 618; x += 8 + r() * 5) {
+    for (let x = 60; x < 618 + OX; x += 8 + r() * 5) {
       if (stege.some((s) => Math.abs(s.x - x) < 9)) continue;
-      for (let y = 634; y < 664; y += 10 + r() * 3) {
+      for (let y = 634 + OY; y < 664 + OY; y += 10 + r() * 3) {
         if (r() < 0.25) continue;
         const sx = x + (r() - 0.5) * 2;
         ding('liege', sx + 2.1, y + 0.5, 2.1, (r() - 0.5) * 0.3, { weich: true, r: 0.8 });
@@ -284,14 +294,14 @@ function bauen() {
         ding('schirm', sx, y, 3.3, r() * 6.28, { weich: true, r: 0.7, ebene: 2 });
       }
     }
-    for (const x of [112, 312, 520]) { box(x - 1.8, 646, x + 1.8, 649.6, true, 'turm'); ding('rettungsturm', x, 649, 6.6, 0, { ebene: 1 }); W.koffer.push({ x: x + 9, y: 652, art: 'strand' }); }
+    for (const x of [96, 296, 112 + OX, 312 + OX, 520 + OX]) { box(x - 1.8, 646 + OY, x + 1.8, 649.6 + OY, true, 'turm'); ding('rettungsturm', x, 649 + OY, 6.6, 0, { ebene: 1 }); W.koffer.push({ x: x + 9, y: 652 + OY, art: 'strand' }); }
     // Promenade: Palmen, Bänke
-    for (let x = 62; x < 620; x += 11 + r() * 3) {
+    for (let x = 62; x < 620 + OX; x += 11 + r() * 3) {
       if (stege.some((s) => Math.abs(s.x - x) < 7)) continue;
       const t = r();
-      if (t < 0.6) baum(PALMEN[Math.floor(r() * 3)], x, 620 + (r() - 0.5), 6.5 + r(), r, 0.35);
-      else if (t < 0.8) ding('bank', x, 623, 2.4, 0, { weich: true, r: 0.8 });
-      else ding('muelleimer', x, 617, 0.9, 0, { weich: true, r: 0.5 });
+      if (t < 0.6) baum(PALMEN[Math.floor(r() * 3)], x, 620 + OY + (r() - 0.5), 6.5 + r(), r, 0.35);
+      else if (t < 0.8) ding('bank', x, 623 + OY, 2.4, 0, { weich: true, r: 0.8 });
+      else ding('muelleimer', x, 617 + OY, 0.9, 0, { weich: true, r: 0.5 });
     }
   }
 
@@ -371,16 +381,19 @@ function bauen() {
   // Koffer-Orte: nur erreichbare (nicht in einer gesperrten Zelle)
   W.koffer = W.koffer.filter((q) => !W.zu[Math.floor(q.y / Z) * NX + Math.floor(q.x / Z)]);
   W.koffer.forEach((q, n) => { q.id = n; q.wert = KOFFER[q.art].wert; });
-  const v0 = W.verstecke[0];
-  W.start = { x: v0.x - 30, y: SY[1] + 3, a: 0 };
+  const v0 = W.verstecke.find((v) => v.name === 'Garage am Hügel');
+  W.start = { x: v0.x - 30, y: v0.y + 11, a: 0 };   // auf der Straße vor der Garage
   return W;
 }
 
 // Name des Viertels an einer Stelle (für die Einblendung beim Hineinfahren)
 export function viertel(x, y) {
-  if (x >= 534) return 'Hafen';
-  if (y >= 530) return 'Strandmeile';
-  return y < 212 ? 'Palmenhügel' : 'Neonstadt';
+  if (x >= 534 + OX) return 'Hafen';
+  if (y >= 530 + OY) return 'Strandmeile';
+  if (y < OY + 2) return 'Villenviertel';
+  if (x < 158) return 'Westkai';
+  if (x < OX + 2) return 'Westend';
+  return y < 212 + OY ? 'Palmenhügel' : 'Neonstadt';
 }
 export function bodenBei(W, x, y) {
   if (x < 0 || y < 0 || x >= BREITE || y >= HOEHE) return BODEN.TIEF;

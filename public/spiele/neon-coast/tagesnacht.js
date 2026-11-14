@@ -5,7 +5,7 @@
 import { neueFahrt, schritt, feierabend } from './engine.js';
 import { AUTOS } from './daten.js';
 
-export const SIM_VERSION = 1;     // erhöhen, sobald sich engine.js, welt.js, daten.js oder diese Datei spielwirksam ändern
+export const SIM_VERSION = 2;     // 2: größere Stadt (15.11.2026)     // erhöhen, sobald sich engine.js, welt.js, daten.js oder diese Datei spielwirksam ändern
 export const TAG = { dauer: 150, sichtweite: 78, maxTakte: 150 * 60 + 3600 };   // Takte: Fahrzeit + Pausen in Versteck und Werkstatt
 
 // Datum in Berlin als Zahl JJJJMMTT – der Zufallskeim der Nacht
