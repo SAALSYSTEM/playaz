@@ -79,6 +79,10 @@ Rekord (beste Nacht) mit Herausforderung per Link `?r=Betrag`.
 - **Einrichtung (einmalig, nur du):** 1. SQL aus `supabase/migrations/20261114120000_neon_coast_tagesnacht.sql` im SQL Editor
   ausführen. 2. `npx supabase functions deploy neon-coast-lauf --project-ref cphwxikfrxgejiqghlwn --no-verify-jwt`.
   Ohne diese Schritte läuft die Tagesnacht trotzdem, das Tagesbeste bleibt dann nur auf dem Gerät.
+  Stand 15.11.2026 von Claude über das Supabase-MCP deployt (Version 1). Dabei lädt `handler.js` die Regeln nicht aus den
+  lokalen Kopien, sondern beim Deploy von jsDelivr aus dem öffentlichen Repo, festgenagelt auf den Live-Commit
+  (`https://cdn.jsdelivr.net/gh/SAALSYSTEM/playaz@<commit>/public/spiele/neon-coast/tagesnacht.js`): so muss nur die
+  kleine `handler.js` übertragen werden. Beim CLI-Deploy oben gelten wie gewohnt die lokalen Kopien.
 - **Regeländerungen** an `engine.js`, `welt.js`, `daten.js` oder `tagesnacht.js`: `SIM_VERSION` in `tagesnacht.js` erhöhen und
   `node tools/edge-sync.mjs` ausführen (kopiert die sechs Dateien in die Edge Function). Ältere Nächte zählen dann nicht mehr.
 
