@@ -22,9 +22,16 @@ export const KINDS = {
   kegel: { hw: 0.24, hl: 0.24 },
   bake: { hw: 0.36, hl: 0.17 },
   absperrung: { hw: 0.43, hl: 0.15 },
-  auto: { hw: 0.27, hl: 0.62 }
+  auto: { hw: 0.27, hl: 0.62 },
+  // Lastwagen (ab Level 31): fahren wie langsame Autos, sind aber länger
+  rakete: { hw: 0.3, hl: 1.45 },     // Raketentransporter
+  tank: { hw: 0.33, hl: 1.22 },       // Tankwagen
+  muell: { hw: 0.36, hl: 0.98 }       // Müllwagen
 };
-const CHAR_KIND = { k: 'kegel', b: 'bake', a: 'absperrung', c: 'auto' };
+const CHAR_KIND = { k: 'kegel', b: 'bake', a: 'absperrung', c: 'auto', r: 'rakete', t: 'tank', m: 'muell' };
+// alles, was fährt (langsam vorausfährt und eingeholt wird)
+export const FAHRT = new Set(['auto', 'rakete', 'tank', 'muell']);
+export const faehrt = (o) => FAHRT.has(o.kind);
 
 export const AUTOS = {
   tuerkis: { name: 'Türkis-Flitzer', ab: 0, img: 'auto-tuerkis' },
@@ -33,7 +40,9 @@ export const AUTOS = {
   lila: { name: 'Lila Limousine', ab: 12, img: 'verkehr-lila' },  // frei nach Level 12
   taxi: { name: 'Sonnen-Taxi', ab: 16, img: 'verkehr-taxi' },     // frei nach Level 16
   pickup: { name: 'Strand-Pickup', ab: 23, img: 'auto-pickup' },  // frei nach Level 23
-  surfbus: { name: 'Surf-Bus', ab: 27, img: 'auto-surfbus' }           // frei nach Level 27
+  surfbus: { name: 'Surf-Bus', ab: 27, img: 'auto-surfbus' },          // frei nach Level 27
+  coupe: { name: 'Küsten-Coupé', ab: 33, img: 'auto-coupe' },      // frei nach Level 33
+  panther: { name: 'Schwarzer Panther', ab: 37, img: 'auto-panther' } // frei nach Level 37
 };
 export const AUTO_IDS = Object.keys(AUTOS);
 
@@ -113,7 +122,7 @@ function spawn(st) {
   const objs = st.lv.objs;
   while (st.next < objs.length && objs[st.next].y + st.offset - st.p < SPAWN + CAR_RUN + 1) {
     const d = objs[st.next++], o = { ...d, y: d.y + st.offset, id: st.next, hit: false, got: false };
-    if (o.kind === 'auto') { o.meet = o.y; o.y0 = o.y - CAR_RUN; o.y = o.y0; }
+    if (faehrt(o)) { o.meet = o.y; o.y0 = o.y - CAR_RUN; o.y = o.y0; }
     st.objs.push(o);
   }
 }
@@ -155,7 +164,7 @@ export function step(st, dt = STEP) {
   spawn(st);
   // Objekte
   for (const o of st.objs) {
-    if (o.kind === 'auto') o.y = carY(o, st.p);
+    if (faehrt(o)) o.y = carY(o, st.p);
     if (o.got || o.hit) continue;
     if (o.kind === 'stern') {
       if (Math.abs(st.x - o.lane) < 0.55 && Math.abs(st.p - o.y) < 0.8) {

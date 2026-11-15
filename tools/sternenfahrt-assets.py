@@ -210,6 +210,22 @@ def main():
         im = im.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
         previews.append(('auto-surfbus', save(im, 'auto-surfbus', 300)))
         extra.append('auto-surfbus')
+    # weitere Einzelbilder (schon freigestellt): Autos und Laster
+    for name, h in (('auto-coupe', 300), ('auto-panther', 300), ('lkw-rakete', 560), ('lkw-tank', 480), ('lkw-muell', 420)):
+        if not (SRC / f'{name}.png').exists():
+            continue
+        b = np.array(Image.open(SRC / f'{name}.png').convert('RGBA')).astype(float)
+        al = b[..., 3]
+        al[al < 40] = 0
+        lab, n = ndimage.label(ndimage.binary_dilation(al > 0, iterations=2))
+        sizes = ndimage.sum(np.ones_like(lab), lab, range(1, n + 1))
+        al = np.where(lab == int(np.argmax(sizes)) + 1, np.clip(al * 255 / max(1, np.percentile(al[al > 0], 60)), 0, 255), 0)
+        b[..., 3] = al
+        im = Image.fromarray(b.astype(np.uint8), 'RGBA')
+        ys, xs = np.nonzero(al > 10)
+        im = im.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
+        previews.append((name, save(im, name, h)))
+        extra.append(name)
     names[3:3] = extra
     (OUT / 'manifest.json').write_text(json.dumps(names) + '\n')
 

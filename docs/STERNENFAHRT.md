@@ -1,11 +1,11 @@
 # Neon Coast – Sternenfahrt – Übergabenotiz
 
-Autospiel für Kinder ab 5, Handy hochkant, Draufsicht. 30 feste Level (21–30 mit 4 Spuren). Route: `/spiele/sternenfahrt`
+Autospiel für Kinder ab 5, Handy hochkant, Draufsicht. 40 feste Level (21–40 mit 4 Spuren). Route: `/spiele/sternenfahrt`
 („Neon Coast“ bleibt als Adresse frei für ein späteres großes Spiel). Grafiken: Motive aus den Neon-Coast-Tafeln
 (ChatGPT), Kachel und Teilen-Vorschau von ChatGPT, Radio-Lieder von Pixabay – alles vom Auftraggeber.
 
 ## Spielprinzip
-Das Auto fährt von selbst nach oben, die Straße hat 3 Spuren (Level 21–30: 4 Spuren, Start auf der rechten Mittelspur). Nur zwei Tasten: links / rechts (auch Pfeiltasten oder A/D).
+Das Auto fährt von selbst nach oben, die Straße hat 3 Spuren (Level 21–40: 4 Spuren, Start auf der rechten Mittelspur). Nur zwei Tasten: links / rechts (auch Pfeiltasten oder A/D).
 Alternativ auf der Straße wischen: eine Wischbewegung = genau eine Spur (ab ca. 6 % der Breite seitlich, waagerecht überwiegend; Antippen und senkrechtes Wischen lenken nicht).
 - Ein Druck = genau eine Spur (sanft, 0,3 s). Gedrückthalten und Tastenwiederholung lösen nichts weiter aus.
   Beide Pfeile zugleich heben sich auf. Zwei schnelle Drücke = zwei Spuren. Am Rand: kleines „Tock“, sonst nichts.
@@ -13,11 +13,11 @@ Alternativ auf der Straße wischen: eine Wischbewegung = genau eine Spur (ab ca.
 - Berührung = „Hoppla!“: Auto wackelt, kurz langsamer (45 %, in 1,4 s wieder normal), 2,2 s Schutzzeit (blinkt),
   das Hindernis kippt zur Seite. Sterne bleiben. Kein Game-over, jedes Level endet im Ziel.
 - Auszeichnung: ≥ 90 % der Sterne → 3, ≥ 60 % → 2, sonst 1. Jeder Abschluss schaltet das nächste Level frei.
-- Autos: Türkis-Flitzer (Start), Pinke Rakete (nach Level 3), Orange Blitz (nach Level 6), Lila Limousine (nach 12), Sonnen-Taxi (nach 16), Strand-Pickup (nach 23), Surf-Bus (nach 27). Alle fahren gleich. Pickup und Surf-Bus: Einzelbilder von ChatGPT (`design/sternenfahrt/auto-pickup.png`, `auto-surfbus.png`).
+- Autos: Türkis-Flitzer (Start), Pinke Rakete (nach Level 3), Orange Blitz (nach Level 6), Lila Limousine (nach 12), Sonnen-Taxi (nach 16), Strand-Pickup (nach 23), Surf-Bus (nach 27), Küsten-Coupé (nach 33), Schwarzer Panther (nach 37). Alle fahren gleich. Pickup, Surf-Bus, Coupé, Panther und die drei Laster: Einzelbilder von ChatGPT (`design/sternenfahrt/auto-*.png`, `lkw-*.png`; beim Raketen-Laster wurde das Fremd-Logo durch einen Stern ersetzt).
 - Level 1 (bis es einmal geschafft ist): Übung – erst links, dann rechts (blinkende Taste, tippender Finger, Pfeil auf der Straße,
   Übungssterne); das eigentliche Level beginnt erst danach. Hindernisse kommen erst nach der Sternen-Übungsphase.
 - Welten: Stadt (1–3), Strandpromenade (4–7), Hafen (8–10); Teil 2 dieselben Welten bei Nacht (11–13 Neonstadt, 18–20 Hafen: dunkel, Laternen,
-  leuchtende Neon-Bordsteine, Scheinwerfer, Rücklichter) und im Abendrot (14–17). Teil 3 vierspurig: Stadtautobahn (21–23, Tag), Küstenstraße (24–27, Abendrot), Hafenring (28–30, Nacht). Licht nur gezeichnet (`licht` in `levels.js`), Hindernisse und Sterne
+  leuchtende Neon-Bordsteine, Scheinwerfer, Rücklichter) und im Abendrot (14–17). Teil 3 vierspurig: Stadtautobahn (21–23, Tag), Küstenstraße (24–27, Abendrot), Hafenring (28–30, Nacht). Teil 4 Schwertransport: Strandallee (31–33, Tag), Containerhafen (34–37, Tag), Neonstadt bei Nacht (38–40). Licht nur gezeichnet (`licht` in `levels.js`), Hindernisse und Sterne
   bleiben voll hell. Fußgänger laufen nur auf dem Gehweg (Deko).
 - Handy-Symbol oben = Pause-Menü: Weiterfahren, Level, Autos, Ton, Startseite (PlaySaal). Pause auch bei Tab-Wechsel/Fokusverlust.
 - Autoradio: zufälliger Sender, nach 45–90 s (oder am Liedende) kurz Rauschen und ein anderer Sender, mitten im Lied.
@@ -26,7 +26,7 @@ Alternativ auf der Straße wischen: eine Wischbewegung = genau eine Spur (ab ca.
 
 ## Fairness
 Die Kamera zeigt immer 7 bis 11 Spurbreiten vor dem Auto (Maßstab passt sich an). Der Test lässt einen Prüf-Fahrer alle
-30 Level fahren: Er sieht Objekte erst bei 7 Spurbreiten, reagiert nach 1,0 bzw. 1,4 s, drückt höchstens alle 0,25 s und
+40 Level fahren: Er sieht Objekte erst bei 7 Spurbreiten, reagiert nach 1,0 bzw. 1,4 s, drückt höchstens alle 0,25 s und
 braucht die echte Spurwechsel-Dauer – er darf nirgends anstoßen (bestanden) und erreicht ≥ 85 % der Sterne.
 Rechnung in festen Schritten (1/120 s), damit 30, 60 und 144 Hz gleich laufen; nach Rucklern höchstens 0,25 s nachholen.
 
@@ -36,6 +36,9 @@ Teil 2 (11–20) 3,0 → 3,6 mit neuen Bausteinen: Slalom, Doppel-Hütchen, Ster
 1–3 je ein Hindernis pro Zeile, ohne Autos; ab 4 langsame Autos; ab 5 Lücken (zwei Spuren zu); 7–10 mehr Abwechslung, schneller.
 Teil 3 (21–30, `spuren: 4`, Bausteine `C4` mit 4 Zeichen je Zeile) 3,0 → 3,6: 21–22 ohne Autos, ab 23 Verkehr, Verschwenkung (erst rechts, dann links zu),
 Tor mit nur einer Lücke (Sterne zeigen sie früh), Kolonne (drei Autos, eine Spur frei), Slalom über alle vier Spuren. Straße bei 4 Spuren 66 % der Breite.
+Teil 4 (31–40) 3,1 → 3,6 mit Lastern: `r` Raketentransporter, `t` Tankwagen, `m` Müllwagen (fahren wie langsame Autos mit 40 %,
+sind aber länger: Trefferfläche in `KINDS`, Bildlänge in `LKW` in `game.js`; Spur nach dem Einholpunkt 8 Zeilen frei). Bausteine: einzelne Laster,
+zwei nebeneinander, Laster + Auto, Laster + Hütchen.
 
 ## Dateien
 - `public/spiele/sternenfahrt.html` – Seite, HUD (Fortschritt, Sterne, Handy), Lenktasten, Menüs (DOM)

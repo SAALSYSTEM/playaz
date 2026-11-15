@@ -3,7 +3,7 @@
 // Straße, Markierungen, Leitkegel, Sterne, Ziel und Effekte werden gezeichnet. Fehlt ein Bild, gibt es einen einfachen Ersatz.
 import { LEVELS, LEVEL_COUNT } from './levels.js';
 import {
-  STORE, VIS_MIN, AUTOS, AUTO_IDS, spurenVon, laneXs, newRun, advance, press, progress, award,
+  STORE, VIS_MIN, AUTOS, AUTO_IDS, spurenVon, laneXs, faehrt, newRun, advance, press, progress, award,
   freshSave, sanitizeSave, recordWin, carsUnlocked, totalAwards, parseInvite
 } from './engine.js';
 
@@ -436,6 +436,8 @@ function drawPeds(X) {
   }
 }
 
+// Lastwagen: Bild und Länge in Spurbreiten (passend zur Trefferfläche in engine.js)
+const LKW = { rakete: { img: 'lkw-rakete', h: 3.1 }, tank: { img: 'lkw-tank', h: 2.65 }, muell: { img: 'lkw-muell', h: 2.15 } };
 const VERKEHR = ['verkehr-klein', 'verkehr-lila', 'verkehr-taxi', 'verkehr-suv', 'verkehr-bus'];
 function drawKegel(X, x, y, s) {
   const b = s * 0.46;
@@ -466,13 +468,15 @@ function drawObjects(X) {
     if (o.hit) {
       o.hitT ??= clock;
       const k = clamp((clock - o.hitT) / 0.9, 0, 1);
-      if (o.kind === 'auto') { x += o.hitX * Math.sin(k * Math.PI) * s * 0.3; }
+      if (faehrt(o)) { x += o.hitX * Math.sin(k * Math.PI) * s * 0.3; }
       else { x += o.hitX * ease(k) * s * 0.75; rot = o.hitX * ease(k) * 1.4; alpha = 1 - k * 0.65; }
     }
     if (o.kind === 'stern') drawStar(X, x, y, s, clock + o.y);
     else if (o.kind === 'kegel') { X.save(); X.globalAlpha = alpha; X.translate(x, y); X.rotate(rot); drawKegel(X, 0, 0, s); X.restore(); }
-    else if (o.kind === 'auto') {
-      const k = VERKEHR[(typeof o.id === 'number' ? o.id : 0) % VERKEHR.length], h = s * (k === 'verkehr-bus' ? 1.55 : 1.35);
+    else if (faehrt(o)) {
+      const lkw = LKW[o.kind];
+      const k = lkw ? lkw.img : VERKEHR[(typeof o.id === 'number' ? o.id : 0) % VERKEHR.length];
+      const h = s * (lkw ? lkw.h : k === 'verkehr-bus' ? 1.55 : 1.35);
       X.fillStyle = 'rgba(0,0,0,.25)'; rr(X, x - s * 0.3 + 4, y - h / 2 + 6, s * 0.6, h, s * 0.18); X.fill();
       if (!sprite(X, k, x, y, h, 0, alpha)) { X.fillStyle = '#ff8a7a'; rr(X, x - s * 0.3, y - h / 2, s * 0.6, h, s * 0.15); X.fill(); }
       if (lv.licht === 'nacht') {
@@ -649,7 +653,7 @@ function handleEvents() {
       burst(SX(e.o.lane), SY(e.o.y), 12, ['#FFD21C', '#fff27a', '#ffffff']);
       const c = $('chipStars'); c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
     } else if (e.e === 'hoppla') {
-      hopT = clock; SFX.hoppla(); if (e.o.kind === 'auto') SFX.hupe();
+      hopT = clock; SFX.hoppla(); if (faehrt(e.o)) SFX.hupe();
       burst(SX(st.x), L.carY - L.s * 0.6, 10, ['#B9A3F5', '#fff', '#FF5FA2'], 120);
       try { navigator.vibrate && navigator.vibrate(30); } catch { /* egal */ }
     } else if (e.e === 'spur') SFX.spur();
@@ -736,7 +740,8 @@ function openMenu() {
 }
 const WELT = {
   stadt: 'Stadt', strand: 'Strandpromenade', hafen: 'Hafen', 'stadt-nacht': 'Neonstadt bei Nacht', 'strand-abend': 'Strand im Abendrot', 'hafen-nacht': 'Hafen bei Nacht',
-  'stadt-4': '4 Spuren · Stadtautobahn', 'strand-abend-4': '4 Spuren · Küstenstraße', 'hafen-nacht-4': '4 Spuren · Hafenring bei Nacht'
+  'stadt-4': '4 Spuren · Stadtautobahn', 'strand-abend-4': '4 Spuren · Küstenstraße', 'hafen-nacht-4': '4 Spuren · Hafenring bei Nacht',
+  'strand-4': 'Schwertransport · Strandallee', 'hafen-4': 'Schwertransport · Containerhafen', 'stadt-nacht-4': 'Schwertransport · Neonstadt bei Nacht'
 };
 const abschnitt = (l) => l.welt + (l.licht ? '-' + l.licht : '') + (l.spuren === 4 ? '-4' : '');
 function openLevels(from) {

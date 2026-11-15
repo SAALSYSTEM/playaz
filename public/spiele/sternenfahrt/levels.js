@@ -129,7 +129,30 @@ const C4 = {
   c34: ['..cc', E, '.*..', '.*..', '.*..', ...leer(5)],
   kol: ['cc.c', E, '..*.', '..*.', '..*.', ...leer(5)],     // Kolonne: nur eine Spur frei
   kolL: ['c.cc', E, '.*..', '.*..', '.*..', ...leer(5)],
-  cK: ['.c..', '*...', '*...', E, E, E, '...k', E, E, E]
+  cK: ['.c..', '*...', '*...', E, E, E, '...k', E, E, E],
+  // Teil 4: Lastwagen (r Raketentransporter, t Tankwagen, m Müllwagen) – lang und langsam, 10 Zeilen wie Autos
+  r1: ['r...', E, '.*..', '.*..', '.*..', ...leer(5)],
+  r2: ['.r..', E, '*...', '*...', '*...', ...leer(5)],
+  r3: ['..r.', E, '...*', '...*', '...*', ...leer(5)],
+  r4: ['...r', E, '..*.', '..*.', '..*.', ...leer(5)],
+  t1: ['t...', E, '.*..', '.*..', '.*..', ...leer(5)],
+  t2: ['.t..', E, '..*.', '..*.', '..*.', ...leer(5)],
+  t3: ['..t.', E, '.*..', '.*..', '.*..', ...leer(5)],
+  t4: ['...t', E, '..*.', '..*.', '..*.', ...leer(5)],
+  m1: ['m...', E, '.*..', '.*..', '.*..', ...leer(5)],
+  m2: ['.m..', E, '*...', '*...', '*...', ...leer(5)],
+  m3: ['..m.', E, '...*', '...*', '...*', ...leer(5)],
+  m4: ['...m', E, '..*.', '..*.', '..*.', ...leer(5)],
+  // zwei Laster nebeneinander, Sterne zeigen die freie Seite
+  tm12: ['tm..', E, '..*.', '..*.', '..*.', ...leer(5)],
+  mt34: ['..mt', E, '.*..', '.*..', '.*..', ...leer(5)],
+  rt14: ['r..t', E, '.*..', '.*..', '.*..', ...leer(5)],
+  // Laster und Auto gemischt
+  rc: ['.r.c', E, '..*.', '..*.', '..*.', ...leer(5)],
+  cm: ['c.m.', E, '.*..', '.*..', '.*..', ...leer(5)],
+  // Laster und Hütchen: Hütchen in einer anderen Spur weit vorher
+  tk: ['..t.', E, '.*..', '.*..', E, E, '...k', E, E, E],
+  mk: ['.m..', E, '..*.', '..*.', E, E, 'k...', E, E, E]
 };
 
 const DEFS = [
@@ -255,7 +278,48 @@ const DEFS = [
   { id: 30, name: 'Große Hafenrunde', welt: 'hafen', licht: 'nacht', spuren: 4, speed: 3.6,
     tip: { icon: '🏆', text: 'Die allergrößte Sternenfahrt!' },
     seq: `_4 sWR _4 kol _6 dop _8 c14 _6 tor3 _8 sla _8 kolL _6 gasse _7 c4 _6
-          vers _8 tor2 _8 c23 _6 slaR _8 zu14 _8 s2 _4` }
+          vers _8 tor2 _8 c23 _6 slaR _8 zu14 _8 s2 _4` },
+  // Teil 4: Schwertransport – lange Laster auf vier Spuren (Strand am Tag, Containerhafen, Neonstadt bei Nacht)
+  { id: 31, name: 'Schwertransport', welt: 'strand', spuren: 4, speed: 3.1,
+    tip: { icon: '🚚', text: 'Lange Laster! Fahr gemütlich vorbei.' },
+    seq: `_4 s2 _4 t1 _8 s34 _3 m4 _8 sWL _4 r1 _8 k2 _7 s12 _3 t4 _8 sBo _4 m1 _8 zu34 _8
+          s21 _3 r4 _8 s3 _4` },
+  { id: 32, name: 'Tankwagen', welt: 'strand', spuren: 4, speed: 3.15,
+    tip: { icon: '⛽', text: 'Der Tankwagen fährt langsam!' },
+    seq: `_4 sWR _4 t2 _8 s43 _3 t3 _8 k1 _7 m2 _8 sWL _4 tk _8 zu12 _8 c1 _6 t4 _8 s34 _3
+          gasse _7 m3 _8 s2 _4` },
+  { id: 33, name: 'Strandallee', welt: 'strand', spuren: 4, speed: 3.2,
+    tip: { icon: '🏖️', text: 'Zwei Laster nebeneinander? Nimm die freie Seite!' },
+    seq: `_4 s3 _4 tm12 _8 s34 _3 r1 _8 sBo _4 mt34 _8 c2 _6 vers _8 rt14 _8 s21 _3
+          m4 _8 dop _8 tm12 _8 s3 _4` },
+  { id: 34, name: 'Containerhafen', welt: 'hafen', spuren: 4, speed: 3.25,
+    tip: { icon: '📦', text: 'Im Hafen fahren viele Laster!' },
+    seq: `_4 sWR _4 m1 _8 bau4 _7 t3 _8 s21 _3 rc _8 zu34 _8 mk _8 sWL _4 tor2 _8 r4 _8
+          s34 _3 cm _8 gasseL _7 s2 _4` },
+  { id: 35, name: 'Raketenfracht', welt: 'hafen', spuren: 4, speed: 3.3,
+    tip: { icon: '🚀', text: 'Eine Rakete auf dem Laster!' },
+    seq: `_4 s2 _4 r1 _8 r4 _8 sWL _4 r2 _8 k4 _7 r3 _8 s32 _3 rt14 _8 sla _8 c4 _6
+          s21 _3 r2 _8 tor3 _8 s3 _4` },
+  { id: 36, name: 'Ladekai', welt: 'hafen', spuren: 4, speed: 3.35,
+    tip: { icon: '🏗️', text: 'Laster, Kisten, Kegel!' },
+    seq: `_4 sWR _4 mt34 _8 bau12 _7 t2 _8 sBo _4 tk _8 zu14 _8 kol _6 s34 _3 rc _8
+          versR _8 tm12 _8 dop _8 s2 _4` },
+  { id: 37, name: 'Frühschicht', welt: 'hafen', spuren: 4, speed: 3.4,
+    tip: { icon: '🚛', text: 'Die Müllabfuhr ist unterwegs!' },
+    seq: `_4 s1 _4 m2 _8 sWR _4 m3 _8 mk _8 tor4 _8 cm _8 s12 _3 m1 _8 gasse _7 m4 _8
+          slaR _8 rt14 _8 s3 _4` },
+  { id: 38, name: 'Neonnacht', welt: 'stadt', licht: 'nacht', spuren: 4, speed: 3.45,
+    tip: { icon: '🌃', text: 'Nachts sind Laster unterwegs!' },
+    seq: `_4 sWL _4 t1 _8 s34 _3 rc _8 tor2 _8 mt34 _8 sWR _4 kolL _6 vers _8 r4 _8
+          s12 _3 tk _8 dop _8 s2 _4` },
+  { id: 39, name: 'Nachtkonvoi', welt: 'stadt', licht: 'nacht', spuren: 4, speed: 3.5,
+    tip: { icon: '🚚', text: 'Ein ganzer Konvoi!' },
+    seq: `_4 s2 _4 tm12 _8 mt34 _8 sBo _4 rt14 _8 gasseL _7 cm _8 sla _8 r1 _8 s34 _3
+          kol _6 tor3 _8 m4 _8 s2 _4` },
+  { id: 40, name: 'Großer Schwertransport', welt: 'stadt', licht: 'nacht', spuren: 4, speed: 3.6,
+    tip: { icon: '🏆', text: 'Die allergrößte Laster-Fahrt!' },
+    seq: `_4 sWR _4 r1 _8 tm12 _8 dop _8 rc _8 sWL _4 mt34 _8 tor2 _8 r4 _8 versR _8
+          rt14 _8 gasse _7 kolL _6 s2 _4` }
 ];
 
 export const LEVELS = DEFS.map((d) => buildLevel({ vorlauf: 6, auslauf: 6, ...d }, d.spuren === 4 ? C4 : C));

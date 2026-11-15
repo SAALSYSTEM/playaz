@@ -5,7 +5,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { LEVELS, LEVEL_COUNT } from '../public/spiele/sternenfahrt/levels.js';
 import {
   newRun, step, advance, press, kidBot, award, freshSave, sanitizeSave, recordWin, carsUnlocked, parseInvite,
-  STEP, CAR_RUN, KINDS, AUTOS
+  STEP, CAR_RUN, KINDS, AUTOS, faehrt
 } from '../public/spiele/sternenfahrt/engine.js';
 
 const IMG = new URL('../public/spiele/sternenfahrt/img/', import.meta.url);
@@ -22,21 +22,22 @@ function drive(lv, bot, { dt = 1 / 60, tutorial = false, max = 300 } = {}) {
   return { st, ev };
 }
 
-test('30 Level, Dauer 45–75 s, Tempo steigt moderat, Welten Stadt → Strand → Hafen (Teil 2 bei Nacht/Abendrot, Teil 3 mit 4 Spuren)', () => {
-  assert.equal(LEVEL_COUNT, 30);
+test('40 Level, Dauer 45–75 s, Tempo steigt moderat, Welten Stadt → Strand → Hafen (Teil 2 bei Nacht/Abendrot, Teil 3 mit 4 Spuren, Teil 4 Schwertransport)', () => {
+  assert.equal(LEVEL_COUNT, 40);
   let last = 0;
   for (const lv of LEVELS) {
     const dauer = lv.length / lv.speed + 1;
     assert.ok(dauer >= 45 && dauer <= 75, `Level ${lv.id}: ${dauer.toFixed(0)} s`);
-    if (lv.id === 11 || lv.id === 21) last = 0;   // Teil 2 und 3 beginnen wieder etwas ruhiger
+    if (lv.id === 11 || lv.id === 21 || lv.id === 31) last = 0;   // Teil 2, 3 und 4 beginnen wieder etwas ruhiger
     assert.ok(lv.speed >= last && lv.speed <= 3.6, `Level ${lv.id}: Tempo ${lv.speed}`);
     last = lv.speed;
     assert.ok(lv.stars >= 25, `Level ${lv.id}: ${lv.stars} Sterne`);
   }
   const welten = ['stadt', 'stadt', 'stadt', 'strand', 'strand', 'strand', 'strand', 'hafen', 'hafen', 'hafen'];
-  assert.deepEqual(LEVELS.map((l) => l.welt), [...welten, ...welten, ...welten]);
+  assert.deepEqual(LEVELS.map((l) => l.welt), [...welten, ...welten, ...welten, 'strand', 'strand', 'strand', 'hafen', 'hafen', 'hafen', 'hafen', 'stadt', 'stadt', 'stadt']);
   assert.ok(LEVELS.slice(0, 10).every((l) => !l.licht) && LEVELS.slice(10, 20).every((l) => l.licht === 'nacht' || l.licht === 'abend'));
-  assert.deepEqual(LEVELS.slice(20).map((l) => l.licht || 'tag'), ['tag', 'tag', 'tag', 'abend', 'abend', 'abend', 'abend', 'nacht', 'nacht', 'nacht']);
+  assert.deepEqual(LEVELS.slice(20, 30).map((l) => l.licht || 'tag'), ['tag', 'tag', 'tag', 'abend', 'abend', 'abend', 'abend', 'nacht', 'nacht', 'nacht']);
+  assert.deepEqual(LEVELS.slice(30).map((l) => l.licht || 'tag'), ['tag', 'tag', 'tag', 'tag', 'tag', 'tag', 'tag', 'nacht', 'nacht', 'nacht']);
   assert.ok(LEVELS.slice(0, 20).every((l) => l.spuren === 3) && LEVELS.slice(20).every((l) => l.spuren === 4));
 });
 
@@ -61,14 +62,14 @@ test('immer eine freie Spur, Sterne nie auf oder direkt an Hindernissen, Autospu
     for (const [y, lanes] of byRow) assert.ok(lanes.length <= lv.spuren - 1, `Level ${lv.id}, Zeile ${y}: alle Spuren zu`);
     for (const s of lv.objs.filter((o) => o.kind === 'stern')) {
       for (const h of hind) {
-        if (h.lane === s.lane && h.kind !== 'auto') assert.ok(Math.abs(h.y - s.y) >= 1.5, `Level ${lv.id}: Stern bei Zeile ${s.y} zu nah an ${h.kind}`);
+        if (h.lane === s.lane && !faehrt(h)) assert.ok(Math.abs(h.y - s.y) >= 1.5, `Level ${lv.id}: Stern bei Zeile ${s.y} zu nah an ${h.kind}`);
       }
     }
     // Ein langsames Auto fährt CAR_RUN Zeilen bis zum Einholpunkt und rollt danach noch hinter einem her: Spur frei halten
-    for (const c of hind.filter((o) => o.kind === 'auto')) {
+    for (const c of hind.filter(faehrt)) {
       for (const o of lv.objs) {
         if (o === c || o.lane !== c.lane) continue;
-        assert.ok(o.y < c.y - CAR_RUN - 0.5 || o.y > c.y + 6, `Level ${lv.id}: ${o.kind} bei Zeile ${o.y} liegt im Weg des Autos (Einholpunkt ${c.y})`);
+        assert.ok(o.y < c.y - CAR_RUN - 0.5 || o.y > c.y + (c.kind === 'auto' ? 6 : 8), `Level ${lv.id}: ${o.kind} bei Zeile ${o.y} liegt im Weg des Autos (Einholpunkt ${c.y})`);
       }
     }
   }
@@ -124,11 +125,11 @@ test('ein Tastendruck = genau eine Spur; Rand; beide Pfeile zugleich heben sich 
   assert.ok(n * STEP > 0.2 && n * STEP < 0.4, `Spurwechsel ${(n * STEP).toFixed(2)} s`);
 });
 
-test('4 Spuren (Level 21–30): Spurmitten, Start rechts der Mitte, Rand nach je zwei Spuren', () => {
+test('4 Spuren (Level 21–40): Spurmitten, Start rechts der Mitte, Rand nach je zwei Spuren', () => {
   for (const lv of LEVELS.slice(20)) {
     assert.ok(lv.objs.every((o) => [-1.5, -0.5, 0.5, 1.5].includes(o.lane)), `Level ${lv.id}: Spurmitten`);
     for (const l of [-1.5, -0.5, 0.5, 1.5]) assert.ok(lv.objs.some((o) => o.kind !== 'stern' && o.lane === l), `Level ${lv.id}: Spur ${l} wird genutzt`);
-    if (lv.id >= 23) assert.ok(lv.objs.some((o) => o.kind === 'auto'), `Level ${lv.id}: mit Verkehr`);
+    if (lv.id >= 23) assert.ok(lv.objs.some(faehrt), `Level ${lv.id}: mit Verkehr`);
   }
   assert.ok(LEVELS.slice(20, 22).every((lv) => !lv.objs.some((o) => o.kind === 'auto')), 'Level 21–22 erst ohne Autos');
   const st = newRun(LEVELS[20], { tutorial: false });
@@ -141,6 +142,19 @@ test('4 Spuren (Level 21–30): Spurmitten, Start rechts der Mitte, Rand nach je
   assert.ok(Math.abs(st.x + 1.5) < 1e-9);
   // 3-spurige Level bleiben wie bisher
   assert.equal(newRun(LEVELS[19], { tutorial: false }).target, 0);
+});
+
+test('Schwertransport (Level 31–40): lange Laster fahren wie langsame Autos, vorher keine', () => {
+  const LASTER = ['rakete', 'tank', 'muell'];
+  assert.ok(LEVELS.slice(0, 30).every((lv) => !lv.objs.some((o) => LASTER.includes(o.kind))), 'Teil 1–3 ohne Laster');
+  for (const lv of LEVELS.slice(30)) assert.ok(lv.objs.filter((o) => LASTER.includes(o.kind)).length >= 4, `Level ${lv.id}: Laster`);
+  for (const k of LASTER) assert.ok(KINDS[k].hl > KINDS.auto.hl && faehrt({ kind: k }), k);
+  // Laster rollt mit 40 % Tempo voraus und wird genau am Einholpunkt erreicht
+  const lv = LEVELS[30], st = newRun(lv, { tutorial: false });
+  const first = lv.objs.find((o) => LASTER.includes(o.kind));
+  while (st.p < first.y - 1) step(st);
+  const o = st.objs.find((x) => x.kind === first.kind && x.meet === first.y);
+  assert.ok(o && Math.abs(o.y - st.p) < 1.6, 'Laster wird am Einholpunkt erreicht');
 });
 
 test('Hoppla: langsamer, Schutzzeit ohne zweiten Treffer, danach wieder normal', () => {
@@ -197,7 +211,7 @@ test('Level 1: Übung erst links, dann rechts – das Level startet erst danach'
   assert.ok(s2.done);
 });
 
-test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6, 12, 16, 23 und 27', () => {
+test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6, 12, 16, 23, 27, 33 und 37', () => {
   const s = sanitizeSave({ unlocked: 99, best: { 1: 3, 2: 9, x: 1 }, got: { 1: 30, 2: 5 }, car: 'orange', mute: true }, 10);
   assert.equal(sanitizeSave({ unlocked: 99 }, 20).unlocked, 20);
   assert.deepEqual(s.best, { 1: 3 }); assert.deepEqual(s.got, { 1: 30 });
@@ -219,11 +233,16 @@ test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6,
   }
   assert.deepEqual(carsUnlocked(save), ['tuerkis', 'pink', 'orange', 'lila', 'taxi']);
   for (let n = 17; n <= 30; n++) {
-    const r = recordWin(save, LEVELS[n - 1], { gotLevel: 1 }, 30);
+    const r = recordWin(save, LEVELS[n - 1], { gotLevel: 1 }, 40);
     assert.equal(r.neuAuto, n === 23 ? 'pickup' : n === 27 ? 'surfbus' : null, `Level ${n}`);
   }
   assert.deepEqual(carsUnlocked(save), ['tuerkis', 'pink', 'orange', 'lila', 'taxi', 'pickup', 'surfbus']);
-  assert.equal(save.unlocked, 30);
+  assert.equal(save.unlocked, 31);
+  for (let n = 31; n <= 40; n++) {
+    const r = recordWin(save, LEVELS[n - 1], { gotLevel: 1 }, 40);
+    assert.equal(r.neuAuto, n === 33 ? 'coupe' : n === 37 ? 'panther' : null, `Level ${n}`);
+  }
+  assert.equal(carsUnlocked(save).length, 9);
   assert.equal(sanitizeSave({ best: { 27: 2 }, car: 'surfbus' }, 30).car, 'surfbus');
   assert.equal(sanitizeSave({ best: { 26: 2 }, car: 'surfbus' }, 30).car, 'tuerkis', 'gesperrtes Auto nicht wählbar');
   const r = recordWin(save, LEVELS[0], { gotLevel: LEVELS[0].stars }, 10);
@@ -234,7 +253,7 @@ test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6,
   const s3 = freshSave(); recordWin(s3, LEVELS[7], { gotLevel: 40 }, 10); assert.equal(s3.unlocked, 1);
   assert.deepEqual(parseInvite('?l=4', 10), { l: 4 }); assert.equal(parseInvite('?l=11', 10), null);
   // Rundreise über JSON
-  assert.deepEqual(sanitizeSave(JSON.parse(JSON.stringify(save)), 30), save);
+  assert.deepEqual(sanitizeSave(JSON.parse(JSON.stringify(save)), 40), save);
 });
 
 test('Auszeichnung: 90 % → 3, 60 % → 2, sonst 1', () => {
@@ -243,6 +262,6 @@ test('Auszeichnung: 90 % → 3, 60 % → 2, sonst 1', () => {
 
 test('alle Bilder aus manifest.json sind vorhanden', () => {
   const list = JSON.parse(readFileSync(new URL('manifest.json', IMG)));
-  for (const n of ['absperrung', 'bake', 'verkehr-taxi', 'figur-mann', 'palme', ...Object.values(AUTOS).map((a) => a.img)]) assert.ok(list.includes(n), n);
+  for (const n of ['absperrung', 'bake', 'verkehr-taxi', 'figur-mann', 'palme', 'lkw-rakete', 'lkw-tank', 'lkw-muell', ...Object.values(AUTOS).map((a) => a.img)]) assert.ok(list.includes(n), n);
   for (const n of list) assert.ok(existsSync(new URL(n + '.webp', IMG)), n);
 });
