@@ -33,7 +33,7 @@ export const AUTOS = {
   lila: { name: 'Lila Limousine', ab: 12, img: 'verkehr-lila' },  // frei nach Level 12
   taxi: { name: 'Sonnen-Taxi', ab: 16, img: 'verkehr-taxi' },     // frei nach Level 16
   pickup: { name: 'Strand-Pickup', ab: 23, img: 'auto-pickup' },  // frei nach Level 23
-  surfbus: { name: 'Surf-Bus', ab: 27, img: 'auto-van' }           // frei nach Level 27
+  surfbus: { name: 'Surf-Bus', ab: 27, img: 'auto-surfbus' }           // frei nach Level 27
 };
 export const AUTO_IDS = Object.keys(AUTOS);
 

@@ -191,12 +191,26 @@ def main():
         tile.save(OUT / f'{name}.webp', 'WEBP', quality=78, method=6)
         names.append(name)
         previews.append((name, tile.convert('RGBA')))
-    # Zwei Autos aus den Fluchtwagen-Motiven (Neon Coast, gleiche Tafeln): Strand-Pickup und Surf-Bus
-    nc = ROOT / 'public' / 'spiele' / 'neon-coast' / 'img'
-    for name in ('auto-pickup', 'auto-van'):
-        if (nc / f'{name}.webp').exists():
-            shutil.copyfile(nc / f'{name}.webp', OUT / f'{name}.webp')
-            names.insert(3, name) if name == 'auto-pickup' else names.insert(4, name)
+    # Strand-Pickup und Surf-Bus: Einzelbilder von ChatGPT (Pickup auf Navy, Surf-Bus schon freigestellt)
+    extra = []
+    if (SRC / 'auto-pickup.png').exists():
+        im = cutout(Image.open(SRC / 'auto-pickup.png'))
+        previews.append(('auto-pickup', save(im, 'auto-pickup', 300)))
+        extra.append('auto-pickup')
+    if (SRC / 'auto-surfbus.png').exists():
+        b = np.array(Image.open(SRC / 'auto-surfbus.png').convert('RGBA')).astype(float)
+        al = b[..., 3]
+        al[al < 40] = 0
+        lab, n = ndimage.label(ndimage.binary_dilation(al > 0, iterations=2))
+        sizes = ndimage.sum(np.ones_like(lab), lab, range(1, n + 1))
+        al = np.where(lab == int(np.argmax(sizes)) + 1, np.clip(al * 255 / 253, 0, 255), 0)
+        b[..., 3] = al
+        im = Image.fromarray(b.astype(np.uint8), 'RGBA')
+        ys, xs = np.nonzero(al > 10)
+        im = im.crop((xs.min(), ys.min(), xs.max() + 1, ys.max() + 1))
+        previews.append(('auto-surfbus', save(im, 'auto-surfbus', 300)))
+        extra.append('auto-surfbus')
+    names[3:3] = extra
     (OUT / 'manifest.json').write_text(json.dumps(names) + '\n')
 
     if (SRC / 'kachel.png').exists():

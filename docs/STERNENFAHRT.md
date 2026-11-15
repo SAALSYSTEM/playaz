@@ -13,7 +13,7 @@ Alternativ auf der Straße wischen: eine Wischbewegung = genau eine Spur (ab ca.
 - Berührung = „Hoppla!“: Auto wackelt, kurz langsamer (45 %, in 1,4 s wieder normal), 2,2 s Schutzzeit (blinkt),
   das Hindernis kippt zur Seite. Sterne bleiben. Kein Game-over, jedes Level endet im Ziel.
 - Auszeichnung: ≥ 90 % der Sterne → 3, ≥ 60 % → 2, sonst 1. Jeder Abschluss schaltet das nächste Level frei.
-- Autos: Türkis-Flitzer (Start), Pinke Rakete (nach Level 3), Orange Blitz (nach Level 6), Lila Limousine (nach 12), Sonnen-Taxi (nach 16), Strand-Pickup (nach 23), Surf-Bus (nach 27). Alle fahren gleich. Pickup und Surf-Bus sind Motive aus Fluchtwagen (`neon-coast/img`).
+- Autos: Türkis-Flitzer (Start), Pinke Rakete (nach Level 3), Orange Blitz (nach Level 6), Lila Limousine (nach 12), Sonnen-Taxi (nach 16), Strand-Pickup (nach 23), Surf-Bus (nach 27). Alle fahren gleich. Pickup und Surf-Bus: Einzelbilder von ChatGPT (`design/sternenfahrt/auto-pickup.png`, `auto-surfbus.png`).
 - Level 1 (bis es einmal geschafft ist): Übung – erst links, dann rechts (blinkende Taste, tippender Finger, Pfeil auf der Straße,
   Übungssterne); das eigentliche Level beginnt erst danach. Hindernisse kommen erst nach der Sternen-Übungsphase.
 - Welten: Stadt (1–3), Strandpromenade (4–7), Hafen (8–10); Teil 2 dieselben Welten bei Nacht (11–13 Neonstadt, 18–20 Hafen: dunkel, Laternen,
