@@ -211,7 +211,7 @@ def main():
         previews.append(('auto-surfbus', save(im, 'auto-surfbus', 300)))
         extra.append('auto-surfbus')
     # weitere Einzelbilder (schon freigestellt): Autos und Laster
-    for name, h in (('auto-coupe', 300), ('auto-panther', 300), ('lkw-rakete', 560), ('lkw-tank', 480), ('lkw-muell', 420)):
+    for name, h in (('auto-coupe', 300), ('auto-panther', 300), ('auto-paket', 300), ('lkw-rakete', 560), ('lkw-tank', 480), ('lkw-muell', 420)):
         if not (SRC / f'{name}.png').exists():
             continue
         b = np.array(Image.open(SRC / f'{name}.png').convert('RGBA')).astype(float)

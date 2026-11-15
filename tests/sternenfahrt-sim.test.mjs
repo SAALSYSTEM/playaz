@@ -22,22 +22,23 @@ function drive(lv, bot, { dt = 1 / 60, tutorial = false, max = 300 } = {}) {
   return { st, ev };
 }
 
-test('40 Level, Dauer 45–75 s, Tempo steigt moderat, Welten Stadt → Strand → Hafen (Teil 2 bei Nacht/Abendrot, Teil 3 mit 4 Spuren, Teil 4 Schwertransport)', () => {
-  assert.equal(LEVEL_COUNT, 40);
+test('50 Level, Dauer 45–75 s, Tempo steigt moderat, Welten Stadt → Strand → Hafen (Teil 2 bei Nacht/Abendrot, Teil 3 mit 4 Spuren, Teil 4 Schwertransport, Teil 5 Lieferverkehr)', () => {
+  assert.equal(LEVEL_COUNT, 50);
   let last = 0;
   for (const lv of LEVELS) {
     const dauer = lv.length / lv.speed + 1;
     assert.ok(dauer >= 45 && dauer <= 75, `Level ${lv.id}: ${dauer.toFixed(0)} s`);
-    if (lv.id === 11 || lv.id === 21 || lv.id === 31) last = 0;   // Teil 2, 3 und 4 beginnen wieder etwas ruhiger
+    if ([11, 21, 31, 41].includes(lv.id)) last = 0;   // jeder neue Teil beginnt wieder etwas ruhiger beginnen wieder etwas ruhiger
     assert.ok(lv.speed >= last && lv.speed <= 3.6, `Level ${lv.id}: Tempo ${lv.speed}`);
     last = lv.speed;
     assert.ok(lv.stars >= 25, `Level ${lv.id}: ${lv.stars} Sterne`);
   }
   const welten = ['stadt', 'stadt', 'stadt', 'strand', 'strand', 'strand', 'strand', 'hafen', 'hafen', 'hafen'];
-  assert.deepEqual(LEVELS.map((l) => l.welt), [...welten, ...welten, ...welten, 'strand', 'strand', 'strand', 'hafen', 'hafen', 'hafen', 'hafen', 'stadt', 'stadt', 'stadt']);
+  assert.deepEqual(LEVELS.map((l) => l.welt), [...welten, ...welten, ...welten, 'strand', 'strand', 'strand', 'hafen', 'hafen', 'hafen', 'hafen', 'stadt', 'stadt', 'stadt', ...welten]);
   assert.ok(LEVELS.slice(0, 10).every((l) => !l.licht) && LEVELS.slice(10, 20).every((l) => l.licht === 'nacht' || l.licht === 'abend'));
   assert.deepEqual(LEVELS.slice(20, 30).map((l) => l.licht || 'tag'), ['tag', 'tag', 'tag', 'abend', 'abend', 'abend', 'abend', 'nacht', 'nacht', 'nacht']);
-  assert.deepEqual(LEVELS.slice(30).map((l) => l.licht || 'tag'), ['tag', 'tag', 'tag', 'tag', 'tag', 'tag', 'tag', 'nacht', 'nacht', 'nacht']);
+  assert.deepEqual(LEVELS.slice(30, 40).map((l) => l.licht || 'tag'), ['tag', 'tag', 'tag', 'tag', 'tag', 'tag', 'tag', 'nacht', 'nacht', 'nacht']);
+  assert.deepEqual(LEVELS.slice(40).map((l) => l.licht), ['abend', 'abend', 'abend', 'nacht', 'nacht', 'nacht', 'nacht', 'abend', 'abend', 'abend']);
   assert.ok(LEVELS.slice(0, 20).every((l) => l.spuren === 3) && LEVELS.slice(20).every((l) => l.spuren === 4));
 });
 
@@ -144,10 +145,14 @@ test('4 Spuren (Level 21–40): Spurmitten, Start rechts der Mitte, Rand nach je
   assert.equal(newRun(LEVELS[19], { tutorial: false }).target, 0);
 });
 
-test('Schwertransport (Level 31–40): lange Laster fahren wie langsame Autos, vorher keine', () => {
+test('Schwertransport (Level 31–40) und Lieferverkehr (41–50): lange Laster fahren wie langsame Autos, vorher keine', () => {
   const LASTER = ['rakete', 'tank', 'muell'];
   assert.ok(LEVELS.slice(0, 30).every((lv) => !lv.objs.some((o) => LASTER.includes(o.kind))), 'Teil 1–3 ohne Laster');
-  for (const lv of LEVELS.slice(30)) assert.ok(lv.objs.filter((o) => LASTER.includes(o.kind)).length >= 4, `Level ${lv.id}: Laster`);
+  for (const lv of LEVELS.slice(30, 40)) assert.ok(lv.objs.filter((o) => LASTER.includes(o.kind)).length >= 4, `Level ${lv.id}: Laster`);
+  // Teil 5: Paketwagen in jedem Level, vorher keine
+  assert.ok(LEVELS.slice(0, 40).every((lv) => !lv.objs.some((o) => o.kind === 'paket')));
+  for (const lv of LEVELS.slice(40)) assert.ok(lv.objs.filter((o) => o.kind === 'paket').length >= 5, `Level ${lv.id}: Paketwagen`);
+  assert.ok(faehrt({ kind: 'paket' }));
   for (const k of LASTER) assert.ok(KINDS[k].hl > KINDS.auto.hl && faehrt({ kind: k }), k);
   // Laster rollt mit 40 % Tempo voraus und wird genau am Einholpunkt erreicht
   const lv = LEVELS[30], st = newRun(lv, { tutorial: false });
@@ -211,7 +216,7 @@ test('Level 1: Übung erst links, dann rechts – das Level startet erst danach'
   assert.ok(s2.done);
 });
 
-test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6, 12, 16, 23, 27, 33 und 37', () => {
+test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6, 12, 16, 23, 27, 33, 37 und 44', () => {
   const s = sanitizeSave({ unlocked: 99, best: { 1: 3, 2: 9, x: 1 }, got: { 1: 30, 2: 5 }, car: 'orange', mute: true }, 10);
   assert.equal(sanitizeSave({ unlocked: 99 }, 20).unlocked, 20);
   assert.deepEqual(s.best, { 1: 3 }); assert.deepEqual(s.got, { 1: 30 });
@@ -233,16 +238,21 @@ test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6,
   }
   assert.deepEqual(carsUnlocked(save), ['tuerkis', 'pink', 'orange', 'lila', 'taxi']);
   for (let n = 17; n <= 30; n++) {
-    const r = recordWin(save, LEVELS[n - 1], { gotLevel: 1 }, 40);
+    const r = recordWin(save, LEVELS[n - 1], { gotLevel: 1 }, 50);
     assert.equal(r.neuAuto, n === 23 ? 'pickup' : n === 27 ? 'surfbus' : null, `Level ${n}`);
   }
   assert.deepEqual(carsUnlocked(save), ['tuerkis', 'pink', 'orange', 'lila', 'taxi', 'pickup', 'surfbus']);
   assert.equal(save.unlocked, 31);
   for (let n = 31; n <= 40; n++) {
-    const r = recordWin(save, LEVELS[n - 1], { gotLevel: 1 }, 40);
+    const r = recordWin(save, LEVELS[n - 1], { gotLevel: 1 }, 50);
     assert.equal(r.neuAuto, n === 33 ? 'coupe' : n === 37 ? 'panther' : null, `Level ${n}`);
   }
   assert.equal(carsUnlocked(save).length, 9);
+  for (let n = 41; n <= 50; n++) {
+    const r = recordWin(save, LEVELS[n - 1], { gotLevel: 1 }, 50);
+    assert.equal(r.neuAuto, n === 44 ? 'paket' : null, `Level ${n}`);
+  }
+  assert.equal(carsUnlocked(save).length, 10);
   assert.equal(sanitizeSave({ best: { 27: 2 }, car: 'surfbus' }, 30).car, 'surfbus');
   assert.equal(sanitizeSave({ best: { 26: 2 }, car: 'surfbus' }, 30).car, 'tuerkis', 'gesperrtes Auto nicht wählbar');
   const r = recordWin(save, LEVELS[0], { gotLevel: LEVELS[0].stars }, 10);
@@ -253,7 +263,7 @@ test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6,
   const s3 = freshSave(); recordWin(s3, LEVELS[7], { gotLevel: 40 }, 10); assert.equal(s3.unlocked, 1);
   assert.deepEqual(parseInvite('?l=4', 10), { l: 4 }); assert.equal(parseInvite('?l=11', 10), null);
   // Rundreise über JSON
-  assert.deepEqual(sanitizeSave(JSON.parse(JSON.stringify(save)), 40), save);
+  assert.deepEqual(sanitizeSave(JSON.parse(JSON.stringify(save)), 50), save);
 });
 
 test('Auszeichnung: 90 % → 3, 60 % → 2, sonst 1', () => {

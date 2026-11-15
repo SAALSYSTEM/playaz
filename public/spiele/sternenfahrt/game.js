@@ -437,7 +437,7 @@ function drawPeds(X) {
 }
 
 // Lastwagen: Bild und Länge in Spurbreiten (passend zur Trefferfläche in engine.js)
-const LKW = { rakete: { img: 'lkw-rakete', h: 3.1 }, tank: { img: 'lkw-tank', h: 2.65 }, muell: { img: 'lkw-muell', h: 2.15 } };
+const LKW = { rakete: { img: 'lkw-rakete', h: 3.1 }, tank: { img: 'lkw-tank', h: 2.65 }, muell: { img: 'lkw-muell', h: 2.15 }, paket: { img: 'auto-paket', h: 1.6 } };
 const VERKEHR = ['verkehr-klein', 'verkehr-lila', 'verkehr-taxi', 'verkehr-suv', 'verkehr-bus'];
 function drawKegel(X, x, y, s) {
   const b = s * 0.46;
@@ -741,7 +741,8 @@ function openMenu() {
 const WELT = {
   stadt: 'Stadt', strand: 'Strandpromenade', hafen: 'Hafen', 'stadt-nacht': 'Neonstadt bei Nacht', 'strand-abend': 'Strand im Abendrot', 'hafen-nacht': 'Hafen bei Nacht',
   'stadt-4': '4 Spuren · Stadtautobahn', 'strand-abend-4': '4 Spuren · Küstenstraße', 'hafen-nacht-4': '4 Spuren · Hafenring bei Nacht',
-  'strand-4': 'Schwertransport · Strandallee', 'hafen-4': 'Schwertransport · Containerhafen', 'stadt-nacht-4': 'Schwertransport · Neonstadt bei Nacht'
+  'strand-4': 'Schwertransport · Strandallee', 'hafen-4': 'Schwertransport · Containerhafen', 'stadt-nacht-4': 'Schwertransport · Neonstadt bei Nacht',
+  'stadt-abend-4': 'Lieferverkehr · Stadt im Abendrot', 'strand-nacht-4': 'Lieferverkehr · Strand bei Nacht', 'hafen-abend-4': 'Lieferverkehr · Hafen im Abendrot'
 };
 const abschnitt = (l) => l.welt + (l.licht ? '-' + l.licht : '') + (l.spuren === 4 ? '-4' : '');
 function openLevels(from) {

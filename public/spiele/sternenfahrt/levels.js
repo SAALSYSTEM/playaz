@@ -152,7 +152,22 @@ const C4 = {
   cm: ['c.m.', E, '.*..', '.*..', '.*..', ...leer(5)],
   // Laster und Hütchen: Hütchen in einer anderen Spur weit vorher
   tk: ['..t.', E, '.*..', '.*..', E, E, '...k', E, E, E],
-  mk: ['.m..', E, '..*.', '..*.', E, E, 'k...', E, E, E]
+  mk: ['.m..', E, '..*.', '..*.', E, E, 'k...', E, E, E],
+  // Teil 5: Paketwagen (p) – flink unterwegs, oft mehrere hintereinander
+  p1: ['p...', E, '.*..', '.*..', '.*..', ...leer(5)],
+  p2: ['.p..', E, '*...', '*...', '*...', ...leer(5)],
+  p3: ['..p.', E, '...*', '...*', '...*', ...leer(5)],
+  p4: ['...p', E, '..*.', '..*.', '..*.', ...leer(5)],
+  pp14: ['p..p', E, '.*..', '.*..', '.*..', ...leer(5)],
+  pp23: ['.pp.', E, '...*', '...*', '...*', ...leer(5)],
+  pr: ['p.r.', E, '...*', '...*', '...*', ...leer(5)],
+  tp: ['.t.p', E, '..*.', '..*.', '..*.', ...leer(5)],
+  pm: ['.p.m', E, '..*.', '..*.', '..*.', ...leer(5)],
+  mp: ['m..p', E, '.*..', '.*..', '.*..', ...leer(5)],
+  rp: ['r..p', E, '..*.', '..*.', '..*.', ...leer(5)],
+  // Lieferkette: zwei Paketwagen versetzt, dazwischen die Spur wechseln
+  kette: ['p...', E, '.*..', '.*..', E, E, '..p.', E, '.*..', '.*..', ...leer(6)],
+  ketteR: ['...p', E, '..*.', '..*.', E, E, '.p..', E, '..*.', '..*.', ...leer(6)]
 };
 
 const DEFS = [
@@ -319,7 +334,48 @@ const DEFS = [
   { id: 40, name: 'Großer Schwertransport', welt: 'stadt', licht: 'nacht', spuren: 4, speed: 3.6,
     tip: { icon: '🏆', text: 'Die allergrößte Laster-Fahrt!' },
     seq: `_4 sWR _4 r1 _8 tm12 _8 dop _8 rc _8 sWL _4 mt34 _8 tor2 _8 r4 _8 versR _8
-          rt14 _8 gasse _7 kolL _6 s2 _4` }
+          rt14 _8 gasse _7 kolL _6 s2 _4` },
+  // Teil 5: Lieferverkehr – Paketwagen, Laster und Autos (Stadt im Abendrot, Strand bei Nacht, Hafen im Abendrot)
+  { id: 41, name: 'Lieferverkehr', welt: 'stadt', licht: 'abend', spuren: 4, speed: 3.2,
+    tip: { icon: '📦', text: 'Paketwagen überall! Überhol sie.' },
+    seq: `_4 s2 _4 p1 _8 s34 _3 p4 _8 sWL _4 p2 _8 k3 _7 s34 _3 p3 _8 sBo _4 pp14 _8 zu12 _8
+          s34 _3 pp23 _8 s3 _4` },
+  { id: 42, name: 'Feierabend', welt: 'stadt', licht: 'abend', spuren: 4, speed: 3.25,
+    tip: { icon: '🌇', text: 'Alle wollen nach Hause!' },
+    seq: `_4 sWR _4 p4 _8 c1 _6 s34 _3 ketteR _8 gasse _7 tp _8 sWL _4 cm _8 zu34 _8 p1 _8
+          sBo _4 pp14 _8 s2 _4` },
+  { id: 43, name: 'Abendlieferung', welt: 'stadt', licht: 'abend', spuren: 4, speed: 3.3,
+    tip: { icon: '✉️', text: 'Schnell die Briefe ausliefern!' },
+    seq: `_4 s2 _4 kette _8 s21 _3 p2 _8 bau4 _7 pp14 _8 sWR _4 ketteR _8 tor2 _8 mp _8
+          s34 _3 rc _8 s3 _4` },
+  { id: 44, name: 'Mondstrand', welt: 'strand', licht: 'nacht', spuren: 4, speed: 3.35,
+    tip: { icon: '🌙', text: 'Nachts am Strand!' },
+    seq: `_4 sWL _4 p1 _8 s34 _3 t4 _8 sBo _4 kette _8 vers _8 pm _8 s21 _3 r1 _8 gasseL _7
+          pp23 _8 dop _8 s2 _4` },
+  { id: 45, name: 'Sternenstrand', welt: 'strand', licht: 'nacht', spuren: 4, speed: 3.4,
+    tip: { icon: '⭐', text: 'So viele Sterne am Himmel!' },
+    seq: `_4 s3 _4 pp14 _8 sWR _4 tp _8 sla _8 ketteR _8 s34 _3 pr _8 tor3 _8 c2 _6
+          sWL _4 m1 _8 zu34 _8 s2 _4` },
+  { id: 46, name: 'Leuchtkäfer', welt: 'strand', licht: 'nacht', spuren: 4, speed: 3.45,
+    tip: { icon: '✨', text: 'Folge den leuchtenden Sternen!' },
+    seq: `_4 sWR _4 ketteR _8 gasse _7 rt14 _8 s23 _3 pm _8 slaR _8 p4 _8 s34 _3 kolL _6
+          versR _8 pp14 _8 s3 _4` },
+  { id: 47, name: 'Nachtpost', welt: 'strand', licht: 'nacht', spuren: 4, speed: 3.5,
+    tip: { icon: '📮', text: 'Die Nachtpost ist unterwegs!' },
+    seq: `_4 s2 _4 kette _8 tor2 _8 pp14 _8 sBo _4 tm12 _8 kette _8 dop _8 mp _8 s32 _3
+          cm _8 tor3 _8 s3 _4` },
+  { id: 48, name: 'Hafenabend', welt: 'hafen', licht: 'abend', spuren: 4, speed: 3.5,
+    tip: { icon: '⚓', text: 'Feierabend im Hafen!' },
+    seq: `_4 sWR _4 tp _8 s21 _3 r1 _8 kette _8 bau12 _7 pm _8 sWR _4 rc _8 zu14 _8
+          pp23 _8 sla _8 s2 _4` },
+  { id: 49, name: 'Letzte Ladung', welt: 'hafen', licht: 'abend', spuren: 4, speed: 3.55,
+    tip: { icon: '🚚', text: 'Alles muss noch weg!' },
+    seq: `_4 s3 _4 mt34 _8 ketteR _8 gasseL _7 pr _8 tor4 _8 pp14 _8 sWL _4 tk _8 versR _8
+          kette _8 s3 _4` },
+  { id: 50, name: 'Große Lieferfahrt', welt: 'hafen', licht: 'abend', spuren: 4, speed: 3.6,
+    tip: { icon: '🏆', text: 'Die allergrößte Lieferfahrt!' },
+    seq: `_4 sWR _4 ketteR _8 rt14 _8 pp14 _8 dop _8 mp _8 sBo _4 kette _8 tor2 _8 rp _8
+          slaR _8 kolL _6 s2 _4` }
 ];
 
 export const LEVELS = DEFS.map((d) => buildLevel({ vorlauf: 6, auslauf: 6, ...d }, d.spuren === 4 ? C4 : C));

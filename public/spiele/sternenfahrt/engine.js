@@ -26,11 +26,12 @@ export const KINDS = {
   // Lastwagen (ab Level 31): fahren wie langsame Autos, sind aber länger
   rakete: { hw: 0.3, hl: 1.45 },     // Raketentransporter
   tank: { hw: 0.33, hl: 1.22 },       // Tankwagen
-  muell: { hw: 0.36, hl: 0.98 }       // Müllwagen
+  muell: { hw: 0.36, hl: 0.98 },      // Müllwagen
+  paket: { hw: 0.3, hl: 0.72 }        // Paketwagen (ab Level 41)
 };
-const CHAR_KIND = { k: 'kegel', b: 'bake', a: 'absperrung', c: 'auto', r: 'rakete', t: 'tank', m: 'muell' };
+const CHAR_KIND = { k: 'kegel', b: 'bake', a: 'absperrung', c: 'auto', r: 'rakete', t: 'tank', m: 'muell', p: 'paket' };
 // alles, was fährt (langsam vorausfährt und eingeholt wird)
-export const FAHRT = new Set(['auto', 'rakete', 'tank', 'muell']);
+export const FAHRT = new Set(['auto', 'rakete', 'tank', 'muell', 'paket']);
 export const faehrt = (o) => FAHRT.has(o.kind);
 
 export const AUTOS = {
@@ -42,7 +43,8 @@ export const AUTOS = {
   pickup: { name: 'Strand-Pickup', ab: 23, img: 'auto-pickup' },  // frei nach Level 23
   surfbus: { name: 'Surf-Bus', ab: 27, img: 'auto-surfbus' },          // frei nach Level 27
   coupe: { name: 'Küsten-Coupé', ab: 33, img: 'auto-coupe' },      // frei nach Level 33
-  panther: { name: 'Schwarzer Panther', ab: 37, img: 'auto-panther' } // frei nach Level 37
+  panther: { name: 'Schwarzer Panther', ab: 37, img: 'auto-panther' }, // frei nach Level 37
+  paket: { name: 'Paket-Flitzer', ab: 44, img: 'auto-paket' }     // frei nach Level 44
 };
 export const AUTO_IDS = Object.keys(AUTOS);
 
