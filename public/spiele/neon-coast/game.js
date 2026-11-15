@@ -231,12 +231,12 @@ function abrechnung() {
   $('eRang').hidden = !tagModus; $('eStatus').textContent = ''; $('eStatus').className = 'status';
   $('eNochmalT').textContent = tagModus ? 'Tagesnacht nochmal' : 'Nochmal';
   if (tagModus) {
-    if (save.tag !== S.tag) { save.tag = S.tag; save.tagBest = 0; }
-    const besser = R.sicher > save.tagBest;
-    if (besser) { save.tagBest = R.sicher; sichern(); }
+    if (save.tag !== S.tag) { save.tag = S.tag; save.tagBest = 0; save.tagGemeldet = 0; }
+    if (R.sicher > save.tagBest) { save.tagBest = R.sicher; sichern(); }
+    // gemeldet wird, was besser ist als die beste vom Server bestätigte Nacht (nicht nur besser als das Gerät kennt)
     if (R.sicher <= 0) zeigeStatus('Ohne gesicherte Beute kein Eintrag in der Tagesrangliste.');
-    else if (!besser) zeigeStatus('Dein Bestes heute: ' + geld(save.tagBest) + ' – das zählt in der Rangliste.');
-    else meldeLauf(lauf(S, codes, tagAus));
+    else if (R.sicher <= save.tagGemeldet) zeigeStatus('Dein Bestes heute: ' + geld(save.tagGemeldet) + ' – das zählt in der Rangliste.');
+    else meldeLauf(lauf(S, codes, tagAus), R.sicher);
   }
   zeige('ende');
 }
@@ -258,14 +258,15 @@ async function melden(l) {
     return { status: 'fehler' };
   } catch { return { status: 'fehler' }; }
 }
-function meldeLauf(l) {
+function meldeLauf(l, sicher) {
   zeigeStatus('Wird vom Server nachgefahren …');
   melden(l).then((r) => {
+    if (r.status === 'verifiziert') { save.tagGemeldet = Math.max(save.tagGemeldet, sicher); sichern(); }
     if (r.status === 'verifiziert') zeigeStatus('✓ Geprüft' + (r.platz ? ` · Platz ${r.platz}${r.von ? ' von ' + r.von : ''} heute` : ''), true);
     else if (r.status === 'gast') zeigeStatus('Melde dich an (Reiter am Rand), dann kommst du in die Tagesrangliste.');
     else if (r.status === 'abgelehnt') zeigeStatus(r.grund === 'zu_oft' ? 'Zu viele Meldungen. Gleich wieder versuchen.' : r.grund === 'kein_profil' ? 'Lege zuerst einen Spielernamen an (Konto).' : r.grund === 'version' ? 'Neue Spielversion – bitte Seite neu laden.' : 'Nicht in die Rangliste übernommen.');
     else if (r.status === 'fehler') zeigeStatus('Rangliste gerade nicht erreichbar. Dein Bestes bleibt auf diesem Gerät.');
-    else zeigeStatus('Neues Tagesbestes – gespeichert auf diesem Gerät.');
+    else zeigeStatus('Tagesrangliste ist noch nicht eingerichtet – dein Bestes bleibt auf diesem Gerät.');
   });
 }
 const avatar = (p, a) => ((p && p.avatare) || [])[(parseInt(String(a || 'a1').slice(1), 10) || 1) - 1] || '🙂';
