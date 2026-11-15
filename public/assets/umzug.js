@@ -79,7 +79,7 @@
     { id: 'dinoleiter', name: 'Dino-Leiterhelden', prefix: 'dinoleiter.', haupt: ['dinoleiter.v1'],
       info: (g) => { const d = J(g['dinoleiter.v1']) || {}; const lv = Object.keys(d.best || {}).length; return { text: lv + ' von 30 Level', wert: lv * 100 + (d.unlocked || 0) }; } },
     { id: 'sternenfahrt', name: 'Neon Coast – Sternenfahrt', prefix: 'sternenfahrt.', haupt: ['sternenfahrt.v1'],
-      info: (g) => { const d = J(g['sternenfahrt.v1']) || {}; const b = d.best || {}; const lv = Object.keys(b).length; const st = Object.values(b).reduce((a, x) => a + (Number(x) || 0), 0); return { text: lv + ' von 20 Level · ' + st + ' ★', wert: lv * 100 + st }; } },
+      info: (g) => { const d = J(g['sternenfahrt.v1']) || {}; const b = d.best || {}; const lv = Object.keys(b).length; const st = Object.values(b).reduce((a, x) => a + (Number(x) || 0), 0); return { text: lv + ' von 30 Level · ' + st + ' ★', wert: lv * 100 + st }; } },
     { id: 'leuchtpfad', name: 'Leuchtpfad', prefix: 'leuchtpfad.', haupt: ['leuchtpfad.v1'],
       info: (g) => { const d = J(g['leuchtpfad.v1']) || {}; const b = d.best || {}; const lv = Object.keys(b).length; const st = Object.values(b).reduce((a, x) => a + (Number(x) || 0), 0); return { text: lv + ' von 30 Level · ' + st + ' ★' + (d.rekord ? ' · Rekord ' + d.rekord : ''), wert: lv * 100 + st + (Number(d.rekord) || 0) }; } },
     { id: 'zaubersuppe', name: 'Hexis Zaubersuppe', prefix: 'zaubersuppe.', haupt: ['zaubersuppe.v1'],

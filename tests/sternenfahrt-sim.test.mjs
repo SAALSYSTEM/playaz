@@ -22,20 +22,22 @@ function drive(lv, bot, { dt = 1 / 60, tutorial = false, max = 300 } = {}) {
   return { st, ev };
 }
 
-test('20 Level, Dauer 45–75 s, Tempo steigt moderat, Welten Stadt → Strand → Hafen (Teil 2 bei Nacht/Abendrot)', () => {
-  assert.equal(LEVEL_COUNT, 20);
+test('30 Level, Dauer 45–75 s, Tempo steigt moderat, Welten Stadt → Strand → Hafen (Teil 2 bei Nacht/Abendrot, Teil 3 mit 4 Spuren)', () => {
+  assert.equal(LEVEL_COUNT, 30);
   let last = 0;
   for (const lv of LEVELS) {
     const dauer = lv.length / lv.speed + 1;
     assert.ok(dauer >= 45 && dauer <= 75, `Level ${lv.id}: ${dauer.toFixed(0)} s`);
-    if (lv.id === 11) last = 0;   // Teil 2 beginnt wieder etwas ruhiger
+    if (lv.id === 11 || lv.id === 21) last = 0;   // Teil 2 und 3 beginnen wieder etwas ruhiger
     assert.ok(lv.speed >= last && lv.speed <= 3.6, `Level ${lv.id}: Tempo ${lv.speed}`);
     last = lv.speed;
     assert.ok(lv.stars >= 25, `Level ${lv.id}: ${lv.stars} Sterne`);
   }
   const welten = ['stadt', 'stadt', 'stadt', 'strand', 'strand', 'strand', 'strand', 'hafen', 'hafen', 'hafen'];
-  assert.deepEqual(LEVELS.map((l) => l.welt), [...welten, ...welten]);
-  assert.ok(LEVELS.slice(0, 10).every((l) => !l.licht) && LEVELS.slice(10).every((l) => l.licht === 'nacht' || l.licht === 'abend'));
+  assert.deepEqual(LEVELS.map((l) => l.welt), [...welten, ...welten, ...welten]);
+  assert.ok(LEVELS.slice(0, 10).every((l) => !l.licht) && LEVELS.slice(10, 20).every((l) => l.licht === 'nacht' || l.licht === 'abend'));
+  assert.deepEqual(LEVELS.slice(20).map((l) => l.licht || 'tag'), ['tag', 'tag', 'tag', 'abend', 'abend', 'abend', 'abend', 'nacht', 'nacht', 'nacht']);
+  assert.ok(LEVELS.slice(0, 20).every((l) => l.spuren === 3) && LEVELS.slice(20).every((l) => l.spuren === 4));
 });
 
 test('Lernkurve: Level 1 ohne Hindernisse am Anfang, Level 1–3 ohne Autos, Level 1–4 nie zwei Spuren gleichzeitig zu', () => {
@@ -56,7 +58,7 @@ test('immer eine freie Spur, Sterne nie auf oder direkt an Hindernissen, Autospu
     const hind = lv.objs.filter((o) => o.kind !== 'stern');
     const byRow = new Map();
     for (const o of hind) byRow.set(o.y, [...(byRow.get(o.y) || []), o.lane]);
-    for (const [y, lanes] of byRow) assert.ok(lanes.length <= 2, `Level ${lv.id}, Zeile ${y}: alle Spuren zu`);
+    for (const [y, lanes] of byRow) assert.ok(lanes.length <= lv.spuren - 1, `Level ${lv.id}, Zeile ${y}: alle Spuren zu`);
     for (const s of lv.objs.filter((o) => o.kind === 'stern')) {
       for (const h of hind) {
         if (h.lane === s.lane && h.kind !== 'auto') assert.ok(Math.abs(h.y - s.y) >= 1.5, `Level ${lv.id}: Stern bei Zeile ${s.y} zu nah an ${h.kind}`);
@@ -122,6 +124,25 @@ test('ein Tastendruck = genau eine Spur; Rand; beide Pfeile zugleich heben sich 
   assert.ok(n * STEP > 0.2 && n * STEP < 0.4, `Spurwechsel ${(n * STEP).toFixed(2)} s`);
 });
 
+test('4 Spuren (Level 21–30): Spurmitten, Start rechts der Mitte, Rand nach je zwei Spuren', () => {
+  for (const lv of LEVELS.slice(20)) {
+    assert.ok(lv.objs.every((o) => [-1.5, -0.5, 0.5, 1.5].includes(o.lane)), `Level ${lv.id}: Spurmitten`);
+    for (const l of [-1.5, -0.5, 0.5, 1.5]) assert.ok(lv.objs.some((o) => o.kind !== 'stern' && o.lane === l), `Level ${lv.id}: Spur ${l} wird genutzt`);
+    if (lv.id >= 23) assert.ok(lv.objs.some((o) => o.kind === 'auto'), `Level ${lv.id}: mit Verkehr`);
+  }
+  assert.ok(LEVELS.slice(20, 22).every((lv) => !lv.objs.some((o) => o.kind === 'auto')), 'Level 21–22 erst ohne Autos');
+  const st = newRun(LEVELS[20], { tutorial: false });
+  assert.equal(st.target, 0.5); assert.equal(st.x, 0.5);
+  assert.equal(press(st, 1), true); assert.equal(press(st, 1), false, 'rechter Rand');
+  for (let i = 0; i < 120; i++) step(st);
+  assert.ok(Math.abs(st.x - 1.5) < 1e-9);
+  press(st, -1); press(st, -1); press(st, -1); assert.equal(press(st, -1), false, 'linker Rand');
+  for (let i = 0; i < 240; i++) step(st);
+  assert.ok(Math.abs(st.x + 1.5) < 1e-9);
+  // 3-spurige Level bleiben wie bisher
+  assert.equal(newRun(LEVELS[19], { tutorial: false }).target, 0);
+});
+
 test('Hoppla: langsamer, Schutzzeit ohne zweiten Treffer, danach wieder normal', () => {
   const lv = LEVELS[8];   // dicht gesetzte Hindernisse
   const st = newRun(lv, { tutorial: false });
@@ -176,7 +197,7 @@ test('Level 1: Übung erst links, dann rechts – das Level startet erst danach'
   assert.ok(s2.done);
 });
 
-test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6, 12 und 16', () => {
+test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6, 12, 16, 23 und 27', () => {
   const s = sanitizeSave({ unlocked: 99, best: { 1: 3, 2: 9, x: 1 }, got: { 1: 30, 2: 5 }, car: 'orange', mute: true }, 10);
   assert.equal(sanitizeSave({ unlocked: 99 }, 20).unlocked, 20);
   assert.deepEqual(s.best, { 1: 3 }); assert.deepEqual(s.got, { 1: 30 });
@@ -197,6 +218,14 @@ test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6,
     assert.equal(r.neuAuto, n === 12 ? 'lila' : n === 16 ? 'taxi' : null, `Level ${n}`);
   }
   assert.deepEqual(carsUnlocked(save), ['tuerkis', 'pink', 'orange', 'lila', 'taxi']);
+  for (let n = 17; n <= 30; n++) {
+    const r = recordWin(save, LEVELS[n - 1], { gotLevel: 1 }, 30);
+    assert.equal(r.neuAuto, n === 23 ? 'pickup' : n === 27 ? 'surfbus' : null, `Level ${n}`);
+  }
+  assert.deepEqual(carsUnlocked(save), ['tuerkis', 'pink', 'orange', 'lila', 'taxi', 'pickup', 'surfbus']);
+  assert.equal(save.unlocked, 30);
+  assert.equal(sanitizeSave({ best: { 27: 2 }, car: 'surfbus' }, 30).car, 'surfbus');
+  assert.equal(sanitizeSave({ best: { 26: 2 }, car: 'surfbus' }, 30).car, 'tuerkis', 'gesperrtes Auto nicht wählbar');
   const r = recordWin(save, LEVELS[0], { gotLevel: LEVELS[0].stars }, 10);
   assert.equal(r.stars, 3); assert.equal(save.best[1], 3);
   recordWin(save, LEVELS[0], { gotLevel: 1 }, 10);
@@ -205,7 +234,7 @@ test('Spielstand: bereinigen, Bestwerte, nächstes Level, Autos nach Level 3, 6,
   const s3 = freshSave(); recordWin(s3, LEVELS[7], { gotLevel: 40 }, 10); assert.equal(s3.unlocked, 1);
   assert.deepEqual(parseInvite('?l=4', 10), { l: 4 }); assert.equal(parseInvite('?l=11', 10), null);
   // Rundreise über JSON
-  assert.deepEqual(sanitizeSave(JSON.parse(JSON.stringify(save)), 20), save);
+  assert.deepEqual(sanitizeSave(JSON.parse(JSON.stringify(save)), 30), save);
 });
 
 test('Auszeichnung: 90 % → 3, 60 % → 2, sonst 1', () => {

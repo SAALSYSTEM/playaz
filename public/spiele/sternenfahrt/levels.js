@@ -1,4 +1,4 @@
-// Neon Coast – Sternenfahrt: 10 handgebaute Level aus Bausteinen.
+// Neon Coast – Sternenfahrt: 30 handgebaute Level aus Bausteinen (21–30 mit 4 Spuren).
 // Baustein = Zeilen von oben nach unten wie auf dem Bildschirm, je Zeile 3 Spuren (links, Mitte, rechts).
 // '.' frei, '*' Stern, 'k' Leitkegel, 'b' Bake, 'a' Absperrung, 'c' langsames Auto (Zeile = wo man es einholt;
 // das Auto fährt vorher CAR_RUN ≈ 10 Zeilen in seiner Spur, die bleibt im Baustein frei).
@@ -59,6 +59,77 @@ const C = {
   slaR: ['..k', '...', '...', '...', '...', '...', '.k.', '...', '...', '...', '...', '...', 'k..'],
   dop: ['.*.', '...', 'k.k', '...', '...', '...', '...', '...', '.k.'],
   gasse: ['.*.', '.*.', 'a*a', '...', '.*.']
+};
+
+// Teil 3: vierspurige Straßen. Zeilen mit 4 Zeichen (Spuren von links nach rechts), sonst wie oben.
+const E = '....';
+const leer = (n) => Array(n).fill(E);
+const C4 = {
+  // Sternenspuren
+  s1: ['*...', '*...', '*...', '*...'],
+  s2: ['.*..', '.*..', '.*..', '.*..'],
+  s3: ['..*.', '..*.', '..*.', '..*.'],
+  s4: ['...*', '...*', '...*', '...*'],
+  s12: ['.*..', '.*..', E, '*...', '*...'],
+  s21: ['*...', '*...', E, '.*..', '.*..'],
+  s23: ['..*.', '..*.', E, '.*..', '.*..'],
+  s32: ['.*..', '.*..', E, '..*.', '..*.'],
+  s34: ['...*', '...*', E, '..*.', '..*.'],
+  s43: ['..*.', '..*.', E, '...*', '...*'],
+  sWL: ['*...', E, '.*..', E, '..*.', E, '...*'],          // Sternenwelle von rechts nach links
+  sWR: ['...*', E, '..*.', E, '.*..', E, '*...'],          // … und von links nach rechts
+  sBo: ['.*..', E, '*...', E, '.*..', E, '..*.', E, '...*', E, '..*.'],   // Bogen einmal quer
+  // ein Hindernis, Belohnung daneben
+  k1: ['.*..', E, E, 'k...'],
+  k2: ['..*.', E, E, '.k..'],
+  k3: ['.*..', E, E, '..k.'],
+  k4: ['..*.', E, E, '...k'],
+  b2: ['*...', E, E, '.b..'],
+  b3: ['...*', E, E, '..b.'],
+  a1: ['.*..', E, E, 'a...'],
+  a4: ['..*.', E, E, '...a'],
+  // zwei Spuren zu (Hinweis-Sterne in der freien Spur davor und danach)
+  zu12: ['..*.', '..*.', 'aa..', E, '..*.', '..*.'],
+  zu34: ['.*..', '.*..', '..aa', E, '.*..', '.*..'],
+  zu23: ['*...', '*...', '.aa.', E, '...*', '...*'],
+  zu14: ['.*..', '.*..', 'a..a', E, '..*.', '..*.'],
+  ku12: ['...*', '...*', 'kk..', E, '...*', '...*'],
+  ku34: ['*...', '*...', '..kk', E, '*...', '*...'],
+  // drei Spuren zu: nur eine Lücke, die Sterne davor zeigen sie früh
+  tor1: ['*...', '*...', '.kkk', E, '*...', '*...', '*...'],
+  tor2: ['.*..', '.*..', 'k.kk', E, '.*..', '.*..', '.*..'],
+  tor3: ['..*.', '..*.', 'kk.k', E, '..*.', '..*.', '..*.'],
+  tor4: ['...*', '...*', 'kkk.', E, '...*', '...*', '...*'],
+  // Baustellen über mehrere Zeilen
+  bau1: ['..*.', 'k...', E, 'k...', E, 'k...', '..*.'],
+  bau4: ['.*..', '...k', E, '...k', E, '...k', '.*..'],
+  bau12: ['...*', 'kk..', E, 'kk..', E, 'kk..', '...*'],
+  bau34: ['*...', '..kk', E, '..kk', E, '..kk', '*...'],
+  // Verschwenkung: erst rechts zu, dann links zu (und umgekehrt)
+  vers: ['..*.', E, 'aa..', E, E, E, E, '..aa', E, '.*..'],
+  versR: ['.*..', E, '..aa', E, E, E, E, 'aa..', E, '..*.'],
+  // Sternengasse zwischen Absperrungen
+  gasse: ['..*.', '..*.', '.a*a', E, '..*.'],
+  gasseL: ['.*..', '.*..', 'a*a.', E, '.*..'],
+  // Doppel-Hütchen: außen zu, dann innen zu
+  dop: ['.*..', E, 'k..k', ...leer(5), '.kk.'],
+  // Slalom über alle vier Spuren
+  sla: ['k...', ...leer(5), '.k..', ...leer(5), '..k.', ...leer(5), '...k'],
+  slaR: ['...k', ...leer(5), '..k.', ...leer(5), '.k..', ...leer(5), 'k...'],
+  // langsame Autos (10 Zeilen: Autospur frei)
+  c1: ['c...', E, '.*..', '.*..', '.*..', ...leer(5)],
+  c2: ['.c..', E, '..*.', '..*.', '..*.', ...leer(5)],
+  c3: ['..c.', E, '.*..', '.*..', '.*..', ...leer(5)],
+  c3r: ['..c.', E, '...*', '...*', '...*', ...leer(5)],
+  c2l: ['.c..', E, '*...', '*...', '*...', ...leer(5)],
+  c4: ['...c', E, '..*.', '..*.', '..*.', ...leer(5)],
+  c14: ['c..c', E, '.*..', '.*..', '.*..', ...leer(5)],
+  c23: ['.cc.', E, '*...', '*...', '*...', ...leer(5)],
+  c12: ['cc..', E, '..*.', '..*.', '..*.', ...leer(5)],
+  c34: ['..cc', E, '.*..', '.*..', '.*..', ...leer(5)],
+  kol: ['cc.c', E, '..*.', '..*.', '..*.', ...leer(5)],     // Kolonne: nur eine Spur frei
+  kolL: ['c.cc', E, '.*..', '.*..', '.*..', ...leer(5)],
+  cK: ['.c..', '*...', '*...', E, E, E, '...k', E, E, E]
 };
 
 const DEFS = [
@@ -143,9 +214,51 @@ const DEFS = [
   { id: 20, name: 'Sternenfinale', welt: 'hafen', licht: 'nacht', speed: 3.6,
     tip: { icon: '🏆', text: 'Das große Sternenfinale!' },
     seq: `_4 sZ _5 sZR _5 gasse _7 cM _6 sla _7 dop _7 cLR _6 slaR _7 zuMR _8
-          cL _6 gasse _7 kuLM _8 cMk _6 tor _8 sZ _5 sM _4` }
+          cL _6 gasse _7 kuLM _8 cMk _6 tor _8 sZ _5 sM _4` },
+  // Teil 3: vier Spuren – Stadtautobahn (Tag), Küstenstraße (Abendrot), Hafenring (Nacht)
+  { id: 21, name: 'Vier Spuren!', welt: 'stadt', spuren: 4, speed: 3.0,
+    tip: { icon: '🛣️', text: 'Jetzt 4 Spuren! Mehr Platz zum Ausweichen.' },
+    seq: `_4 s3 _3 s34 _3 s4 _2 s43 _2 s32 _2 s21 _2 s1 _4 sWR _4 k1 _7 s12 _3 k3 _7 sWL _4
+          k2 _7 s23 _3 k4 _7 s3 _3 b2 _7 sBo _4 a1 _7 sWL _4 s2 _4` },
+  { id: 22, name: 'Stadtautobahn', welt: 'stadt', spuren: 4, speed: 3.05,
+    tip: { icon: '🚧', text: 'Zwei Spuren zu? Nimm eine freie!' },
+    seq: `_4 sWR _4 k2 _7 zu12 _8 s34 _3 k4 _7 zu34 _8 sWL _4 bau1 _7 s21 _3 ku34 _8 s23 _3
+          zu23 _8 sBo _4 bau4 _7 zu14 _8 sWR _4 s3 _4` },
+  { id: 23, name: 'Rushhour', welt: 'stadt', spuren: 4, speed: 3.1,
+    tip: { icon: '🚗', text: 'Viel Verkehr! Überhol die Autos.' },
+    seq: `_4 s2 _4 c1 _6 s34 _3 c3r _6 c1 _6 sWL _4 c14 _6 zu34 _8 c2l _6 s23 _3
+          c23 _6 bau12 _7 c12 _6 sWR _4 c34 _6 s2 _4` },
+  { id: 24, name: 'Küstenstraße', welt: 'strand', licht: 'abend', spuren: 4, speed: 3.15,
+    tip: { icon: '🌅', text: 'Vierspurig am Meer entlang!' },
+    seq: `_4 sWR _4 vers _8 c1 _6 s34 _3 versR _8 c4 _6 sBo _4 gasse _7 zu12 _8 c23 _6
+          s21 _3 dop _8 c3 _6 gasseL _7 sWL _4 s3 _4` },
+  { id: 25, name: 'Surferbucht', welt: 'strand', licht: 'abend', spuren: 4, speed: 3.2,
+    tip: { icon: '🏄', text: 'Nur eine Lücke? Folge den Sternen!' },
+    seq: `_4 s3 _4 tor3 _8 s32 _3 tor2 _8 c14 _6 sWR _4 tor4 _8 c2 _6 s21 _3 tor1 _8 sla _8
+          c34 _6 dop _8 s3 _3 tor3 _8 s2 _4` },
+  { id: 26, name: 'Palmenring', welt: 'strand', licht: 'abend', spuren: 4, speed: 3.3,
+    tip: { icon: '🌴', text: 'Slalom durch die Hütchen!' },
+    seq: `_4 sWL _4 sla _8 c2 _6 sBo _4 slaR _8 kol _6 s3 _3 zu14 _8 c1 _6 vers _8
+          c4 _6 sla _8 s3 _4` },
+  { id: 27, name: 'Sonnenfinale', welt: 'strand', licht: 'abend', spuren: 4, speed: 3.35,
+    tip: { icon: '🌞', text: 'Gleich wird es Nacht!' },
+    seq: `_4 s2 _4 kolL _6 sWR _4 tor4 _8 c12 _6 gasse _7 versR _8 cK _6 dop _8
+          kol _6 slaR _8 c14 _6 zu23 _8 tor1 _8 s1 _4` },
+  { id: 28, name: 'Hafenring', welt: 'hafen', licht: 'nacht', spuren: 4, speed: 3.4,
+    tip: { icon: '⚓', text: 'Vier Spuren durch den Hafen!' },
+    seq: `_4 sWR _4 c4 _6 bau1 _7 s34 _3 kol _6 zu34 _8 sWL _4 tor2 _8 c3 _6 gasse _7
+          vers _8 c14 _6 sla _8 s3 _3 dop _8 s2 _4` },
+  { id: 29, name: 'Kranbahn', welt: 'hafen', licht: 'nacht', spuren: 4, speed: 3.5,
+    tip: { icon: '🏗️', text: 'Kisten, Kegel und Kolonnen!' },
+    seq: `_4 s2 _4 kolL _6 tor1 _8 sBo _4 c23 _6 bau34 _7 slaR _8 c1 _6 s34 _3 zu12 _8
+          kol _6 versR _8 gasseL _7 cK _6 tor4 _8 s4 _4` },
+  { id: 30, name: 'Große Hafenrunde', welt: 'hafen', licht: 'nacht', spuren: 4, speed: 3.6,
+    tip: { icon: '🏆', text: 'Die allergrößte Sternenfahrt!' },
+    seq: `_4 sWR _4 kol _6 dop _8 c14 _6 tor3 _8 sla _8 kolL _6 gasse _7 c4 _6
+          vers _8 tor2 _8 c23 _6 slaR _8 zu14 _8 s2 _4` }
 ];
 
-export const LEVELS = DEFS.map((d) => buildLevel({ vorlauf: 6, auslauf: 6, ...d }, C));
+export const LEVELS = DEFS.map((d) => buildLevel({ vorlauf: 6, auslauf: 6, ...d }, d.spuren === 4 ? C4 : C));
 export const LEVEL_COUNT = LEVELS.length;
 export const CHUNKS = C;
+export const CHUNKS4 = C4;

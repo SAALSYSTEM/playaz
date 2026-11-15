@@ -1,7 +1,7 @@
 // Neon Coast – Sternenfahrt: Regeln, Fahrt, Kollisionen, Spielstand (ohne DOM, in Node testbar).
 // Grundsatz für Kinder ab 5: kein Game-over. Eine Berührung macht nur „Hoppla“: kurz langsamer, kurz unverwundbar.
 //
-// Welt: x = Querlage in Spurbreiten (Spurmitten -1, 0, 1), y = Fahrstrecke in Spurbreiten (nach vorn).
+// Welt: x = Querlage in Spurbreiten (Spurmitten -1, 0, 1; bei 4 Spuren -1.5, -0.5, 0.5, 1.5), y = Fahrstrecke in Spurbreiten (nach vorn).
 // Die Kamera zeigt immer mindestens VIS_MIN Spurbreiten vor dem Auto (game.js passt den Maßstab an).
 
 export const STORE = 'sternenfahrt.v1';
@@ -31,46 +31,56 @@ export const AUTOS = {
   pink: { name: 'Pinke Rakete', ab: 3, img: 'auto-pink' },        // frei nach Level 3
   orange: { name: 'Orange Blitz', ab: 6, img: 'auto-orange' },    // frei nach Level 6
   lila: { name: 'Lila Limousine', ab: 12, img: 'verkehr-lila' },  // frei nach Level 12
-  taxi: { name: 'Sonnen-Taxi', ab: 16, img: 'verkehr-taxi' }      // frei nach Level 16
+  taxi: { name: 'Sonnen-Taxi', ab: 16, img: 'verkehr-taxi' },     // frei nach Level 16
+  pickup: { name: 'Strand-Pickup', ab: 23, img: 'auto-pickup' },  // frei nach Level 23
+  surfbus: { name: 'Surf-Bus', ab: 27, img: 'auto-van' }           // frei nach Level 27
 };
 export const AUTO_IDS = Object.keys(AUTOS);
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+// Spuren eines Levels (3 oder 4) und ihre Mitten in Spurbreiten
+export const spurenVon = (lv) => (lv && lv.spuren) || 3;
+export const laneXs = (n) => Array.from({ length: n }, (_, i) => i - (n - 1) / 2);
+// Startspur: Mitte bei 3 Spuren, rechte Mitte bei 4 Spuren
+const startX = (n) => (n % 2 ? 0 : 0.5);
 const smooth = (k) => k * k * (3 - 2 * k);
 
 // ---------- Level aus Bausteinen ----------
 // Ein Baustein: Zeilen von oben nach unten (so wie man sie auf dem Bildschirm sieht), je Zeile 3 Spuren.
 // '.' frei, '*' Stern, 'k' Leitkegel, 'b' Bake, 'a' Absperrung, 'c' langsames Auto (Zeile = wo man es einholt)
+// Bei `spuren: 4` hat jede Zeile 4 Zeichen.
 export function buildLevel(def, chunks) {
-  const rows = [];
+  const n = def.spuren || 3, xs = laneXs(n);
+  const rows = [], free = '.'.repeat(n);
   for (const tok of def.seq.trim().split(/\s+/)) {
-    if (/^_\d+$/.test(tok)) { for (let i = 0; i < Number(tok.slice(1)); i++) rows.push('...'); continue; }
+    if (/^_\d+$/.test(tok)) { for (let i = 0; i < Number(tok.slice(1)); i++) rows.push(free); continue; }
     const c = chunks[tok];
     if (!c) throw new Error(`Level ${def.id}: unbekannter Baustein ${tok}`);
     for (let i = c.length - 1; i >= 0; i--) rows.push(c[i]);
   }
   const objs = [];
   rows.forEach((r, i) => {
-    if (r.length !== 3) throw new Error(`Level ${def.id}: Zeile „${r}“ braucht 3 Zeichen`);
-    for (let l = 0; l < 3; l++) {
+    if (r.length !== n) throw new Error(`Level ${def.id}: Zeile „${r}“ braucht ${n} Zeichen`);
+    for (let l = 0; l < n; l++) {
       const ch = r[l];
       if (ch === '.') continue;
       const y = def.vorlauf + i;
-      if (ch === '*') objs.push({ kind: 'stern', lane: l - 1, y });
-      else if (CHAR_KIND[ch]) objs.push({ kind: CHAR_KIND[ch], lane: l - 1, y });
+      if (ch === '*') objs.push({ kind: 'stern', lane: xs[l], y });
+      else if (CHAR_KIND[ch]) objs.push({ kind: CHAR_KIND[ch], lane: xs[l], y });
       else throw new Error(`Level ${def.id}: unbekanntes Zeichen ${ch}`);
     }
   });
   const length = def.vorlauf + rows.length + def.auslauf;
-  return { ...def, objs, length, stars: objs.filter((o) => o.kind === 'stern').length };
+  return { ...def, spuren: n, objs, length, stars: objs.filter((o) => o.kind === 'stern').length };
 }
 
 // ---------- Fahrt ----------
 export function newRun(lv, opts = {}) {
   const tut = !!(lv.tutorial && opts.tutorial !== false);
+  const n = spurenVon(lv), x = startX(n);
   const st = {
-    lv, t: 0, acc: 0, p: 0, v: 0, ramp: 0,
-    target: 0, x: 0, x0: 0, x1: 0, k: 1, dur: 0,
+    lv, t: 0, acc: 0, p: 0, v: 0, ramp: 0, rand: (n - 1) / 2,
+    target: x, x, x0: x, x1: x, k: 1, dur: 0,
     phase: tut ? 'links' : 'fahrt', offset: tut ? null : 0, tutAt: 0, tutStars: 0,
     objs: [], next: 0, got: 0, gotLevel: 0, hits: 0, inv: 0, slow: 0, endT: 0, done: false,
     events: []
@@ -81,7 +91,7 @@ export function newRun(lv, opts = {}) {
 // Ein Tastendruck = genau eine Spur (auch mitten im Wechsel: dann von der Zielspur aus weiter)
 export function press(st, dir) {
   if (st.done || st.phase === 'ziel') return false;
-  const to = clamp(st.target + dir, -1, 1);
+  const to = clamp(st.target + dir, -st.rand, st.rand);
   if (to === st.target) { st.events.push({ e: 'rand', dir }); return false; }
   st.target = to;
   st.x0 = st.x; st.x1 = to; st.k = 0;
@@ -253,12 +263,17 @@ export function kidBot(opts = {}) {
     };
     const DZ = st.lv.speed * 1.5 + 1;
     let want = st.target;
+    const lanes = laneXs(spurenVon(st.lv));
+    // Spuren dazwischen müssen beim Durchfahren frei sein
+    const durch = (l) => lanes.every((m) => (m - st.target) * (m - l) >= 0 || danger(m) >= 1.2 + (Math.abs(m - st.target) - 1) * 0.6);
     if (danger(st.target) < DZ) {
       let best = -Infinity;
-      for (const l of [-1, 0, 1]) {
+      for (const l of lanes) {
         if (l === st.target) continue;
-        if (Math.abs(l - st.target) === 2 && danger((l + st.target) / 2) < 1.2) continue;
-        const score = Math.min(danger(l), 30) - Math.abs(l - st.target) * 0.5;
+        if (!durch(l)) continue;
+        // bei Gleichstand lieber dorthin, wo gleich Sterne kommen
+        const stern = known.some((o) => o.kind === 'stern' && o.lane === l && o.y - st.p > 0.5 && o.y - st.p < 6) ? 0.3 : 0;
+        const score = Math.min(danger(l), 30) - Math.abs(l - st.target) * 0.5 + stern;
         if (score > best) { best = score; want = l; }
       }
     } else if (greedy) {

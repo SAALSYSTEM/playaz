@@ -3,7 +3,7 @@
 // Straße, Markierungen, Leitkegel, Sterne, Ziel und Effekte werden gezeichnet. Fehlt ein Bild, gibt es einen einfachen Ersatz.
 import { LEVELS, LEVEL_COUNT } from './levels.js';
 import {
-  STORE, VIS_MIN, AUTOS, AUTO_IDS, newRun, advance, press, progress, award,
+  STORE, VIS_MIN, AUTOS, AUTO_IDS, spurenVon, laneXs, newRun, advance, press, progress, award,
   freshSave, sanitizeSave, recordWin, carsUnlocked, totalAwards, parseInvite
 } from './engine.js';
 
@@ -179,14 +179,15 @@ function resize() {
   const ar = app.getBoundingClientRect();
   L.top = Math.max($('hud').getBoundingClientRect().bottom - ar.top + 4, 56);
   L.ctlTop = $('ctl').getBoundingClientRect().top - ar.top;
-  // Maßstab: Straße ca. 56 % der Breite, aber Sicht nach vorn immer zwischen VIS_MIN und 11 Spurbreiten
-  let s = W * 0.56 / 3;
+  // Maßstab: Straße ca. 56 % der Breite (4 Spuren: 66 %), aber Sicht nach vorn immer zwischen VIS_MIN und 11 Spurbreiten
+  const n = spurenVon(lv), want = W * (n === 4 ? 0.66 : 0.56) / n;
+  let s = want;
   for (let i = 0; i < 3; i++) {
     const carY = L.ctlTop - s * 0.8 - 12, ahead = carY - L.top;
-    s = clamp(W * 0.56 / 3, ahead / 11, ahead / VIS_MIN);
+    s = clamp(want, ahead / 11, ahead / VIS_MIN);
   }
-  L.s = s; L.carY = L.ctlTop - s * 0.8 - 12;
-  L.cx = W / 2; L.x0 = W / 2 - 1.5 * s; L.x1 = W / 2 + 1.5 * s;
+  L.s = s; L.carY = L.ctlTop - s * 0.8 - 12; L.n = n;
+  L.cx = W / 2; L.x0 = W / 2 - n / 2 * s; L.x1 = W / 2 + n / 2 * s;
   L.side = L.x0 / s;   // Breite des Randes in Spurbreiten
   L.ahead = (L.carY - L.top) / s;
   makePatterns();
@@ -375,7 +376,7 @@ function drawRoad(X) {
   X.fillRect(L.x1 - s * 0.06 - Math.max(2, s * 0.05), 0, Math.max(2, s * 0.05), H);
   // Leitlinien zwischen den Spuren
   const dl = s * 0.7, gap = s * 0.7, per = dl + gap, off = (st.p * s) % per;
-  for (const x of [-0.5, 0.5]) {
+  for (const x of laneXs(L.n).slice(1).map((m) => m - 0.5)) {
     for (let y = off - per; y < H + per; y += per) rr(X, SX(x) - s * 0.03, y, s * 0.06, dl, s * 0.03), X.fill();
   }
   // Ziel: Schachbrett quer über die Straße
@@ -733,8 +734,11 @@ function openMenu() {
   else { box.hidden = true; $('playLabel').textContent = save.best[1] ? 'Weiterfahren' : 'Losfahren'; }
   kontoHinweis('kontoBoxMenu');
 }
-const WELT = { stadt: 'Stadt', strand: 'Strandpromenade', hafen: 'Hafen', 'stadt-nacht': 'Neonstadt bei Nacht', 'strand-abend': 'Strand im Abendrot', 'hafen-nacht': 'Hafen bei Nacht' };
-const abschnitt = (l) => l.welt + (l.licht ? '-' + l.licht : '');
+const WELT = {
+  stadt: 'Stadt', strand: 'Strandpromenade', hafen: 'Hafen', 'stadt-nacht': 'Neonstadt bei Nacht', 'strand-abend': 'Strand im Abendrot', 'hafen-nacht': 'Hafen bei Nacht',
+  'stadt-4': '4 Spuren · Stadtautobahn', 'strand-abend-4': '4 Spuren · Küstenstraße', 'hafen-nacht-4': '4 Spuren · Hafenring bei Nacht'
+};
+const abschnitt = (l) => l.welt + (l.licht ? '-' + l.licht : '') + (l.spuren === 4 ? '-4' : '');
 function openLevels(from) {
   backTo = from || (mode === 'pause' ? 'pause' : 'start');
   const g = $('levelGrid'); g.innerHTML = '';
@@ -778,6 +782,7 @@ function back() { SFX.click(); if (backTo === 'pause' && st) { setMode('pause');
 function startLevel(n) {
   levelNo = n; lv = LEVELS[n - 1];
   st = newRun(lv, { tutorial: n === 1 && !save.best[1] });
+  resize();   // Straßenbreite hängt von der Zahl der Spuren ab
   segCache.clear(); peds = []; pedNext = 0; parts = []; confetti = []; hopT = -9; randT = -9; hudCache = '';
   // Gehweg gleich zu Beginn belebt
   for (let i = 0; i < 6; i++) { pedNext = 0; st.p = -2 + i * 2.2 - L.ahead - 2; updatePeds(0); }

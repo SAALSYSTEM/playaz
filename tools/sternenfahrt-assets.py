@@ -191,6 +191,12 @@ def main():
         tile.save(OUT / f'{name}.webp', 'WEBP', quality=78, method=6)
         names.append(name)
         previews.append((name, tile.convert('RGBA')))
+    # Zwei Autos aus den Fluchtwagen-Motiven (Neon Coast, gleiche Tafeln): Strand-Pickup und Surf-Bus
+    nc = ROOT / 'public' / 'spiele' / 'neon-coast' / 'img'
+    for name in ('auto-pickup', 'auto-van'):
+        if (nc / f'{name}.webp').exists():
+            shutil.copyfile(nc / f'{name}.webp', OUT / f'{name}.webp')
+            names.insert(3, name) if name == 'auto-pickup' else names.insert(4, name)
     (OUT / 'manifest.json').write_text(json.dumps(names) + '\n')
 
     if (SRC / 'kachel.png').exists():
