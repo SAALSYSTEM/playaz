@@ -67,13 +67,13 @@ export function rang(save) {
 }
 
 export function frisch() {
-  return { v: 1, geld: 0, rekord: 0, autos: ['flitzer'], auto: 'flitzer', erledigt: [], stat: { naechte: 0, sicher: 0, koffer: 0, schrott: 0, entkommen: 0, serie: 0, sterne: 0 }, mute: false, hilfe: 0, tag: 0, tagBest: 0 };
+  return { v: 1, geld: 0, rekord: 0, autos: ['flitzer'], auto: 'flitzer', erledigt: [], stat: { naechte: 0, sicher: 0, koffer: 0, schrott: 0, entkommen: 0, serie: 0, sterne: 0 }, mute: false, hilfe: 0, tag: 0, tagBest: 0, tagGemeldet: 0 };
 }
 const zahl = (v, max = 1e9) => (Number.isFinite(Number(v)) ? Math.max(0, Math.min(max, Math.floor(Number(v)))) : 0);
 export function saeubere(o) {
   const s = frisch();
   if (!o || typeof o !== 'object') return s;
-  s.geld = zahl(o.geld); s.rekord = zahl(o.rekord); s.tag = zahl(o.tag, 99991231); s.tagBest = zahl(o.tagBest);
+  s.geld = zahl(o.geld); s.rekord = zahl(o.rekord); s.tag = zahl(o.tag, 99991231); s.tagBest = zahl(o.tagBest); s.tagGemeldet = zahl(o.tagGemeldet);
   const ids = AUTOS.map((a) => a.id);
   if (Array.isArray(o.autos)) for (const id of o.autos) if (ids.includes(id) && !s.autos.includes(id)) s.autos.push(id);
   s.auto = s.autos.includes(o.auto) ? o.auto : 'flitzer';
