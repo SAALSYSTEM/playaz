@@ -95,6 +95,7 @@
     const favs = window.PlaySaal ? window.PlaySaal.favoriten() : new Set();
     const gesehen = new Set(); let sichtbar = 0;
     const filtert = auswahl !== 'alle';
+    const tipp = document.getElementById('mmTipp'); if (tipp) tipp.hidden = filtert; // MonkeyMatch-Tipp nur ohne Filter
     [hotUl, neuUl, alleUl].forEach((ul) => {
       let n = 0;
       $$('.kachel', ul).forEach((li) => {
