@@ -187,25 +187,30 @@
 .kachel .fav[aria-pressed="true"] svg{fill:currentColor}
 .kachel .fav:focus-visible{outline:3px solid var(--aktion);outline-offset:2px}
 
-/* Tipp zwischen Hot und Neu: eigenes Spiel auf eigener Domain (MonkeyMatch). Bewusst keine Kachel, damit klar ist, dass der Link PlaySaal verlässt. */
+/* Tipp zwischen Hot und Neu: eigenes Spiel auf eigener Domain (MonkeyMatch). Bewusst keine Kachel, damit klar ist, dass der Link PlaySaal verlässt.
+   Handy: Bild links über die volle Höhe, Text und Knopf rechts untereinander. Ab 640 px: Bild | Text | Knopf in einer Zeile. */
 .tipp{margin-top:26px}
-.tipp-in{display:flex;align-items:center;gap:14px;padding:10px 12px 10px 10px;border-radius:22px;background:linear-gradient(100deg,color-mix(in srgb,#0b3d2e 75%,var(--flaeche)) 0%,var(--flaeche) 70%);border:1px solid var(--linie);box-shadow:0 8px 24px rgba(0,0,0,.4);color:var(--text);text-decoration:none}
-.tipp-bild{display:block;width:72px;height:72px;border-radius:16px;object-fit:cover;background:#0b3d2e;flex:none}
-.tipp-text{display:flex;flex-direction:column;min-width:0;flex:1;gap:2px}
-.tipp-label{font-size:13px;font-weight:700;color:var(--marke);letter-spacing:.02em}
-.tipp-text b{font:400 20px/1.1 var(--f-display)}
-.tipp-sub{font-size:14px;color:var(--leise)}
-.tipp-knopf{display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:none;width:52px;height:52px;border-radius:50%;background:var(--aktion);color:var(--basis);font:700 16px/1 var(--f-text)}
-.tipp-knopf svg{width:20px;height:20px;flex:none}
-.tipp-knopf span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
-.tipp-in:hover .tipp-knopf{background:var(--aktion-hover)}
+.tipp-in{display:grid;grid-template-columns:clamp(104px,32%,150px) minmax(0,1fr);grid-template-areas:"bild text" "bild knopf";align-items:center;column-gap:10px;border-radius:22px;overflow:hidden;background:linear-gradient(90deg,#0f2a22 0%,#151a22 50%,var(--flaeche) 100%);border:1px solid var(--linie);box-shadow:0 8px 24px rgba(0,0,0,.4);color:var(--text);text-decoration:none}
+.tipp-bild{grid-area:bild;align-self:stretch;display:block;width:100%;height:0;min-height:100%;object-fit:cover;object-position:left center;-webkit-mask-image:linear-gradient(90deg,#000 55%,transparent);mask-image:linear-gradient(90deg,#000 55%,transparent)}
+.tipp-text{grid-area:text;display:flex;flex-direction:column;align-items:flex-start;gap:6px;min-width:0;padding:14px 14px 0 0}
+.tipp-kopf{display:flex;align-items:center;flex-wrap:wrap;gap:6px 10px}
+.tipp-pill{font:800 11px/1 var(--f-text);letter-spacing:.08em;text-transform:uppercase;color:var(--marke);background:color-mix(in srgb,var(--marke) 14%,transparent);border:1px solid color-mix(in srgb,var(--marke) 45%,transparent);border-radius:999px;padding:5px 10px}
+.tipp-label{font-size:13px;color:var(--leise)}
+.tipp-text b{font:800 21px/1.12 var(--f-text);letter-spacing:-.01em}
+.tipp-sub{font-size:13px;color:var(--leise)}
+.tipp-knopf{grid-area:knopf;justify-self:start;display:inline-flex;align-items:center;gap:8px;height:42px;padding:0 18px;margin:10px 0 14px;border-radius:999px;background:linear-gradient(180deg,#FFB21C,#FF9200);color:var(--basis);font:800 16px/1 var(--f-text);box-shadow:0 6px 16px rgba(255,146,0,.25)}
+.tipp-knopf svg{width:18px;height:18px;flex:none}
+.tipp-in:hover .tipp-knopf{background:linear-gradient(180deg,#FFC24D,#FFA01C)}
 @media (min-width:640px){
   .tipp{margin-top:36px}
-  .tipp-in{padding:14px 16px 14px 14px;gap:18px}
-  .tipp-bild{width:88px;height:88px}
-  .tipp-text b{font-size:26px}.tipp-sub{font-size:15px}
-  .tipp-knopf{width:auto;height:50px;padding:0 22px;border-radius:999px}
-  .tipp-knopf span{position:static;width:auto;height:auto;overflow:visible;clip:auto}
+  .tipp-in{grid-template-columns:clamp(180px,30%,280px) minmax(0,1fr) auto;grid-template-areas:"bild text knopf";min-height:200px;column-gap:20px;border-radius:26px}
+  .tipp-text{padding:22px 0;gap:10px}
+  .tipp-pill{font-size:13px;padding:6px 12px}
+  .tipp-label{font-size:15px}
+  .tipp-text b{font-size:clamp(26px,3.4vw,36px)}
+  .tipp-sub{font-size:16px}
+  .tipp-knopf{height:56px;padding:0 26px;margin:0 24px 0 0;font-size:19px}
+  .tipp-knopf svg{width:20px;height:20px}
 }
 </style>
 
@@ -265,9 +270,9 @@
 
     <aside class="tipp" id="mmTipp" aria-label="Auch von uns: MonkeyMatch">
       <a class="tipp-in" href="https://monkeymatch.lol/?ref=playsaal" target="_blank" rel="noopener">
-        <img class="tipp-bild" src="/bilder/monkeymatch-tipp.webp" width="176" height="176" alt="" loading="lazy" decoding="async">
-        <span class="tipp-text"><span class="tipp-label">Auch von uns · MonkeyMatch</span><b>Affen-Duell</b><span class="tipp-sub">Gegen Freunde oder den Computer · ohne Anmeldung</span></span>
-        <span class="tipp-knopf"><span>Jetzt spielen</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        <img class="tipp-bild" src="/bilder/monkeymatch-banner.webp" width="300" height="309" alt="" loading="lazy" decoding="async">
+        <span class="tipp-text"><span class="tipp-kopf"><span class="tipp-pill">MonkeyMatch</span><span class="tipp-label">Auch von uns</span></span><b>Steine schieben.<br>Affen klauen.</b><span class="tipp-sub">1 gegen 1 im Browser · ohne Anmeldung</span></span>
+        <span class="tipp-knopf">Spielen <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M9 7h8v8" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       </a>
     </aside>
 
