@@ -21,7 +21,9 @@ export const C = {
   nbody: 200,       // so nah am Langhals-Körper wird das Blatt gefressen
   lower: 90,        // Schritte, bis der Langhals seinen Hals abgelegt hat
   hole: 40,         // Schritte durch die Zauber-Baumhöhle (hinein + heraus)
-  rockR: 45, push: 70, gate: 40 // Felsbrocken: Radius, Abstand Dino–Stein beim Schieben, halbe Breite des Rankentors
+  rockR: 45, push: 70, gate: 40, // Felsbrocken: Radius, Abstand Dino–Stein beim Schieben, halbe Breite des Rankentors
+  skid: 480, iceOut: 20, pile: 60, // Eis: Rutschtempo, so weit schlittert er übers Eisende hinaus; Schneehaufen: Abstand beim Anhalten
+  ldwell: 120, lz: 50, lgap: 70     // Aufzug: Halt an jedem Ende (2 s), Einstiegsbereich unten, halbe Breite des Schachts oben
 };
 export const STORE = 'dinoleiter.v1';
 
@@ -35,13 +37,14 @@ export const segOf = (lv, f, x) => (lv.floors[f] || []).find(([a, b]) => x >= a 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const arr = (lv, k) => lv[k] || [];
 // Plattform-Stück unter x; ein satter Langhals verbindet die Stücke links und rechts seiner Lücke (open(i) = Hals liegt)
-// (filled(q) = Grube q ist mit einem Felsbrocken gefüllt)
-export function segAt(lv, f, x, open = () => false, filled = () => false) {
+// (filled(q) = Grube q ist mit einem Felsbrocken gefüllt, docked(i) = Aufzug i steht oben im Schacht)
+export function segAt(lv, f, x, open = () => false, filled = () => false, docked = () => false) {
   const out = [];
   for (const sg of lv.floors[f] || []) {
     const last = out[out.length - 1];
     if (last && (arr(lv, 'necks').some((n, i) => n.f === f && n.a === last[1] && n.b === sg[0] && open(i))
-      || arr(lv, 'pits').some((pt, q) => pt.f === f && pt.a === last[1] && pt.b === sg[0] && filled(q)))) last[1] = sg[1]; else out.push([...sg]);
+      || arr(lv, 'pits').some((pt, q) => pt.f === f && pt.a === last[1] && pt.b === sg[0] && filled(q))
+      || arr(lv, 'lifts').some((li, i) => li.f + li.up === f && li.x - C.lgap === last[1] && li.x + C.lgap === sg[0] && docked(i)))) last[1] = sg[1]; else out.push([...sg]);
   }
   return out.find(([a, b]) => x >= a - 0.5 && x <= b + 0.5) || null;
 }
@@ -143,6 +146,27 @@ export function pushRocks(lv, f, x, nx, rk, open = () => false, tol = 20) {
   return { nx, rk: out };
 }
 
+// Eis: Bereiche [a, b] einer Etage. Wer darauf losläuft, schlittert, bis ein Schneehaufen, das Plattformende oder
+// das Eisende (plus C.iceOut) kommt. Schneehaufen sind kleine Wände.
+export const iceAt = (lv, f, x) => arr(lv, 'ice').find((r) => r.f === f && x >= r.a && x <= r.b) || null;
+function pileClamp(lv, f, x, a, b) {
+  for (const p of arr(lv, 'piles')) { if (p.f !== f) continue; if (x <= p.x) b = Math.min(b, p.x - C.pile); else a = Math.max(a, p.x + C.pile); }
+  return [a, b];
+}
+const skidLim = (lv, f, x, dir, lo, hi) => { const r = iceAt(lv, f, x); return dir > 0 ? Math.min(hi, r.b + C.iceOut) : Math.max(lo, r.a - C.iceOut); };
+
+// Lianen-Aufzug bei x zwischen Etage f (unten, auf der Plattform) und f + up (oben, in einem Schacht der Breite 2 · C.lgap).
+// Fester Takt wie die Fahr-Brücke: unten halten, hochfahren, oben halten, runterfahren.
+const liftCycle = (li, clock) => ({ p: (clock + (li.offset || 0)) % li.period, m: (li.period - 2 * C.ldwell) / 2 });
+export const liftPhase = (li, clock) => liftCycle(li, clock).p;
+// -1: steht unten, 1: steht oben, 0: fährt
+export function liftDock(li, clock) { const { p, m } = liftCycle(li, clock), D = C.ldwell; return p < D ? -1 : p >= D + m && p < 2 * D + m ? 1 : 0; }
+// 0 = unten … 1 = oben
+export function liftPos(li, clock) {
+  const { p, m } = liftCycle(li, clock), D = C.ldwell, e = (v) => v * v * (3 - 2 * v);
+  return p < D ? 0 : p < D + m ? e((p - D) / m) : p < 2 * D + m ? 1 : 1 - e((p - 2 * D - m) / m);
+}
+
 // Wechsel-Monster: schläft, blinzelt kurz vor dem Aufwachen, ist dann wach und versperrt den Weg.
 export const wakerPhase = (w, clock) => (clock + (w.offset || 0)) % w.period;
 export const wakerAwake = (w, clock) => wakerPhase(w, clock) >= w.period - C.wake;
@@ -159,7 +183,8 @@ export function newState(lv) {
     stun: 0, nudge: 0, nudgeV: 0, events: [], lastSnore: -999, lastLocked: -999, lastGrumble: -999,
     ride: -1, off: 0, slide: -1, sp: 0,
     fly: -1, bs: arr(lv, 'balloons').map(() => ({ end: 0, t0: -1e9 })), leaf: -1, ltaken: arr(lv, 'leaves').map(() => false), nfed: arr(lv, 'necks').map(() => -1),
-    hole: -1, hp: 0, rk: freshRocks(lv), lit: arr(lv, 'lamps').map(() => false)
+    hole: -1, hp: 0, rk: freshRocks(lv), lit: arr(lv, 'lamps').map(() => false),
+    skid: 0, skidTo: 0, lift: -1, liftUp: 0, gift: false
   };
 }
 export const gotAll = (s) => s.got.every(Boolean);
@@ -173,18 +198,30 @@ function leaveLadder(s, f) {
 // Ein Simulationsschritt. ix: -1 links … 1 rechts, iy: -1 runter … 1 hoch (Joystick, Länge ≤ 1).
 export function step(s, ix = 0, iy = 0) {
   const lv = s.lv;
+  const moved = s.speed > 0; // stand er im letzten Schritt still? (unten steigt nur ein, wer wartet)
   s.clock++; s.speed = 0; s.climbing = 0; s.pushing = 0;
   if (s.done) return s;
   if (s.started) s.time++;
   arr(lv, 'wakers').forEach((w, i) => { if (wakerAwake(w, s.clock) && !wakerAwake(w, s.clock - 1)) ev(s, 'wake', { m: i }); });
   if (s.stun > 0) {
-    if (--s.stun === 0) { s.f = s.cp.f; s.x = s.cp.x; s.ladder = -1; s.p = 0; s.ride = -1; s.slide = -1; s.fly = -1; s.hole = -1; ev(s, 'respawn'); }
+    if (--s.stun === 0) { s.f = s.cp.f; s.x = s.cp.x; s.ladder = -1; s.p = 0; s.ride = -1; s.slide = -1; s.fly = -1; s.hole = -1; s.skid = 0; s.lift = -1; ev(s, 'respawn'); }
     return s;
   }
   if (!s.started && Math.hypot(ix, iy) > 0.2) s.started = true;
   if (s.slide >= 0) return slideTick(s);
   if (s.fly >= 0) return flyTick(s);
   if (s.hole >= 0) return holeTick(s);
+  if (s.lift >= 0) return liftTick(s);
+  // Aufzug fährt ab: unten nimmt er mit, wer im Korb wartet; oben jeden, der im Schacht steht
+  if (s.ladder < 0) arr(lv, 'lifts').forEach((li, i) => {
+    if (s.lift >= 0) return;
+    const { p, m } = liftCycle(li, s.clock), D = C.ldwell;
+    if (p === D && s.f === li.f && Math.abs(s.x - li.x) <= C.lz && !moved && !s.skid) { s.lift = i; s.liftUp = 1; }
+    else if (s.f === li.f + li.up && Math.abs(s.x - li.x) < C.lgap && liftDock(li, s.clock) !== 1) { s.lift = i; s.liftUp = -1; }
+    if (s.lift >= 0) { s.x = li.x; s.skid = 0; ev(s, 'lift', { i, up: s.liftUp > 0 }); }
+  });
+  if (s.lift >= 0) return s;
+  if (s.skid) return skidTick(s);
   if (s.ride >= 0) s.x = bridgeLo(lv.bridges[s.ride], s.clock) + s.off; // die Brücke nimmt den Dino mit
   // Wach-Monster: wer drinsteht, wenn es aufwacht, wird sanft hinausgeschoben
   if (s.ladder < 0 && s.ride < 0) {
@@ -275,6 +312,7 @@ export function step(s, ix = 0, iy = 0) {
         s.pushing = 1;
       }
       s.x = pr.nx;
+      if (iceAt(lv, s.f, s.x)) { const [lo, hi] = walkRange(s); s.skid = dir; s.skidTo = skidLim(lv, s.f, s.x, dir, lo, hi); ev(s, 'skid'); }
     }
     updateRide(s);
   }
@@ -286,6 +324,24 @@ function slideTick(s) {
   const sl = s.lv.slides[s.slide];
   s.sp += 1 / C.slide;
   if (s.sp >= 1) { const x = slideExit(s.lv, sl); s.f = sl.f; s.x = x; s.slide = -1; s.sp = 0; s.cp = { f: sl.f, x }; ev(s, 'arrive'); touch(s); }
+  return s;
+}
+
+function skidTick(s) {
+  const d = s.skid; s.face = d; s.speed = C.skid;
+  s.x = d > 0 ? Math.min(s.x + C.skid / HZ, s.skidTo) : Math.max(s.x - C.skid / HZ, s.skidTo);
+  if (s.x === s.skidTo) { s.skid = 0; ev(s, 'skidstop'); }
+  touch(s);
+  return s;
+}
+
+function liftTick(s) {
+  const li = s.lv.lifts[s.lift], { p, m } = liftCycle(li, s.clock), D = C.ldwell;
+  if (s.liftUp > 0 ? p === D + m : p === 0) {
+    s.f = s.liftUp > 0 ? li.f + li.up : li.f; s.x = li.x; s.lift = -1;
+    if (s.liftUp < 0) s.cp = { f: s.f, x: s.x }; // oben steht man im Schacht: dort kein Rücksetzpunkt
+    ev(s, 'arrive', { lift: true }); touch(s);
+  }
   return s;
 }
 
@@ -310,8 +366,10 @@ function walkRange(s) {
     const br = bs[s.ride], lo = bridgeLo(br, s.clock), d = bridgeDock(br, s.clock);
     return [d === -1 ? segOf(lv, s.f, br.a)[0] + C.edge : lo + 8, d === 1 ? segOf(lv, s.f, br.b)[1] - C.edge : lo + C.bw - 8];
   }
-  const seg = segAt(lv, s.f, s.x, (i) => neckOpen(s, i), (q) => pitFilled(s.rk, q));
+  const seg = segAt(lv, s.f, s.x, (i) => neckOpen(s, i), (q) => pitFilled(s.rk, q), (i) => liftDock(lv.lifts[i], s.clock) === 1);
+  if (!seg) return [s.x, s.x];
   let [a, b] = gateClamp(lv, s.f, s.x, s.rk, seg, seg[0] + C.edge, seg[1] - C.edge);
+  [a, b] = pileClamp(lv, s.f, s.x, a, b);
   bs.forEach((br) => {
     if (br.f !== s.f) return;
     const lo = bridgeLo(br, s.clock), d = bridgeDock(br, s.clock);
@@ -336,6 +394,7 @@ function touch(s) {
   arr(lv, 'leaves').forEach((o, i) => { if (s.carry < 0 && s.leaf < 0 && !s.ltaken[i] && near(o, C.pick)) { s.ltaken[i] = true; s.leaf = i; ev(s, 'leaf', { i }); } });
   arr(lv, 'necks').forEach((nk, i) => { if (s.leaf >= 0 && s.nfed[i] < 0 && nk.f === s.f && neckBody(nk, s.x)) { s.nfed[i] = s.clock; s.leaf = -1; ev(s, 'munch', { i }); } });
   arr(lv, 'lamps').forEach((o, i) => { if (!s.lit[i] && near(o, C.pick + 20)) { s.lit[i] = true; ev(s, 'lamp', { i }); } });
+  if (lv.gift && !s.gift && near(lv.gift, C.pick)) { s.gift = true; ev(s, 'gift'); }
   arr(lv, 'levers').forEach((o, i) => { if (!s.on[i] && near(o, C.pick)) { s.on[i] = true; s.vis[o.ladder] = true; ev(s, 'lever', { i, ladder: o.ladder }); } });
   for (const n of arr(lv, 'nuts')) if (near(n, C.nut) && nutDanger(n, s.clock)) { s.stun = C.stun; s.resets++; ev(s, 'bonk'); return; }
   const top = lv.floors.length - 1;
@@ -351,7 +410,7 @@ export function validate(lv) {
   if (n < 1 || n > 6) err.push('1 bis 6 Etagen');
   lv.floors.forEach((segs, f) => { segs.forEach(([a, b], i) => { if (a < 20 || b > 880 || b - a < 120) err.push(`Etage ${f}: Segment ${a}-${b}`); if (i && a <= segs[i - 1][1] + 40) err.push(`Etage ${f}: Lücke zu klein`); }); });
   if (lv.friends.length !== 3) err.push('genau 3 Freunde');
-  const pts = [['Start', lv.start], ['Tür', { f: n - 1, x: lv.door.x }], ...lv.friends.map((o) => ['Freund', o]), ...arr(lv, 'fruits').map((o) => ['Frucht', o]), ...arr(lv, 'levers').map((o) => ['Hebel', o]), ...arr(lv, 'leaves').map((o) => ['Blatt', o])];
+  const pts = [['Start', lv.start], ['Tür', { f: n - 1, x: lv.door.x }], ...lv.friends.map((o) => ['Freund', o]), ...arr(lv, 'fruits').map((o) => ['Frucht', o]), ...arr(lv, 'levers').map((o) => ['Hebel', o]), ...arr(lv, 'leaves').map((o) => ['Blatt', o]), ...(lv.gift ? [['Geschenk', lv.gift]] : [])];
   for (const [k, o] of pts) if (!(o.f >= 0 && o.f < n) || !inSeg(o.f, o.x)) err.push(`${k} ${o.f}/${o.x} liegt nicht auf einer Plattform`);
   lv.ladders.forEach((l, i) => {
     if (!(l.f >= 0 && l.f < n - 1)) err.push(`Leiter ${i}: Etage`);
@@ -377,7 +436,30 @@ export function validate(lv) {
   const ends = (f) => [...lv.ladders.filter((l) => l.f === f || l.f + 1 === f).map((l) => l.x),
     ...arr(lv, 'slides').flatMap((sl) => (sl.f + 1 === f ? [sl.x] : sl.f === f ? [slideExit(lv, sl)] : [])),
     ...arr(lv, 'balloons').flatMap((bl) => (bl.f === f ? [bl.x] : bl.f + bl.up === f ? [bl.to] : [])),
-    ...arr(lv, 'holes').filter((h) => h.f === f).map((h) => h.x)];
+    ...arr(lv, 'holes').filter((h) => h.f === f).map((h) => h.x), ...arr(lv, 'lifts').filter((li) => li.f === f).map((li) => li.x)];
+  arr(lv, 'ice').forEach((r, i) => {
+    const sg = segOf(lv, r.f, r.a);
+    if (!sg || sg !== segOf(lv, r.f, r.b) || r.a % 10 || r.b % 10 || r.b - r.a < 100) err.push(`Eis ${i}: 10er-Raster, mindestens 100 breit, auf einem Plattform-Stück`);
+    arr(lv, 'ice').forEach((o, j) => { if (j > i && o.f === r.f && o.a < r.b + 80 && o.b > r.a - 80) err.push(`Eis ${i}/${j} zu nah`); });
+    for (const k of ['monsters', 'wakers', 'nuts', 'rocks', 'gates', 'plates', 'necks', 'bridges', 'pits']) if (arr(lv, k).some((o) => o.f === r.f)) err.push(`Eis ${i}: kein ${k} auf derselben Etage`);
+  });
+  arr(lv, 'piles').forEach((p, i) => {
+    if (!(p.f >= 0 && p.f < n) || !inSeg(p.f, p.x, 30) || p.x % 10) err.push(`Schneehaufen ${i}: Platz auf der Plattform`);
+    for (const [k, o] of pts) if (o.f === p.f && Math.abs(o.x - p.x) < C.pile + 10) err.push(`Schneehaufen ${i}: ${k} zu nah`);
+  });
+  arr(lv, 'lifts').forEach((li, i) => {
+    const t = li.f + li.up, segs = lv.floors[t] || [];
+    if (!(li.up === 1 || li.up === 2) || !(li.f >= 0 && t < n)) { err.push(`Aufzug ${i}: Etagen`); return; }
+    if (!inSeg(li.f, li.x) || li.x % 10) err.push(`Aufzug ${i}: unten keine Plattform`);
+    if (!segs.some(([, e]) => e === li.x - C.lgap) || !segs.some(([a]) => a === li.x + C.lgap)) err.push(`Aufzug ${i}: oben braucht er den Schacht ${li.x - C.lgap}-${li.x + C.lgap}`);
+    for (let g = li.f + 1; g < t; g++) if ((lv.floors[g] || []).some(([a, b]) => a < li.x + 90 && b > li.x - 90)) err.push(`Aufzug ${i}: auf Etage ${g} keine Lücke`);
+    if (!(li.period >= 2 * C.ldwell + 120 && (li.period - 2 * C.ldwell) % 2 === 0)) err.push(`Aufzug ${i}: Takt`);
+    if (iceAt(lv, li.f, li.x)) err.push(`Aufzug ${i}: nicht auf Eis`);
+    for (const [k, o] of pts) if ((o.f === li.f || o.f === t) && Math.abs(o.x - li.x) < 110 && k !== 'Start') err.push(`Aufzug ${i}: ${k} zu nah`);
+    for (const k of ['monsters', 'wakers', 'nuts']) if (arr(lv, k).some((o) => (o.f === li.f || o.f === t) && Math.abs(o.x - li.x) < 200)) err.push(`Aufzug ${i}: ${k} zu nah`);
+  });
+  arr(lv, 'piles').forEach((p, i) => { if (lv.ladders.some((l) => (l.f === p.f || l.f + 1 === p.f) && Math.abs(l.x - p.x) < C.pile + 10)) err.push(`Schneehaufen ${i}: Leiter zu nah`); });
+  arr(lv, 'lifts').forEach((li, i) => lv.ladders.forEach((l, j) => { if (l.f === li.f && Math.abs(l.x - li.x) < 130) err.push(`Aufzug ${i}: Leiter ${j} zu nah`); }));
   arr(lv, 'holes').forEach((h, i) => {
     if (!(h.f >= 0 && h.f < n) || !inSeg(h.f, h.x)) err.push(`Höhle ${i}: liegt nicht auf einer Plattform`);
     if (arr(lv, 'holes').filter((o) => o.c === h.c).length !== 2) err.push(`Höhle ${i}: Farbe ${h.c} braucht genau zwei Höhlen`);
@@ -483,7 +565,8 @@ function graph(lv, twoWay = false) {
     const out = [], nOpen = (i) => st.nf >> i & 1;
     const seg = segAt(lv, st.f, st.x, nOpen, (q) => pitFilled(st.rk, q));
     if (seg) {
-      const [lo, hi] = gateClamp(lv, st.f, st.x, st.rk, seg, seg[0] + C.edge, seg[1] - C.edge);
+      let [lo, hi] = gateClamp(lv, st.f, st.x, st.rk, seg, seg[0] + C.edge, seg[1] - C.edge);
+      [lo, hi] = pileClamp(lv, st.f, st.x, lo, hi);
       for (const dir of [-1, 1]) {
         let nx = clamp(st.x + dir * cell, lo, hi);
         if (nx === st.x) continue;
@@ -497,6 +580,13 @@ function graph(lv, twoWay = false) {
         const pr = pushRocks(lv, st.f, st.x, nx, st.rk, nOpen);
         if (pr.nx === st.x) continue;
         ns.x = pr.nx; ns.rk = pr.rk.map(({ back, ...r }) => r);
+        if (iceAt(lv, st.f, ns.x)) { // schlittern bis zum Halt, dabei alles einsammeln, woran er vorbeikommt
+          const to = skidLim(lv, st.f, ns.x, dir, lo, hi), x0 = st.x;
+          ns = apply(ns);
+          while (ns.x !== to) ns = apply({ ...ns, x: dir > 0 ? Math.min(ns.x + cell, to) : Math.max(ns.x - cell, to) });
+          out.push([Math.abs(cell) / C.walk + Math.abs(to - x0) / C.skid, ns]);
+          continue;
+        }
         out.push([Math.abs(pr.nx - st.x) / C.walk / (pr.rk !== st.rk ? 0.6 : 1), apply(ns)]);
       }
     }
@@ -520,6 +610,19 @@ function graph(lv, twoWay = false) {
     arr(lv, 'holes').forEach((h, i) => {
       if (h.f !== st.f || Math.abs(h.x - st.x) > C.grab) return;
       const o = lv.holes[holePartner(lv, i)]; out.push([C.hole / HZ + 0.2, apply({ ...st, f: o.f, x: o.x, via: 'h' + i })]);
+    });
+    // Aufzug: unten einsteigen und hoch; oben im Schacht aussteigen, wieder runterfahren oder hinüberlaufen, solange er hält
+    arr(lv, 'lifts').forEach((li, i) => {
+      const t = li.f + li.up, ride = li.period * 0.75 / HZ, L = li.x - C.lgap - C.edge, R = li.x + C.lgap + C.edge;
+      if (st.f === li.f && Math.abs(st.x - li.x) <= C.lz) out.push([ride, apply({ ...st, f: t, x: li.x, via: 'l' + i })]);
+      if (st.f !== t) return;
+      if (st.x === li.x) {
+        out.push([ride, apply({ ...st, f: li.f, x: li.x, via: 'l' + i })]);
+        for (const x of [L, R]) out.push([0.4, apply({ ...st, x, via: 'L' + i })]);
+      } else if (st.x === L || st.x === R) {
+        out.push([li.period / 2 / HZ, apply({ ...st, x: st.x === L ? R : L, via: 'L' + i })]);
+        out.push([li.period / HZ, apply({ ...st, f: li.f, x: li.x, via: 'l' + i })]);
+      }
     });
     // Fahr-Brücke: von einem Lückenrand zum anderen, Kosten = im Schnitt warten + fahren
     arr(lv, 'bridges').forEach((br, i) => {
@@ -580,7 +683,9 @@ export function playPath(lv, path, maxSeconds = 300) {
   const plan = [];
   for (let i = 1; i < path.length; i++) {
     const a = path[i - 1], b = path[i];
-    if (b.via && b.via[0] === 'h') plan.push({ hole: Number(b.via.slice(1)), f: b.f, x: b.x });
+    if (b.via && b.via[0] === 'l') plan.push({ lift: Number(b.via.slice(1)), f: b.f, x: b.x });
+    else if (b.via && b.via[0] === 'L') plan.push({ lstep: Number(b.via.slice(1)), f: b.f, x: b.x });
+    else if (b.via && b.via[0] === 'h') plan.push({ hole: Number(b.via.slice(1)), f: b.f, x: b.x });
     else if (b.via && b.via[0] === 'a') plan.push({ balloon: Number(b.via.slice(1)), f: b.f, x: b.x, dir: b.f > a.f ? 1 : -1 });
     else if (b.via && b.via[0] === 's') plan.push({ slide: Number(b.via.slice(1)), f: b.f, x: b.x });
     else if (b.via && b.via[0] === 'b') plan.push({ bridge: Number(b.via.slice(1)), dir: Math.sign(b.x - a.x), f: b.f, x: b.x });
@@ -620,23 +725,38 @@ export function playPath(lv, path, maxSeconds = 300) {
     const left = nearDock === -1 ? C.dwell - p : 2 * C.dwell + m - p;
     return d === nearDock && left >= 34 ? dir : (Math.abs(dx) > 6 ? Math.sign(dx) * 0.9 : 0);
   };
+  // Aufzug oben: nur loslaufen, wenn er lange genug hält, um die Strecke dx zu schaffen
+  const liftOk = (li, dx) => { const { p, m } = liftCycle(li, s.clock); return liftDock(li, s.clock) === 1 && 2 * C.ldwell + m - p >= Math.abs(dx) / C.walk * HZ * 1.3 + 14; };
+  const toward = (dx) => Math.sign(dx) * Math.max(0.5, Math.min(1, Math.abs(dx) / 30));
   while (!s.done && s.clock < maxSeconds * HZ) {
     const a = plan[k]; let ix = 0, iy = 0;
     if (s.stun > 0) { step(s, 0, 0); continue; }
-    if (s.slide >= 0 || s.fly >= 0 || s.hole >= 0) { step(s, 0, 0); continue; }
+    if (s.slide >= 0 || s.fly >= 0 || s.hole >= 0 || s.skid || s.lift >= 0) { step(s, 0, 0); continue; }
+    if (a && a.lift !== undefined) {
+      const li = lv.lifts[a.lift], dx = li.x - s.x;
+      if (s.f === a.f && Math.abs(s.x - a.x) < 1) { k++; continue; }
+      if (Math.abs(dx) > 3 && (s.f === li.f || Math.abs(dx) < C.lgap || liftOk(li, dx))) ix = toward(dx);
+      step(s, ix, 0); continue;
+    }
+    if (a && a.lstep !== undefined) {
+      const li = lv.lifts[a.lstep], dx = a.x - s.x;
+      if (Math.abs(dx) < 3) { k++; continue; }
+      if (Math.abs(s.x - li.x) < C.lgap || liftOk(li, dx)) ix = toward(dx);
+      step(s, ix, 0); continue;
+    }
     if (!a) { ix = Math.sign(lv.door.x - s.x); if (wakeWait(ix)) ix = 0; }
     else if (a.hole !== undefined) {
       if (s.f === a.f && Math.abs(s.x - a.x) < 0.5) { k++; continue; }
-      const dx = lv.holes[a.hole].x - s.x;
-      if (Math.abs(dx) > 5) ix = Math.sign(dx) * Math.max(0.5, Math.min(1, Math.abs(dx) / 30)); else iy = 1;
+      const dx = lv.holes[a.hole].x - s.x; // in Greifweite reicht (auf Eis kann man nicht genau davor anhalten)
+      if (Math.abs(dx) > C.grab - 10) ix = toward(dx); else iy = 1;
     } else if (a.balloon !== undefined) {
       if (s.f === a.f) { k++; continue; }
       const bl = lv.balloons[a.balloon], dx = (a.dir > 0 ? bl.x : bl.to) - s.x;
-      if (Math.abs(dx) > 5) ix = Math.sign(dx) * Math.max(0.5, Math.min(1, Math.abs(dx) / 30)); else iy = a.dir; // ruft ihn und wartet, bis er da ist
+      if (Math.abs(dx) > C.grab - 10) ix = toward(dx); else iy = a.dir; // ruft ihn und wartet, bis er da ist
     } else if (a.slide !== undefined) {
       if (s.f === a.f) { k++; continue; }
       const dx = lv.slides[a.slide].x - s.x;
-      if (Math.abs(dx) > 5) ix = Math.sign(dx) * Math.max(0.5, Math.min(1, Math.abs(dx) / 30)); else iy = -1;
+      if (Math.abs(dx) > C.grab - 10) ix = toward(dx); else iy = -1;
     } else if (a.bridge !== undefined) {
       const br = lv.bridges[a.bridge];
       if (s.ride < 0 && s.f === a.f && (a.dir > 0 ? s.x >= Math.max(a.x - 3, br.b + 5) : s.x <= Math.min(a.x + 3, br.a - 5))) { k++; continue; }
@@ -652,6 +772,8 @@ export function playPath(lv, path, maxSeconds = 300) {
     } else {
       iy = a.climb;
       if (s.ladder < 0 && s.f === a.f) { k++; continue; }
+      const l = s.ladder < 0 && lv.ladders.find((o) => Math.abs(o.x - a.x) < 1 && (a.climb > 0 ? o.f === s.f : o.f + 1 === s.f));
+      if (l && Math.abs(l.x - s.x) > C.grab - 6) { ix = toward(l.x - s.x); iy = 0; } // knapp außer Reichweite: näher heran
     }
     step(s, ix, iy);
     if (++guard > maxSeconds * HZ * 2) break;
@@ -660,7 +782,7 @@ export function playPath(lv, path, maxSeconds = 300) {
 }
 
 // ---------- Spielstand ----------
-export function freshSave() { return { v: 1, unlocked: 1, best: {}, mute: false }; }
+export function freshSave() { return { v: 1, unlocked: 1, best: {}, mute: false, gifts: {} }; }
 export function sanitizeSave(raw, count) {
   const s = freshSave();
   if (!raw || typeof raw !== 'object') return s;
@@ -669,6 +791,7 @@ export function sanitizeSave(raw, count) {
   if (raw.best && typeof raw.best === 'object') for (const [k, b] of Object.entries(raw.best)) {
     const n = Number(k); if (Number.isInteger(n) && n >= 1 && n <= count && b && Number.isInteger(b.t) && b.t > 0 && Number.isInteger(b.r) && b.r >= 0) s.best[n] = { t: b.t, r: b.r };
   }
+  if (raw.gifts && typeof raw.gifts === 'object') for (const [k, v] of Object.entries(raw.gifts)) { const n = Number(k); if (v === 1 && Number.isInteger(n) && n >= 1 && n <= count) s.gifts[n] = 1; }
   return s;
 }
 // Ergebnis eintragen. t in Schritten. Liefert, ob es eine neue Bestzeit ist.

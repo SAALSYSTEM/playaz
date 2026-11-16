@@ -2,14 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { LEVELS, LEVEL_COUNT } from '../public/spiele/dino-leiterhelden/levels.js';
-import { C, HZ, layout, newState, step, validate, solve, playPath, nutDanger, bridgeDock, bridgeLo, wakerAwake, slideExit, balloonTimes, neckOpen, gateOpen, deadEnds, freshSave, sanitizeSave, recordRun, parseChallenge, beats, centis, fmt } from '../public/spiele/dino-leiterhelden/engine.js';
+import { C, HZ, layout, newState, step, validate, solve, playPath, nutDanger, bridgeDock, bridgeLo, wakerAwake, slideExit, balloonTimes, neckOpen, gateOpen, deadEnds, liftDock, freshSave, sanitizeSave, recordRun, parseChallenge, beats, centis, fmt } from '../public/spiele/dino-leiterhelden/engine.js';
 import worker from '../src/worker.js';
 
 const run = (s, ix, iy, ticks) => { for (let i = 0; i < ticks; i++) step(s, ix, iy); return s; };
 const lv = (o) => ({ tip: { icon: '·', text: 'Test' }, ladders: [], door: { x: 820 }, start: { f: 0, x: 100 }, friends: [{ f: 0, x: 300 }, { f: 0, x: 500 }, { f: 0, x: 700 }], ...o });
 
-test('150 gültige Level: Freunde erreichbar, Tür lösbar, jede Mechanik wird gebraucht, Bot schafft jedes ohne Rücksetzer', () => {
-  assert.equal(LEVEL_COUNT, 150);
+test('180 gültige Level: Freunde erreichbar, Tür lösbar, jede Mechanik wird gebraucht, Bot schafft jedes ohne Rücksetzer', () => {
+  assert.equal(LEVEL_COUNT, 180);
   LEVELS.forEach((level, i) => {
     const n = i + 1;
     assert.deepEqual(validate(level), [], `Level ${n}`);
@@ -146,7 +146,7 @@ test('Level 91–150: Höhlen, Felsbrocken und Nacht werden eingeführt, gebrauc
   const all = (l) => ['monsters', 'levers', 'nuts', 'slides', 'bridges', 'wakers', 'balloons', 'necks', 'holes', 'rocks'].filter((k) => (l[k] || []).length).concat(l.night ? ['night'] : []);
   for (let n = 131; n <= 144; n++) assert.ok(all(LEVELS[n - 1]).length >= 2, `Level ${n}: Mischung`);
   for (let n = 145; n <= 150; n++) assert.ok(LEVELS[n - 1].night && kinds(LEVELS[n - 1]).length >= 3, `Level ${n}: Nacht-Finale`);
-  LEVELS.slice(90).forEach((l, i) => {
+  LEVELS.slice(90, 150).forEach((l, i) => {
     const n = i + 91, path = solve(l).path, end = path.at(-1);
     assert.ok(end.rk.every((r) => r.st !== 0), `Level ${n}: jeder Stein wird gebraucht`);
     const used = new Set(path.filter((p) => p.via && p.via[0] === 'h').map((p) => l.holes[+p.via.slice(1)].c));
@@ -158,6 +158,45 @@ test('Level 91–150: Höhlen, Felsbrocken und Nacht werden eingeführt, gebrauc
 
 test('Keine Sackgassen: In keinem Level kann man sich so verlaufen, dass nur noch Neustart hilft', () => {
   LEVELS.forEach((l, i) => assert.equal(deadEnds(l).dead, 0, `Level ${i + 1}`));
+});
+
+test('Level 151–180: Winter mit Eis und Aufzug, jedes Geschenk erreichbar', () => {
+  const W = LEVELS.slice(150);
+  W.forEach((l, i) => { const n = i + 151;
+    assert.ok(l.winter && l.gift, `Level ${n}: Winter mit Geschenk`);
+    assert.ok(solve({ ...l, friends: [...l.friends, l.gift] }).ok, `Level ${n}: Geschenk erreichbar`);
+    assert.ok(l.tip.text.length <= 45, `Level ${n}: kurzer Tipp`);
+  });
+  for (let n = 151; n <= 154; n++) assert.ok(!LEVELS[n - 1].ice && !LEVELS[n - 1].lifts, `Level ${n}: nur bekannte Elemente`);
+  for (let n = 155; n <= 162; n++) assert.ok(LEVELS[n - 1].ice && !LEVELS[n - 1].lifts, `Level ${n}: Eis`);
+  for (let n = 163; n <= 169; n++) assert.ok(LEVELS[n - 1].lifts && solve(LEVELS[n - 1]).path.some((p) => p.via === 'l0'), `Level ${n}: Aufzug wird gebraucht`);
+  for (let n = 170; n <= 175; n++) assert.ok(LEVELS[n - 1].ice && LEVELS[n - 1].lifts, `Level ${n}: Eis und Aufzug`);
+  assert.ok(LEVELS[155].piles, 'Level 156 zeigt den Schneehaufen');
+});
+
+test('Eis: schlittern bis zum Schneehaufen oder kurz hinter das Eisende, unterwegs wird eingesammelt', () => {
+  const level = lv({ floors: [[[40, 860]]], ice: [{ f: 0, a: 200, b: 600 }], piles: [{ f: 0, x: 500 }], start: { f: 0, x: 150 }, door: { x: 780 },
+    friends: [{ f: 0, x: 300 }, { f: 0, x: 680 }, { f: 0, x: 740 }] });
+  assert.deepEqual(validate(level), []);
+  const s = newState(level);
+  run(s, 1, 0, 12); assert.ok(s.skid === 1, 'auf dem Eis schlittert er');
+  run(s, 0, 0, 60); assert.equal(s.skid, 0); assert.equal(s.x, 500 - C.pile, 'hält am Schneehaufen'); assert.equal(s.got[0], 1, 'Freund unterwegs eingesammelt');
+  run(s, -1, 0, 3); run(s, 0, 0, 90); assert.equal(s.x, 200 - C.iceOut, 'zurück: kurz hinter dem Eisende'); assert.equal(s.resets, 0);
+  run(s, 1, 0, 8); run(s, -1, 0, 1); assert.ok(s.skid === 1, 'beim Schlittern zählt keine Steuerung');
+});
+
+test('Lianen-Aufzug: unten warten, oben durch den Schacht, fährt nur im Takt', () => {
+  const li = { f: 0, x: 450, up: 1, period: 480, offset: 0 };
+  const level = lv({ floors: [[[40, 860]], [[40, 380], [520, 860]]], lifts: [li], start: { f: 0, x: 450 }, door: { x: 750 },
+    friends: [{ f: 0, x: 250 }, { f: 1, x: 200 }, { f: 1, x: 650 }] });
+  assert.deepEqual(validate(level), []);
+  const s = newState(level);
+  run(s, 0, 0, C.ldwell + 2); assert.equal(s.lift, 0, 'wer im Korb wartet, fährt mit');
+  run(s, 0, 0, 124); assert.equal(s.lift, -1); assert.equal(s.f, 1); assert.equal(liftDock(li, s.clock), 1);
+  run(s, 1, 0, 40); assert.ok(s.x > 520, 'solange er oben hält, ist der Schacht ein Weg');
+  const t = newState({ ...level, start: { f: 0, x: 250 } }); run(t, 1, 0, 30); run(t, 0, 0, 2);
+  assert.equal(t.lift, -1, 'wer zu spät kommt, wartet auf die nächste Fahrt');
+  assert.ok(validate(lv({ ...level, floors: [[[40, 860]], [[40, 860]]] })).some((e) => e.includes('Schacht')), 'oben braucht er einen Schacht');
 });
 
 test('Zauber-Baumhöhle: nach oben ziehen, kommt bei gleicher Farbe heraus, in beide Richtungen', () => {
@@ -247,9 +286,10 @@ test('Spielstand und Herausforderung: Bestzeit, Freischalten, Gleichstand über 
   const save = freshSave();
   assert.equal(recordRun(save, 1, 600, 0, 30), true); assert.equal(save.unlocked, 2);
   assert.equal(recordRun(save, 30, 900, 0, 60), true); assert.equal(save.unlocked, 31, 'nach Level 30 geht es mit Level 31 weiter'); assert.equal(recordRun(save, 60, 900, 0, 90), true); assert.equal(save.unlocked, 61, 'nach Level 60 geht es mit Level 61 weiter'); assert.equal(recordRun(save, 90, 900, 0, 90), true); assert.equal(save.unlocked, 90);
+  assert.deepEqual(freshSave().gifts, {}, 'Geschenke werden im Spielstand gemerkt');
   assert.deepEqual(parseChallenge('?l=45&t=4000', 60), { l: 45, t: 4000, r: 0 });
   assert.equal(recordRun(save, 1, 700, 0, 30), false); assert.equal(recordRun(save, 1, 600, 0, 30), false);
-  assert.deepEqual(sanitizeSave({ unlocked: 99, best: { 1: { t: 5, r: 0 }, 50: { t: 1, r: 0 }, x: 1 }, mute: 'ja' }, 30), { v: 1, unlocked: 30, best: { 1: { t: 5, r: 0 } }, mute: false });
+  assert.deepEqual(sanitizeSave({ unlocked: 99, best: { 1: { t: 5, r: 0 }, 50: { t: 1, r: 0 }, x: 1 }, mute: 'ja', gifts: { 3: 1, 40: 1, 5: 'ja' } }, 30), { v: 1, unlocked: 30, best: { 1: { t: 5, r: 0 } }, mute: false, gifts: { 3: 1 } });
   assert.deepEqual(sanitizeSave('kaputt', 30), freshSave());
   assert.deepEqual(parseChallenge('?l=7&t=4523&r=1', 30), { l: 7, t: 4523, r: 1 });
   for (const bad of ['?l=0&t=4000', '?l=31&t=4000', '?l=3&t=abc', '?l=3&t=50', '?l=3&t=4000&r=-1']) assert.equal(parseChallenge(bad, 30), null, bad);

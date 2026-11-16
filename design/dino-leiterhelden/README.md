@@ -63,3 +63,11 @@ Zugeschnitten und bereinigt aus den ChatGPT-Originalen (Rauschpixel entfernt, Ra
   zusammengesetzt, an die Stelle der Pfosten im geschlossenen Tor.
 - `laterne.png`: 2 × 1, 192 × 256: dunkel, leuchtet. Pfahl 16 px über dem Zellrand.
 - `hintergrund-4.jpg`: Nacht-Version der Szene, 1080 × 1920 (aus 941 × 1672 hochskaliert).
+
+## Level 151–180 (Winter)
+
+- `hintergrund-5.jpg`: verschneite Version der Szene, 1080 × 1920 (aus 941 × 1672 hochskaliert).
+- `eisplatte.png`: 948 × 96, kachelbar (das ChatGPT-Bild einmal gespiegelt angehängt), Holz so dick wie `plattform.png`.
+- `schneehaufen.png`: 256 × 192, Unterkante 16 px über dem Rand.
+- `aufzug.png`: 320 × 384, Korbboden 16 px über dem Rand; Korbrand ab y = 290 (wird vor dem Dino noch einmal gezeichnet).
+- `geschenk.png`: 128 × 128.

@@ -1,4 +1,4 @@
-// 150 handgebaute Level. Etage 0 ist unten. x läuft von 0 (links) bis 900 (rechts).
+// 180 handgebaute Level. Etage 0 ist unten. x läuft von 0 (links) bis 900 (rechts).
 // floors: Plattform-Stücke je Etage · ladders: {f, x} verbindet Etage f mit f+1 (hidden: erst nach Hebel)
 // friends: genau 3 · door: Baumhaustür auf der obersten Etage · monsters/fruits/levers/nuts: Hindernisse
 // tip: wird vor jedem Level gezeigt (Symbol + kurzer Satz)
@@ -22,6 +22,11 @@ const plate = (f, x, g = 0) => ({ f, x, gate: g });
 const gate = (f, x) => ({ f, x });
 const lamp = (f, x) => ({ f, x });
 const P3 = (a1, b1, a2, b2) => [[40, a1], [b1, a2], [b2, 860]]; // Etage mit zwei Lücken
+// Neu ab Level 151 (Winter): ice = Eisbereich a–b einer Etage · pile = Schneehaufen (kleine Wand, an der man auf Eis anhält)
+// lift = Lianen-Aufzug bei x von Etage f up Etagen hoch (oben braucht er den Schacht gap(x - 70, x + 70)) · gift = Geschenk (freiwillig)
+const ice = (f, a, b) => ({ f, a, b });
+const pile = (f, x) => ({ f, x });
+const lift = (f, x, up = 1, period = 480, offset = 0) => ({ f, x, up, period, offset });
 
 export const LEVELS = [
   { name: 'Hallo, Freunde!', tip: { icon: '👆', text: 'Finger auflegen und ziehen' },
@@ -862,6 +867,161 @@ export const LEVELS = [
     holes: [hole(2, 780, 0), hole(3, 780, 0), hole(3, 120, 1), hole(4, 820, 1)], rocks: [rock(3, 620)], pits: [pit(3, 400, 500)],
     necks: [neck(4, 240, 440)], leaves: [{ f: 3, x: 250 }],
     lamps: [lamp(0, 600), lamp(1, 700), lamp(2, 250), lamp(3, 300)],
-    friends: [{ f: 2, x: 150 }, { f: 1, x: 620 }, { f: 4, x: 720 }] }
+    friends: [{ f: 2, x: 150 }, { f: 1, x: 620 }, { f: 4, x: 720 }] },
+  // ---------- Level 151–154: Winter – Wiedersehen ----------
+  { name: 'Winterwunder', tip: { icon: '❄️', text: 'Es hat geschneit! Findest du das Geschenk?' }, winter: true,
+    floors: fl(3), start: { f: 0, x: 100 }, door: { x: 705 }, ladders: [{ f: 0, x: 780 }, { f: 1, x: 120 }],
+    monsters: [{ f: 1, x: 450 }], fruits: [{ f: 0, x: 450 }], gift: { f: 2, x: 100 },
+    friends: [{ f: 0, x: 300 }, { f: 1, x: 650 }, { f: 2, x: 300 }] },
+
+  { name: 'Schneerutsche', tip: { icon: '🛝', text: 'Rutschen geht auch im Winter' }, winter: true,
+    floors: fl(3), start: { f: 2, x: 100 }, door: { x: 705 }, ladders: [{ f: 0, x: 780 }, { f: 1, x: 120 }], slides: [slide(1, 300)],
+    nuts: [nut(0, 300, 150, 0)], gift: { f: 0, x: 120 },
+    friends: [{ f: 0, x: 480 }, { f: 1, x: 400 }, { f: 2, x: 600 }] },
+
+  { name: 'Ballon im Schnee', tip: { icon: '🎈', text: 'Mit dem Ballon durch den Schnee' }, winter: true,
+    floors: [F, gap(340, 560), F], start: { f: 0, x: 100 }, door: { x: 195 }, ladders: [{ f: 1, x: 780 }],
+    balloons: [balloon(0, 450, 1, 600)], gift: { f: 0, x: 830 },
+    friends: [{ f: 0, x: 700 }, { f: 1, x: 690 }, { f: 2, x: 450 }] },
+
+  { name: 'Höhle im Schnee', tip: { icon: '🌀', text: 'Hebel, Höhle, Leiter' }, winter: true,
+    floors: fl(3), start: { f: 0, x: 100 }, door: { x: 705 }, ladders: [{ f: 1, x: 780, hidden: true }], levers: [{ f: 0, x: 450, ladder: 0 }],
+    holes: [hole(0, 750, 0), hole(1, 150, 0)], gift: { f: 1, x: 70 },
+    friends: [{ f: 0, x: 300 }, { f: 1, x: 450 }, { f: 2, x: 300 }] },
+
+  // ---------- Level 155–162: Eis ----------
+  { name: 'Glattes Eis', tip: { icon: '⛸️', text: 'Auf dem Eis schlitterst du!' }, winter: true,
+    floors: fl(2), start: { f: 0, x: 100 }, door: { x: 195 }, ladders: [{ f: 0, x: 760 }], ice: [ice(0, 200, 600)], gift: { f: 1, x: 70 },
+    friends: [{ f: 0, x: 300 }, { f: 0, x: 500 }, { f: 1, x: 600 }] },
+
+  { name: 'Der Schneehaufen', tip: { icon: '⛄', text: 'Am Schneehaufen hältst du an' }, winter: true,
+    floors: fl(2), start: { f: 0, x: 70 }, door: { x: 820 }, ladders: [{ f: 0, x: 500 }, { f: 0, x: 760 }],
+    ice: [ice(0, 120, 780)], piles: [pile(0, 580)], gift: { f: 0, x: 700 },
+    friends: [{ f: 0, x: 300 }, { f: 1, x: 200 }, { f: 1, x: 650 }] },
+
+  { name: 'Eis im ersten Stock', tip: { icon: '⛸️', text: 'Halte am Schneehaufen' }, winter: true,
+    floors: fl(3), start: { f: 0, x: 100 }, door: { x: 195 }, ladders: [{ f: 0, x: 150 }, { f: 1, x: 450 }, { f: 1, x: 760 }],
+    ice: [ice(1, 200, 800)], piles: [pile(1, 530)], gift: { f: 1, x: 700 },
+    friends: [{ f: 0, x: 600 }, { f: 1, x: 300 }, { f: 2, x: 700 }] },
+
+  { name: 'Zwei Schneehaufen', tip: { icon: '⛄', text: 'Zwischen zwei Schneehaufen' }, winter: true,
+    floors: fl(3), start: { f: 0, x: 300 }, door: { x: 195 }, ladders: [{ f: 0, x: 780 }, { f: 0, x: 150 }, { f: 1, x: 400 }, { f: 1, x: 700 }],
+    ice: [ice(1, 100, 800)], piles: [pile(1, 280), pile(1, 620)], gift: { f: 1, x: 100 },
+    friends: [{ f: 0, x: 450 }, { f: 1, x: 500 }, { f: 2, x: 600 }] },
+
+  { name: 'Rutsche aufs Eis', tip: { icon: '🛝', text: 'Von der Rutsche aufs Eis' }, winter: true,
+    floors: fl(3), start: { f: 2, x: 100 }, door: { x: 195 }, ladders: [{ f: 0, x: 400 }, { f: 1, x: 120 }], slides: [slide(1, 300)],
+    ice: [ice(1, 400, 800)], gift: { f: 0, x: 100 },
+    friends: [{ f: 0, x: 700 }, { f: 1, x: 750 }, { f: 2, x: 500 }] },
+
+  { name: 'Eisbahn', tip: { icon: '⛸️', text: 'Ganz schön glatt hier' }, winter: true,
+    floors: fl(4), start: { f: 0, x: 100 }, door: { x: 705 }, ladders: [{ f: 0, x: 780 }, { f: 1, x: 400 }, { f: 1, x: 120 }, { f: 2, x: 760 }],
+    ice: [ice(1, 100, 820)], piles: [pile(1, 300)], gift: { f: 1, x: 180 },
+    friends: [{ f: 1, x: 600 }, { f: 2, x: 650 }, { f: 3, x: 300 }] },
+
+  { name: 'Eis-Labyrinth', tip: { icon: '🧭', text: 'Wo hältst du an?' }, winter: true,
+    floors: fl(4), start: { f: 0, x: 450 }, door: { x: 450 }, ladders: [{ f: 0, x: 780 }, { f: 0, x: 120 }, { f: 1, x: 600 }, { f: 1, x: 400 }, { f: 2, x: 150 }],
+    ice: [ice(0, 100, 800), ice(1, 200, 760)], piles: [pile(1, 500)], gift: { f: 1, x: 700 },
+    friends: [{ f: 0, x: 300 }, { f: 1, x: 350 }, { f: 3, x: 750 }] },
+
+  { name: 'Eisige Höhlen', tip: { icon: '🌀', text: 'Rutschen und durch die Höhle' }, winter: true,
+    floors: fl(3), start: { f: 0, x: 100 }, door: { x: 195 }, ladders: [{ f: 1, x: 350 }],
+    ice: [ice(1, 100, 800)], piles: [pile(1, 450)], holes: [hole(0, 750, 0), hole(1, 150, 0), hole(1, 760, 1), hole(2, 800, 1)], gift: { f: 1, x: 600 },
+    friends: [{ f: 0, x: 400 }, { f: 1, x: 300 }, { f: 2, x: 600 }] },
+
+  // ---------- Level 163–169: der Lianen-Aufzug ----------
+  { name: 'Der Lianen-Aufzug', tip: { icon: '🧺', text: 'Im Korb warten – er fährt dich hoch' }, winter: true,
+    floors: [F, gap(380, 520)], start: { f: 0, x: 100 }, door: { x: 750 }, ladders: [], lifts: [lift(0, 450)], gift: { f: 0, x: 800 },
+    friends: [{ f: 0, x: 250 }, { f: 1, x: 200 }, { f: 1, x: 650 }] },
+
+  { name: 'Zwei Etagen hoch', tip: { icon: '🧺', text: 'Der Aufzug fährt zwei Etagen' }, winter: true,
+    floors: [F, gap(360, 540), gap(380, 520)], start: { f: 0, x: 100 }, door: { x: 195 }, ladders: [{ f: 0, x: 780 }],
+    lifts: [lift(0, 450, 2, 540)], gift: { f: 0, x: 820 },
+    friends: [{ f: 0, x: 250 }, { f: 1, x: 700 }, { f: 2, x: 750 }] },
+
+  { name: 'Über den Korb', tip: { icon: '🎚️', text: 'Über den Korb auf die andere Seite' }, winter: true,
+    floors: [F, gap(380, 520), F], start: { f: 0, x: 100 }, door: { x: 450 }, ladders: [{ f: 1, x: 150, hidden: true }],
+    levers: [{ f: 1, x: 760, ladder: 0 }], lifts: [lift(0, 450)], gift: { f: 0, x: 800 },
+    friends: [{ f: 1, x: 650 }, { f: 1, x: 250 }, { f: 2, x: 700 }] },
+
+  { name: 'Frucht im Aufzug', tip: { icon: '🍊', text: 'Die Frucht fährt mit' }, winter: true,
+    floors: [F, gap(380, 520), F], start: { f: 0, x: 100 }, door: { x: 195 }, ladders: [{ f: 1, x: 780 }],
+    lifts: [lift(0, 450)], monsters: [{ f: 2, x: 450 }], fruits: [{ f: 0, x: 250 }], gift: { f: 1, x: 90 },
+    friends: [{ f: 0, x: 700 }, { f: 1, x: 200 }, { f: 2, x: 650 }] },
+
+  { name: 'Zwei Aufzüge', tip: { icon: '🧺', text: 'Ein Aufzug nach dem anderen' }, winter: true,
+    floors: [F, gap(380, 520), F, gap(180, 320)], start: { f: 0, x: 100 }, door: { x: 450 }, ladders: [{ f: 1, x: 780 }],
+    lifts: [lift(0, 450), lift(2, 250, 1, 420, 100)], gift: { f: 1, x: 150 },
+    friends: [{ f: 0, x: 700 }, { f: 2, x: 600 }, { f: 3, x: 700 }] },
+
+  { name: 'Aufzug und Hebel', tip: { icon: '🎚️', text: 'Oben wartet ein Hebel' }, winter: true,
+    floors: [F, F, gap(380, 520), F], start: { f: 0, x: 100 }, door: { x: 195 }, ladders: [{ f: 0, x: 780 }, { f: 2, x: 150, hidden: true }],
+    levers: [{ f: 2, x: 750, ladder: 1 }], lifts: [lift(1, 450)], gift: { f: 2, x: 830 },
+    friends: [{ f: 0, x: 300 }, { f: 1, x: 200 }, { f: 3, x: 600 }] },
+
+  { name: 'Aufzug-Turm', tip: { icon: '🗼', text: 'Zwei Aufzüge bis ganz nach oben' }, winter: true,
+    floors: [F, [[40, 210], [390, 860]], gap(230, 370), [[40, 560], [740, 860]], gap(580, 720)], start: { f: 0, x: 100 }, door: { x: 195 },
+    ladders: [{ f: 0, x: 780 }, { f: 3, x: 150 }], lifts: [lift(0, 300, 2, 540), lift(2, 650, 2, 540, 200)], gift: { f: 2, x: 100 },
+    friends: [{ f: 1, x: 600 }, { f: 3, x: 300 }, { f: 4, x: 800 }] },
+
+  // ---------- Level 170–175: Eis und Aufzug ----------
+  { name: 'Eis am Aufzug', tip: { icon: '⛸️', text: 'Erst schlittern, dann hochfahren' }, winter: true,
+    floors: [F, gap(380, 520)], start: { f: 0, x: 600 }, door: { x: 820 }, ladders: [], lifts: [lift(0, 450)],
+    ice: [ice(0, 100, 330)], gift: { f: 0, x: 800 },
+    friends: [{ f: 0, x: 200 }, { f: 1, x: 200 }, { f: 1, x: 700 }] },
+
+  { name: 'Oben ist es glatt', tip: { icon: '⛸️', text: 'Oben schlitterst du weiter' }, winter: true,
+    floors: [F, gap(380, 520), F], start: { f: 0, x: 100 }, door: { x: 195 }, ladders: [{ f: 1, x: 780 }], lifts: [lift(0, 450)],
+    ice: [ice(1, 80, 300)], gift: { f: 0, x: 830 },
+    friends: [{ f: 0, x: 700 }, { f: 1, x: 150 }, { f: 2, x: 450 }] },
+
+  { name: 'Schneehaufen am Aufzug', tip: { icon: '⛄', text: 'Der Schneehaufen hält dich an' }, winter: true,
+    floors: [F, gap(530, 670), F], start: { f: 0, x: 800 }, door: { x: 195 }, ladders: [{ f: 0, x: 150 }, { f: 1, x: 780 }],
+    lifts: [lift(0, 600)], ice: [ice(0, 100, 400)], piles: [pile(0, 250)], gift: { f: 0, x: 120 },
+    friends: [{ f: 0, x: 350 }, { f: 1, x: 300 }, { f: 2, x: 700 }] },
+
+  { name: 'Aufzug zur Eisbahn', tip: { icon: '🧺', text: 'Hoch und dann schlittern' }, winter: true,
+    floors: [F, gap(380, 520), F], start: { f: 0, x: 100 }, door: { x: 195 }, ladders: [{ f: 1, x: 780 }], lifts: [lift(0, 450)],
+    ice: [ice(1, 560, 820)], gift: { f: 1, x: 200 },
+    friends: [{ f: 0, x: 700 }, { f: 1, x: 700 }, { f: 2, x: 450 }] },
+
+  { name: 'Glatt nach oben', tip: { icon: '⛸️', text: 'Links und rechts ist Eis' }, winter: true,
+    floors: [F, gap(380, 520)], start: { f: 0, x: 450 }, door: { x: 195 }, ladders: [], lifts: [lift(0, 450)],
+    ice: [ice(0, 100, 330), ice(0, 570, 800), ice(1, 560, 800)], gift: { f: 1, x: 90 },
+    friends: [{ f: 0, x: 200 }, { f: 0, x: 700 }, { f: 1, x: 650 }] },
+
+  { name: 'Winter-Wirrwarr', tip: { icon: '🌀', text: 'Aufzug, Eis und Höhle' }, winter: true,
+    floors: [F, gap(380, 520), F, F], start: { f: 0, x: 100 }, door: { x: 705 }, ladders: [{ f: 2, x: 780 }], lifts: [lift(0, 450)],
+    ice: [ice(1, 560, 820)], piles: [pile(1, 760)], holes: [hole(1, 700, 0), hole(3, 150, 0)], gift: { f: 2, x: 450 },
+    friends: [{ f: 0, x: 750 }, { f: 1, x: 650 }, { f: 3, x: 450 }] },
+
+  // ---------- Level 176–180: das Winter-Finale ----------
+  { name: 'Schneeballon', tip: { icon: '🎈', text: 'Ballon, Eis und ein Monster' }, winter: true,
+    floors: [F, gap(340, 560), F, F], start: { f: 0, x: 100 }, door: { x: 705 }, ladders: [{ f: 1, x: 780 }, { f: 2, x: 480 }, { f: 2, x: 120 }],
+    balloons: [balloon(0, 450, 1, 600)], ice: [ice(2, 100, 700)], piles: [pile(2, 400)], monsters: [{ f: 3, x: 300 }], fruits: [{ f: 0, x: 250 }],
+    gift: { f: 3, x: 820 },
+    friends: [{ f: 0, x: 750 }, { f: 1, x: 700 }, { f: 2, x: 250 }] },
+
+  { name: 'Langhals im Schnee', tip: { icon: '🦕', text: 'Ein Blatt für den Langhals' }, winter: true,
+    floors: [F, gap(380, 520), gap(240, 440)], start: { f: 0, x: 600 }, door: { x: 90 }, ladders: [{ f: 1, x: 780 }], lifts: [lift(0, 450)],
+    ice: [ice(0, 100, 330)], necks: [neck(2, 240, 440)], leaves: [{ f: 1, x: 690 }], gift: { f: 0, x: 200 },
+    friends: [{ f: 0, x: 750 }, { f: 1, x: 200 }, { f: 2, x: 720 }] },
+
+  { name: 'Höhle, Eis und Ballon', tip: { icon: '🌀', text: 'Fliegen, schlittern, Höhle' }, winter: true,
+    floors: [F, gap(340, 560), F, F], start: { f: 0, x: 100 }, door: { x: 195 }, ladders: [{ f: 2, x: 780 }],
+    balloons: [balloon(0, 450, 1, 600)], ice: [ice(1, 600, 820)], holes: [hole(1, 800, 1), hole(2, 150, 1)], gift: { f: 0, x: 800 },
+    friends: [{ f: 1, x: 750 }, { f: 2, x: 500 }, { f: 3, x: 600 }] },
+
+  { name: 'Großer Wintertag', tip: { icon: '🎚️', text: 'Schläfer, Aufzug, Eis, Hebel' }, winter: true,
+    floors: [F, gap(580, 720), F, F], start: { f: 0, x: 100 }, door: { x: 195 }, ladders: [{ f: 1, x: 800 }, { f: 2, x: 780, hidden: true }],
+    levers: [{ f: 1, x: 420, ladder: 1 }], lifts: [lift(0, 650)], wakers: [waker(0, 380, 300, 0)],
+    ice: [ice(1, 100, 500)], piles: [pile(1, 300)], gift: { f: 2, x: 100 },
+    friends: [{ f: 0, x: 200 }, { f: 2, x: 450 }, { f: 3, x: 600 }] },
+
+  { name: 'Das Winter-Finale', tip: { icon: '🏆', text: 'Das allergrößte Winter-Abenteuer!' }, winter: true,
+    floors: [F, gap(340, 560), F, gap(230, 370), F], start: { f: 0, x: 100 }, door: { x: 195 }, ladders: [{ f: 1, x: 800 }],
+    fruits: [{ f: 0, x: 250 }], balloons: [balloon(0, 450, 1, 650)], ice: [ice(1, 600, 800)], nuts: [nut(2, 550, 150, 0)],
+    lifts: [lift(2, 300)], monsters: [{ f: 3, x: 600 }], holes: [hole(3, 800, 2), hole(4, 800, 2)], gift: { f: 3, x: 100 },
+    friends: [{ f: 1, x: 750 }, { f: 2, x: 150 }, { f: 4, x: 650 }] }
 ];
 export const LEVEL_COUNT = LEVELS.length;
